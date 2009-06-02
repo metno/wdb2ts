@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[ 
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<refentry id='wdb2ts_location'>
+	
+	<refmeta>
+		<refentrytitle>metno-wdb2ts_location</refentrytitle>
+		<manvolnum>1</manvolnum>
+	</refmeta>
+	
+	<refnamediv>
+		<refname>metno-wdb2ts_location_handler</refname>
+		<refpurpose>
+		   This decribes the location handler to wdb2ts. It is part of the
+		   wdb2ts apache module.
+		</refpurpose>
+	</refnamediv>
+
+<!-- 	
+	<refsynopsisdiv>
+		<cmdsynopsis>
+			<command>feltLoad</command>
+			<arg choice='opt'>OPTIONS</arg>
+			<arg choice='req'>FELTFILE1</arg>
+			<arg choice='opt'>FELTFILE2... FELTFILEN</arg>
+		</cmdsynopsis>
+	</refsynopsisdiv>
+-->	
+	<refsect1>
+		<title>Description</title>
+		<para>
+		   The location handler accept request on the form.
+		  <programlisting> 
+   http://host/path/location?lat=10;lon=10;parameterspec
+			</programlisting>
+			
+			and return a comma separated list of values (CSV). 
+		</para>
+	</refsect1>
+	<refsect1>
+			<title>Request URL</title>
+			
+			<para> The request URL is on the general form </para>
+
+			<programlisting> 
+http://host/path/location?lat=10;lon=10;parameterspec
+			</programlisting>
+			
+			<para>Where lat is the latitude and lon is the longitude. </para>
+			
+			<para>The parameter specification (parameterspec) defines the different dimensions 
+				for the values to be retrieved; the value parameter, the level (height), and the provider
+				of the data (source).</para>
+			
+			<para>The general form of the query:</para>
+			
+			<programlisting>
+dataprovider=dataproviderval;reftime=reftimeval;validtime=validtimeval;parameter=parameterval1,parameterval2,...,parametervalN;levelspec=levelspecval;dataversion=dataversionval
+			</programlisting>
+
+			<para>Note that the ordering of the various elements is not important, and individual elements can be ommitted if they are not relevant for the search.</para>
+						
+			<para>An example of a query for air pressure, air temperatur and the wind
+				componets u and v in and hight of 2 meter above the ground for a model run
+				started at 2007-12-10 at 10:00 o'clock. The time we are intrested in is
+				2007-12-11 at 06:00 o'clock. The model is given with a dataprovider id. We
+				ask for the most up to date data version that is given with dataversion=-1. -1
+				is a magic number for "most up to date dataversion". </para>
+			<para> The query is: </para>
+			
+			<programlisting>
+http://server/path/location?lat=10;lon=10;dataprovider=1096;reftime=2007-12-10T00:00,2007-12-10T00:00,exact;validtime=2007-12-10T00:00,2007-12-12T00:00,inside;parameter=instantaneous pressure of air,instantaneous temperature of air,instantaneous velocity of air (u-component);levelspec=2,2,above ground,exact;dataversion=-1
+			</programlisting>
+			
+		</refsect1>
+		
+		<refsect1>
+			<title>Dimension Description</title>
+			
+			<para>In the following sections, we describe the dimensions used by WDB2TS.</para>
+			
+			<refsect2>
+				<title>Location</title>
+				
+				<para>The first part of the request string location dimension specify the
+					point that the query should return data for. Location is specified
+					using the latitude and longitude of the query. The query dimension
+					below specifies latitude and longitude of 10.0:</para>
+				
+				<programlisting>
+				location?lat=10;lon=10;
+				</programlisting>
+				
+			</refsect2>
+			
+			<refsect2>
+				<title>Altitude</title>
+				
+				<para>Optionally, an altitude parameter may be given. Altitude is used for 
+					correcting temperature values. If no altitude is given, wdb2ts will read
+					an internal topography field in order to do the corrections. No 
+					temperature correction is performed if neither the altitude parameter was 
+					explicitly given, nor wdb2ts has topography information for the requested 
+					location.
+				</para>
+				
+				<para>The following query specifies that the <emphasis>real</emphasis> altitude
+					of the given location is 457 metres above sea level.</para>
+					
+				<programlisting>
+					alt=457;
+				</programlisting>
+					
+			</refsect2>
+			
+			<refsect2>
+				<title>Data Provider</title>
+				
+				<para>The data provider can be used to identify the source of the data. In
+					version 0.1, the data provider is identified by a numerical code; in the
+					next version, data provider will be specified as a text string. Data
+					provider is specified simply as follows:</para>
+
+				<programlisting>
+				dataprovider=1096;
+				</programlisting>
+			
+			</refsect2>
+			
+			<refsect2>
+				<title>Reference Time and Valid Time</title>
+				
+				<para>Reference time indicates the time of reference for the data
+					requested; valid time, the time when the data is valid. The format for specifying time
+					is the same for both dimensions. The general form is given below: </para>
+				
+				<programlisting>	
+				dimension=timefrom,timeto,indeterminatetype;
+				</programlisting>
+				
+				<para>In the general form, timefrom and timeto specify a time interval or
+					point, while the indeterminate type defines how the time period is
+					interpreted by the database. The following indeterminate types are supported by
+					WDB2TS.</para>
+				
+				<variablelist>
+					<?dbfo list-presentation="blocks"?>
+					<varlistentry>
+						<term>exact</term>
+						<listitem>
+							<para>Exact matches the query with data that has 
+								a time specification that matches precisely with
+								the time period given.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>inside</term>
+						<listitem>
+							<para>Inside matches the query with data whose time specification
+								lies within the time period given.</para>
+						</listitem>
+					</varlistentry>
+				</variablelist>
+				
+				<para>To specify data with a reference time of 12:00 on April 1, 1998, the user would specify: </para>
+				
+				<programlisting>	
+				reftime=1998-04-01T12:00:00,1998-04-01T12:00:00,exact;
+				</programlisting>
+				
+				<para>To specify the retrieval of all data valid from the reference time given above and 5 days ahead, the
+					user would specify: </para>
+				
+				<programlisting>	
+				validtime=1998-04-01T12:00:00,1998-04-06T12:00:00,inside;
+				</programlisting>
+				
+			</refsect2>
+			
+			<refsect2>
+				<title>Value Parameter</title>
+
+				<para>WDB uses constructed names based on statistics, physical
+					phenomena, parameter usage or code table name to identify the
+					parameters in the database. Examples of such parameter names are: 
+					"instant temperature of air" and "instant pressure of air"</para>
+				
+				<para>To retrieve data from the database by parameter, the user specifies
+					that the dimension is parameter, and gives the name of the parameter
+					required:</para>
+
+				<programlisting>	
+				parameter=instant temperature of air;
+				</programlisting>
+												
+				<para>It is also possible to specify multiple parameters for the query,
+					simply by separating the list with a comma.</para>
+				
+				<programlisting>	
+				parameter=instant temperature of air,instant pressure of air,accumulated surface density of precipitation;
+				</programlisting>
+				
+				<para>A simple way to figure out what parameters are available in the
+					database is to request data for a single point in time and space (where
+					there is known to be data) and request the retrieval of all parameters by
+					not specifying the parameters.</para>
+							
+			</refsect2>
+			
+			<refsect2>
+				<title>Level Specification</title>
+				
+				<para> The level specification allows the user to specify the level (i.e.,
+					factors such as altitude or depth) for which data should be returned.
+					The level specification is given as follows:</para>
+						
+				<programlisting>	
+				levelspec=levelfrom,levelto,levelparameter,indeterminatetype
+				</programlisting>
+				
+				<para>The values represented by levelfrom and levelto gives an interval
+					value for the specification (e.g., a height interval). The level
+					parameter represents a constructed parameter name (similar to the
+					value parameter) which defines the values of the level interval; for
+					example, "distance above ground" or "distance above mean sea
+					level".</para>
+				
+				<para>The indeterminate type determines how the values of the level
+					interval should be interpreted. Currently, WDB2TS supports the
+					following indeterminate types for levels:</para>
+				
+				<variablelist>
+					<?dbfo list-presentation="blocks"?>
+					<varlistentry>
+						<term>exact</term>
+						<listitem>
+							<para>Exact specifies that the query should only return data
+								whose level matches exactly with the point or interval
+								given by the query.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>inside</term>
+						<listitem>
+							<para>Inside specifies that the query should return all data
+								whose level specification lies within the interval
+								given by the query.</para>
+						</listitem>
+					</varlistentry>
+				</variablelist>
+				
+			</refsect2>
+			
+			<refsect2>
+				<title>Dataversion</title>
+				
+				<para>If different versions of the same data exists, it is possible to
+					select the version of the data one is interested in by specifying the
+					dataversion dimension. Dataversion is a numerical value.</para>
+				
+				<para>A neat feature of the dataversion parameter is that; if there are
+					multiple versions, one may always select the latest (i.e., highest)
+					version by specifying the negative value -1. Data version is specified
+					as follows:</para>
+					
+				<programlisting>	
+				dataversion=-1;
+				</programlisting>
+				
+			</refsect2>
+			
+		</refsect1>
+
+		<refsect1>
+			<title>Query Results</title>
+			
+			<para>As mentioned, data is returned to the user as a comma separated file, with
+				the first line of the query result being a header that indicates the format of
+				the file.</para>
+			
+			<para>The data returned is given below</para>
+			
+			<programlisting>
+			referencetime,
+			dataproviderid,
+			placeid,
+			latitude,
+			longitude,
+			quality,
+			dataversion,
+			validfrom,
+			validto,
+			levelparametername,
+			levelfrom,
+			levelto,
+			levelunitname,
+			parameter,
+			value,
+			parameterunit
+			</programlisting>
+
+		</refsect1>
+		<refsect1>
+		<title>Configuration</title> 
+		<para>
+		</para>
+		
+		</refsect1>
+		<refsect1>
+		<title>SEE ALSO</title>
+			<para>
+				metno-wdbt2ts(1) metno-wdb2ts_locationforecast_handler(1) 
+			</para>
+		
+		</refsect1>
+		
+	
+</refentry>

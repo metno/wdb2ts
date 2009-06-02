@@ -1,0 +1,141 @@
+#! /bin/sh
+
+if ! which wget > /dev/null 2>&1 ; then
+   echo 
+   echo "  'wget' - must be installed!" 
+   echo 
+   exit 1 
+fi 
+
+DEFAULT_OFILE="wdbget.csv" 
+DEFAULT_QFILE="wdbget.query"
+
+latitude=
+longitude=
+oreftime=
+
+for option   
+do
+   case $option in
+   -help | --help | -h)
+      dohelp=yes ;;
+      
+   -lat=* | --lat=* )
+      latitude=`expr "x$option" : "x-*lat=\([0-9.]*\)"`
+      ;;
+   
+   -lon=* | --lon=* )
+      longitude=`expr "x$option" : "x-*lon=\([0-9.]*\)"`
+      ;;
+
+   -qfile=* | --qfile=* )
+      longitude=`expr "x$option" : "x-*qfile=\(.*\)"`
+      ;;
+      
+   -ofile=* | --ofile=* )
+      longitude=`expr "x$option" : "x-*ofile=\(.*\)"`
+      ;;
+
+   -reftime=* | --reftime=* )
+      oreftime=`expr "x$option" : "x-*reftime=\(.*\)"`
+      ;;
+
+         
+   * )
+      { echo "error: unrecognized option: $option
+Try \`$0 --help' for more information." >&2
+      { (exit 1); exit 1; }; }
+      ;;
+   esac
+done
+
+
+if [ "x$dohelp" = "xyes" ]; then
+  cat <<EOF
+\`wdbget' Retrievs location data from a wdb2ts server.
+
+Usage: $0 [OPTION]...
+
+Defaults for the options are specified in brackets.
+
+Options:
+  -h, --help           display this help and exit
+  --lat=latitude       The latitude  part to the location
+  --lon=longitude      The longitude part to the location. 
+  --qfile=query file   A file to read the parameter specification
+                       of the query from.
+                       [wdbget.query]
+  --reftime            The referencetime. 
+                       Format:
+                           from,to,indetermination code
+                           
+                           Where from and to is on the form
+                           YYYY-MM-DDThh:mm:ss
+                           
+                           and the indetermination code is one 
+                           of
+                             any,exact or inside. 
+                             
+                        If fromtime is not specified it is set equal to the to time. 
+                        If the indeterimination code is not specified it default to
+                        exact.  
+                           
+                        If reftime is not given it is read from the query file. 
+
+  --ofile=Output file  The name of the output file to write the result
+                       of the query.
+                       [wdbget.csv]
+
+EOF
+   exit 0
+fi
+
+if [ -z "$latitude" -o -z "$longitude" ]; then
+   echo
+   echo "An location must be specified with --lat and --lon."
+   echo "Try wdbget --help for more information!"
+   echo 
+   exit 1
+fi 
+
+if [ "x$qfile" = "x" ]; then
+   qfile=$DEFAULT_QFILE
+fi
+
+if [ "x$ofile" = "x" ]; then
+   ofile=$DEFAULT_OFILE
+fi
+ 
+
+echo "Output: $ofile"
+echo "Query:  $qfile"
+echo "latitude: ($latitude)"
+echo "longitude ($longitude)"
+
+source $qfile
+
+if [ "x$oreftime" = "x" ]; then
+   oreftime=$reftime
+fi
+
+
+
+parameter="$(echo $parameter | sed -e 's/, */,/g')"
+
+echo "WDBQUERY"
+echo "------------------------------------"
+echo "server: $server"
+echo "reftime: $oreftime"
+echo "dataprovider: $dataprovider"
+echo "levelspec: $levelspec"
+echo "parameter: $parameter"
+
+
+WDBQUERY="$server/?lat=$latitude;lon=$longitude;reftime=$oreftime;parameter=$parameter;levelspec=$levelspec"
+
+echo "Query: $WDBQUERY"
+
+wget -d -v -S -O $ofile "$WDBQUERY"
+
+
+       

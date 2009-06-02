@@ -1,0 +1,66 @@
+/**
+@addtogroup design mod_wdb2ts design specification
+@{
+
+@author Børge Moe
+
+@section introduction Introduction
+mod_wdb2ts is an apache module to retrieve timeseries of meterological data from 
+a wdb database for a single location. The request interface is build 
+as an REST inspired web service. The interface is versioned so we are free to 
+introduce new functionality without braking existing clients.
+
+The data is delivered in one of severale formats. The format is specified on
+request. 
+
+Data delivered from the system is prdefined. This may be changed later.
+
+@subsection terminology Terminology
+
+ - REST, representational State Transfer. Is a form of web service that only use 
+   the the URL to create an request. The result is delivered in any form, but it
+   is common to use xml.
+   
+ - wdb. A database for meteorologcal data.    
+
+@section platform Tecnical platform
+The apache module require the following operational environment.
+
+ - Operating system, UNIX (Linux).
+ - Postgresql, client library. (Runtime)
+ - libpqxx, c++ interface to the postgresql client library. (Runtime)
+ - Apache 2.2.
+ - Boost
+ - Log4cxx
+ - PROJ
+
+@section concerns Concerns
+We need to take care of the following problems.
+ 
+ - Interpolation, bilinear.
+ - Vectorfields is in GRID projection, must be converted to GEO projection.
+ - Hight correction of tempereature. 
+ 
+@section architecture System architecture
+The following describes the system architecture for mod_wdb2ts.
+
+The system has three main modules
+
+ - Request broker 
+ - Request handler
+ - Data encoder
+ 
+@subsection request_broker Request broker
+The request broker decodes the incomming URL and decides which request handler
+to run. It also decodes the format the replay shall be encoded in. 
+
+@subsection request_handler Request handler
+The request handlers is the working modules in the system. They carry out
+all action that has to be done to satisfies the request.    
+ 
+@subsection data_encoder Data encoder 
+The data encoder formats the data to be sendt back to the requester. The format
+is speciefied in the request, or a default format is used.
+ 
+@}
+*/

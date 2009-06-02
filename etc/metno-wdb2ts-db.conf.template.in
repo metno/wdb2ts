@@ -1,0 +1,4 @@
+#wdb1: host=prologdev1 user=wcidiana   port=5434  dbname=wdb wciuser=wcidiana
+#wdb1: default=true host=localhost  user=borgem  port=5433 dbname=wdb  
+hindcast:  host=prologdev1  user=borgem  port=5493 dbname=hindcastdb  
+proffdb: host=uranium.oslo.dnmi.no user=wdbts port=5432 dbname=wdb

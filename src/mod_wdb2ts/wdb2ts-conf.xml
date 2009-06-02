@@ -1,0 +1,212 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+	<requests>
+		<request path="/locationforecastupdate" default_version="-1" 
+		         wdbdb="conan" action="LocationForecastUpdate" queryid="locationforecast" >
+			<version version="0.1" action="LocationForecastUpdate" queryid="locationforecast"/>
+		</request>
+		<request path="/locationforecast" default_version="-1" 
+		         wdbdb="conan" action="default action handler" queryid="locationforecast" >
+		   <actionparam key="provider_priority" value="hirlam 10;derived eps" />
+			<version version="0.1" action="LocationForecast" queryid="locationforecast"/>
+		</request>
+		<request path="/proabilityforecast" wdbdb="conan" action="LocationForecast" queryid="proabilityforecast">
+		   <actionparam key="provider_priority" value="hirlam 10;derived eps" />
+		   <actionparam key="proability" value="eps derived" />
+			<version version="0.1" >
+				<actionparam key="proability" value="eps" />
+			</version>
+		</request>
+	</requests>
+
+	<querydefs>
+		<querydef id="locationforecast">
+			<query>
+				dataprovider=hirlam 10;
+		   	point_interpolation=bilinear;
+		   	parameter=accumulated surface density of precipitation
+	      		,instant pressure of air
+	      		,"instant proportion of cloud cover, total"
+     				,"instant proportion of cloud cover, low"
+   				,"instant proportion of cloud cover, medium"
+   				,"instant proportion of cloud cover, high"
+   				,"instant proportion of humidity, relative"
+	         	,instant temperature of air
+	         	,instant temperature of land;
+	      </query>
+    	   <query>                 
+    	     	dataprovider=hirlam 10;
+    	      point_interpolation=nearest;
+	         parameter=instant velocity of air (u-component)
+		        	,instant velocity of air (v-component);
+		      levelspec=10,10,distance above ground,exact
+			</query>
+			<query>
+				dataprovider=hirlam 10;
+			   point_interpolation=bilinear;
+				reftime=NULL;
+			   parameter=instant distance of undefined;
+				levelspec=0,0,distance above ground,exact"
+			</query>
+		</querydef>
+		<querydef id="proabilityforecast">
+			<query>
+				dataprovider=derived eps;
+			   point_interpolation=bilinear;
+				reftime=NULL;
+			   parameter=instant distance of undefined;
+				levelspec=0,0,distance above ground,exact"
+			</query>
+			<query>
+		 	   dataprovider=derived eps;
+	    	   point_interpolation=bilinear;
+	    	   parameter=accumulated surface density of precipitation (10 percentile)
+	   			,accumulated surface density of precipitation (25 percentile)
+	    	      ,accumulated surface density of precipitation (50 percentile)
+	    	      ,accumulated surface density of precipitation (75 percentile)
+	    	      ,accumulated surface density of precipitation (90 percentile)
+	    	      ,instant temperature of land (10 percentile)
+	    	      ,instant temperature of land (25 percentile)
+	    	      ,instant temperature of land (50 percentile)
+	    	      ,instant temperature of land (75 percentile)
+	    	      ,instant temperature of land (90 percentile)
+	    			,instant proportion of precipitation (>0.1mm)
+		    	   ,instant proportion of precipitation (>0.2mm)
+		    	   ,instant proportion of precipitation (>0.5mm)
+		    	   ,instant proportion of precipitation (>1.0mm)
+		    	   ,instant proportion of precipitation (>2.0mm)
+		    	   ,instant proportion of precipitation (>5.0mm)
+			</query>
+		</querydef>
+	</querydefs>
+
+	<paramdefs>
+		<paramdef id="TOPOGRAPHY">
+			<valueparameter name="instant distance of undefined" unit="metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="1.0" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+			<dataversion version="-1" /> <!-- Optional: default value="-1"-->
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.5,0MM">
+			<valueparameter name="instant proportion of precipitation (>5.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.2,0MM">
+			<valueparameter name="instant proportion of precipitation (>2.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.1,0MM">
+			<valueparameter name="instant proportion of precipitation (>1.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,5MM">
+			<valueparameter name="instant proportion of precipitation (>0.5mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,2MM">
+			<valueparameter name="instant proportion of precipitation (>0.2mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,1MM">
+			<valueparameter name="instant proportion of precipitation (>0.1mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.10">
+			<valueparameter name="accumulated surface density of precipitation (10 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.25">
+			<valueparameter name="accumulated surface density of precipitation (25 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.50">
+			<valueparameter name="accumulated surface density of precipitation (50 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.75">
+			<valueparameter name="accumulated surface density of precipitation (75 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.90">
+			<valueparameter name="accumulated surface density of precipitation (90 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.10">
+			<valueparameter name="instant temperature of land (10 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.25">
+			<valueparameter name="instant temperature of land (25 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.50">
+			<valueparameter name="instant temperature of land (50 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.75">
+			<valueparameter name="instant temperature of land (75 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.90">
+			<valueparameter name="instant temperature of land (90 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="PRECIP">
+			<valueparameter name="accumulated surface density of precipitation" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="TOTAL.CLOUD">
+			<valueparameter name="instant proportion of cloud cover, total" unit="fraction" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="LOW.CLOUD">
+			<valueparameter name="instant proportion of cloud cover, low" unit="fraction" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="MEDIUM.CLOUD">
+			<valueparameter name="instant proportion of cloud cover, medium" unit="fraction" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="HIGH.CLOUD">
+			<valueparameter name="instant proportion of cloud cover, high" unit="fraction" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="RH.2M">
+			<valueparameter name="instant proportion of humidity, relative" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+		</paramdef>
+		<paramdef id="WIND.U10M">
+			<valueparameter name="instant velocity of air (u-component)" unit="metre per second" />
+			<levelparameter name="distance above ground" unit="metre" from="10" to="10" />
+		</paramdef>
+		<paramdef id="WIND.V10M">
+			<valueparameter name="instant velocity of air (v-component)" unit="metre per second" />
+			<levelparameter name="distance above ground" unit="metre" from="10" to="10" />
+		</paramdef>
+		<paramdef id="MSLP">
+			<valueparameter name="instant pressure of air" unit="hectopascal" />
+			<levelparameter name="distance above mean sea level" unit="metre" from="0" to="0" />
+			<value scale="0.01" offset="0.0" />
+		</paramdef>
+		<paramdef id="T.2M">
+			<valueparameter name="instant temperature of air" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" />
+		</paramdef>
+		<paramdef id="T.2M.LAND">
+			<valueparameter name="instant temperature of land" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" />
+		</paramdef>
+	</paramdefs>
+	
+</wdb2ts>

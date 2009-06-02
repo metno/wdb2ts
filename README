@@ -1,0 +1,155 @@
+WDB2TS
+======
+
+Wdb2ts is part of the wdb system. WDB is a databasesystem to store meteorological data.
+For more information on WDB have a look at wdb.met.no. 
+
+Wdb2ts is a simple front end that can be used to retrive meteorological data for a 
+specific location from a wdb database.
+
+It is implemented as a apache module and use a REST like interface to request data.
+
+For help on the request string point yours favorite browser at the manual.html in the 
+doc directory. If you have installed wdb2ts point the browser at http://your.site/wdb2ts.
+
+See INSTALL for generic installation instructions.
+
+INSTALL WDB2TS
+--------------
+
+Wdb2ts is implemented as an Apache module. It depends on Apache version 2.x. 
+It is tested an developed on version 2.2.x with the threaded mpm_worker_module. 
+It should work with different MPM module too.
+
+
+In order to compile wdb2ts the development files for Apache must be installed. The
+configure script use apxs, as is part of the apache installation, to find information
+about your installation of Apache. On some systems the name of this program is apxs2.
+This is true for the Apache 2.x on debian.
+
+Other dependencies.
+- Boost  1.33.1
+- diWdb >= 0.1.x.
+- postgresql client library.
+- proj >= 4.4.9
+- libpqxx >= 2.6.x.
+
+Boost
+----- 
+Boost can be downloaded from www.boost.org. From the library you must install
+the librarys boost::thread, boost::iostream, boost::date_time and 
+boost::regex in addition to the base.
+
+diWdb
+-----------
+diWdb can be downloaded from the svn repository at met.no with the command 
+
+  svn co shttp://svn/met.no/metlibs/diWdb/tags/0.1.0 diWdb-0.1.0
+  
+To compile and install 
+   
+  ./configure --prefix=/your/install/path
+  
+postgresql
+----------
+Postgresql can be downloaded from www.postgresql.org. 
+
+libpqxx
+-------
+A c++ client library for postgresql. It can be down loaded from
+http://pqxx.org/.
+  
+ 
+wdb2ts
+------
+To compile wdb2ts. 
+
+   ./configure 
+   
+If the name of the apxs proram is apxs2 or something else --with-apxs must be
+specified. --with-apxs may also be used if configure don't find apxs. 
+
+Ex.
+   If the apxs is /usr/bin/apxs2. Run configure with
+   
+   ./configure --with-apxs=/usr/bin/apxs2
+
+
+Other useful options is
+--with-boost, where boost is installed.
+--with-pgsql, where the postgresql client librarys is installed.
+--with-wdb2ts-configdir, default the configuration files is installed
+         in the Apache conf directory as given with the `apxs -q SYSCONFDIR`. 
+         This can be overided with --with-wdb2ts-configdir. 
+  
+For more options and help type ./configure --help.
+
+Compile with:
+
+    make 
+
+
+After a successful compilation the module is installed with 
+
+   make install
+   
+It may happend you must be root to run `make install` :-). 
+
+The install process installs the file mod_metno-wd2ts.so in `apxs -q LIBEXECDIR`.
+In addition is some configuration files that can be used as template installed in
+`apxs -q SYSCONFDIR` or in the location given wit '--with-wdb2ts-configdir'. 
+
+
+CONFIGURE WDB2TS
+----------------
+There is two configuration files that must be edited, metno-wdb2ts.conf and
+metno-wdb2ts-db.conf.
+
+metno-wdb2ts.conf configures Apache and metno-wdb2ts-db.conf configures the 
+connection information to the wdb database that is to be used.
+
+metno-wdb2ts.conf
+-----------------
+The contents of metno-wdb2ts.conf.template file is
+something like this:
+
+LoadModule metno_wdb2ts_module modules/mod_metno-wdb2ts.so
+
+LogLevel info
+
+<Location /wdb2ts>
+   SetHandler metno-wdb2ts
+</Location>
+
+
+This loads the wdb2ts module into apache and defines the url path that
+is to be sendt to the module, in this case "/metno-wdb2ts". 
+
+For this file to take effect it must be read by apache at upstart. The easy
+way to do this is to reference it in http.conf with the Include directive.
+
+Ex
+   In the http.conf
+
+  Include "/path/to/metno-wdb2ts.conf"
+  
+  And restart Apache with `apachectl restart`.
+   
+
+metno-wdb2ts-db.conf
+--------------------
+This file tells the module which wdb database to use.
+
+The format is:
+
+name: default=true host=wdb.my.site user=wdb port=5432 dbname=mywdb passwors=secret
+
+- name is an arbitary name you give the connection, it is not used at the moment.
+- default is this the default database to use.
+- host the server the database is on.
+- user The user to connect to the database as. 
+- port The port the database is located on, on the server.
+- dbname The name of the database.
+- password to login to the database mywdb
+
+

@@ -1,0 +1,12 @@
+/**
+@defgroup webFW Web Framework
+
+@defgroup webFWDoc Documentation
+@ingroup  webFW
+
+@defgroup webFWAPI Api
+@ingroup  webFW
+
+
+*/
+    

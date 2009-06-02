@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[ 
+	<!ENTITY % xinclude SYSTEM "../docbook/xinclude.mod">
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%xinclude;
+	%wdb.entities;
+]
+>
+
+<book>
+	<title>Wdb2ts User Manual</title>
+	
+	<bookinfo>
+		<editor>
+			<firstname>Børge</firstname>
+			<surname>Moe</surname>
+			
+			<affiliation>
+				<orgname> <ulink url="http://www.met.no">met.no</ulink>
+				</orgname>
+				
+				
+				<address>
+          <street>Niels Henrik Abelsvei 4</street> 
+          <city>Oslo</city>
+          <country>Norway</country>
+          <email>wdb@met.no</email>
+        </address>
+			</affiliation>
+		</editor>
+		<abstract>
+			
+			<para>
+			wdb2ts is a apache module to fetch data for a geographic location 
+		   from a wdb database. The request is based on REST. Depending on the 
+		   request the data is returned as a comma separated list of values (CSV) or an 
+		   xml formatted timeserie.
+		   </para>
+		</abstract>
+	</bookinfo>
+	
+	<chapter id="cha:wdb2ts_module">
+		
+		<title>Wdb2ts Apache module</title>
+		
+		<para>
+			This document contains information of wdb2ts Apache module and the
+			different content handlers that is implemented. 
+		</para>
+		
+		<xi:include href="wdb2ts.man.xml"
+			xmlns:xi="http://www.w3.org/2003/XInclude"/>
+	</chapter>
+	<chapter>
+		<title>Content handlers</title>
+		<para>
+			The documentation of the content handlers that currently is implemented.
+		</para>
+		
+		<xi:include href="wdb2ts-locationforecast.man.xml"
+			xmlns:xi="http://www.w3.org/2003/XInclude"/>
+			
+		<xi:include href="wdb2ts-location.man.xml"
+			xmlns:xi="http://www.w3.org/2003/XInclude"/>
+		
+	</chapter>
+	
+</book>

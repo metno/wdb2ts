@@ -1,0 +1,147 @@
+<html>
+<head>
+<title>Wdb2ts API</title>
+</head>
+<body>
+<h1>wdb2ts - introduction</h1>
+<p>
+    wdb2ts is a REST inspired web service to a wdb database. Wdb is a database system to store and
+    retrive meteorological and hydrological data.
+</p>
+<p>
+    The webservice can deliver a time serie of data for a specific location. The location and 
+    paramteres to retrive data for is specified in the request URL. The return values is in a comma 
+    separated value (CSV) format. The Format is described later. The CSV file can be with easy be
+    loaded in eg excel.
+</p> 
+<h2>Request URL</h2>
+<p>
+    The request URL is on the general form
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt"> 
+  http://host/path?lat=10;lon=10;parameterspec
+</div>
+<p>
+    Where <em>lat</em> is the latitude and <em>lon</em> is the longitude.
+</p>
+<p>
+The parameterspec defines which parameter we are intrested in, at which higth level 
+and what the data is. Is it forecast data generated from a numerical model or is it a
+observation.
+</p> 
+
+<p>
+The general form is:
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+    <em>
+        reftime=reftimeval;dataprovider=dataproviderval;dataversion=dataversionval;
+        parameter=parameterval1,parameterval2,...,parametervalN;levelspec=levelspecval;validtime=validtimeval
+    </em>
+</div>
+<p>
+An exampe of a query for air pressure, air temperatur and the wind componets u and v in and hight of 2 meter 
+above the ground for a model run started at 2007-12-10 at 10:00 o'clock. The time we are intrested in
+is 2007-12-11 at 06:00 o'clock. The model is given with a dataprovider id. We ask for the most up to date
+data version that is given with dataversion=-1. -1 is a magic number for "most up to date dataversion".
+</p>
+<p>
+The query is:
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+    <em>
+        http://server/path/?lat=10;lon=10;alt=10;<br/>
+        reftime=2007-12-10T10:00,2007-12-10T10:00,exact;<br/>
+        dataprovider=1096;dataversion=-1;<br/>
+        parameter=instantaneous pressure of air,instantaneous temperature of air,instantaneous velocity of air (u-component);<br/>
+        levelspec=2,2,above ground,exact;<br/>
+        validtime=2007-12-10T00:00,2007-12-10T10:00,intersect
+    </em>
+</div>
+
+<h3>Descriptions of the paramteres in the query.</h3>
+<h4>Reftime and validtime.</h4>
+The format of reftime and validtime is the same. Generel form: <br/>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+<em>fromtime,totime,indeterimnation type</em><br/>
+</div>
+<p>
+Where fromtime and totime give an time period and the indetermination type decide
+how this time period should be intepreted by the wdb system, ie how shall the
+system select data values from the database. At the moment two values
+are defined exact and inside.
+</p> 
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+<dl>
+ <dt><em>exact</em></dt>
+ <dd>Only data that has an fromtime and totime that exactly match the
+     fromtime and totime in the query is selected.
+ </dd>
+ <dt><em>inside</em></dt>
+ <dd>Only data where fromtime and totime is inside or equal the timespec period 
+ is selected.
+ </dd>
+</dl>
+</div>
+
+<h4>dataprovider</h4>
+<p>
+Dataprovider indetifies which data we are intrerested in. It is a predifined number.
+</p>
+
+<h4>Dataversion</h4>
+<p>Datavaversion is the dataversion we are interested in. It is allmost -1, the most
+up to date version.
+</p>
+<p>If the dataversion is not given in the query the default value is -1.</p>
+
+
+<h4>Parameter</h4>
+<p>
+In the wdb system there is no numerical value, parameter id, that identifies a parameter.
+The naming of paramters are identified by strings that describes the parameters as
+fenomena and statistisk type. A fenomena is temperatur, air pressure, humidity etc and 
+statistisk type is instantanous, avarage, maximum, minimum etc. The general form is: <br/>
+"statistisk type" "fenomena". 
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+<dl>
+    <dt><em><b>Example</b> - Air temperature at a given moment.</em></dt>
+    <dd>
+        We name this parameter as "instantanious temperature of air".
+    </dd> 
+</dl>
+</div>
+
+
+<p>More than one value may be given in the query. The values is separated by commas.</p>
+<h4>Levelspec</h4>
+<p>
+The levelspec decide which hight level we are interested in. The general form is
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+<em>fromlevel,tolevel,reference,indetermination type</em>
+</div>
+<p>
+Where fromlevel and tolevel give an higth interval. The fromlevel and tolevel is
+intepreted in accordance to the reference. The refernce is <em>above ground</em>,
+<em>above sea</em>, etc.
+</p> 
+<p>The indeterination type decide how fromlevel and tolevel select data. At the moment
+two values is defined <em>exact</em> and <em>inside</em>. 
+</p>
+<div style="margin-left: 20pt; margin-top: 20pt; margin-bottom: 20pt">
+<dl>
+ <dt><em>exact</em></dt>
+ <dd>Only data that has an fromlevel and tolevel that exactly match the
+     fromlevel and tolevel in the query is selected.
+ </dd>
+ <dt><em>inside</em></dt>
+ <dd>Only data where fromlevel and tolevel is inside or equal the levelspec interval 
+ is selected.
+ </dd>
+</dl>
+</div>
+
+</body>
+</html>

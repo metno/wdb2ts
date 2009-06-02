@@ -1,0 +1,9 @@
+LoadModule metno_wdb2ts_module @APACHE_MODULEDIR@/mod_metno_wdb2ts.so
+
+LogLevel debug
+
+<Location /metno-wdb2ts>
+   SetHandler metno_wdb2ts
+</Location>
+
+

@@ -1,0 +1,29 @@
+/**
+@addtogroup webFWDoc
+@{
+
+@section introduction Introduction
+The Web Framework is a c++ library that is similar in designed as 
+java server pages, jsp. The main use of the library is to implement 
+web services in C++ that use the REST design pattern. 
+
+A main goal of the design is to make it as independent of the underlying
+web server as possible. It is designed around 4 abstractions:
+
+  - Request
+  - Response
+  - RequestHandler (Content).  
+  - Logger
+  
+In addition there is a configuration module that can be used to read
+configuration setup for the web application. 
+
+For each supported web server a glue module must be implemented to interact
+with the server. At the moment there is implemented support for Apache and a 
+module that can be used to test the applications without a web server. This
+testmodule is handy for testing of eg memory leaks.
+
+@section GetingStarted Getting started
+To see how the library work lets start with a simple hello world program.
+@}
+*/

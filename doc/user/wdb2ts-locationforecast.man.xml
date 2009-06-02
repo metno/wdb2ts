@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[ 
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<refentry id='wdb2ts_locationforecast'>
+	
+	<refmeta>
+		<refentrytitle>wdb2ts_locationforecast</refentrytitle>
+		<manvolnum>1</manvolnum>
+	</refmeta>
+	
+	<refnamediv>
+		<refname>metno-wdb2ts_locationforecast_handler</refname>
+		<refpurpose>
+		   This decribes the locationforecast handler to wdb2ts. It is part of the
+		   wdb2ts apache module.
+		</refpurpose>
+	</refnamediv>
+
+<!-- 	
+	<refsynopsisdiv>
+		<cmdsynopsis>
+			<command>feltLoad</command>
+			<arg choice='opt'>OPTIONS</arg>
+			<arg choice='req'>FELTFILE1</arg>
+			<arg choice='opt'>FELTFILE2... FELTFILEN</arg>
+		</cmdsynopsis>
+	</refsynopsisdiv>
+-->	
+	<refsect1>
+		<title>Description</title>
+		<para>
+		   The locationforecast handler accept request on the form.
+		  <programlisting> 
+   http://host/path/location?lat=10;lon=10;alt=100;from=2008-12-12T08:00:00Z
+		  </programlisting>
+		</para>
+		<para>
+		 	Where lat is the latitude, lon is the longitude, alt is the altitude and
+			from is the start time for the forecast we want.
+		</para>
+		<para>	
+			The result is returned as xml desribed with the schema at
+			<ulink url="http://api.met.no/weatherapi/locationforecast/1.5/schema"/>. 
+		</para>
+	</refsect1>
+	<refsect1>
+	<title>Configuration</title>
+	<para>
+		This handler has a set of handler specific parameters. It also make use 
+		of both the <emphasis>querydef</emphasis> and <emphasis>paramdef</emphasis>
+		sections of the <filename>metno-wdb2ts-conf.xml</filename> configuration file. 
+	</para>
+	<refsect2>
+	<title>Handler specific parameters</title>
+	<para>
+		To specify an handle specific parameter the &lt;actionparam> tag is used. The format
+		of this tag is.
+		<programlisting>
+	&lt;actionparam id="key" value="key value" />
+	
+	Where id attribute is the configuration parameter and the value attribute is the value given 
+	to parameter.
+		</programlisting>
+	</para>
+	<para>
+		The &lt;actionparam> has no support for key/value lists. To simulate key/value lists 
+		we follow a name pattern on id. Ex.
+		<programlisting>
+			&lt;actionparam id="parameter_name-key" value="listvalue" >
+		</programlisting> 
+		Thw hyphen is used to separate the parameter name from the key. 
+	</para>
+	<para>
+		In the documantation this type of parameters is marked as key/value list.
+	</para>
+	<para>
+		<variablelist>
+		<?dbfo list-presentation="blocks"?>
+			<varlistentry>
+				<term>updateid</term>
+				<listitem>
+					<para>
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>wdb.projection</term>
+				<listitem>
+					<para>
+						This value associate providernames with placenames. The values
+						is used to reproject vector fields.  
+					</para>
+					<para>
+						The values is given as a ';' separated list of key/values on the form:
+						<programlisting>
+	value="providername0=placename;providername1=placename1;providernameN=placenameN"
+						</programlisting>
+					</para>
+					<para>
+						A list of placename is found by using the <function>wci.placespecification</function>
+						function to the wdb database.
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>meta_model-providername</term>
+				<listitem>
+					<para>Key/value list.</para>
+					<para>
+						Describe the meta information that goes into the output xml. The
+						providername defines the provider this meta information is for.
+						The output tag is on the form:
+						<programlisting>
+	&lt;model name="outname" nextrun="hh:mm" termin="hh" from="YYYY-MM-DDThh:mm:ssZ" to="YYYY-MM-DDThh:mm:ssZ" />
+	
+	Where 
+		- outname is the name this dataset is known as.
+		- nextrun is when the next dataset is expected to be available.
+		- from and to  is the start and end time for this dataset in the output.   						
+						</programlisting>
+					</para>
+					<para>
+						The value to this parameter is on the form:
+						<programlisting>
+	value="name=outname;nextrun=hh:mm,hh:mm"
+	
+	Where 
+		- outname is the value to the name attribute.
+		- nextrun is a comma separated list of times when there is expected that new data is available.
+						</programlisting>
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>expire_rand</term>
+				<listitem>
+					<para>
+						Each respond is given an HTTP expire time that is time of the next hour.
+					 	The expire_rand value add some randomization to the expire time.
+					 	The value is given as seconds and is the upper limit on the random
+					 	addition to the expire value, ie. the addition will be in the range 
+					 	[0, expire_rand_value>.
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>provider_priority</term>
+				<listitem>
+					<para>
+						Provider priority specifies the order the provider is requested from
+					   the wdb database. This parameter drives the generation of the xml output.
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>model_topo_provider-providername</term>
+				<listitem>
+					<para>Key/value list.</para>
+					<para>
+						If the topografi to be used is not in the dataset of this provider use
+						the provider specified with this parameter. The parameter is on the form. 
+					
+						<programlisting>
+ 	id="model_topo_provider-providername" value="topo_provider"
+						</programlisting>			
+						This means that for the provider with 'providername' use topologi data from
+						the provider 'topo_provider'. 
+					</para>
+					<para>
+						The topologi field give the hight in the model where the temparature
+						is computed. This must be adjusted to the real hight of the requested 
+						location.
+					</para>
+					<para>
+						The real hight may come in as the alt parameter in the request or be
+						loaded from a hight field with much higher resolution than what is used
+						in the computer model. This high resolution field is given with the
+						'topo_provider' parameter.   
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>topo_provider</term>
+				<listitem>
+					<para>The providername of a high resolution topologi field to use.</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>symbol_conf_file</term>
+				<listitem>
+					<para>
+						At the moment the miSymbol generator is used to generate shorthand 
+						symbols. This parameter gives the location of the configuration of
+						miSymbol.
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>symbol_provider</term>
+				<listitem>
+					<para>Key/value list.</para>
+					<para>
+						This parameter configure how the request of the symbol generator 
+						(symbolMaker) shall be performed. For each point in time the generator
+						is called to generate a symbol for this time. We need to specify how 
+						many hours around this time should been taking into account in the 
+						calculation.  
+					</para>
+					<para>
+						The values is given as space separated list of values on the form:
+						<programlisting>
+	value="(timespan,before,after) (timespan,before,after) ..."
+	
+	Where
+		- timespan is the timeperiod of the sybol.
+		- before, the number of hours before the time point to take into account.
+		- after, the number of hours after the time point to take into account.						
+						</programlisting>
+					</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+	</para>
+	</refsect2>
+	<refsect2>
+	<title>XML parameters and parameter setup</title>
+	<para>
+		To each XML parameter is it associated at least one paramdef. The id's that is
+		defined and which XML tag it is associated with is given in the following tables. 
+	</para>
+	<para>
+		In the first table is all ids for a deterministic weather forecast, 
+		in the second table is the additional ids for the simple probability forecast
+		and in the last table is the ids for the advanced probability forecast.  
+	</para>
+	<refsect3>
+	<title>Deterministic forecast</title>
+	<para>
+		This is the normal deterministic parameters used in the weather forecast. It is
+		used alone for the short term (48 hours) forecast.
+	</para> 
+	<para>
+		<variablelist>
+		<?dbfo list-presentation="blocks"?>
+			<varlistentry>
+				<term>temperature</term>
+				<listitem>
+					<para>
+						T.2M, T.2M.LAND
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>windDirection, windSpeed</term>
+				<listitem>
+					<para>
+						WIND.U10M, WIND.V10M
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>humidity</term>
+				<listitem>
+					<para>
+						RH.2M
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>pressure</term>
+				<listitem>
+					<para>
+						MSLP
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>cloudiness</term>
+				<listitem>
+					<para>
+						TOTAL.CLOUD
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>fog</term>
+				<listitem>
+					<para>
+						FOG
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>lowClouds</term>
+				<listitem>
+					<para>
+						LOW.CLOUD
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>mediumClouds</term>
+				<listitem>
+					<para>
+						MEDIUM.CLOUD
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>highClouds</term>
+				<listitem>
+					<para>
+						HIGH.CLOUD
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>precipitation</term>
+				<listitem>
+					<para>
+						PRECIP.ACCUMULATED, PRECIP.1H
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>symbol</term>
+				<listitem>
+					<para>
+					Symbols may be created in two ways. Either as a algorithmic compilation 
+					of precipitation, temperature and cloudiness (symbolMaker) or there is 
+					a symbol	parameter in the data set.					
+					</para>
+					<variablelist>
+					<?dbfo list-presentation="blocks"?>
+					<varlistentry>
+						<term>symbolMaker</term>
+						<listitem>
+						<para>
+							Use id's: PRECIP.ACCUMULATED or PRECIP.1H, TOTAL.CLOUD,
+							T.2M or T.2M.LAND: It may also use THUNDER.PROBABILITY
+							and FOG.PROBABILITY to assign thunder and fog to the symbol.
+						</para>
+						<para>
+						 	THUNDER.PROBABILITY and FOG.PROBABILITY is given as on/off values.
+						 	0 is off and 1 is on. 
+						</para>
+					   </listitem>
+					 </varlistentry>
+					 <varlistentry>
+					 	<term>Symbolparameter in the data set</term>
+					 	<listitem>
+					 		<para>
+					 			SYMBOL
+					 		</para>
+					 	</listitem>
+					 </varlistentry>
+					 </variablelist>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+		</para>
+		</refsect3>
+		<refsect3>
+		<title>Simple probability forecast</title>
+		<para>
+			In a simple probability forecast may all parameters for the deterministic 
+			forecast be used, but the following parameters is added.
+		</para>
+		<para>
+			The probability values is given as codes according to the table below.
+			<programlisting>
+   Value       | Code
+   ------------+------
+   [90%,100% ] |  0 
+   [60%, 90%>  |  1
+   [0%,  60%>  |  2
+			</programlisting>
+		</para>
+		<para>
+		<variablelist>
+		<?dbfo list-presentation="blocks"?>
+			<varlistentry>
+				<term>temperatureProbability</term>
+				<listitem>
+					<para>
+						The temperature probability depends on the temperature value
+						according to the following table.
+					<programlisting>
+   Temperature                    |       ID
+   -------------------------------+-------------------------- 
+   &lt;-99.0,-20.0>                  |  T.2M.PROBABILITY.4
+   [-20.0, -10.0> or [25.0, 99.0> |  T.2M.PROBABILITY.3
+   [-10.0, -2.0>  or [2.0,25.0>   |  T.2M.PROBABILITY.2
+   [-2.0, 2.0>                    |  T.2M.PROBABILITY.1
+					</programlisting>
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>windProbability</term>
+				<listitem>
+					<para>
+						Probability, WIND.PROBABILITY, associated with the wind parameters
+						WIND.U10M and WIND.V10M. This is, in some way, the probability to
+						both the speed and direction. 
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>symbolProbability</term>
+				<listitem>
+					<para>
+						Probability, SYMBOL.PROBABILITY, associated with the id SYMBOL.
+					</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+		</para>
+		</refsect3>
+		<refsect3>
+		<title>Advanced probability forecast</title>
+		<para>
+			The advanced probability forecast contains percentile data. The data 
+			is coded in the probability tag and has the general form.
+			<programlisting>			
+   &lt;probability type="type" parameter="name"
+                percentile="percentile" unit="parameterunit" value="value"/>
+                
+   where 
+      - type is exact or lowerlimit.
+      - percentile
+      	type=exact: 10, 25, 50, 75 or 90
+      	type=lowerlimit: 0.1mm, 0.2mm, 0.5mm, 1.0mm, 2.0mm or 5.0mm. 
+      - parameter is temperature or precipitation.
+      - unit is celcius, mm or percent.
+	</programlisting>
+		</para>
+		<para>
+			The advanced probability forecast may contain all parameters from
+			the deterministic and simple probability forecast. In addition to the
+			probability tag.
+		</para>
+		<para>
+			In the table below is the coding
+		</para>
+		<para>
+		<variablelist>
+		<?dbfo list-presentation="blocks"?>
+			<varlistentry>
+				<term>temperature</term>
+				<listitem>
+					<para>
+						<programlisting>
+   type=exact
+   unit=celcius
+   
+   percentile |  id
+   -----------+--------------------
+     10       | T.2M.PERCENTILE.10   
+     25       | T.2M.PERCENTILE.25
+     50       | T.2M.PERCENTILE.50
+     75       | T.2M.PERCENTILE.75
+     90       | T.2M.PERCENTILE.90
+						</programlisting>							
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>precipitation</term>
+				<listitem>
+					<para>
+					<programlisting>
+   type=exact
+   unit=mm
+   percentile |  id
+   -----------+--------------------
+     10       | PRECIP.PERCENTILE.10   
+     25       | PRECIP.PERCENTILE.25
+     50       | PRECIP.PERCENTILE.50
+     75       | PRECIP.PERCENTILE.75
+     90       | PRECIP.PERCENTILE.90
+
+
+   type=lowerlimit
+   unit=percent
+   percentile |  id
+   -----------+--------------------
+     0.1mm    | PRECIP.PROBABILITY.0,1MM   
+     0.2mm    | PRECIP.PROBABILITY.0,2MM
+     0.5mm    | PRECIP.PROBABILITY.0,5MM
+     1.0mm    | PRECIP.PROBABILITY.1,0MM
+     2.0mm    | PRECIP.PROBABILITY.2,0MM
+     5.0mm    | PRECIP.PROBABILITY.5,0MM
+               </programlisting>
+					</para>
+				</listitem>
+			</varlistentry>
+			<varlistentry>
+				<term></term>
+				<listitem>
+					<para>
+						
+					</para>
+				</listitem>
+			</varlistentry>
+		</variablelist>
+		</para> 
+		</refsect3>
+	</refsect2>
+	</refsect1>
+	<refsect1>
+	<title>SEE ALSO</title>
+	<para>metno-wdbt2ts_location_handler(1) metno-wdb2ts(1) </para>
+	</refsect1>
+</refentry>

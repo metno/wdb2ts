@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                      "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
+[ 
+	<!ENTITY % wdb.entities SYSTEM "../docbook/wdb_entities.ent">
+	%wdb.entities;
+]
+>
+
+<refentry id='wdb2ts'>
+	
+	<refmeta>
+		<refentrytitle>wdb2ts</refentrytitle>
+		<manvolnum>1</manvolnum>
+	</refmeta>
+	
+	<refnamediv>
+		<refname>metno-wdb2ts</refname>
+		<refpurpose>
+		   Apache module to request timeseries for a geographic location. The data is 
+		   fetched from a wdb database. It is a part of the WDB system.
+		</refpurpose>
+	</refnamediv>
+
+<!-- 	
+	<refsynopsisdiv>
+		<cmdsynopsis>
+			<command>feltLoad</command>
+			<arg choice='opt'>OPTIONS</arg>
+			<arg choice='req'>FELTFILE1</arg>
+			<arg choice='opt'>FELTFILE2... FELTFILEN</arg>
+		</cmdsynopsis>
+	</refsynopsisdiv>
+-->	
+	<refsect1>
+		<title>Description</title>
+		
+		<para>
+		   wdb2ts is a apache module to fetch data for a geographic location 
+		   from a wdb database. The request is based on REST. Depending on the 
+		   request the data is returned as a comma separated list of values (CSV) or an 
+		   xml formatted timeserie.
+		</para>
+		
+		<para>
+		   The format of the xml is a met.no specific format. The schema used is located at 
+		   <ulink url="http://api.met.no/weatherapi/locationforecast/1.5/schema"/>.
+		</para>
+		<para>
+			The CSV format reflects the format returned by 
+			<function>wci.read( ...., NULL::wci.returnfloat)</function>. ie
+			one value for each coloumn separated by commas and one line per row.
+		</para>
+		
+		<para>
+			metno-wdb2ts use two configuration files in addition to the apache configuration file. 
+			These files is	<filename>metno-wdb2ts-db.conf</filename> for information about the 
+			wdb databases used and <filename>metno-wdb2ts-conf.xml</filename> for the configuration
+			of the wdb2ts. The files is located in the directory 
+			<filename class="directory">/etc/metno-wdb2ts</filename>.
+		</para>
+		<para>
+			metno-wdb2ts writes some persistent information to files in the directory 
+			<filename class="directory">/var/lib/metno-wdb2ts</filename>. At the moment it is only
+		   one set of persistentdata that is written to file. This is the reference times used by the
+		   configured providernames. The name of the file is on the form 
+		   <emphasis>updateid</emphasis>.LocationProviderReftimeList.note. Where 
+		   <emphasis>updateid</emphasis> comes from the configurationfile 
+		   <filename>metno-wdb2ts-conf.xml</filename>, more on that later.
+		</para>
+	</refsect1>
+	<refsect1>
+		<title>Configuration</title>
+		<refsect2>
+			<title>Apache</title>
+			<para>
+				Loading the metno-wdb2ts module into apache. The module is located it the module 
+				directory to apache. There is a helper file <filename>/etc/metno-wdb2ts/metno-wdb2ts.conf</filename>
+				that can be used to load the module. The file is included in the apache configuration
+				file with a <parameter>Include</parameter> statment.
+			</para>
+			<para>
+				<example>
+				<title>Load the metno-wdb2ts module</title>
+				<programlisting >
+					Include "/etc/metno-wdb2ts/metno-wdb2ts.conf"
+				</programlisting>
+				</example>
+			</para>
+			<para>
+				The metno-wdb2ts modlule is only tested with apache 2.2 setup with <emphasis>worker</emphasis>
+				Multi-Processing module (MPM).
+				An example on configuration of the MPM <emphasis>worker</emphasis> is.
+				<programlisting>
+            &lt;IfModule mpm_worker_module>
+              StartServers          1
+              MaxClients           10
+              MinSpareThreads       5
+              MaxSpareThreads      15 
+              ThreadsPerChild      10
+              MaxRequestsPerChild   0
+            &lt;/IfModule>
+				</programlisting>
+				For more information on about configuration of apache look at <ulink url="www.apache.org"/>.  
+			</para>
+		</refsect2>
+		<refsect2>
+			<title>database setup</title>
+			<para>
+				The wdb databases that is used and it connection parameters is defined in the file 
+				<filename>metno-wdb2ts-db.conf</filename>. 
+			</para>
+			<para>
+				The file format is:
+				<literallayout>
+    idname: host=PGHOST user=PGUSER port=PGPORT dbname=PGDATABASE wciuser=wci_user_name
+				</literallayout>
+			</para>
+			<para>
+				<variablelist>
+					<?dbfo list-presentation="blocks"?>
+					<varlistentry>
+						<term>idname</term>
+						<listitem>
+							<para>
+								The identifier used to identify this database setup. It is used
+								in <filename>metno-wdb2ts-conf.xml</filename> to associate handlers
+								and request path to a database.
+							</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>host</term>
+						<listitem>
+							<para>The host where the postgresql database is located.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>port</term>
+						<listitem>
+							<para>The port on the host where the postgresql database is located.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>dbname</term>
+						<listitem>
+							<para>The wdb database name to use.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>user</term>
+						<listitem>
+							<para>The user name to use when we connect to the database.</para>
+						</listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>wciuser</term>
+						<listitem>
+							<para>
+							   The username to use with <methodname>wci.begin()</methodname> if it is
+							   different from <emphasis>user</emphasis>. 
+							</para>
+						</listitem>
+					</varlistentry>
+				</variablelist>
+			</para>
+			<para>			
+				An example is shown below.
+			</para>
+			<para>
+				<example>
+				<title>database setup</title>
+				<programlisting>
+   conan: host=localhost  user=borgem  port=5433 dbname=wdb 
+   still: host=still.oslo.dnmi.no  user=wdbts port=5432 dbname=wdb 
+   proffdb: host=localhost  user=borgem  port=5433 dbname=wdb 
+				</programlisting>
+				</example> 
+			</para>
+			
+		</refsect2>
+		<refsect2>
+		<title>metno-wdb2ts setup</title>
+		<para>
+			metno-wdb2ts is configured in the file <filename>metno-wdb2ts-conf.xml</filename>. This
+			is a rather complex setup file. It is divided in three sections, request definition 
+			<emphasis>&lt;requests></emphasis>, wdb query definition <emphasis>&lt;querydefs</emphasis>
+			and param definition <emphasis>&lt;paramdefs></emphasis>. A skelton with the main section 
+			is shown bellow. 
+		</para>
+		<para>
+		<programlisting>
+		&lt;?xml version="1.0" ?>
+		&lt;wdb2ts>
+         &lt;requests>
+            &lt;request path="/locationforecastupdate" default_version="-1" 
+               wdbdb="proffdb" action="LocationForecastUpdate" queryid="locationforecast" >
+            &lt;actionparam key="updateid" value="locationforecast" />         
+            &lt;version version="0.1" action="LocationForecastUpdate" queryid="locationforecast"/>
+         &lt;/request>
+         &lt;request path="/locationforecast" default_version="-1" 
+               wdbdb="proffdb" action="default action handler" queryid="locationforecast" >
+            &lt;actionparam key="updateid" value="locationforecast" />
+            &lt;version version="0.1" action="LocationForecast" queryid="locationforecast"/>
+         &lt;/request>
+         &lt;request path="/proabilityforecast" wdbdb="conan" action="LocationForecast" 
+               queryid="proabilityforecast">
+            &lt;version version="0.1" >
+                &lt;actionparam key="proability" value="eps" />
+            &lt;/version>
+         &lt;/request>
+         &lt;request path="/proabilityforecastupdate" default_version="-1" 
+	            wdbdb="proffdb" action="LocationForecastUpdate" queryid="locationforecast" >
+            &lt;actionparam key="updateid" value="proabilityforecast" />         
+            &lt;version version="0.1" action="LocationForecastUpdate" queryid="locationforecast"/>
+         &lt;/request>
+      &lt;/requests>
+
+      &lt;querydefs>
+         &lt;querydef id="locationforecast">
+            &lt;query>
+               .....
+            &lt;/query>
+            &lt;query>
+              ......
+            &lt;/query>
+         &lt;/querydef>
+         &lt;querydef id="proabilityforecast">
+            &lt;query>
+              .....
+            &lt;/query>
+            &lt;query>
+              .....
+            &lt;/query>
+         &lt;/querydef>
+      &lt;/querydefs>
+
+      &lt;paramdefs>
+         &lt;paramdef id="MODEL.TOPOGRAPHY" dataprovider="eps ensemble" >
+            ..... 
+         &lt;/paramdef>
+         &lt;paramdef id="PRECIP.PROBABILITY.5,0MM">
+            .....         
+         &lt;/paramdef>
+         &lt;paramdef id="PRECIP.PROBABILITY.2,0MM">
+            .....
+         &lt;/paramdef>
+      &lt;/paramdefs>
+    &lt;/wdb2ts>
+		</programlisting>
+		</para>
+		<refsect3>
+		<title>Request definition</title>
+		<para>
+			All request in <emphasis>metno-wdb2ts</emphasis> is associated with
+			action handler. Every request is also associated with version. If no 
+			is given in a request and default version may be defined.
+		</para>
+		<para>
+			Action handler may have specific configuration parameteres. These parameters may be given 
+			with <emphasis>actionparam</emphasis> elements. The configuration of the available action 
+			handler has their own documentation.   
+		</para>
+		<para>
+			Configuration of requests. The xml section has the following format.
+			<programlisting>
+    &lt;request path="/url path" default_version="default version" 
+          wdbdb="db idname" action="action handler" queryid="queryid" >
+       &lt;actionparam key="action handler specific key" value=" ... " />         
+       &lt;version version="0.1" action="action handler" queryid="queryid"/>
+    &lt;/request>
+   		</programlisting>
+		</para>
+		<para>
+			The attributes to the &lt;request> tag.
+			<variablelist>
+			<?dbfo list-presentation="blocks"?>
+				<varlistentry>
+					<term>path</term>
+					<listitem>
+						<para>
+							A request url to wdb2ts is on the form 
+							<emphasis>http://host/module_path/path/version?query</emphasis>, where
+							<emphasis>module_path</emphasis> is the path that identifies the
+							wdb2ts module. <emphasis>path</emphasis> is the path the part of the
+							usrl that identify this request. 
+						</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>default_version</term>
+					<listitem>
+						<para>
+							This is the version of the action handler to be used if the version 
+							part of the request is missing in the request. If the value is set 
+							to -1. The highest version of the action handler registred is used.
+						</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>wdbdb</term>
+					<listitem>
+						<para>
+							This identify which database setup entry in 
+							<filename>metno-wdb2ts-db.conf</filename> taht is to be used. 
+						</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>action</term>
+					<listitem>
+						<para>
+							This is the default action handler to be used to handle the request.
+						</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>qyeryid</term>
+					<listitem>
+						<para>
+							This identify the querys to be sent to the database for this request.
+							The queries is defined in the query part of the configuration file. 
+						</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>default_version</term>
+					<listitem>
+						<para>
+							This is the version of the action handler to be used if the version 
+							part of the request is missing in the request. If the value is set 
+							to -1. The highest version of the action handler registred is used.
+						</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</para>
+		<para>
+			After the request tag comes the specific configuration parameters for the action handle.
+			This is documented along withe each action handler. 
+		</para>			
+		<para>
+			The version tag defines the available versions. There must be at least one version tag
+			for each request tag. The attribute for the version tag is the same as for the request tag 
+			except that default_version is not allowed. If a attribute is missing the value
+			set for the attribute in the request tag is used. 
+		</para>
+		<para>
+			All actionparam tags is inherited from the request part, but may be overridden in the 
+			version part.
+		</para>
+		</refsect3>
+		<refsect3>
+		<title>Wdb query definition</title>
+		<para>
+			The Query definitions starts is on the form:
+			<programlisting>
+   &lt;querydefs>
+      &lt;querydef id="locationforecast">
+         &lt;query must_have_data="true|false">
+         
+           ......
+      
+         &lt;/query>
+	      &lt;query>
+		 
+           .....
+
+         &lt;/query>
+      &lt;/querydef>
+      &lt;querydef id="proabilityforecast">
+      
+         ......
+      
+      &lt;/querydef>
+   &lt;/querydefs>
+		</programlisting>
+		
+			The must_have_data attribute in the query tag define that the query must return data 
+			from the database. If must_have_data querys does not return data the handler returns 
+			an empty result. The attribute is optional. If it is not given the value defaults to 
+			false.
+		</para>
+		<para>
+			The query specification is the same as for the location handler.  
+		</para>
+		</refsect3>
+		<refsect3>
+		<title>Parameter definition</title>
+		<para>
+			An given parameter in wdb may be identified as a combination of 
+			dataprovider, parameter name, parameter unit, level, levelunit and 
+			dataversion. The parameter definition associate an alias to such 
+			a combination. Each action handler may define which alias that
+			must be defined.
+		</para>
+		<para>
+			The definition of an alias start with an <emphasis>paramdef</emphasis>
+			tag. This tag has two mandatory tags, <emphasis>valueparameter</emphasis>
+			and <emphasis>levelparameter</emphasis>. In addition is there two
+			optional tags, <emphasis>value</emphasis> and 
+			<emphasis>dataversion</emphasis>. Each tag has a set of attributes that
+			must be used. The general format is:
+			
+			<programlisting>
+   &lt;paramdef id="alias name" dataprovider="dataprovidername" >
+      &lt;valueparameter name="valueparametername" unit="valueparameterunit" />
+      &lt;levelparameter name="levelparametername" unit="levelunitname" from="levelfrom" to="levelto" />
+      &lt;value scale="scalevalue" offset="offsetvalue" />
+      &lt;dataversion version="dataversion" /> 
+   &lt;/paramdef>
+			</programlisting>
+		</para>
+		<para>
+			An alias may be valid for all dataproviders or for one only. This is 
+			guided by the dataprovider attribute. When an alias does not have 
+			an dataprovider attribute it is as an default alias. When an parameter 
+			is decoded in wdb2ts it is first searched by providername so the default
+			aliases.  
+		</para>
+		<formalpara>
+		<title>paramdef</title>
+		<para>
+			<variablelist>
+			<?dbfo list-presentation="blocks"?>
+				<varlistentry>
+					<term>id</term>
+					<listitem>
+						<para>Alias name.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>dataprovider</term>
+					<listitem>
+						<para>The alias definition is valid for this dataprovider only.</para>
+						<para>Optional. If missing, the alias is an default alias.</para> 
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</para>
+		</formalpara>
+		<formalpara>
+		<title>valueparameter</title>
+		<para>
+			<variablelist>
+			<?dbfo list-presentation="blocks"?>
+				<varlistentry>
+					<term>name</term>
+					<listitem>
+						<para>The <emphasis>valueparametername</emphasis>.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>unit</term>
+					<listitem>
+						<para>The <emphasis>levelunitname</emphasis>.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>validfrom</term>
+					<listitem>
+						<para>The <emphasis>validfrom</emphasis> level.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>validfrom</term>
+					<listitem>
+						<para>The <emphasis>validto</emphasis> level.</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</para>
+		</formalpara>
+		<formalpara>
+		<title>levelparameter</title>
+		<para>
+			<variablelist>
+			<?dbfo list-presentation="blocks"?>
+				<varlistentry>
+					<term>name</term>
+					<listitem>
+						<para>The <emphasis>levelparametername</emphasis>.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term>unit</term>
+					<listitem>
+						<para>The <emphasis>valueparameterunit</emphasis>.</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</para>
+		</formalpara>
+		<formalpara>
+		<title>value</title>
+		<para>
+			The value tag describe a transformation to the value on the form
+			<programlisting>
+	y=a+b*x
+	
+	where
+	   - x Is the value.
+	   - y The new value.
+	   - a The offset attribute.
+	   - b The scale attribute.	
+	      </programlisting>
+	      Optional tag.
+		</para>
+		</formalpara>
+		<formalpara>
+		<title>dataversion</title>
+		<para>
+			Optional tag.  
+			<variablelist>
+			<?dbfo list-presentation="blocks"?>
+				<varlistentry>
+					<term>version</term>
+					<listitem>
+						<para>Dataversion. Default value -1. ie use the newest versions.</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</para>
+		</formalpara>
+		</refsect3>
+		</refsect2>
+	</refsect1>
+	
+	<refsect1>
+		<title>SEE ALSO</title>
+		<para>
+			For the documentation of the various handlers see: 
+		</para>
+		<para>metno-wdbt2ts_location_handler(1) metno-wdb2ts_locationforecast_handler(1) </para>
+		
+	</refsect1>
+	
+</refentry>

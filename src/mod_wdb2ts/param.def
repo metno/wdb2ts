@@ -1,0 +1,27 @@
+
+[locationforecast]
+T.2M:
+	dataprovider=1096;
+	parameter=instant temperature of air;
+	levelspec="0,10,distance above ground,inside
+	
+PP:
+	dataprovider=1096;	
+	parameter=instant pressure of air;
+	levelspec=0,10,distance above ground,inside
+
+U.10M:	
+	dataprovider=1096;	
+	levelspec=0,10,distance above ground,inside;
+	parameter=instant velocity of air (u-component);
+	
+U.10M:	
+	dataprovider=1096;	
+	levelspec=0,10,distance above ground,inside;
+	parameter=instant velocity of air (v-component);
+
+FF.10M: abs( U.10M, V.10M )
+
+DD.10M: deg( U.10M, V.10M )
+
+#reftime=2000-01-01T12:00:00,2000-01-01T12:00:00,inside

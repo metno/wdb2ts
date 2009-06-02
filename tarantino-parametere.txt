@@ -1,0 +1,76 @@
+               
+<paramdef id="MODEL.TOPOGRAPHY" dataprovider="probability_forecast">
+	<valueparameter name="specific energy of land, geopotential height" unit="square metre per square second" />
+	<levelparameter name="ground or water surface" unit="" from="0" to="0" />
+	<value scale="0.10204" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+	<dataversion version="-1" /> <!-- Optional: default value="-1"-->
+</paramdef>
+
+<paramdef id="SYMBOL">
+   <valueparameter name="yr weather symbol" unit="" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+</paramdef>
+
+<paramdef id="SYMBOL.PROBABILITY">
+   <valueparameter name="probability of yr weather symbol" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+<paramdef id="WIND.U10M" dataprovider="probability_forecast">
+   <valueparameter name="velocity of air (u-component)" unit="metre per second" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+</paramdef>
+
+<paramdef id="WIND.V10M" dataprovider="probability_forecast">
+   <valueparameter name="velocity of air (v-component)" unit="metre per second" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+</paramdef>
+
+<paramdef id="WIND.PROBABILITY">
+   <valueparameter name="probability of wind" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+<paramdef id="PRECIP.ACCUMULATED" dataprovider="probability_forecast" >
+   <valueparameter name="surface density of precipitation" unit="kilogram per square metre" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+</paramdef>
+
+<paramdef id="TOTAL.CLOUD">
+   <valueparameter name="cloud cover, total" unit="ratio" />
+	<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+</paramdef>
+			
+<paramdef id="T.2M" dataprovider="probability_forecast">
+   <valueparameter name="temperature of air" unit="kelvin" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="1.0" offset="-273.15" />
+</paramdef>
+
+<paramdef id="T.2M.PROBABILITY.1">
+   <valueparameter name="probability of temperature +/-1" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+<paramdef id="T.2M.PROBABILITY.2">
+   <valueparameter name="probability of temperature +/-2" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+<paramdef id="T.2M.PROBABILITY.3">
+   <valueparameter name="probability of temperature +/-3" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+<paramdef id="T.2M.PROBABILITY.4">
+   <valueparameter name="probability of temperature +/-4" unit="ratio" />
+   <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+   <value scale="100.0" offset="0.0" /> 
+</paramdef>
+
+                

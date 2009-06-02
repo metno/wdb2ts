@@ -1,0 +1,60 @@
+Building a debian package of wdb2ts to debian etch
+--------------------------------------------------
+Create a directory to build the package in.
+
+Ex.
+  	mkdir deb-packing
+
+Change directory to deb-packing
+
+Checkout wdb2ts with:
+
+svn co https://svn.met.no/viewvc/wdbSystem/wdb2ts/trunk/ wdb2ts
+
+Change directory to wdb2ts and run autoreconf.
+
+cd wdb2ts
+autoreconf -i
+
+Configure wdb2ts 
+../wdb2ts/configure --with-apxs=/usr/bin/apxs2
+
+Create create a source distribution:
+
+make dist
+
+this will create a file on the form
+
+metno-wdb2t2-x.y.z.tar.gz
+
+ex. metno-wdb2ts-0.2.0dev.tar.gz
+
+Copy this file to the parent directory and unpack it.
+
+cp metno-wdb2t2-x.y.z.tar.gz ..
+
+cd ..
+
+tar zxpf metno-wdb2t2-x.y.z.tar.gz
+
+Change directory to metno-wdb2ts-x.y.z and inject the debian package
+scripts.
+
+cd metno-wdb2t2-x.y.z
+
+svn co https://svn.met.no/wdbSystem/package/debian/wdb2ts/trunk/debian
+
+Build the package with
+
+dpkg-buildpackage -us -uc -rfakeroot
+
+If the command succeeded the package is now in the parent directory
+
+cd ..
+
+
+ls *.deb
+
+ex.
+  metno-wdb2ts_0.2.0dev-1_amd64.deb
+

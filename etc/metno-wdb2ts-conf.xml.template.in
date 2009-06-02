@@ -1,0 +1,320 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+   <requests>
+      <request path="/locationforecastupdate" default_version="-1" 
+	       wdbdb="proffdb" action="LocationForecastUpdate" queryid="locationforecast" >
+         <actionparam key="updateid" value="locationforecast" />         
+         <version version="0.1" action="LocationForecastUpdate" queryid="locationforecast"/>
+      </request>
+      <request path="/locationforecast" default_version="-1" 
+	       wdbdb="proffdb" action="default action handler" queryid="locationforecast" >
+         <actionparam key="updateid" value="locationforecast" />
+         <actionparam key="wdb.projection" value="pgen_probability=ecmwf grid;proff=proff;hirlam 10=hirlam 10;hirlam 8=Automatic insertion by feltLoad 2008-12-04 10:40:56.324604+01"/>         
+         <actionparam key="meta_model-hirlam 10" value="name=YR;nextrun=18:00,14:00" />
+         <actionparam key="meta_model-proff.approved" value="name=proff;nextrun=04:00,16:00" />
+         <actionparam key="meta_model-ec geo mad" value="name=EC;nextrun=18:00,14:00" />
+         <actionparam key="meta_model-pgen_probability" value="name=EPS;nextrun=09:30,21:30" />
+         <actionparam key="expire_rand" value="120" />      
+         <actionparam key="provider_priority" value="pgen_probability" /> 
+         <!--  <actionparam key="provider_priority" value="hirlam 8;pgen_probability" /> -->
+         <actionparam key="model_topo_provider-hirlam 10" value="hirlam 8" />
+         <actionparam key="model_topo_provider-hirlam 8" value="hirlam 8" />
+         <actionparam key="model_topo_provider-pgen_probability" value="ecmwf atmospheric" />
+         <actionparam key="model_topo_provider-proff.approved" value="proff.approved" />
+         <actionparam key="topo_provider-hirlam 10" value="hirlam 8" /> 
+         <actionparam key="symbol_conf_file" value="qbSymbols.def" />
+         <actionparam key="symbol_provider-hirlam 8" value="(0,0,1) (2,0,1) (3,0,1) (3,3,1)" />
+         <actionparam key="symbol_provider-hirlam 10" value="(0,0,1) (2,0,1) (3,0,1) (3,3,1)" />
+         <actionparam key="symbol_provider-proff.approved" value="(0,0,1) (2,0,1) (3,0,1) (3,3,1)" />
+         <actionparam key="symbol_provider-ec" value="(3,0,3) (6,0,3) (6,0,6)" />
+         <version version="0.1" action="LocationForecast" queryid="locationforecast"/>
+      </request>
+      <request path="/proabilityforecast" wdbdb="conan" action="LocationForecast" 
+               queryid="proabilityforecast">
+         <actionparam key="updateid" value="proabilityforecast" />         
+         <actionparam key="provider_priority" value="hirlam 10;derived eps" />
+         <actionparam key="proability" value="eps derived" />
+         <version version="0.1" >
+            <actionparam key="proability" value="eps" />
+         </version>
+      </request>
+      <request path="/probabilityforecastupdate" default_version="-1" 
+	       wdbdb="proffdb" action="LocationForecastUpdate" queryid="locationforecast" >
+         <actionparam key="updateid" value="probabilityforecast" />         
+         <version version="0.1" action="LocationForecastUpdate" queryid="locationforecast"/>
+      </request>
+   </requests>
+
+	<querydefs>
+
+		<querydef id="locationforecast">
+
+	   	<query must_have_data="true">
+		 		dataprovider=pgen_probability;
+ 		 	   point_interpolation=nearest;
+ 		 		reftime=${pgen_probability};
+			</query>
+
+			<query>
+				<!-- dataprovider=proff.approved,hirlam 10; -->
+ 		   	point_interpolation=bilinear;
+	        	parameter=temperature of air
+	        	   		 ,"probability of temperature +/-1"
+   		       		 ,"probability of temperature +/-2"
+   		             ,"probability of temperature +/-3"
+   		             ,"probability of temperature +/-4";
+	      </query>
+	      
+			<query>
+			 	dataprovider=ecmwf atmospheric;
+			   point_interpolation=bilinear; 
+				reftime=${pgen_probability};
+			   parameter="specific energy of land, geopotential height";
+				levelspec=0,0,ground or water surface,exact
+			</query>
+
+		</querydef>
+		<querydef id="probabilityforecast">
+			<query>
+				dataprovider=derived eps;
+			   point_interpolation=bilinear;
+				reftime=NULL;
+			   parameter=distance of undefined;
+				levelspec=0,0,distance above ground,exact"
+			</query>
+			<query>
+		 	   dataprovider=derived eps;
+	    	   point_interpolation=bilinear;
+	    	   parameter=accumulated surface density of precipitation (10 percentile)
+	   			,accumulated surface density of precipitation (25 percentile)
+	    	      ,accumulated surface density of precipitation (50 percentile)
+	    	      ,accumulated surface density of precipitation (75 percentile)
+	    	      ,accumulated surface density of precipitation (90 percentile)
+	    	      ,temperature of land (10 percentile)
+	    	      ,temperature of land (25 percentile)
+	    	      ,temperature of land (50 percentile)
+	    	      ,temperature of land (75 percentile)
+	    	      ,temperature of land (90 percentile)
+	    			,proportion of precipitation (>0.1mm)
+		    	   ,proportion of precipitation (>0.2mm)
+		    	   ,proportion of precipitation (>0.5mm)
+		    	   ,proportion of precipitation (>1.0mm)
+		    	   ,proportion of precipitation (>2.0mm)
+		    	   ,proportion of precipitation (>5.0mm)
+			</query>
+		</querydef>
+	</querydefs>
+
+	<paramdefs>
+		<paramdef id="MODEL.TOPOGRAPHY" dataprovider="ecmwf atmospheric" >
+			<valueparameter name="specific energy of land, geopotential height" unit="square metre per square second" />
+			<levelparameter name="ground or water surface" unit="" from="0" to="0" />
+			<value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+			<dataversion version="-1" /> <!-- Optional: default value="-1"-->
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.5,0MM">
+			<valueparameter name="proportion of precipitation (>5.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.2,0MM">
+			<valueparameter name="proportion of precipitation (>2.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.1,0MM">
+			<valueparameter name="proportion of precipitation (>1.0mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,5MM">
+			<valueparameter name="proportion of precipitation (>0.5mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,2MM">
+			<valueparameter name="proportion of precipitation (>0.2mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.0,1MM">
+			<valueparameter name="proportion of precipitation (>0.1mm)" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.10">
+			<valueparameter name="accumulated surface density of precipitation (10 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.25">
+			<valueparameter name="accumulated surface density of precipitation (25 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.50">
+			<valueparameter name="accumulated surface density of precipitation (50 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.75">
+			<valueparameter name="accumulated surface density of precipitation (75 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="PRECIP.PERCENTILE.90">
+			<valueparameter name="accumulated surface density of precipitation (90 percentile)" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+		<paramdef id="SYMBOL">
+         <valueparameter name="yr weather symbol" unit="" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="SYMBOL.PROBABILITY">
+         <valueparameter name="probability of yr weather symbol" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+		<paramdef id="WIND.PROBABILITY">
+         <valueparameter name="probability of wind" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+		<paramdef id="T.2M.PROBABILITY.1">
+         <valueparameter name="probability of temperature +/-1" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="T.2M.PROBABILITY.2">
+         <valueparameter name="probability of temperature +/-2" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+		<paramdef id="T.2M.PROBABILITY.3">
+         <valueparameter name="probability of temperature +/-3" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="T.2M.PROBABILITY.4">
+         <valueparameter name="probability of temperature +/-4" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="100.0" offset="0.0" /> 
+      </paramdef>
+		
+		<paramdef id="T.2M.PERCENTILE.10">
+			<valueparameter name="temperature of land (10 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.25">
+			<valueparameter name="temperature of land (25 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.50">
+			<valueparameter name="temperature of land (50 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.75">
+			<valueparameter name="temperature of land (75 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="T.2M.PERCENTILE.90">
+			<valueparameter name="temperature of land (90 percentile)" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" /> 
+		</paramdef>
+		<paramdef id="PRECIP.ACCUMULATED">
+			<valueparameter name="accumulated surface density of precipitation" unit="kilogram per square metre" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+		</paramdef>
+      <paramdef id="PRECIP.ACCUMULATED" dataprovider="pgen_probability" >
+         <valueparameter name="surface density of precipitation" unit="kilogram per square metre" />
+         <levelparameter name="distance above ground" unit="metre"
+			from="0" to="0" />
+         <value scale="1000.0" offset="0.0" />
+      </paramdef>
+      <paramdef id="PRECIP.1H">
+         <valueparameter name="distance of precipitation, total" unit="millimetre" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+      </paramdef>
+		<paramdef id="FOG">
+			<valueparameter name="proportion of fog" unit="percent" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="TOTAL.CLOUD">
+			<valueparameter name="cloud cover, total" unit="ratio" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="1.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="LOW.CLOUD">
+			<valueparameter name="cloud cover, low" unit="ratio" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="MEDIUM.CLOUD">
+			<valueparameter name="cloud cover, medium" unit="ratio" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="HIGH.CLOUD">
+			<valueparameter name="cloud cover, high" unit="ratio" />
+			<levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+			<value scale="100.0" offset="0.0" />
+		</paramdef>
+		<paramdef id="RH.2M">
+			<valueparameter name="relative humidity" unit="ratio" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+		</paramdef>
+		<paramdef id="WIND.U10M">
+			<valueparameter name="velocity of air (u-component)" unit="metre per second" />
+			<levelparameter name="distance above ground" unit="metre" from="10" to="10" />
+		</paramdef>
+		<paramdef id="WIND.V10M">
+			<valueparameter name="velocity of air (v-component)" unit="metre per second" />
+			<levelparameter name="distance above ground" unit="metre" from="10" to="10" />
+		</paramdef>
+		
+		<paramdef id="WIND.U10M" dataprovider="pgen_probability">
+         <valueparameter name="velocity of air (u-component)" unit="metre per second" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+      </paramdef>
+      <paramdef id="WIND.V10M" dataprovider="pgen_probability">
+         <valueparameter name="velocity of air (v-component)" unit="metre per second" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+      </paramdef>
+			
+	<paramdef id="MSLP">
+	    <valueparameter name="pressure of air" unit="hectopascal" />
+	    <levelparameter name="distance above mean sea level" unit="metre" from="0" to="0" />
+	    <value scale="0.01" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="MSLP" dataprovider="pgen_probability">
+	    <valueparameter name="pressure of mean sea level" unit="pascal" />
+	    <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+	    <value scale="0.01" offset="0.0" />
+	 </paramdef>
+
+		<paramdef id="T.2M">
+			<valueparameter name="temperature of air" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" />
+		</paramdef>
+      <paramdef id="T.2M" dataprovider="pgen_probability">
+         <valueparameter name="temperature of air" unit="kelvin" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="1.0" offset="-273.15" />
+      </paramdef>
+		<paramdef id="T.2M.LAND">
+			<valueparameter name="temperature of land" unit="kelvin" />
+			<levelparameter name="distance above ground" unit="metre" from="2" to="2" />
+			<value scale="1.0" offset="-273.15" />
+		</paramdef>
+		<paramdef id="FOG.PROBABILITY">
+         <valueparameter name="proportion of fog probability" unit="ratio" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="1.0" offset="0.0" />
+      </paramdef>
+      <paramdef id="THUNDER.PROBABILITY">
+         <valueparameter name="proportion of thunderstorm probability" unit="percent" />
+         <levelparameter name="distance above ground" unit="metre" from="0" to="0" />
+         <value scale="1.0" offset="0.0" />
+      </paramdef>
+	</paramdefs>
+	
+</wdb2ts>
+
