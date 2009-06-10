@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <WebQuery.h>
 #include <UrlQuery.h>
+#include <limits.h>
 
 using namespace std;
 

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "matrix.h"
 #include "ReadMapFile.h"
 
