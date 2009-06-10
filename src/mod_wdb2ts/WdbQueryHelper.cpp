@@ -40,9 +40,21 @@ DEFINE_MI_PROFILE;
 namespace {
 	wdb2ts::config::Config::Query dummyQuerys;
 	
-	std::string returnColoumns="value, dataprovidername, placename, referencetime, validfrom, validto, " 
+	/*std::string returnColoumns="value, dataprovidername, placename, referencetime, validfrom, validto, " 
    									"valueparametername, valueparameterunit, levelparametername, " 
-   									"levelunitname, levelfrom, levelto, dataversion";
+   									"levelunitname, levelfrom, levelto, dataversion"; */
+	
+	std::string getReturnColoumns( int wciProtocol ) {
+		if( wciProtocol < 3 )
+			return "value, dataprovidername, placename, referencetime, validfrom, validto, " 
+			       "valueparametername, valueparameterunit, levelparametername, " 
+				    "levelunitname, levelfrom, levelto, dataversion";
+		
+		return "value, dataprovidername, placename, referencetime, validtimefrom, validtimeto, " 
+				 "valueparametername, valueparameterunit, levelparametername, " 
+				 "levelunitname, levelfrom, levelto, dataversion";
+	}
+	
 	
 	class myProviderList {
 		wdb2ts::ProviderList *list;
@@ -74,7 +86,8 @@ WdbQueryHelper()
 	
 WdbQueryHelper::
 WdbQueryHelper( const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol )
-	: urlQuerys( urlQuerys ), first( true ), webQuery( wciProtocol, returnColoumns )
+	: urlQuerys( urlQuerys ), first( true ), 
+	  webQuery( wciProtocol, getReturnColoumns( wciProtocol ) )
 {
 	itNext = urlQuerys.end();
 }	
