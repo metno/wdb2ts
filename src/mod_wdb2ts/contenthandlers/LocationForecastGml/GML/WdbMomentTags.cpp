@@ -355,7 +355,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->seaSurfaceHeight( true );
 	if( value != FLT_MAX ) {
 		out << "<!-- provider: " << pd->forecastprovider() << " (seaSurfaceHeight) -->\n";
-		out << indent << "<mox:seaSurfaceHeight uom=\"m\">" << value << "</mox:seaSurfaceHeight>\n";
+		out << indent << "<mox:seaSurfaceHeight uom=\"m\">" << setprecision(2) << value << setprecision(1) << "</mox:seaSurfaceHeight>\n";
       count++;
    }
 
