@@ -47,7 +47,6 @@ main( int argn, char **argv )
 {
 	//string url("http://localhost:8080/wdb2ts/locationforecast/?long=12;lat=60;from=all");
 	string url("http://localhost:8080/wdb2ts/locationforecast");
-	double getTime;
 	int nThreads;
 	int nRuns;
 	list<wdb2ts::GetThread*> getThreads;

@@ -120,8 +120,8 @@ parse( const std::string &buf_, SymbolConfList &conf )
       if ( vals[0].empty() || vals[1].empty() || vals[2].empty() )
          return false;
       
-      for ( int ii=0; ii < vals.size(); ++ii )
-         for ( int k=0; k < vals[ii].size(); ++k )
+      for ( vector<string>::size_type ii=0; ii < vals.size(); ++ii )
+         for ( vector<string>::size_type k=0; k < vals[ii].size(); ++k )
             if ( ! isdigit( vals[ii][k] ) )
                return false;   
    

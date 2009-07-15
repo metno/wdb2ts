@@ -60,7 +60,7 @@ namespace wdb2ts {
 				: ProviderRefTimeList( reftimeList )
 				{}
 				
-			virtual char* noteType() const { return "NoteProviderReftimes"; }
+			virtual const char* noteType() const { return "NoteProviderReftimes"; }
 			
 			virtual bool saveNote( std::ostream &out );
 			virtual NoteTag*  loadNote( std::istream &in );

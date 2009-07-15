@@ -85,14 +85,13 @@ class SymbolHolder
 
    std::vector<Symbol> symbols_;
    int                 min_, max_; 
-   
-   int index_;
+   int                 index_;
    
    SymbolHolder( int min, int max, const std::vector<Symbol> &s ) 
-        : symbols_( s ), index_( 0 ), min_( min ), max_( max ) {}
+        : symbols_( s ), min_( min ), max_( max ), index_( 0 ) {}
          
    public:
-      SymbolHolder(): index_(0), min_( 0 ), max_( 0 ) {}
+      SymbolHolder(): min_( 0 ), max_( 0 ), index_(0) {}
       SymbolHolder( int min, int max );
       SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols);
       ~SymbolHolder();

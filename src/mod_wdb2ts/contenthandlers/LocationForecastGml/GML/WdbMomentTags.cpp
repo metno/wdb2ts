@@ -188,7 +188,6 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	string indent( indent_.spaces() );
 	float value;
 	float iValue;
-	float dd_, ff_;
 	string prevProvider( pd->forecastprovider() );
 	string provider;
 	string tmpProvider;
@@ -196,7 +195,6 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	float tempProb = FLT_MAX;
 	float windProb = FLT_MAX;
 	int ice=INT_MAX;
-	bool hasTempCorr;
 	float length, direction;
 	float u, v;
 	ostringstream out;

@@ -50,7 +50,7 @@ class DefaultResponse
       std::string content()const; 
 
       virtual bool directOutput()const { return false; }
-      virtual void directOutput(bool flag ) { bool f=flag; /* do nothing*/ };
+      virtual void directOutput(bool /*flag */) { /* do nothing*/ };
       
       virtual std::ostream& out() ;
 };

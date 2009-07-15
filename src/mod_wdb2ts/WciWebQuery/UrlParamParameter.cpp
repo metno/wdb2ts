@@ -87,7 +87,7 @@ decode( const std::string &toDecode )
    string buf;
    vector<string> vals=miutil::splitstr(toDecode, ',');
     
-   for( int i=0; i<vals.size(); ++i ) {
+   for( vector<string>::size_type i=0; i<vals.size(); ++i ) {
    	buf = vals[i];
    	miutil::trimstr( buf, miutil::TRIMBOTH, " \t\r\n\"" );
 	

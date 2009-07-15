@@ -55,7 +55,7 @@ operator()()
 
 ApacheAbortHandlerManager::
 ApacheAbortHandlerManager()
-	: abortThread( 0 ), nextId(1 )
+	: nextId( 1 ), abortThread( 0 )
 {
 	abortThread = new boost::thread( AbortHelper( this ) );
 }

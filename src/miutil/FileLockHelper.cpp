@@ -132,7 +132,7 @@ write( const std::string &buf_, bool wait, bool &wasLocked )
 
 bool
 FileLockHelper::
-read( std::string &buf, bool wait, bool wasLocked )
+read( std::string &buf, bool wait, bool &wasLocked )
 {
 	boost::mutex::scoped_lock mylock( mutex );
 	wasLocked = false;

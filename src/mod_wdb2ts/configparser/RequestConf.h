@@ -31,8 +31,9 @@ struct ParamDef {
 	int                       compareValue;
 
 	ParamDef()
-		: valueScale(1.0f), valueOffset(0.0f),
-		  dataVersion( -1 ), levelFrom( INT_MIN ), levelTo( INT_MIN ),
+		: levelFrom( INT_MIN ), levelTo( INT_MIN ),
+		  valueScale(1.0f), valueOffset(0.0f),
+		  dataVersion( -1 ),
 		  compare(wdb2ts::ParamDef::undef ), compareValue( INT_MAX )
 		  {}
 	

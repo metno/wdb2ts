@@ -320,8 +320,8 @@ print( std::ostream &o ) const
 {
 	string runtime("runtime");
 	map<string, int> sMark;
-	int maxChar = 0;
-	int len;
+	string::size_type maxChar = 0;
+	string::size_type len;
 	double diff;
 	double percent;
 	

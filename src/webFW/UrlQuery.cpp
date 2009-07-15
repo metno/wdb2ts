@@ -162,7 +162,7 @@ decode( const std::string &urlQuery_, bool withPath )
    else
    	paramList.push_back( urlQuery ); 
     
-   for( int i=0; i<paramList.size(); ++i ) {
+   for( vector<string>::size_type i=0; i<paramList.size(); ++i ) {
    	if( paramList[i].length() == 0 )
    		continue;
    	

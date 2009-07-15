@@ -95,6 +95,7 @@ operator=( float f )
 {
 	Value val( f );
 	*this = val;
+	return *this;
 }
 
 Value& 
@@ -103,6 +104,7 @@ operator=( double d )
 {
 	Value val( d );
 	*this = val;
+	return *this;
 }
 
 
@@ -112,6 +114,7 @@ operator=( int f )
 {
 	Value val( f );
 	*this = val;
+	return *this;
 }
 
 Value&
@@ -120,6 +123,7 @@ operator=( const boost::posix_time::ptime &pt )
 {
 	Value val( pt );
 	*this = val;
+	return *this;
 }
 
 std::string 

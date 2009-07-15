@@ -43,7 +43,7 @@ namespace wdb2ts {
 				: std::vector<std::string>( stringList )
 				{}
 				
-				virtual char* noteType() const { return "NoteStringList"; }
+				virtual const char* noteType() const { return "NoteStringList"; }
 	};
 
 

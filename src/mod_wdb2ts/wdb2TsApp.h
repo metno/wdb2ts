@@ -58,7 +58,7 @@ public:
 	 * Module Name
 	 * @return 	Name of the module
 	 */
-	virtual char *moduleName()const { return "metno-wdb2ts"; }
+	virtual const char *moduleName()const { return "metno-wdb2ts"; }
 	
 	NoteManager notes;
       

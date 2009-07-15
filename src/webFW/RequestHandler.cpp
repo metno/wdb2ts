@@ -79,8 +79,6 @@ struct AbortHandlerHelper {
 			if( ! mgr )
 				return;
 			
-			int id;
-			
 			for( std::list<unsigned long>::iterator it=idList.begin(); it != idList.end(); ++it ) {
 				if( *it == handlerId ) {
 					idList.erase( it );

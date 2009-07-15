@@ -54,7 +54,7 @@ public:
 	WdbMomentTags( GMLContext &gmlContext_,
 						const LocationElem &pointData 
 					 )
-		: gmlContext( &gmlContext_ ), ff( FLT_MAX ), dd( FLT_MAX )
+		:  ff( FLT_MAX ), dd( FLT_MAX ), gmlContext( &gmlContext_ )
 		{
 			init( pointData );
 		}

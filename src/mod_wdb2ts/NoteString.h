@@ -42,7 +42,7 @@ namespace wdb2ts {
 				: std::string( string )
 				{}
 				
-			virtual char* noteType() const { return "NoteString"; }
+			virtual const char* noteType() const { return "NoteString"; }
 	};
 
 

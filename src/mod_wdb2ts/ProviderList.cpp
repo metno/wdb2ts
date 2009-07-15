@@ -87,7 +87,7 @@ decode( const std::string &toDecode_, std::string &provider )
 	}
 
 	
-	for( int index=0; index < placenames.size(); ++index ) {
+	for( vector<string>::size_type index=0; index < placenames.size(); ++index ) {
 		string buf( placenames[index] );
 		miutil::trimstr( buf );
 		
@@ -300,7 +300,7 @@ configureProviderList( const wdb2ts::config::ActionParam &params,
 		
 		cerr << "configureProviderPriority: provider_priority: <" << it->second.asString() << "> Size: " << pp.size() << endl;
 		
-		for( int i=0; i<pp.size(); ++i ) {
+		for( vector<string>::size_type i=0; i<pp.size(); ++i ) {
 			ProviderList pList = ProviderList::decode( pp[i], provider );
 			
 			for( ProviderList::iterator pit=pList.begin(); pit != pList.end(); ++pit ) 

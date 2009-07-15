@@ -142,7 +142,7 @@ decodeProtocol1( const std::string &toDecode )
 	string to;
 	string::size_type iSameTimeSpec;
 	string ind(defIndCode);
-	bool fromValid, toValid, indValid;
+	bool fromValid, toValid;
 
 	isDecoded = true;
  
@@ -171,9 +171,6 @@ decodeProtocol1( const std::string &toDecode )
 	indCode.erase();
 
 	string *tmp[]={ &from, &to, &ind };
-
-	int i;
-	int n;
 	vector<string> vals=miutil::splitstr(toDecode, ',');
 
 	if ( vals.empty() ) {
@@ -185,7 +182,7 @@ decodeProtocol1( const std::string &toDecode )
 	if ( vals.size() > 3 )
 		throw logic_error("TimeSpec: To many values!");
 
-	for ( int i=0; i<vals.size(); ++i )
+	for ( vector<string>::size_type i=0; i<vals.size(); ++i )
 		*tmp[i] = vals[i]; 
 
 	miutil::trimstr( from );
@@ -249,7 +246,7 @@ decodeProtocol2( const std::string &toDecode )
 	string to;
 	string::size_type iSameTimeSpec;
 	string ind(defIndCode);
-	bool fromValid, toValid, indValid;
+	bool fromValid, toValid;
 
 	isDecoded = true;
  
@@ -278,9 +275,6 @@ decodeProtocol2( const std::string &toDecode )
 	indCode.erase();
 
 	string *tmp[]={ &from, &to, &ind };
-
-	int i;
-	int n;
 	vector<string> vals=miutil::splitstr(toDecode, ',');
 
 	if ( vals.empty() ) {
@@ -292,7 +286,7 @@ decodeProtocol2( const std::string &toDecode )
 	if ( vals.size() > 3 )
 		throw logic_error("TimeSpec: To many values!");
 
-	for ( int i=0; i<vals.size(); ++i )
+	for ( vector<string>::size_type i=0; i<vals.size(); ++i )
 		*tmp[i] = vals[i]; 
 
 	miutil::trimstr( from );

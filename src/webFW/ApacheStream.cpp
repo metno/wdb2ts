@@ -138,8 +138,6 @@ webfw::
 ApacheStream::
 write(const char_type* s, std::streamsize n)
 {
-   apr_status_t satus;
-   
    if( directOutput_ ) {
       if( nChunck > chunckSize ) {
          sendToClient( ost.str().c_str() );

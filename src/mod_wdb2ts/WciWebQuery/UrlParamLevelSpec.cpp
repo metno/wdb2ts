@@ -82,7 +82,7 @@ bool
 UrlParamLevelSpec::
 validLevel( const std::string &level )
 {
-    for ( int i=0; i<level.size(); ++i ) {
+    for ( string::size_type i=0; i<level.size(); ++i ) {
     	if ( ! isdigit( level[i] ) )
     		return false;
     }    
@@ -136,9 +136,6 @@ decodeProtocol2( const std::string &toDecode )
    bool fromValid, toValid, indValid, leveldomainValid;
    
    string *tmp[]={ &from, &to, &leveldomain, &ind };
-   
-   int i;
-   int n;
    vector<string> vals=miutil::splitstr(toDecode, ',');
    
    if( vals.empty() ) {
@@ -153,7 +150,7 @@ decodeProtocol2( const std::string &toDecode )
    if( vals.size() > 4 )
    	throw logic_error("LevelSpec: To many values!");
    
-  for( int i=0; i<vals.size(); ++i )
+  for( vector<string>::size_type i=0; i<vals.size(); ++i )
       *tmp[i] = vals[i]; 
   
   miutil::trimstr( from, miutil::TRIMBOTH, " \t\r\n\"" );
@@ -224,9 +221,6 @@ decodeProtocol1( const std::string &toDecode )
    bool fromValid, toValid, indValid, leveldomainValid;
    
    string *tmp[]={ &from, &to, &leveldomain, &ind };
-   
-   int i;
-   int n;
    vector<string> vals=miutil::splitstr(toDecode, ',');
    
    if( vals.empty() ) {
@@ -241,7 +235,7 @@ decodeProtocol1( const std::string &toDecode )
    if( vals.size() > 4 )
    	throw logic_error("LevelSpec: To many values!");
    
-  for( int i=0; i<vals.size(); ++i )
+  for( vector<string>::size_type i=0; i<vals.size(); ++i )
       *tmp[i] = vals[i]; 
   
   miutil::trimstr( from, miutil::TRIMBOTH, " \t\r\n\"" );

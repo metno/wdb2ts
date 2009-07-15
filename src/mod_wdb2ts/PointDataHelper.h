@@ -134,8 +134,8 @@ struct PData{
    	 PRECIP_PROBABILITY_1_0MM( FLT_MAX ),
    	 PRECIP_PROBABILITY_2_0MM( FLT_MAX ),
    	 PRECIP_PROBABILITY_5_0MM( FLT_MAX ),
+   	 symbol( FLT_MAX ),
    	 symbol_PROBABILITY( FLT_MAX ),
-   	 symbol( FLT_MAX ), 
    	 modeltopography( FLT_MAX ){}
    
    PData(const PData &pd)
@@ -145,8 +145,10 @@ struct PData{
        PRECIP_ACCUMULATED( pd.PRECIP_ACCUMULATED ),
        PRECIP_1T(pd.PRECIP_1T), PRECIP_3T(pd.PRECIP_3T), 
        PRECIP_6T(pd.PRECIP_6T), PRECIP_12T(pd.PRECIP_12T), 
-       PRECIP_24T(pd.PRECIP_24T), seaCurrentVelocityV( pd.seaCurrentVelocityV ), 
-       seaCurrentVelocityU( pd.seaCurrentVelocityU ), seaSalinity( pd.seaSalinity ),
+       PRECIP_24T(pd.PRECIP_24T),
+       seaCurrentVelocityU( pd.seaCurrentVelocityU ),
+       seaCurrentVelocityV( pd.seaCurrentVelocityV ),
+       seaSalinity( pd.seaSalinity ),
        seaSurfaceHeight( pd.seaSurfaceHeight ), seaTemperature( pd.seaTemperature ),
        meanTotalWaveDirection( pd.meanTotalWaveDirection ), significantTotalWaveHeight( pd.significantTotalWaveHeight ),
        seaIcePresence( pd.seaIcePresence ), 
@@ -176,8 +178,8 @@ struct PData{
        PRECIP_PROBABILITY_1_0MM( pd.PRECIP_PROBABILITY_1_0MM ),
        PRECIP_PROBABILITY_2_0MM( pd.PRECIP_PROBABILITY_2_0MM ),
        PRECIP_PROBABILITY_5_0MM( pd.PRECIP_PROBABILITY_5_0MM ),
+       symbol( pd.symbol ),
        symbol_PROBABILITY( pd.symbol_PROBABILITY ),
-       symbol( pd.symbol ), 
        modeltopography( pd.modeltopography ){}
    
    PData& operator=(const PData &rhs){

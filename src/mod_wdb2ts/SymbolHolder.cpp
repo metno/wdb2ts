@@ -46,16 +46,16 @@ namespace wdb2ts {
 
 SymbolHolder::
 SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols)
-: index_(0), min_( min ), max_( max )
+:  min_( min ), max_( max ), index_(0)
 {
 	symbols_.reserve( symbols.size() );
-   for ( int i=0; i<symbols.size(); ++i )
+   for ( std::vector<miSymbol>::size_type i=0; i<symbols.size(); ++i )
       symbols_.push_back( Symbol( min, max, symbols[i] ) );
 }
 
 SymbolHolder::
 SymbolHolder( int min, int max )
-: index_(-1), min_( min ), max_( max )
+: min_( min ), max_( max ), index_(-1)
 {
 	symbols_.reserve( 100 );
 	
@@ -165,7 +165,7 @@ next( int &symbolid,
 {
 	using namespace boost::posix_time;
 	
-   if (index < 0 || index_>=symbols_.size())
+   if (index < 0 || static_cast<std::vector<Symbol>::size_type>( index_) >= symbols_.size())
       return false;
    
    miTime t = symbols_[index_].symbol.getTime(); 

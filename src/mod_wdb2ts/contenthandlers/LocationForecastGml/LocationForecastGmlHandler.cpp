@@ -191,7 +191,6 @@ configure( const wdb2ts::config::ActionParam &params,
 	
 	//configureProviderPriority( params, app );
 		
-	string::size_type i;
 	for( it = params.begin(); it!=params.end(); ++it ) {
 		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
 		
@@ -361,9 +360,7 @@ get( webfw::Request  &req,
 {
 	using namespace boost::posix_time;
 	ostringstream ost;
-	ostream &out = response.out();
 	int   altitude;
-//	ptime fromtime;
 	PtrProviderRefTimes refTimes;
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;

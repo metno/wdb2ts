@@ -49,7 +49,6 @@ main( int argn, char **argv )
    string content_type;
    string method("GET");
    string sexpire;
-   int    content_length(0);
    string dirPart, queryPart;
    
    MISP_CREATE_AND_INIT_APP( wdb2ts::Wdb2TsApp, logger, 0 );

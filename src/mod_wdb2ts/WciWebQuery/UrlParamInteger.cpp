@@ -122,12 +122,11 @@ decode( const std::string &to )
 {
     ostringstream ost;
     int i;
-    int n;
     vector<string> vals=miutil::splitstr(to, ',');
     
     value_.clear();
     
-    for( n=0; n<vals.size(); ++n ) {
+    for( vector<string>::size_type n=0; n<vals.size(); ++n ) {
 		if( sscanf(vals[n].c_str(),"%d", &i) != 1 ) {
 		    ost << "Not a number: " << to;
 		    throw logic_error( ost.str() );

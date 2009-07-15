@@ -74,7 +74,7 @@ public:
 	};
 	
 	virtual ~NoteTag(){}
-	virtual char* noteType() const =0;
+	virtual const char* noteType() const =0;
 	
 	virtual bool saveNote( std::ostream &out ){ throw NoteException( "Not implemented!"); }
 	

@@ -130,6 +130,7 @@ doRequestVersion( const AttributeMap &attributes )
 	currentRequestVersion.reset( new RequestConf() );
 	
 	doRequestConf( attributes, *currentRequestVersion, "version" );
+	return true;
 }
 
 void
@@ -165,6 +166,7 @@ doQueryDef( const AttributeMap &attributes )
 	
 	config->querys[id]=Config::Query();
 	itCurrentQueryDef = config->querys.find( id );
+	return true;
 }
 
 bool

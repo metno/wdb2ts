@@ -29,7 +29,7 @@
 #include <CErrLogger.h>
  
 namespace {
-   char *llmsg[]={"Fatal", "Error", "Warning", "Info", "Debug", "Debug1", "Debug2" };  
+   const char *llmsg[]={"Fatal", "Error", "Warning", "Info", "Debug", "Debug1", "Debug2" };
 } 
       
 void

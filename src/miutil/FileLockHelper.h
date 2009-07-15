@@ -24,7 +24,7 @@ public:
 	std::string filename() const;
 		
 	bool write( const std::string &buf, bool wait, bool &wasLocked );
-	bool read( std::string &buf, bool wait, bool wasLocked );
+	bool read( std::string &buf, bool wait, bool &wasLocked );
 		
 	/**
 	 * Stat the file and return the modification time. 

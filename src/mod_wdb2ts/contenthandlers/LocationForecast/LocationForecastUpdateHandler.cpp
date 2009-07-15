@@ -75,9 +75,9 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	using namespace miutil;
 	using namespace boost::posix_time;
 	
-	std::vector<std::string> keys;
-	std::vector<std::string> keyvals;
-	std::string              buf;
+	vector<string> keys;
+	vector<string> keyvals;
+	string              buf;
 	int                      dataversion;
 	
 	newRefTime.clear();
@@ -92,7 +92,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	else
 		keys=splitstr( query, query[i] );
 	
-	for( int iKey=0; iKey < keys.size(); ++iKey ) {
+	for( vector<string>::size_type iKey=0; iKey < keys.size(); ++iKey ) {
 		string key;
 		string val;
 		
@@ -370,10 +370,6 @@ get( webfw::Request  &req,
      webfw::Logger   &logger )   
 {
 	ostringstream ost;
-	ostream &out = response.out();
-	float latitude;
-	float longitude;
-	int   altitude;
 	string status;
 	ProviderRefTimeList requestedProviders;
 	ProviderList providerPriorityList;

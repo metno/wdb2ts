@@ -96,7 +96,6 @@ DefaultRequestHandlerManager::
 findRequestHandlerPathImpl( const std::string &path, 
                             int major, int minor )
 {
-   bool def=false;
 #if 0 
    {
    	std::map<std::string, std::map<Version, RequestHandlerPtr> >::iterator it = handlers.begin();

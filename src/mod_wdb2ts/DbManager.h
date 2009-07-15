@@ -51,7 +51,7 @@ namespace wdb2ts {
 			
 		friend class DbManager;
 		WciConnection( miutil::pgpool::DbConnectionPtr con, const std::string &wciuser )
-			: con( con), wciuser( wciuser ) {}
+			: wciuser( wciuser ), con( con) {}
 				
 	public:
 		 template<typename TRANSACTOR>

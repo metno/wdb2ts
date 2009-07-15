@@ -52,7 +52,7 @@ namespace wdb2ts {
 				: ProviderList( withOnlyProviderNames( providerList, withoutPlacename ) )
 				{}
 				
-			virtual char* noteType() const { return "NoteProviderList"; }
+			virtual const char* noteType() const { return "NoteProviderList"; }
 	};
 
 

@@ -50,7 +50,14 @@ bool
 SymbolGenerator::
 readConf( const std::string &confile )
 {
-	symbolMaker::readSymbols( confile );
+	try {
+		symbolMaker::readSymbols( confile );
+	}
+	catch( ... ) {
+		return false;
+	}
+
+	return true;
 }
 	
 	
@@ -229,7 +236,7 @@ computeSymbols( LocationData& data,
    
    int nSymbols=0;
    boost::posix_time::ptime testTime;
-   for (int i=0; i<tmpSymbols.size(); ++i) {
+   for ( vector<miSymbol>::size_type i=0; i<tmpSymbols.size(); ++i) {
    	if ( symbolMaker::getErrorSymbol()==tmpSymbols[i] )
    		continue;
          

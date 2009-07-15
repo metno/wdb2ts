@@ -139,6 +139,8 @@ rewind()
      throw DirException("No directory is open!");
 
   rewinddir(dir);
+
+  return true;
 }
 
     
@@ -182,7 +184,7 @@ fileSize(const std::string &name)
   if(stat(name.c_str(), &s)<0)
     return -1;
  
-  return s.st_mtime;
+  return s.st_size;
 }
 
 bool 
@@ -209,6 +211,12 @@ time_t
 dnmi::file::
 modTime(const std::string &name)
 {
+	struct stat s;
+
+	if(stat(name.c_str(), &s)<0)
+		return -1;
+
+	return s.st_mtime;
 }
 
 namespace{

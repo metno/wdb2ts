@@ -33,7 +33,7 @@ namespace wdb2ts {
 
 
 SymbolContext::	
-SymbolContext(): first( true ), prevTemperature( FLT_MAX )
+SymbolContext(): prevTemperature( FLT_MAX ), first( true )
 {
 	
 }

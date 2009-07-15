@@ -38,7 +38,7 @@ using namespace std;
 namespace {
     
 struct KeyDecode {
-    char *key;
+    const char *key;
     wdb2ts::UrlParam *decoder;
 };
 

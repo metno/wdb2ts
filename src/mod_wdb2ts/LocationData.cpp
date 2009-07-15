@@ -41,10 +41,10 @@ LocationData( wdb2ts::TimeSeriePtr timeSerie_,
 				  float longitude, float latitude, int hight,
 		        const ProviderList &providerPriority,
 		        const TopoProviderMap &modelTopoProviders )
- 	: timeSeriePtr( timeSerie_ ),
+ 	: providerPriority_( providerPriority ),
+	  modelTopoProviders_( modelTopoProviders ),
+ 	  timeSeriePtr( timeSerie_ ),
  	  timeSerie( timeSeriePtr.get() ),
- 	  providerPriority_( providerPriority ),
- 	  modelTopoProviders_( modelTopoProviders ),
  	  locationElem( providerPriority, modelTopoProviders, longitude, latitude, hight )
 {
 	if( timeSerie )

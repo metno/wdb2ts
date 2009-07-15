@@ -19,8 +19,8 @@ rfc1123date( const boost::posix_time::ptime &pt )
 {
    
    char buf[64];
-   const char *day;
-   const char *mon;
+   const char *day=0;
+   const char *mon=0;
    unsigned short year;
    
    if( pt.is_special() )
@@ -56,6 +56,9 @@ rfc1123date( const boost::posix_time::ptime &pt )
       case Dec: mon="Dec"; break;
    }
    
+   if( !day || !mon )
+	   return std::string();
+
    year = d.year();
    
    sprintf( buf, "%s, %02d %s %04d %02d:%02d:%02d GMT", 
@@ -189,7 +192,7 @@ ptimeFromIsoString( const std::string &isoTime )
 	struct DEF {
 		int number;
 		int numberOfChars;
-		char *nextSep;
+		const char *nextSep;
 		bool mustHaveNext;
 	};
 	
@@ -204,7 +207,6 @@ ptimeFromIsoString( const std::string &isoTime )
 	
 	int hourOffset=0;
 	int minuteOffset=0;
-	int defIndex;
 	bool isUTC=false;
 	string::size_type iIsoTime=0;
 	string::size_type iIsoTimePrev=0;

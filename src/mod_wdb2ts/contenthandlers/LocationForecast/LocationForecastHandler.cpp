@@ -350,7 +350,6 @@ get( webfw::Request  &req,
 {
 	using namespace boost::posix_time;
 	ostringstream ost;
-	ostream &out = response.out();
 	int   altitude;
 	//ptime fromtime;
 	PtrProviderRefTimes refTimes;
