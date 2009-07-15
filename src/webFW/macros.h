@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <trimstr.h>
 
 
 #define MISP_DECLARE_APP( AppClass ) \
@@ -72,13 +73,66 @@ app()                                     \
 AppClass::app()->init( Logger, IAbortManager )
 
 #define MISP_IMPL_APACHE_HANDLER( Name, AppClass ) \
+                                                   \
+struct Name##_conf {                               \
+	const char *confpath;                          \
+	const char *logpath;                           \
+};                                                 \
+                                                   \
+static const char*                                        \
+Name##_set_confpath( cmd_parms *cmd, void *dummy, const char *arg );  \
+	                                                                  \
+static const char*                                                    \
+Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg );   \
+                                                                      \
 static int                                         \
+Name##_handler( request_rec *r );                  \
+	                                               \
+static void                                        \
+Name##_register_hooks( apr_pool_t *p );            \
+                                                   \
+static const command_rec Name##_cmds[] = {         \
+	AP_INIT_TAKE1( #Name "_confpath",              \
+	               (const char* (*)())Name##_set_confpath, \
+	               NULL,                                   \
+	               RSRC_CONF,                              \
+				   #Name "_confpath, where is the configuration files located. Default is undefined or compiled in." \
+				 ),                                \
+    AP_INIT_TAKE1( #Name "_logpath",              \
+	               (const char* (*)())Name##_set_logpath, \
+	               NULL,                                   \
+	               RSRC_CONF,                              \
+				   #Name "_logpath, where shall the log files be written. Default is undefined or compiled in." \
+				 ),                                \
+	             { NULL }                          \
+};                                                 \
+                                                   \
+static void*                                       \
+Name##_create_srv_conf(apr_pool_t* pool, server_rec* svr) \
+{                                                         \
+	Name##_conf *conf= (Name##_conf*) apr_pcalloc( pool, sizeof( Name##_conf ) ); \
+	conf->confpath = apr_pstrdup (pool, "");              \
+	conf->logpath = apr_pstrdup (pool, "");               \
+	return conf;                                          \
+}                                                         \
+                                                          \
+/* Dispatch list for API hooks */                                  \
+module AP_MODULE_DECLARE_DATA Name ## _module = {                  \
+    STANDARD20_MODULE_STUFF,                                       \
+    NULL,                   /* create per-dir    config structures */ \
+    NULL,                   /* merge  per-dir    config structures */ \
+    Name##_create_srv_conf, /*create per-server config structures */ \
+    NULL,                   /* merge  per-server config structures */ \
+    Name##_cmds,            /*  table of config file commands*/ \
+    Name##_register_hooks   /* register hooks                      */ \
+};                                                                  \
+                                                                   \
+int                                         \
 Name##_handler(request_rec *r)                     \
 {                                                  \
    std::ostringstream ost;                         \
    time_t             requestTime;                 \
   /* double tstart=miutil::gettimeofday(); */      \
-   int returnType=OK;                              \
                                                    \
    time( &requestTime );                           \
                                                    \
@@ -109,13 +163,18 @@ Name##_handler(request_rec *r)                     \
    webfw::ApacheLogger    logger( r );             \
    AppClass*   myApp = AppClass::app();            \
                                                    \
-	ap_set_content_type ( r, "text/plain" );        \
-	                                                \
+   ap_set_content_type ( r, "text/plain" );        \
+                                                   \
    if( ! myApp )  {                                \
       /*r->content_type = "text/xml"; */           \
       ap_log_error(APLOG_MARK, APLOG_ERR, 0,r->server, "Internal server error (App == 0)!");\
       return HTTP_INTERNAL_SERVER_ERROR;           \
    }                                               \
+                                                   \
+   server_rec *s = r->server;                      \
+   Name##_conf *conf=(Name##_conf*)ap_get_module_config( s->module_config, \
+                                                         &Name##_module);  \
+   myApp->setPathsFromConffile( conf->confpath, conf->logpath ); \
                                                    \
    MARK_ID_MI_PROFILE("dispatch");                 \
    myApp->dispatch( request, response, logger );   \
@@ -204,7 +263,7 @@ Name##_handler(request_rec *r)                     \
  * This function register our module with the Apache core. It also \
  * initialize the ProgApp to be used as a singleton.               \
  */                                                                \
-static void                                                        \
+void                                                        \
 Name##_register_hooks(apr_pool_t *p)                               \
 {                                                                  \
    /* Initialize as a singleton before it is used in any threads.  \
@@ -223,13 +282,31 @@ Name##_register_hooks(apr_pool_t *p)                               \
    ap_hook_handler(Name ## _handler, NULL, NULL, APR_HOOK_MIDDLE); \
 }                                                                  \
                                                                    \
-/* Dispatch list for API hooks */                                  \
-module AP_MODULE_DECLARE_DATA Name ## _module = {                  \
-    STANDARD20_MODULE_STUFF,                                       \
-    NULL,                  /* create per-dir    config structures */ \
-    NULL,                  /* merge  per-dir    config structures */ \
-    NULL,    /*mod_ts2xml_create_srv_conf,  create per-server config structures */ \
-    NULL,                  /* merge  per-server config structures */ \
-    NULL,    /*  mod_ts2xml_cmds,                  table of config file commands*/ \
-    Name##_register_hooks  /* register hooks                      */ \
+                                                                   \
+const char*                                        \
+Name##_set_confpath( cmd_parms *cmd, void *dummy, const char *arg) \
+{                                                                      \
+	server_rec      *s = cmd->server;                                  \
+	Name##_conf *conf = (Name##_conf*) ap_get_module_config ( s->module_config,   \
+			                                                  &Name##_module    );\
+                                                                           \
+    std::string buf( arg );                                            \
+    miutil::trimstr( buf );                                            \
+    conf->confpath = apr_pstrdup( cmd->pool, buf.c_str() );            \
+                                                                       \
+    return NULL;                                                       \
+}                                                                      \
+                                                                       \
+const char*                                                            \
+Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg) \
+{                                                                      \
+   	server_rec      *s = cmd->server;                                  \
+   	Name##_conf *conf = (Name##_conf*) ap_get_module_config ( s->module_config,   \
+                                                              &Name##_module    );\
+                                                                       \
+   	std::string buf( arg );                                            \
+   	miutil::trimstr( buf );                                            \
+   	conf->logpath = apr_pstrdup (cmd->pool, buf.c_str() );                  \
+   	                                                                   \
+   	return NULL;                                                       \
 }

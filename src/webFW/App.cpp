@@ -33,6 +33,8 @@
 #include <DefaultRequestHandlerManager.h>
 #include <App.h>
 
+using namespace std;
+
 webfw::   
 App::
 App( RequestHandlerManager *reqHandlerMgr )
@@ -71,18 +73,44 @@ init( Logger &logger, IAbortHandlerManager *abortHandlerMgr )
 	if( ! abortHandlerManager_ ) 
 		abortHandlerManager_ = abortHandlerMgr;
 	
-   if( requestHandlerManager_ )
-      initAction( *requestHandlerManager_, logger );
+	if( requestHandlerManager_ )
+		initAction( *requestHandlerManager_, logger );
 }
 
+
+void
+webfw::
+App::
+setPathsFromConffile( const char *confpath, const char *logpath )
+{
+	boost::mutex::scoped_lock locl( mutex );
+
+	if( confpathFromConffile_.empty() )
+		confpathFromConffile_ = confpath;
+
+	if( logpathFromConffile_.empty() )
+		logpathFromConffile_ = logpath;
+}
    
 void 
 webfw::
 App::
 setConfDir( const std::string &confdir )
 {
-   confdir_ = confdir;
+	boost::mutex::scoped_lock locl( mutex );
+	confdir_ = confdir;
 }
+
+std::string
+webfw::
+App::
+getConfDir()const
+{
+	 boost::mutex::scoped_lock locl( mutex );
+
+	return confpathFromConffile_.empty() ? confdir_ : confpathFromConffile_;
+}
+
 
 void 
 webfw::
@@ -92,19 +120,28 @@ setLogDir( const std::string &logdir )
 	logdir_ = logdir;
 }
 
+std::string
+webfw::
+App::
+getLogDir()const
+{
+	boost::mutex::scoped_lock locl( mutex );
 
+	return logpathFromConffile_.empty() ? logdir_ : logpathFromConffile_;
+}
 
 bool
 webfw:: 
 App::
 readConfFile( const std::string &confile, std::string &content )
 {
-   std::string file;
+   string file( confile );
+   string path=getConfDir();
    
-   if( ! confdir_.empty() )
-      file = confdir_ + "/" + confile;
+   if( ! path.empty() )
+      file = path + "/" + confile;
      
-   std::cerr << "readConfFile: " << file << std::endl;   
+   cerr << "readConfFile: " << file << endl;
    return miutil::readFile( file, content );
 }
    
@@ -136,7 +173,7 @@ dispatch( Request &req, Response &res, Logger &logger )
       return;
    }
    
-   std::ostringstream ost;
+   ostringstream ost;
    int minor, major;
    reqHandler->version( major, minor );
     
@@ -168,16 +205,16 @@ webfw::
 decodeLogLevels( const std::string &logLevels )
 {
 	int nLevel;
-	std::string level;
-	std::string loggerName;
-	std::map<std::string, int> loggers;
-	std::vector<std::string> logger;
-	std::vector<std::string> keyVals=miutil::splitstr( logLevels, ';' );
+	string level;
+	string loggerName;
+	map<std::string, int> loggers;
+	vector<std::string> logger;
+	vector<std::string> keyVals=miutil::splitstr( logLevels, ';' );
 	
-	for( int i=0; i < keyVals.size(); ++i ) {
+	for( vector<string>::size_type i=0; i < keyVals.size(); ++i ) {
 		logger = miutil::splitstr( keyVals[i], ';' );
 		if( logger.size() != 2 )
-			throw std::logic_error("Invalid format of the loglevel '" + keyVals[i] + "'.");
+			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'.");
 		
 		loggerName = logger[0];
 		level = logger[1];
@@ -186,16 +223,16 @@ decodeLogLevels( const std::string &logLevels )
 		miutil::trimstr( level );
 		
 		if( loggerName.empty() )
-			throw std::logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. No logger name.");
+			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. No logger name.");
 		
 		if( level.empty() )
-			throw std::logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. No log level.");
+			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. No log level.");
 				
 		if( sscanf( level.c_str(), "%d", &nLevel) != 1 )
-			throw std::logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. Log level not a number.");
+			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. Log level not a number.");
 		
 		if( nLevel < 0 || nLevel > 8 )
-			throw std::range_error("Invalid loglevel '" + keyVals[i] + "'. Valid range [0,8]." );
+			throw range_error("Invalid loglevel '" + keyVals[i] + "'. Valid range [0,8]." );
 		
 		loggers[ loggerName ] = nLevel;
 	}

@@ -28,6 +28,8 @@
 #ifndef __APP_H__
 #define __APP_H__
 
+
+#include <boost/thread/thread.hpp>
 #include <stdexcept>
 #include <macros.h>
 #include <exception.h>
@@ -40,7 +42,7 @@
 namespace webfw {
 
 /**
- * @addtogroup webFWAPI
+ * @addtogroup webFWAP
  * @{
  * 
  * App is a singelton class that holds the globale state of
@@ -50,9 +52,13 @@ class App
 {
    RequestHandlerManager *requestHandlerManager_;
    IAbortHandlerManager  *abortHandlerManager_;
+   std::string confpathFromConffile_;
+   std::string logpathFromConffile_;
    std::string confdir_;
    std::string logdir_;
    
+   mutable boost::mutex mutex;
+
    friend class RequestHandler;
    
    IAbortHandlerManager *abortHandler(){ return abortHandlerManager_; } 
@@ -68,6 +74,13 @@ class App
       App();
 
       /**
+       * Set the path from the modulename_set_confpath variable in the configuration file.
+       *
+       * modulename is the name of the module.
+       */
+      void setPathsFromConffile( const char *confpath, const char *logpath );
+
+      /**
        * All configuration files is read from the directory
        * set here as default.
        * 
@@ -75,7 +88,11 @@ class App
        */
       void setConfDir( const std::string &confdir );
       
-      std::string getConfDir()const { return confdir_; }
+      /**
+       * getConfDir returns the confpathFromConfile if it is not empty.
+       * If it is empty the confdir_ set with setConfDir is used.
+       */
+      std::string getConfDir()const;
       
       /**
        * Write logfiles to this directory.
@@ -84,7 +101,7 @@ class App
        */
       void setLogDir( const std::string &logdir );
       
-      std::string getLogDir()const { return logdir_; }
+      std::string getLogDir()const;
       
       
       /**
@@ -104,7 +121,7 @@ class App
       /**
        * The name this module is known as.
        */
-      virtual char *moduleName()const =0; 
+      virtual const char *moduleName()const =0;
       
       
       void dispatch( Request &req, Response &res, Logger &logger );
