@@ -1,0 +1,138 @@
+metno-wdb2ts (0.5.0-dev-1) unstable; urgency=low
+  * Development version 0.5.
+  * Partially implemented a new LogSystem.
+  * Possibility to interupt a long running request, location handler.
+  * Early start of returning data, location handler.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed, 06 May 2009 09:00:00 +0200
+
+metno-wdb2ts (0.4.0) unstable; urgency=low
+  * Reased version 0.4.
+	
+ -- Borge Moe <borge.moe@met.no>  Fri, 20 Mar 2009 12:50:00 +0100
+
+metno-wdb2ts (0.4.0-dev-11) unstable; urgency=low
+  * Updated oceanforecast.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed, 18 Mar 2009 07:30:00 +0100
+
+metno-wdb2ts (0.4.0-dev-9) unstable; urgency=low
+  * Updated oceanforecast.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed, 11 Mar 2009 10:00:00 +0100
+	
+
+metno-wdb2ts (0.4.0-dev-6) unstable; urgency=low
+  * Updated to ubuntu hardy.
+	
+ -- Borge Moe <borge.moe@met.no>  Tue, 3 Mar 2009 20:00:00 +0100
+	
+metno-wdb2ts (0.3.0-dev-11) unstable; urgency=low
+  * Added man pages.
+  * Refactored to make all (allmost) database access trough pqxx transactors.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed, 07 Jan 2009 11:00:00 +0100
+
+metno-wdb2ts (0.3.0-dev-10) unstable; urgency=low
+  * Fix threadbug.
+  * Reproject wind vectors to geographic projection.
+  * Changed encoding of probability.
+  * Bugfixes.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed, 03 Dec 2008 13:55:00 +0100
+
+metno-wdb2ts (0.3.0-dev-9) unstable; urgency=low
+
+  * Reproject wind vectors to geographic projection.
+  * Changed encoding of probability.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed,  26 Nov 2008 10:00:00 +0100
+
+metno-wdb2ts (0.3.0-dev-8) unstable; urgency=low
+
+  * Fixed missing data for request for data from now.
+  * Fixed missing symbols when only propability data is available.
+  * Fixed precipitation for probability data.
+  * Updated metno-wdb2ts-conf.xml.
+	
+ -- Borge Moe <borge.moe@met.no>  Fri,  21 Nov 2008 06:55:00 +0100
+
+
+metno-wdb2ts (0.3.0-dev-7) unstable; urgency=low
+
+  * Persitent referancetime. Use /var/lib/metno-wdb2ts to store persistent data.
+  * bugfix. 
+	
+ -- Borge Moe <borge.moe@met.no>  Tue,  18 Nov 2008 12:25:00 +0100
+
+
+metno-wdb2ts (0.3.0-dev-6) unstable; urgency=low
+
+  * Add support for probability forecast. Replace EC deterministic.
+  * Added a program wdb2tsget_test to test performance of wdb/wdb2ts. 
+	
+ -- Borge Moe <borge.moe@met.no>  Tue,  11 Nov 2008 13:00:00 +0100
+
+metno-wdb2ts (0.3.0-dev-5) unstable; urgency=low
+
+  * Add suport for fog and thuder in symbols.
+	
+ -- Borge Moe <borge.moe@met.no>  Wed,  15 Oct 2008 10:30:00 +0200
+
+metno-wdb2ts (0.3.0-dev-4) unstable; urgency=low
+
+  * Fix update bug.
+	
+ -- Borge Moe <borge.moe@met.no>  Tue,  14 Oct 2008 13:15:00 +0200
+
+metno-wdb2ts (0.3.0-dev-2) unstable; urgency=low
+
+  * Agregate from RR_1.
+  * Use breaktimes to guaranti consistence between momentdata and precipitationdata.
+  * Use dataversion -1 in wci.read as default if no version is given.
+  * Updated metno-wdb2ts-conf.xml
+	
+ -- Borge Moe <borge.moe@met.no>  Mon,  13 Oct 2008 06:00:00 +0200
+
+metno-wdb2ts (0.3.0-dev-1) unstable; urgency=low
+
+  * Locationforecast with percentiles.
+
+ -- Borge Moe <borge.moe@met.no>  Tue,  07 Oct 2008 12:00:00 +0200
+
+metno-wdb2ts (0.2.0-1) unstable; urgency=low
+
+  * Locationforecast with percentiles.
+
+ -- Borge Moe <borge.moe@met.no>  Fri,  20 Jun 2008 13:40:00 +0200
+
+metno-wdb2ts (0.2.0dev-1) unstable; urgency=low
+
+  * Initiel support for locationforecast.
+
+ -- Borge Moe <borge.moe@met.no>  Wed,  04 Jun 2008 10:40:00 +0200
+
+metno-wdb2ts (0.1.5-1) unstable; urgency=low
+
+  * Return an empty document when no data is found for the request.
+
+ -- Borge Moe <borge.moe@met.no>  Mon,  31 Mar 2008 13:22:00 +0200
+	
+metno-wdb2ts (0.3.0-dev-1) unstable; urgency=low
+
+  * New development release with full ts2xml support.
+
+ -- Borge Moe <borge.moe@met.no>  Tue,  07 Oct 2008 12:00:00 +0200
+
+metno-wdb2ts (0.1.3-1) unstable; urgency=low
+
+  * First stable release.
+
+ -- Borge Moe <borge.moe@met.no>  Mon,  3 Mar 2008 08:30:00 +0100
+
+metno-wdb2ts (0.1.1-1) unstable; urgency=low
+
+  * First stable release.
+
+ -- Borge Moe <borge.moe@met.no>  Mon,  11 Feb 2008 09:34:36 +0100
+

@@ -1,0 +1,49 @@
+Source: metno-wdb2ts
+Section: web
+Priority: optional
+Maintainer: Borge Moe <borge.moe@met.no>
+Build-Depends: build-essential,
+               libxml2-dev (>=2.6),
+               debhelper (>=4.0.0),  
+               libstdc++6 (>=4.1), 
+               libboost-thread-dev (>=1.34.1), 
+               libboost-regex-dev (>=1.34.1), 
+               libboost-iostreams-dev (>=1.34.1),
+               libboost-program-options-dev (>=1.34.1),
+               apache2-threaded-dev (>=2.0), 
+               libapr1-dev (>=1.2), 
+               libpqxx-dev (>=2.6.9), 
+               libpq-dev (>=8.3),
+               libaprutil1-dev (>=1.2),
+               proj (>=4.6),
+               liblog4cpp5-dev (>= 1.0),
+               pgconpool-dev (>=0.3),
+               pumet-dev (>= 3.1),
+               putools-dev (>= 3.1),
+               libcurl4-openssl-dev (>= 7.15.5),
+               milib-dev (>= 3.1),
+               libmi-dev (>= 3.2)
+Standards-Version: 3.6.2
+
+Package: metno-wdb2ts
+Architecture: amd64
+Depends: libstdc++6 (>= 4.1), 
+         libboost-thread1.34.1 (>=1.34.1), 
+         libboost-regex1.34.1 (>=1.34.1),
+         libboost-iostreams1.34.1 (>=1.34.1),
+	 libboost-program-options1.34.1 (>=1.34.1),
+         apache2-mpm-worker (>=2.2),
+         libpqxx-2.6.9ldbl (>=2.6.8), 
+         libpq5 (>=8.3),
+         proj (>=4.6),
+         liblog4cpp5 (>= 1.0),
+	 gzip (>=1.3.5),
+         pgconpool1 (>=0.3),
+         pumet1 (>= 3.1), 
+         putools1 (>= 3.1),
+         libcurl3 (>= 7.15.5),
+         libmi1 (>= 3.2),
+         milib1 (>= 3.1)
+Description: metno-wdb2ts is an apache module that return a timeseries of meteorological data in xml and CSV format. 
+  metno-wdb2ts is a front end to wdb. It is implemented as an apache module.
+
