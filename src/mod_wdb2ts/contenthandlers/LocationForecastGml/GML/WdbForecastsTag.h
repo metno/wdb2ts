@@ -86,7 +86,13 @@ public:
 		    << indent << "   gml:id=\"pt0-" << buf << "\"\n"  
 		    << indent << "   " << "xmlns:mox=\"http://wdb.met.no/wdbxml\"\n"
 		    << indent << "   " << "xmlns:metno=\"http://api.met.no\"\n"
-		    << indent << "   " << "xmlns:gml=\"http://www.opengis.net/gml/3.2\"\n"
+/* FIXME:
+ * Reverted to the previous declaration of the namespace. The reason is to be compatible with
+ * readers tha is allready using the mox format.
+ * The implementation should be version dependent.
+ *		    << indent << "   " << "xmlns:gml=\"http://www.opengis.net/gml/3.2\"\n"
+*/
+		    << indent << "   " << "xmlns:gml=\"http://www.opengis.net/gml\"\n"
 		    << indent << "   " << "xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
 		    << indent << "   " << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://wdb.met.no/wdbxml/schema/products.xsd\">\n";
 	}
