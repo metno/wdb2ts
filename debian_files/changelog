@@ -1,3 +1,8 @@
+metno-wdb2ts (0.5.0-dev-2) unstable; urgency=low
+  * Added compatibility to wdb 0.9.2.
+
+ -- Borge Moe <borge.moe@met.no>  Thu, 25 Jun 2009 14:00:00 +0200
+
 metno-wdb2ts (0.5.0-dev-1) unstable; urgency=low
   * Development version 0.5.
   * Partially implemented a new LogSystem.

@@ -1,0 +1,12 @@
+Template: metno-wdb2ts/group
+Type: string
+Default: metno-wdb2ts
+Description: Allow members of group to edit the configuration files.
+ 
+Template: metno-wdb2ts/modulepath
+Type: string
+Default: /usr/lib/apache2/modules
+Description: Specify where the mod_metno-wdb2ts module shall reside.
+
+
+
