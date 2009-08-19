@@ -65,13 +65,13 @@ void
 LocationHandler::
 extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app ) 
 {
-	WDB2TS_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "handler" );
 	boost::mutex::scoped_lock lock( mutex );
 	try {
 		if( ! wciProtocolIsInitialized ) {
 			wciProtocol = app->wciProtocol( wdbDB );
 		
-			WDB2TS_LOG_INFO("WCI protocol: " << wciProtocol );
+			WEBFW_LOG_INFO("WCI protocol: " << wciProtocol );
 		
 			if( wciProtocol > 0 )
 				wciProtocolIsInitialized = true;
@@ -80,10 +80,10 @@ extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 		}
 	}
 	catch( const std::exception &ex) {
-		WDB2TS_LOG_ERROR( "EXCEPTION: extraConfigure: " << ex.what() ); 
+		WEBFW_LOG_ERROR( "EXCEPTION: extraConfigure: " << ex.what() );
 	}
 	catch( ... ) {
-		WDB2TS_LOG_ERROR("EXCEPTION: extraConfigure: Unknown exception! " );
+		WEBFW_LOG_ERROR("EXCEPTION: extraConfigure: Unknown exception! " );
 	}
 }
 
@@ -101,8 +101,8 @@ get( webfw::Request &req,
 
      cerr << "GET query: " << req.urlQuery() << endl;
      
-     WDB2TS_USE_LOGGER( "handler" );
-     WDB2TS_LOG_DEBUG("LocationHandler: Query: " << req.urlQuery() );
+     WEBFW_USE_LOGGER( "handler" );
+     WEBFW_LOG_DEBUG("LocationHandler: Query: " << req.urlQuery() );
      
      Wdb2TsApp *app=Wdb2TsApp::app();
      
@@ -120,8 +120,8 @@ get( webfw::Request &req,
    		  ost.str("");
    		  ost << "Invalid qurey, reftime or validtime must be different from 'NULL'. Query: "  
    		      << req.urlQuery();
-   		  cerr << "ERROR: " << ost.str() << endl;
-   		  WDB2TS_LOG_ERROR( ost.str() );
+   		  //cerr << "ERROR: " << ost.str() << endl;
+   		  WEBFW_LOG_ERROR( ost.str() );
    		  response.errorDoc( ost.str() );
    		  response.status( webfw::Response::INVALID_QUERY );
    		  return;
@@ -130,7 +130,7 @@ get( webfw::Request &req,
      catch( const logic_error &ex ){
    	  ost.str("");
    	  ost << "Exception, decode query: " << ex.what() << ": Query: " << req.urlQuery();
-   	  WDB2TS_LOG_ERROR( ost.str() );
+   	  WEBFW_LOG_ERROR( ost.str() );
    	  response.errorDoc( ost.str() );
    	  response.status( webfw::Response::INVALID_QUERY );
    	  return;
@@ -138,7 +138,7 @@ get( webfw::Request &req,
      catch( const std::exception &ex ) {
    	  ost.str("");
    	  ost << "Exception, decode query: " << ex.what() << ": Query: " << req.urlQuery();
-   	  WDB2TS_LOG_ERROR( ost.str() );
+   	  WEBFW_LOG_ERROR( ost.str() );
    	  response.errorDoc( ost.str() );
    	  response.status( webfw::Response::INVALID_QUERY );
    	  return;
@@ -146,45 +146,45 @@ get( webfw::Request &req,
      catch( ... ) {
    	  ost.str("");
    	  ost << "Unknown Exception, decode query: Query: " << req.urlQuery();
-   	  WDB2TS_LOG_ERROR( ost.str() );
+   	  WEBFW_LOG_ERROR( ost.str() );
    	  response.errorDoc( ost.str() );
    	  response.status( webfw::Response::INVALID_QUERY );
    	  return;
      }
 
      try{
-   	  WciConnectionPtr con = app->newWciConnection( wdbDB );
-        EncodeCSV encode( webQuery, con, wciProtocol );
-        encode.encode( out );
+    	 WciConnectionPtr con = app->newWciConnection( wdbDB );
+    	 EncodeCSV encode( webQuery, con, wciProtocol );
+    	 encode.encode( out );
      }
      catch( const webfw::IOError &ex ) {
-   	  WDB2TS_LOG_ERROR( "Exception: " << ex.what() );
-        response.errorDoc( ex.what() );
+    	 WEBFW_LOG_ERROR( "Exception: " << ex.what() );
+    	 response.errorDoc( ex.what() );
         
         if( ex.isConnected() )
            response.status( webfw::Response::INTERNAL_ERROR );
      }
      catch( const std::ios_base::failure &ex ) {
-   	  WDB2TS_LOG_ERROR( "Exception: " << ex.what() );
-        response.errorDoc( ex.what() );
-        response.status( webfw::Response::INTERNAL_ERROR );
+    	 WEBFW_LOG_ERROR( "Exception: " << ex.what() );
+    	 response.errorDoc( ex.what() );
+    	 response.status( webfw::Response::INTERNAL_ERROR );
      }
      catch( const logic_error &ex ){
-   	  WDB2TS_LOG_ERROR( "Exception: " << ex.what() );
-        response.errorDoc( ex.what() );
-        response.status( webfw::Response::INTERNAL_ERROR );
-        return;
+    	 WEBFW_LOG_ERROR( "Exception: " << ex.what() );
+    	 response.errorDoc( ex.what() );
+    	 response.status( webfw::Response::INTERNAL_ERROR );
+    	 return;
      }
      catch( const exception &ex ){
-   	  WDB2TS_LOG_ERROR( "Exception: " << ex.what() );
-   	  response.errorDoc( ex.what() );
-   	  response.status( webfw::Response::INTERNAL_ERROR );
-   	  return;
+    	 WEBFW_LOG_ERROR( "Exception: " << ex.what() );
+    	 response.errorDoc( ex.what() );
+    	 response.status( webfw::Response::INTERNAL_ERROR );
+    	 return;
      }
      catch( ... ) {
-   	  WDB2TS_LOG_ERROR( "Unknown Exception." );
-        response.errorDoc("Unexpected exception!");
-        response.status( webfw::Response::INTERNAL_ERROR );
+    	 WEBFW_LOG_ERROR( "Unknown Exception." );
+    	 response.errorDoc("Unexpected exception!");
+    	 response.status( webfw::Response::INTERNAL_ERROR );
      }
 }
 

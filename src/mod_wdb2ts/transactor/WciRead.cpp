@@ -94,12 +94,12 @@ void
 WciRead::
 operator () ( argument_type &t )
 {
-	WDB2TS_USE_LOGGER( "db" );
+	WEBFW_USE_LOGGER( "db" );
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("WciRead::" + helper->id());
 	
 	try {
-		WDB2TS_LOG_INFO("WciRead::" << helper->id() << "::SQL [" << helper->query() << "]" );
+		WEB_LOG_INFO("WciRead::" << helper->id() << "::SQL [" << helper->query() << "]" );
 
 		helper->clear();
 		
@@ -112,7 +112,7 @@ operator () ( argument_type &t )
 		MARK_ID_MI_PROFILE(  "WciRead::"+helper->id() +"::doRead"  );
 	}
 	catch( const exception &ex ){
-		WDB2TS_LOG_ERROR("EXCEPTION: WciRead::" << helper->id() << ": query [" << helper->query() << "]" 
+		WEB_LOG_ERROR("EXCEPTION: WciRead::" << helper->id() << ": query [" << helper->query() << "]"
 			              << " reason: " << ex.what() );
 		throw;
 	}

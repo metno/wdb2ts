@@ -4,51 +4,51 @@
 #include <RequestHandler.h>
 
 
-#define WDB2TS_USE_LOGGER( name ) \
-	log4cpp::Category &wdb2ts_logger___ = webfw::RequestHandler::getLogger( name )
+#define WEBFW_USE_LOGGER( name ) \
+	log4cpp::Category &webfw_logger___ = webfw::RequestHandler::getLogger( name )
 
-#define WDB2TS_SET_LOGGER( name ) \
-	wdb2ts_logger___ = webfw::RequestHandler::getLogger( name )
+#define WEBFW_SET_LOGGER( name ) \
+	webfw_logger___ = webfw::RequestHandler::getLogger( name )
 	
 
-#define WDB2TS_LOG_TRACE( stream ) \
-	wdb2ts_logger___.debugStream() << stream; \
-	wdb2ts_logger___.debugStream().flush()
+#define WEBFW_LOG_TRACE( stream ) \
+	webfw_logger___.debugStream() << stream; \
+	webfw_logger___.debugStream().flush()
 
-#define WDB2TS_LOG_DEBUG( stream ) \
-	wdb2ts_logger___.debugStream() << stream; \
-	wdb2ts_logger___.debugStream().flush()
+#define WEBFW_LOG_DEBUG( stream ) \
+	webfw_logger___.debugStream() << stream; \
+	webfw_logger___.debugStream().flush()
 
-#define WDB2TS_LOG_INFO( stream ) \
-	wdb2ts_logger___.infoStream() << stream; \
-	wdb2ts_logger___.infoStream().flush()
+#define WEBFW_LOG_INFO( stream ) \
+	webfw_logger___.infoStream() << stream; \
+	webfw_logger___.infoStream().flush()
 
-#define WDB2TS_LOG_NOTICE( stream ) \
-	wdb2ts_logger___.noticeStream() << stream; \
-	wdb2ts_logger___.noticeStream().flush()
+#define WEBFW_LOG_NOTICE( stream ) \
+	webfw_logger___.noticeStream() << stream; \
+	webfw_logger___.noticeStream().flush()
 
-#define WDB2TS_LOG_WARN( stream ) \
-	wdb2ts_logger___.warnStream() << stream; \
-	wdb2ts_logger___.warnStream().flush()
+#define WEBFW_LOG_WARN( stream ) \
+	webfw_logger___.warnStream() << stream; \
+	webfw_logger___.warnStream().flush()
 	
-#define WDB2TS_LOG_ERROR( stream ) \
-	wdb2ts_logger___.errorStream() << stream; \
-	wdb2ts_logger___.errorStream().flush()
+#define WEBFW_LOG_ERROR( stream ) \
+	webfw_logger___.errorStream() << stream; \
+	webfw_logger___.errorStream().flush()
 
-#define WDB2TS_LOG_CRIT( stream ) \
-	wdb2ts_logger___.critStream() << stream; \
-	wdb2ts_logger___.critStream().flush()
+#define WEBFW_LOG_CRIT( stream ) \
+	webfw_logger___.critStream() << stream; \
+	webfw_logger___.critStream().flush()
 	
-#define WDB2TS_LOG_ALERT( stream ) \
-	wdb2ts_logger___.alertStream() << stream; \
-	wdb2ts_logger___.alertStream().flush()
+#define WEBFW_LOG_ALERT( stream ) \
+	webfw_logger___.alertStream() << stream; \
+	webfw_logger___.alertStream().flush()
 
-#define WDB2TS_LOG_FATAL( stream ) \
-	wdb2ts_logger___.fatalStream() << stream; \
-	wdb2ts_logger___.fatalStream().flush()
+#define WEBFW_LOG_FATAL( stream ) \
+	webfw_logger___.fatalStream() << stream; \
+	webfw_logger___.fatalStream().flush()
 
-#define WDB2TS_LOG_EMERG( stream ) \
-	wdb2ts_logger___.emergStream() << stream; \
-	wdb2ts_logger___.emergStream().flush()
+#define WEBFW_LOG_EMERG( stream ) \
+	webfw_logger___.emergStream() << stream; \
+	webfw_logger___.emergStream().flush()
 
 #endif 

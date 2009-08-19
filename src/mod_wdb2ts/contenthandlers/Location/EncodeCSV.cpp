@@ -132,7 +132,7 @@ void
 EncodeCSV::
 encode( std::ostream &out )
 {
-	WDB2TS_USE_LOGGER( "encode" );
+	WEBFW_USE_LOGGER( "encode" );
 	ostringstream ost;
 	string query;
 	bool hasReftime=false;
@@ -152,7 +152,7 @@ encode( std::ostream &out )
 		throw range_error("Invalid qurey, reftime or validtime must be different from 'NULL'.");
 	}
 	
-	WDB2TS_LOG_DEBUG("WciReadIterator: from:  " << from << " to: " << to );
+	WEBFW_LOG_DEBUG("WciReadIterator: from:  " << from << " to: " << to );
 	
 	out << "#referencetime,dataprovidername,placename,latitude,longitude,confidencecode,dataversion,validfrom,validto,levelparametername,levelfrom,levelto,levelunitname,valueparametername,value,valueparameterunit"
          << "\n";
