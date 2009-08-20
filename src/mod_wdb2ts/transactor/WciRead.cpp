@@ -99,7 +99,7 @@ operator () ( argument_type &t )
 	MARK_ID_MI_PROFILE("WciRead::" + helper->id());
 	
 	try {
-		WEB_LOG_INFO("WciRead::" << helper->id() << "::SQL [" << helper->query() << "]" );
+		WEBFW_LOG_INFO("WciRead::" << helper->id() << "::SQL [" << helper->query() << "]" );
 
 		helper->clear();
 		
@@ -112,7 +112,7 @@ operator () ( argument_type &t )
 		MARK_ID_MI_PROFILE(  "WciRead::"+helper->id() +"::doRead"  );
 	}
 	catch( const exception &ex ){
-		WEB_LOG_ERROR("EXCEPTION: WciRead::" << helper->id() << ": query [" << helper->query() << "]"
+		WEBFW_LOG_ERROR("EXCEPTION: WciRead::" << helper->id() << ": query [" << helper->query() << "]"
 			              << " reason: " << ex.what() );
 		throw;
 	}
