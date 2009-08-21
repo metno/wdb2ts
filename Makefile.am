@@ -127,10 +127,10 @@ include doc/wdb2ts.mk
 # Doxygen Integration
 #-----------------------------------------------------------------------------
 
-#include doc/doxygen/wdb2ts.mk
+include doc/doxygen/wdb2ts.mk
 
-#MOSTLYCLEANFILES += 		$(DX_CLEANFILES)
-#EXTRA_DIST += 				$(DX_CONFIG)
+MOSTLYCLEANFILES += 		$(DX_CLEANFILES)
+EXTRA_DIST += 				$(DX_CONFIG)
 
 #-----------------------------------------------------------------------------
 # Cleaning

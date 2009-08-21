@@ -163,7 +163,7 @@ DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(OFF)
 DX_PS_FEATURE(OFF)
-#DX_INIT_DOXYGEN(metno-wdb2ts, doc/doxygen/doxygen.cfg)
+DX_INIT_DOXYGEN(metno-wdb2ts, doc/doxygen/doxygen.cfg)
 #
 # Todo: There is a problem with the Doxygen setup for wdb2ts for Autoconf 2.6.1
 
