@@ -92,15 +92,13 @@ void
 LocationHandler::
 get( webfw::Request &req, 
      webfw::Response &response, 
-     webfw::Logger &logger )   
+     webfw::Logger & )
 {
      ostringstream ost;
      ostream &out = response.out();
      response.contentType("text/plain");
      response.directOutput( true );
 
-     cerr << "GET query: " << req.urlQuery() << endl;
-     
      WEBFW_USE_LOGGER( "handler" );
      WEBFW_LOG_DEBUG("LocationHandler: Query: " << req.urlQuery() );
      
@@ -120,7 +118,6 @@ get( webfw::Request &req,
    		  ost.str("");
    		  ost << "Invalid qurey, reftime or validtime must be different from 'NULL'. Query: "  
    		      << req.urlQuery();
-   		  //cerr << "ERROR: " << ost.str() << endl;
    		  WEBFW_LOG_ERROR( ost.str() );
    		  response.errorDoc( ost.str() );
    		  response.status( webfw::Response::INVALID_QUERY );

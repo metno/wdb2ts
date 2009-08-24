@@ -32,6 +32,7 @@
 #include <trimstr.h>
 #include <stdio.h>
 #include <ProviderList.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -217,6 +218,8 @@ configureMetaModelConf( const wdb2ts::config::ActionParam &params )
 	const string META_MODEL_KEY("meta_model-");
 	MetaModelConfList metaModelConf;
 	
+	WEBFW_USE_LOGGER( "main" );
+
 	string::size_type i;
 	
 	for( wdb2ts::config::ActionParam::const_iterator it = params.begin(); 
@@ -237,15 +240,18 @@ configureMetaModelConf( const wdb2ts::config::ActionParam &params )
 			if( conf.parseConf( it->second.asString() ) ){
 				for( ProviderList::iterator pit = pvList.begin(); pit != pvList.end(); ++pit )
 					metaModelConf[pit->providerWithPlacename()] = conf;
-			}else
-				cerr << "Failed to parse value for: " << it->first << " (" << it->second << ")." << endl;
+			}else {
+				WEBFW_LOG_ERROR( "Failed to parse value for: " << it->first << " (" << it->second << ")." );
+			}
 		}
 	}
 
+	std::ostringstream logMsg;
 	for( MetaModelConfList::iterator metaIt = metaModelConf.begin();
 	     metaIt != metaModelConf.end(); 
 	     ++metaIt )
-		cerr << "Meta: " << metaIt->first << ": " << metaIt->second << endl;
+		logMsg << "Meta: " << metaIt->first << ": " << metaIt->second << endl;
+	WEBFW_LOG_DEBUG( logMsg.str() );
 	
 	return metaModelConf;
 }

@@ -50,6 +50,7 @@
 #include <SymbolGenerator.h>
 #include <transactor/WciReadLocationForecast.h>
 #include <WebQuery.h>
+#include <Logger4cpp.h>
 
 
 DECLARE_MI_PROFILE;
@@ -116,9 +117,11 @@ extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 	boost::mutex::scoped_lock lock( mutex );
 			
 	if( ! wciProtocolIsInitialized ) {
+	     WEBFW_USE_LOGGER( "handler" );
+
 		wciProtocol = app->wciProtocol( wdbDB );
 		
-		cerr << "WCI protocol: " << wciProtocol << endl;
+		WEBFW_LOG_DEBUG("WCI protocol: " << wciProtocol);
 		
 		if( wciProtocol > 0 )
 			wciProtocolIsInitialized = true;
@@ -155,15 +158,15 @@ configure( const wdb2ts::config::ActionParam &params,
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
 	
 	if( it != params.end() )  {
+		WEBFW_USE_LOGGER( "handler" );
 		try {
 			expireRand = it->second.asInt();
 			expireRand = abs( expireRand );
-			
-			cerr << "Config: expire_rand: " << expireRand << endl;
+
+			WEBFW_LOG_DEBUG("Config: expire_rand: " << expireRand);
 		}
 		catch( const std::logic_error &ex ) {
-			cerr << "expire_rand: not convertible to an int. Value given '" 
-			     << ex.what() <<"'." << endl;
+			WEBFW_LOG_ERROR("expire_rand: not convertible to an int. Value given '" << ex.what() <<"'.");
 		}
 	}
 	
@@ -231,17 +234,13 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 
-		bool first=true;
-		for( ProviderRefTimeList::iterator it = providerReftimes->begin();
-					it != providerReftimes->end();
-					++it ) {
-			if( first ) {
-				cerr << "noteUpdated: ProviderReftimes: " << endl;
-				first = false;
-			}
-			
-			cerr << "        " <<  it->first << ": " << it->second.refTime  << endl;
-		}
+
+		WEBFW_USE_LOGGER( "handler" );
+		std::ostringstream logMsg;
+		logMsg << "noteUpdated: ProviderReftimes:\n";
+		for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
+			logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
+		WEBFW_LOG_DEBUG(logMsg.str());
 	}
 }
 
@@ -266,6 +265,8 @@ getProviderReftimes()
 	
 	{
 		boost::mutex::scoped_lock lock( mutex );
+
+		WEBFW_USE_LOGGER( "handler" );
 	
 		if( ! providerReftimes ) {
 			try {
@@ -278,33 +279,23 @@ getProviderReftimes()
 				//miutil::pgpool::DbConnectionPtr con=app->newConnection( wdbDB );
 				
 				if( ! updateProviderRefTimes( wciConnection, *providerReftimes, providerPriority_, wciProtocol ) ) { 
-					cerr << "LocationForecastHandler::getProviderReftime: Failed to set providerReftimes."
-					     << endl;
+					WEBFW_LOG_ERROR("LocationForecastHandler::getProviderReftime: Failed to set providerReftimes.");
 				} else {
 					tmp = new NoteProviderReftimes( *providerReftimes );
 				}
 			}
 			catch( exception &ex ) {
-				cerr << "EXCEPTION: LocationForecastHandler::getProviderReftime: "
-			        << ex.what() << endl;
+				WEBFW_LOG_ERROR( "LocationForecastHandler::getProviderReftime: " << ex.what() );
 			}
 			catch( ... ) {
-				cerr << "EXCEPTION: LocationForecastHandler::getProviderReftime: unknown exception "
-			        << endl;
+				WEBFW_LOG_ERROR( "LocationForecastHandler::getProviderReftime: unknown exception " );
 			}
 		
-			bool first=true;
-			for( ProviderRefTimeList::iterator it = providerReftimes->begin();
-			     it != providerReftimes->end();
-			     ++it ) 
-			{
-				if( first ) {
-					cerr << "ProviderReftimes: " << endl;
-					first=false;
-				}
-			
-				cerr << "        " <<  it->first << ": " << it->second.refTime << endl;
-			}
+			std::ostringstream logMsg;
+			logMsg << "ProviderReftimes:\n";
+			for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it )
+				logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
+			WEBFW_LOG_DEBUG(logMsg.str());
 		} 
 	}
 	
@@ -346,9 +337,10 @@ void
 LocationForecastHandler::
 get( webfw::Request  &req, 
      webfw::Response &response, 
-     webfw::Logger   &logger )   
+     webfw::Logger   & )
 {
 	using namespace boost::posix_time;
+	WEBFW_USE_LOGGER( "handler" );
 	ostringstream ost;
 	int   altitude;
 	//ptime fromtime;
@@ -361,12 +353,10 @@ get( webfw::Request  &req,
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("LocationForecastHandler");
      
+
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	    << "Query: " << req.urlQuery() << endl;
-     
-	logger.debug( ost.str() );
-    
-//	cerr << "LocationForecastHandler: " << ost.str() << endl;
+	WEBFW_LOG_DEBUG( ost.str() );
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery() );
@@ -374,7 +364,7 @@ get( webfw::Request  &req,
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {
-		logger.error( ex.what() );
+		WEBFW_LOG_ERROR( ex.what() );
 		response.errorDoc( ost.str() );
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
@@ -399,14 +389,14 @@ get( webfw::Request  &req,
     		retryAfter += seconds( 30 );
     		response.serviceUnavailable( retryAfter );
     		response.status( webfw::Response::SERVICE_UNAVAILABLE );
-    		logger.info( "INIT: Loading map file." );
+    		WEBFW_LOG_INFO( "INIT: Loading map file." );
     		MARK_ID_MI_PROFILE("getHight");
     		return;
     	}
     	catch( const logic_error &ex ) {
     		response.status( webfw::Response::INTERNAL_ERROR );
     		response.errorDoc( ex.what() );
-    		logger.error( ex.what() );
+    		WEBFW_LOG_ERROR( ex.what() );
     		MARK_ID_MI_PROFILE("getHight");
     		return;
     	}
@@ -415,9 +405,11 @@ get( webfw::Request  &req,
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority );
 	
-	cerr << "RefTimes: " << endl;
+	std::ostringstream logMsg;
+	logMsg << "RefTimes:\n";
 	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit )
-		cerr << "  " << rit->first << " " << rit->second.refTime << endl;
+		logMsg << "  " << rit->first << " " << rit->second.refTime << '\n';
+	WEBFW_LOG_DEBUG(logMsg.str());
 	
     
 	try{
@@ -477,30 +469,31 @@ get( webfw::Request  &req,
         
 		if( ex.isConnected() ) {
 			response.status( webfw::Response::INTERNAL_ERROR );
-			cerr << "get: Exception: webfw::IOError: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "get: webfw::IOError: " << ex.what() );;
 		}
 	}
 	catch( const std::ios_base::failure &ex ) {
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::ios_base::failure: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: std::ios_base::failure: " << ex.what() );;
 	}
 	catch( const logic_error &ex ){
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::logic_error: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: std::logic_error: " << ex.what() );;
 	}
 	catch( const std::exception &ex ) {
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::exception: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: std::exception: " << ex.what() );;
 	}
 	catch( ... ) {
 		response.errorDoc("Unexpected exception!");
     	response.status( webfw::Response::INTERNAL_ERROR );
 	}
 	MARK_ID_MI_PROFILE("LocationForecastHandler");
-  	
+
+	// TODO: to logging with whis
 	PRINT_MI_PROFILE_SUMMARY( cerr );
 }
 
@@ -532,7 +525,8 @@ requestWdb( float latitude, float longitude, int altitude,
 					
 		
 		if( i != string::npos ) {
-			cerr << "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." << endl;
+			WEBFW_USE_LOGGER( "handler" );
+			WEBFW_LOG_WARN( "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." );;
 			return TimeSeriePtr( new TimeSerie() );
 		}
 		

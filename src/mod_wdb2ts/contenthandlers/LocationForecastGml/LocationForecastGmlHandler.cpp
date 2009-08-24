@@ -49,7 +49,7 @@
 #include <SymbolGenerator.h>
 #include <transactor/WciReadLocationForecast.h>
 #include <WebQuery.h>
-
+#include <Logger4cpp.h>
 
 DECLARE_MI_PROFILE;
 
@@ -101,7 +101,7 @@ configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp 
 	providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app ); 
 	providerPriorityIsInitialized = true;
 	
-	//cerr << " ------  CheckPoint --------------------" << endl;
+	//WEBFW_LOG_DEBUG( " ------  CheckPoint --------------------" );
 	
 	if( app && ! updateid.empty() ) 
 		app->notes.setNote( updateid + ".LocationProviderList", 
@@ -119,7 +119,8 @@ extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 	if( ! wciProtocolIsInitialized ) {
 		wciProtocol = app->wciProtocol( wdbDB );
 		
-		cerr << "WCI protocol: " << wciProtocol << endl;
+		WEBFW_USE_LOGGER( "handler" );
+		WEBFW_LOG_DEBUG( "WCI protocol: " << wciProtocol );
 		
 		if( wciProtocol > 0 )
 			wciProtocolIsInitialized = true;
@@ -150,6 +151,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	actionParams = params;
 	
+	WEBFW_USE_LOGGER( "handler" );
 	
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
 	
@@ -158,11 +160,10 @@ configure( const wdb2ts::config::ActionParam &params,
 			expireRand = it->second.asInt();
 			expireRand = abs( expireRand );
 			
-			cerr << "Config: expire_rand: " << expireRand << endl;
+			WEBFW_LOG_DEBUG( "Config: expire_rand: " << expireRand );
 		}
 		catch( const std::logic_error &ex ) {
-			cerr << "expire_rand: not convertible to an int. Value given '" 
-			     << ex.what() <<"'." << endl;
+			WEBFW_LOG_ERROR( "expire_rand: not convertible to an int. Value given '" << ex.what() <<"'." );
 		}
 	}
 	
@@ -175,8 +176,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	
 	if( ! updateid.empty() ) {
 		string noteName = updateid+".LocationProviderReftimeList";
-		cerr << "LocationForecastGmlHandler::configure: updateid: '" << updateid << "' noteName '" 
-		     << noteName << "'." << endl;
+		WEBFW_LOG_DEBUG( "LocationForecastGmlHandler::configure: updateid: '" << updateid << "' noteName '" << noteName << "'.");
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
 		app->notes.registerNoteListener( noteName, this );
 		app->notes.checkForUpdatedPersistentNotes();
@@ -214,8 +214,10 @@ LocationForecastGmlHandler::
 noteUpdated( const std::string &noteName, 
              boost::shared_ptr<NoteTag> note )
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	if( updateid.empty() ) {
-		cerr << "LocationForecastGmlHandler::noteUpdated: updateid is empty." << endl;
+		WEBFW_LOG_DEBUG( "LocationForecastGmlHandler::noteUpdated: updateid is empty." );
 		return;
 	}
 
@@ -226,7 +228,7 @@ noteUpdated( const std::string &noteName,
 		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
 	
 		if( ! refTimes ) {
-			cerr << "LocationForecastGmlHandler::noteUpdated: Not a note we are expecting." << endl;
+			WEBFW_LOG_ERROR( "LocationForecastGmlHandler::noteUpdated: Not a note we are expecting." );
 			return;
 		}
 	
@@ -238,17 +240,12 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 		
-		bool first=true;
-		for( ProviderRefTimeList::iterator it = providerReftimes->begin();
-					it != providerReftimes->end();
-					++it ) {
-			if( first ) {
-				cerr << "noteUpdated: ProviderReftimes: " << endl;
-				first = false;
-			}
-			
-			cerr << "        " <<  it->first << ": " << it->second.refTime  << endl;
+		std::ostringstream logMsg;
+		logMsg << "noteUpdated: ProviderReftimes:\n";
+		for( ProviderRefTimeList::iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it ) {
+			logMsg << "        " <<  it->first << ": " << it->second.refTime  << '\n';
 		}
+		WEBFW_LOG_DEBUG(logMsg.str());
 	}
 }
 
@@ -274,6 +271,8 @@ getProviderReftimes()
 	
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	{
 		boost::mutex::scoped_lock lock( mutex );
 	
@@ -288,33 +287,25 @@ getProviderReftimes()
 				//miutil::pgpool::DbConnectionPtr con=app->newConnection( wdbDB );
 				
 				if( ! updateProviderRefTimes( wciConnection, *providerReftimes, providerPriority_, wciProtocol ) ) { 
-					cerr << "LocationForecastGmlHandler::getProviderReftime: Failed to set providerReftimes."
-					     << endl;
+					WEBFW_LOG_ERROR( "LocationForecastGmlHandler::getProviderReftime: Failed to set providerReftimes." );
 				} else {
 					tmp = new NoteProviderReftimes( *providerReftimes );
 				}
 			}
 			catch( exception &ex ) {
-				cerr << "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: "
-			        << ex.what() << endl;
+				WEBFW_LOG_ERROR( "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: " << ex.what() );
 			}
 			catch( ... ) {
-				cerr << "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: unknown exception "
-			        << endl;
+				WEBFW_LOG_ERROR( "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: unknown exception " );
 			}
 		
-			bool first=true;
-			for( ProviderRefTimeList::iterator it = providerReftimes->begin();
-			     it != providerReftimes->end();
-			     ++it ) 
+			std::ostringstream logMsg;
+			logMsg << "ProviderReftimes:\n";
+			for( ProviderRefTimeList::const_iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it )
 			{
-				if( first ) {
-					cerr << "ProviderReftimes: " << endl;
-					first=false;
-				}
-			
-				cerr << "        " <<  it->first << ": " << it->second.refTime << endl;
+				logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
 			}
+			WEBFW_LOG_DEBUG(logMsg.str());
 		} 
 	}
 	
@@ -365,6 +356,8 @@ get( webfw::Request  &req,
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
+
+	WEBFW_USE_LOGGER( "handler" );
 	
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
@@ -376,7 +369,7 @@ get( webfw::Request  &req,
      
 	logger.debug( ost.str() );
     
-//	cerr << "LocationForecastGmlHandler: " << ost.str() << endl;
+//	WEBFW_LOG_DEBUG( "LocationForecastGmlHandler: " << ost.str() );
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery() );
@@ -475,23 +468,23 @@ get( webfw::Request  &req,
         
 		if( ex.isConnected() ) {
 			response.status( webfw::Response::INTERNAL_ERROR );
-			cerr << "get: Exception: webfw::IOError: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "get: Exception: webfw::IOError: " << ex.what() );
 		}
 	}
 	catch( const std::ios_base::failure &ex ) {
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::ios_base::failure: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: Exception: std::ios_base::failure: " << ex.what() );
 	}
 	catch( const logic_error &ex ){
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::logic_error: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: Exception: std::logic_error: " << ex.what() );
 	}
 	catch( const std::exception &ex ) {
 		response.errorDoc( ex.what() );
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "get: Exception: std::exception: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "get: Exception: std::exception: " << ex.what() );
 	}
 	catch( ... ) {
 		response.errorDoc("Unexpected exception!");
@@ -499,6 +492,7 @@ get( webfw::Request  &req,
 	}
 	MARK_ID_MI_PROFILE("LocationForecastGmlHandler");
   	
+	// TODO: Pass a logging stream to this
 	PRINT_MI_PROFILE_SUMMARY( cerr );
 }
 
@@ -530,7 +524,8 @@ requestWdb( float latitude, float longitude, int altitude,
 					
 		
 		if( i != string::npos ) {
-			cerr << "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." << endl;
+			WEBFW_USE_LOGGER( "handler" );
+			WEBFW_LOG_WARN( "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." );
 			return TimeSeriePtr( new TimeSerie() );
 		}
 		

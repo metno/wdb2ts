@@ -30,6 +30,7 @@
 #include <iostream>
 #include <sstream>
 #include <NoteManager.h>
+#include <Logger4cpp.h>
 
 using namespace std; 
 
@@ -77,6 +78,7 @@ checkForUpdatedPersistentNotes()
 	NoteTag *note;
 	boost::posix_time::ptime mtime;
 	
+	WEBFW_USE_LOGGER( "handler" );
 	{
 		boost::mutex::scoped_lock lock( notesMutex );
 		for( std::map<std::string, PersistentNote>::iterator it = persistentNotes.begin();
@@ -87,12 +89,12 @@ checkForUpdatedPersistentNotes()
 				 mtime = it->second.file->modifiedTime();
 		
 				 if( mtime.is_special() ) {
-					 cerr << "checkForUpdatedPersistentNotes:  <" << it->second.file->filename() << "> do not exist." << endl;
+					 WEBFW_LOG_DEBUG( "checkForUpdatedPersistentNotes:  <" << it->second.file->filename() << "> do not exist." );
 					 continue;
 				 }
 			}
 			catch( std::exception &ex ) {
-				cerr << "checkForUpdatedPersistentNotes:Exception: " << ex.what() << endl;
+				WEBFW_LOG_ERROR( "checkForUpdatedPersistentNotes:Exception: " << ex.what() );
 				continue;
 			}
 
@@ -101,21 +103,20 @@ checkForUpdatedPersistentNotes()
 		
 			//There is new data on disk.
 			
-//			cerr << "checkForUpdatedPersistentNotes: note '" << it->first << "' file '" << it->second.file->filename() << "' changed on disk!" << endl;
+//			WEBFW_LOG_INFO( "checkForUpdatedPersistentNotes: note '" << it->first << "' file '" << it->second.file->filename() << "' changed on disk!" );
 			
 			if( ! it->second.file->read( buf, true, locked  ) ) {
-				cerr << "getNote: Failed to load note '" << it->first << "' from disk! <" << it->second.file->filename() <<">" 
-					  << endl;
+				WEBFW_LOG_WARN( "getNote: Failed to load note '" << it->first << "' from disk! <" << it->second.file->filename() <<">" );
 				continue;
 			}
 			
 			istringstream sin( buf );		
 			
-//			cerr << "checkForUpdatedPersistentNotes: note '" << it->first << "' buf '" << buf << "'" << endl;
+//			WEBFW_LOG_DEBUG( "checkForUpdatedPersistentNotes: note '" << it->first << "' buf '" << buf << "'" );
 			note = it->second.note->loadNote( sin );
 			
 			if( ! note ) {
-				cerr << "getNote: Failed to init note '" << it->first << "' from disk!"  << endl;
+				WEBFW_LOG_ERROR( "getNote: Failed to init note '" << it->first << "' from disk!"  );
 				continue;
 			}
 			it->second.modifiedTime = mtime;
@@ -134,7 +135,7 @@ checkForUpdatedPersistentNotes()
 	    updIt != updNotes.end(); ++updIt )
 	{
 		
-//		cerr << "update: " << updIt->first << endl;
+//		WEBFW_LOG_DEBUG( "update: " << updIt->first );
 		it = noteListener.find( updIt->first );
 		
 		if( it == noteListener.end() )
@@ -143,7 +144,7 @@ checkForUpdatedPersistentNotes()
 		for( list<INoteUpdateListener*>::iterator itl=it->second.begin();
 		     itl != it->second.end();
 		     ++itl ) {
-//			cerr << "update: send '"<< updIt->first  << "'" << endl;
+//			WEBFW_LOG_DEBUG( "update: send '"<< updIt->first  << "'" );
 			(*itl)->noteUpdated( updIt->first, updIt->second );
 		}
 	}
@@ -161,6 +162,7 @@ setNote( const std::string &noteName, NoteTag *note )
 	boost::shared_ptr<NoteTag> tmpNote;
 	bool isPersistentNote = false;
 	
+	WEBFW_USE_LOGGER( "handler" );
 	{
 		boost::mutex::scoped_lock lock( notesMutex );
 		
@@ -175,20 +177,20 @@ setNote( const std::string &noteName, NoteTag *note )
 				bool locked;
 				
 				if( ! note->saveNote( sar ) ) {
-					cerr << "setNote: Failed to save the note <" << note->noteType() << "> to stream!" << endl;
+					WEBFW_LOG_ERROR( "setNote: Failed to save the note <" << note->noteType() << "> to stream!" );
 					delete note;
 					return;
 				}
 				
-				//cerr << "+++ setNote: file->write" << endl;
+				//WEBFW_LOG_DEBUG( "+++ setNote: file->write" );
 				
 				if( ! it->second.file->write( sar.str(), true, locked  ) ) {
-					cerr << "setNote: Failed to save note '" << noteName << "' to disk!" << endl;
+					WEBFW_LOG_ERROR( "setNote: Failed to save note '" << noteName << "' to disk!" );
 				}
-				//cerr << "--- setNote: file->write" << endl;
+				//WEBFW_LOG_DEBUG( "--- setNote: file->write" );
 			}
 			catch( ... ){
-				cerr << "setNote: Failed to stream out notaTag <"<< noteName<< ">!" << endl;
+				WEBFW_LOG_ERROR( "setNote: Failed to stream out notaTag <"<< noteName<< ">!" );
 			}
 			
 			delete note;
@@ -219,6 +221,8 @@ boost::shared_ptr<NoteTag>
 NoteManager::
 getNote( const std::string &note )
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	boost::mutex::scoped_lock lock( notesMutex );
 
 	std::map<std::string, PersistentNote>::iterator pit = persistentNotes.find( note );
@@ -233,11 +237,11 @@ getNote( const std::string &note )
 	std::map<std::string, boost::shared_ptr<NoteTag> >::iterator it=notes.find( note );
 		
 	if( it != notes.end() ) {
-		cerr << "NoteManager::getNote <" << note <<  ">:  found! " << endl;
+		WEBFW_LOG_DEBUG( "NoteManager::getNote <" << note <<  ">:  found! " );
 		return it->second;
 	}
 	
-	cerr << "NoteManager::getNote <" << note <<  ">: Not found!" << endl;
+	WEBFW_LOG_WARN( "NoteManager::getNote <" << note <<  ">: Not found!" );
 	return boost::shared_ptr<NoteTag>();
 }
 	   

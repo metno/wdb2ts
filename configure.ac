@@ -120,6 +120,8 @@ WDB_PROJ_CHECK
 LIBCURL_CHECK_CONFIG([no],[7.15.5],[want_libcurl=yes],[want_libcurl=no])
 AM_CONDITIONAL([BUILD_WDB2TSGET],[test x$want_libcurl = xyes])
 
+#LOG4CPP
+WDB_LOG4CPP_CHECK
 
 
 #libxml

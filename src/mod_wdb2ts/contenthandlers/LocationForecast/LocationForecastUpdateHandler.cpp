@@ -41,6 +41,7 @@
 #include <NoteProviderList.h>
 #include <NoteString.h>
 #include <NoteProviderReftime.h>
+#include <Logger4cpp.h>
 
 using namespace std;
 using namespace boost::posix_time; //ptime, second_clock
@@ -75,6 +76,8 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	using namespace miutil;
 	using namespace boost::posix_time;
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	vector<string> keys;
 	vector<string> keyvals;
 	string              buf;
@@ -99,7 +102,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 		keyvals = splitstr( keys[iKey], '=' );
 		
 		if( keyvals.size() != 2 ) {
-			cerr << "LocationUpdateHandler:Query: Invalid key. Expecting the form key=value." << endl;
+			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid key. Expecting the form key=value." );;
 			return false;
 		}
 	
@@ -110,7 +113,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 		trimstr( val );
 		
 		if( key.empty() ) {
-			cerr << "LocationUpdateHandler:Query: Invalid key. Empty key." << endl;
+			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid key. Empty key." );;
 			return false;
 		}
 		
@@ -143,12 +146,12 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 			int n;
 			
 			if( sscanf( val.c_str(), "%d", &n ) != 1 ) {
-				cerr << "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> expecting a number." << endl;
+				WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> expecting a number." );;
 				return false;
 			}
 			
 			if( n != 0 ) {
-				cerr << "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> Not a valid value. Valid values [0]." << endl;
+				WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> Not a valid value. Valid values [0]." );;
 				return false;
 			}
 				
@@ -161,21 +164,16 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 			newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
 		}
 		catch( logic_error &e ) {
-			cerr << "LocationUpdateHandler:Query: Invalid value. key <" << key << "> value <" << val << ">. Not a valid timespec." << endl;
+			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid value. key <" << key << "> value <" << val << ">. Not a valid timespec." );;
 			return false;
 		}
 	}
 	
-	
-	cerr << "LocationUpdateHandler:Query: Requested providers reftime!" << endl;
-	for( ProviderRefTimeList::iterator it = newRefTime.begin();
-	     it != newRefTime.end() ;
-		  ++it )
-	{
-		cerr <<"     " << it->first << ": " << it->second.refTime << " dataversion: " << it->second.dataversion << endl;
-	}
-	
-	cerr << endl;
+	std::ostringstream logMsg;
+	logMsg << "LocationUpdateHandler:Query: Requested providers reftime!\n";
+	for( ProviderRefTimeList::const_iterator it = newRefTime.begin(); it != newRefTime.end(); ++it )
+		logMsg <<"     " << it->first << ": " << it->second.refTime << " dataversion: " << it->second.dataversion << '\n';
+	WEBFW_LOG_DEBUG(logMsg.str());
 	
 	return true;
 }
@@ -326,6 +324,8 @@ getWdbId( Wdb2TsApp *app )
 	if( updateid.empty() )
 		return "";
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	boost::shared_ptr<NoteTag> note;
 	
 	//Has the LocationForecastHandler set a note
@@ -333,14 +333,14 @@ getWdbId( Wdb2TsApp *app )
 	note = app->notes.getNote( updateid+".LocationForecastWdbId" );
 		
 	if( ! note )  {
-		cerr << "getWdbId: no note!" << endl;
+		WEBFW_LOG_WARN( "getWdbId: no note!" );;
 		return string();
 	}
 		
 	NoteString *noteWdbId = dynamic_cast<NoteString*>( note.get() );
 		
 	if( ! noteWdbId ) {
-		cerr << "getWdbId <NoteString> : failed dynamic_cast <" <<note->noteType()<< ">." << endl;
+		WEBFW_LOG_ERROR( "getWdbId <NoteString> : failed dynamic_cast <" <<note->noteType()<< ">." );;
 			return string();
 	}
 		
@@ -367,8 +367,9 @@ void
 LocationForecastUpdateHandler::
 get( webfw::Request  &req, 
      webfw::Response &response, 
-     webfw::Logger   &logger )   
+     webfw::Logger   & )
 {
+	WEBFW_USE_LOGGER( "handler" );
 	ostringstream ost;
 	string status;
 	ProviderRefTimeList requestedProviders;
@@ -382,10 +383,10 @@ get( webfw::Request  &req,
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	<< "Query: " << req.urlQuery() << endl << "Updateid: " << updateid << endl;
    
-	logger.debug( ost.str() );
+	WEBFW_LOG_DEBUG( ost.str() );
    
 	if( ! decodeQuery( req.urlQuery(), requestedProviders ) ) {
-		logger.error( ost.str() );
+		WEBFW_LOG_ERROR( ost.str() );
 		response.errorDoc( ost.str() );
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
@@ -396,7 +397,7 @@ get( webfw::Request  &req,
 		xml="<?xml version=\"1.0\" ?>\n<status>Error: missing updateid!</status>\n";
 		response.errorDoc( xml ); 	
 		response.status( webfw::Response::INTERNAL_ERROR );
-		cerr << "LocationForecatUpdate: " << ost.str() << ". Missing: updateid!" << endl;
+		WEBFW_LOG_ERROR( "LocationForecatUpdate: " << ost.str() << ". Missing: updateid!" );;
 		return;
 	}
 	
@@ -410,7 +411,7 @@ get( webfw::Request  &req,
 	if( requestedProviders.empty() ) {
 		ost.str("");
 		ost << "Only providers referenced in the provider_priority can be updated.";
-		logger.error( ost.str() );
+		WEBFW_LOG_ERROR( ost.str() );
 		response.errorDoc( ost.str() );
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
@@ -425,7 +426,7 @@ get( webfw::Request  &req,
 		ProviderRefTimeList newRefTime( oldRefTime );
 		string myWdbID = getWdbId( app );
 		
-		cerr << "LocationForecastUpdateHandler: myWdbID: " << myWdbID << endl;
+		WEBFW_LOG_DEBUG( "LocationForecastUpdateHandler: myWdbID: " << myWdbID );;
 		
 		if( wciProtocol < 0 ) {
 			wciProtocol_ = app->wciProtocol( wdbDB );
@@ -484,7 +485,7 @@ get( webfw::Request  &req,
 		ost << "UpdateStatus: " << status << endl;
    		
 		ost << endl;
-		logger.info( ost.str() );
+		WEBFW_LOG_INFO( ost.str() );
 		 
 		std::string xml;         
 		xml="<?xml version=\"1.0\" ?>\n<status>" + status + "</status>\n";
@@ -492,12 +493,12 @@ get( webfw::Request  &req,
 		response.out() << xml; 
 	}
 	catch( const std::logic_error &ex ) {
-		logger.warning( ex.what() );
+		WEBFW_LOG_WARN( ex.what() );
       response.errorDoc( ex.what() );
       response.status( webfw::Response::INTERNAL_ERROR );
 	}
 	catch( ... ) {
-		logger.warning("UpdateHandler: Unknown exception.)");
+		WEBFW_LOG_WARN("UpdateHandler: Unknown exception.)");
       response.errorDoc("Unexpected exception!");
       response.status( webfw::Response::INTERNAL_ERROR );
 	}

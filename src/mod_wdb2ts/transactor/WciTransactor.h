@@ -31,10 +31,10 @@
 #define __WCI_TRANSACTOR_H__
 
 
-#include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <pqxx/transactor>
 #include <string>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -69,9 +69,10 @@ public:
 	
 	void operator () (typename Transactor::argument_type & t)
 	{
+		WEBFW_USE_LOGGER("handler");
 		
 		if( *doWciBegin ) {
-			std::cerr << "WciTransactor: SELECT wci.begin('" << user <<"')" << std::endl;
+			WEBFW_LOG_DEBUG( "WciTransactor: SELECT wci.begin('" << user <<"')" );
 			*doWciBegin = false;
 			t.exec( "SELECT wci.begin('" + user + "')" );
 		}

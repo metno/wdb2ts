@@ -35,6 +35,7 @@
 #include <milib/milib.h>
 #include <wdb2TsApp.h>
 #include <DbManager.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -126,8 +127,8 @@ set( GridSpec gridSpec_, ProjectionType pt  )
 		::movegrid( gridType, gridspecstd, 1.0, 1.0, gridSpec, &ierror);
 	    
 		if (ierror){
-	      cerr << "movegrid error : " << ierror
-	           << " (in MiProjection::set)" << endl;
+			WEBFW_USE_LOGGER( "handler" );
+	      	WEBFW_LOG_ERROR( "movegrid error : " << ierror << " (in MiProjection::set)" );
 		}
 	}
 }
@@ -137,9 +138,11 @@ MiProjection::
 xyconvert( const MiProjection &proj, float &latitude, float &longitude )const
 {
 	int error;
+	WEBFW_USE_LOGGER( "handler" );
+
 
 	if( gridType == undefined_projection || proj.gridType == undefined_projection ) {
-		cerr << "MiProjection::xyconvert: undefined projection." << endl;
+		WEBFW_LOG_ERROR("MiProjection::xyconvert: undefined projection.");
 		return false;
 	}
 	/*
@@ -152,7 +155,7 @@ xyconvert( const MiProjection &proj, float &latitude, float &longitude )const
 				  static_cast<int>(gridType), const_cast<float*>(gridSpec), &error);
 	
 	if( error != 0 ) {
-		cerr << "MiProjection::xyconvert: Conversion error. Error code: " << error << "." << endl;
+		WEBFW_LOG_ERROR( "MiProjection::xyconvert: Conversion error. Error code: " << error << "." );
 		return false;
 	}
 	
@@ -164,9 +167,10 @@ MiProjection::
 uvconvert( const MiProjection &proj, float latitude, float longitude, float &u, float &v )const
 {
 	int error;
+	WEBFW_USE_LOGGER( "handler" );
 
 	if( gridType == undefined_projection || proj.gridType == undefined_projection ) {
-		cerr << "MiProjection::uvconvert: undefined projection." << endl;
+		WEBFW_LOG_DEBUG( "MiProjection::uvconvert: undefined projection." );
 		return false;
 	}
 	
@@ -182,7 +186,7 @@ uvconvert( const MiProjection &proj, float latitude, float longitude, float &u, 
 			       static_cast<int>(gridType), const_cast<float*>(gridSpec), FLT_MAX, &error);
 	
 	if( error != 0 ) {
-		cerr << "MiProjection::uvconvert: Conversion error. Error code: " << error << "." << endl;
+		WEBFW_LOG_ERROR( "MiProjection::uvconvert: Conversion error. Error code: " << error << "." );
 		return false;
 	}
 		
@@ -207,6 +211,7 @@ loadFromDBWciProtocol_1( pqxx::connection& con,
 	map<string, list<string> > places;
 	map<string, list<string> >::iterator itPlace;
 	list<string>::iterator itProvider;
+	WEBFW_USE_LOGGER( "handler" );
 
 	if( isInitialized )
 		return true;
@@ -216,14 +221,14 @@ loadFromDBWciProtocol_1( pqxx::connection& con,
 	wdb2ts::config::ActionParam::const_iterator it=params.find("wdb.projection");
 		
 	if( it == params.end() ) {
-		cerr << "WARNING: No wdb.projection specification!" << endl;
+		WEBFW_LOG_WARN( "No wdb.projection specification!" );
 		return true;
 	}
 	
 	vector<string> vec = miutil::splitstr(it->second.asString(), ';');
 	
 	if( vec.empty() ) {
-		cerr << "WARNING: wdb.projection specification. No valid values!" << endl;
+		WEBFW_LOG_WARN( "wdb.projection specification. No valid values!" );
 		return false;
 	}
 	
@@ -231,7 +236,7 @@ loadFromDBWciProtocol_1( pqxx::connection& con,
 		vector<string> vals = miutil::splitstr( vec[i], '=');
 		
 		if( vals.size() != 2 ) {
-			cerr << "WARNING: wdb.projection specification. value <" << vec[i] << "> wrong format!"<< endl;
+			WEBFW_LOG_WARN( "wdb.projection specification. value <" << vec[i] << "> wrong format!");
 			continue;
 		}
 		
@@ -305,30 +310,29 @@ loadFromDBWciProtocol_1( pqxx::connection& con,
 				break;
 			}
 		/*
-		cerr << row.at("placename").c_str() << "i#: " << row.at("inumber").as<int>() 
+		WEBFW_LOG_DEBUG( row.at("placename").c_str() << "i#: " << row.at("inumber").as<int>()
 			     << " j#: " << row.at("jnumber").as<int>() 
 			     << " iincr: " << row.at("iincrement").as<float>()
 			     << " jincr: " << row.at("jincrement").as<float>()
 			     << " startlon: " << row.at("startlongitude").as<float>()
 			     << " startlat: " << row.at("startlatitude").as<float>()	
 			     << " srid: " << row.at("originalsrid").as<int>()
-			     << " proj: " << row.at("projdefinition").c_str() << endl; 
+			     << " proj: " << row.at("projdefinition").c_str() );
 		*/
 			
 			for( itProvider = itPlace->second.begin(); itProvider != itPlace->second.end(); ++itProvider ) {
 				projectionMap[ *itProvider ] = MiProjection( gs, pType );
-				cerr << "INFO: wdb.projection added: " << *itProvider  << ": "
-				     << projectionMap[ *itProvider ]  << endl;
+				WEBFW_LOG_INFO( "wdb.projection added: " << *itProvider  << ": " << projectionMap[ *itProvider ] );
 			}	
 			
 		}
 	}
 	catch( std::exception &ex ) {
-		cerr << "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "ProjectionHelper::loadFromDB: " << ex.what() );
 		return false;
 	}
 	catch( ... ) {
-		cerr << "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" << endl;
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" );
 		return false;
 	}
 	
@@ -341,6 +345,8 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 		                   const wdb2ts::config::ActionParam &params
 		                 )
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	try {
 		pqxx::work work( con, "WciPlaceSpecification");
 		pqxx::result  res = work.exec( "SELECT * FROM wci.placespecification()" );
@@ -416,25 +422,25 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 				break;
 			}
 		/*
-		cerr << row.at("placename").c_str() << "i#: " << row.at("inumber").as<int>() 
+		WEBFW_LOG_DEBUG( row.at("placename").c_str() << "i#: " << row.at("inumber").as<int>()
 			     << " j#: " << row.at("jnumber").as<int>() 
 			     << " iincr: " << row.at("iincrement").as<float>()
 			     << " jincr: " << row.at("jincrement").as<float>()
 			     << " startlon: " << row.at("startlongitude").as<float>()
 			     << " startlat: " << row.at("startlatitude").as<float>()	
 			     << " srid: " << row.at("originalsrid").as<int>()
-			     << " proj: " << row.at("projdefinition").c_str() << endl; 
+			     << " proj: " << row.at("projdefinition").c_str() );
 		*/
 
 			placenameMap[row.at("placename").c_str()] = MiProjection( gs, pType );
 		}
 	}
 	catch( std::exception &ex ) {
-		cerr << "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() );
 		return false;
 	}
 	catch( ... ) {
-		cerr << "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" << endl;
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" );
 		return false;
 	}
 	
@@ -464,12 +470,14 @@ ProjectionHelper::
 findProjection( const std::string &provider ) 
 {
 	ProjectionMap::const_iterator it;
+	WEBFW_USE_LOGGER( "handler" );
 
 #if 0
-	cerr << "ProjectionHelper::findProjection: protocol: " << wciProtocol << endl;
-	cerr << "ProjectionHelper::findProjection: provider: " << provider << endl;
-	for( it = projectionMap.begin(); it != projectionMap.end(); ++it ) 
-		cerr << "ProjectionHelper::findProjection: " << it->first << ": " << it->second << endl;
+	WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: protocol: " << wciProtocol );
+	WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: provider: " << provider );
+	for( it = projectionMap.begin(); it != projectionMap.end(); ++it ) {
+		WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: " << it->first << ": " << it->second );
+	}
 #endif
 	
 	it = projectionMap.find( provider );
@@ -482,8 +490,9 @@ findProjection( const std::string &provider )
 	
 	
 #if 0	
-	for( it = placenameMap.begin(); it != placenameMap.end(); ++it ) 
-		cerr << "ProjectionHelper::findProjection: placenameMap: " << it->first << ": " << it->second << endl;
+	for( it = placenameMap.begin(); it != placenameMap.end(); ++it ) {
+		WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: placenameMap: " << it->first << ": " << it->second );
+	}
 #endif		
 	
 	//The provider may be on the form 'provider [placename]'. 
@@ -492,9 +501,9 @@ findProjection( const std::string &provider )
 	ProviderItem pi=ProviderList::decodeItem( provider );
 
 #if 0
-	cerr << "ProjectionHelper::findProjection: placenameMap: pi.placename: " << pi.placename << endl;
-	cerr << "ProjectionHelper::findProjection: placenameMap: pi.provider:  " << pi.provider << endl;
-	cerr << "ProjectionHelper::findProjection: placenameMap: pi.providerWithPlacename:  " << pi.providerWithPlacename() << endl;
+	WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: placenameMap: pi.placename: " << pi.placename );
+	WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: placenameMap: pi.provider:  " << pi.provider );
+	WEBFW_LOG_DEBUG( "ProjectionHelper::findProjection: placenameMap: pi.providerWithPlacename:  " << pi.providerWithPlacename() );
 #endif
 	
 	if( pi.placename.empty() )
@@ -505,7 +514,7 @@ findProjection( const std::string &provider )
 	if( it == placenameMap.end() )
 		return projectionMap.end();
 	
-	cerr << "ProjectionHelper: Added provider <" << pi.providerWithPlacename() << "> to the projection cache! " << it->second << endl; 
+	WEBFW_LOG_DEBUG( "ProjectionHelper: Added provider <" << pi.providerWithPlacename() << "> to the projection cache! " << it->second );
 	
 	projectionMap[ pi.providerWithPlacename() ] = it->second;
 	
@@ -525,6 +534,8 @@ convertToDirectionAndLength( const std::string &provider,
 	if( u == FLT_MAX || v == FLT_MAX )
 		return false;
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	{ //Mutex protected scope.
 		boost::mutex::scoped_lock lock( const_cast<ProjectionHelper*>(this)->mutex );
 	
@@ -534,23 +545,23 @@ convertToDirectionAndLength( const std::string &provider,
 		if( it != projectionMap.end() ) 
 		{
 			if( it->second.getProjectionType() == MiProjection::undefined_projection ) {
-				cerr << "ProjectionHelper::convertToDirectionAndLength: WARNING Projection definition for provider <" << provider << "> is 'undefined_projection'!" << endl;
+				WEBFW_LOG_WARN( "ProjectionHelper::convertToDirectionAndLength: Projection definition for provider <" << provider << "> is 'undefined_projection'!" );
 				return false;
 			}
 			
 			if( ! geographic.uvconvert( it->second, latitude, longitude, u, v ) ){
-				cerr << "ProjectionHelper::convertToDirectionAndLength: failed!" << endl;
+				WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed!" );
 				return false;
 			}
 		
-			//cerr << "ProjectionHelper::convertToDDandFF: DEBUG provider <" << provider << ">!" << endl;
+			//WEBFW_LOG_DEBUG( "ProjectionHelper::convertToDDandFF: DEBUG provider <" << provider << ">!" );
 		} else {
-			cerr << "ProjectionHelper::convertToDirectionAndLength: WARNING no Projection definition for provider <" << provider << ">!" << endl;
+			WEBFW_LOG_WARN( "ProjectionHelper::convertToDirectionAndLength: WARNING no Projection definition for provider <" << provider << ">!" );
 		}
 	} //End mutex protected scope.
 	
 	if( u == FLT_MAX || v == FLT_MAX ) {
-		cerr << "ProjectionHelper::convertToDirectionAndLength: failed u or/and v undefined!" << endl;
+		WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed u or/and v undefined!" );
 		return false;
 	}
 		
@@ -584,6 +595,7 @@ configureWdbProjection( ProjectionHelper &projectionHelper,
 		                  Wdb2TsApp *app )
 {
 	ProviderList providerList;
+	WEBFW_USE_LOGGER( "handler" );
 	
 	try {
 		miutil::pgpool::DbConnectionPtr con = app->newConnection( wdbDB );
@@ -592,10 +604,10 @@ configureWdbProjection( ProjectionHelper &projectionHelper,
 		return true;
 	}
 	catch( std::exception &ex ) {
-		cerr << "EXCEPTION: configureWdbProjection: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: " << ex.what() );
 	}
 	catch( ... ) {
-		cerr << "EXCEPTION: configureWdbProjection: UNKNOWN reason."<< endl;
+		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: UNKNOWN reason.");
 	}
 	
 	return false;

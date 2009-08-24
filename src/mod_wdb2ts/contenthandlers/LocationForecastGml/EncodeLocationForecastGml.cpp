@@ -62,6 +62,7 @@
 #include <wdb2tsProfiling.h>
 #include <ptimeutil.h>
 #include <probabilityCode.h>
+#include <Logger4cpp.h>
 
 // SYSTEM INCLUDES
 //
@@ -381,7 +382,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   	continue;
 	   
 	   firstFromTime = itbt->from;
-	   //cerr << "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to << endl;
+	   //WEBFW_LOG_DEBUG( "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to );
 	   
 	   for( ; 
 	        itbt != breakTimes.end();
@@ -507,10 +508,12 @@ encodeMoment( const boost::posix_time::ptime &from,
 			     std::ostream &ost, 
 		        miutil::Indent &indent )
 {
-	cerr << "encodeMoment: from: " << from << endl;
+	WEBFW_USE_LOGGER( "encode" );
+
+	WEBFW_LOG_DEBUG( "encodeMoment: from: " << from );
 	
 	if( ! locationData.init( from ) ) {
-		cerr << "encodeMoment: from: " << from << " NO data!" << endl;
+		WEBFW_LOG_WARN( "encodeMoment: from: " << from << " NO data!" );
 		return;
 	}
 	

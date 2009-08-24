@@ -28,6 +28,7 @@
 
 
 #include <SymbolContext.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -54,10 +55,10 @@ doAddSymbol( int symNumber, float probability, const boost::posix_time::ptime &t
 	
 	ProviderSymbolHolderList::iterator it = symbols.find( provider );
 	
-//	cerr << "SymbolContext: provider: " << provider << " min: " << min << endl;
+//	WEBFW_LOG_DEBUG( "SymbolContext: provider: " << provider << " min: " << min );
 	
 	if( it == symbols.end() ) { 
-//		cerr << "SymbolContext: Add new SymbolHolder: provider: " << provider << " min: " << min << endl;
+//		WEBFW_LOG_DEBUG( "SymbolContext: Add new SymbolHolder: provider: " << provider << " min: " << min );
 		symbols[provider].push_back( boost::shared_ptr<SymbolHolder>( new SymbolHolder( min, 0 ) ) );
 	}
 	
@@ -68,13 +69,13 @@ doAddSymbol( int symNumber, float probability, const boost::posix_time::ptime &t
 	for( ; lit != litEnd && (*lit)->timespanInHours() != timespan ; ++lit );
 	
 	if( lit == litEnd ) {
-//		cerr << "SymbolContext: Add new SymbolHolder: provider: " << provider << " min: " << min << endl;
+//		WEBFW_LOG_DEBUG( "SymbolContext: Add new SymbolHolder: provider: " << provider << " min: " << min );
 		symHolder.reset( new SymbolHolder( min, 0 ) );
 		symbols[provider].push_back( symHolder );
 	} else {
 		symHolder = *lit;
 	}
-//	cerr << "SymbolContext: Add symbol: provider: " << provider << " timespan: " << symHolder->timespanInHours() << endl;
+//	WEBFW_LOG_DEBUG( "SymbolContext: Add symbol: provider: " << provider << " timespan: " << symHolder->timespanInHours() );
 	
 	symHolder->addSymbol( time, symNumber, latitude, probability );
 	prevProvider = provider;
@@ -131,6 +132,8 @@ addSymbol( int symNumber, float probability, const boost::posix_time::ptime &tim
 	using namespace boost::posix_time;
 	time_duration diff;
 	time_duration h;
+
+	WEBFW_USE_LOGGER( "handler" );
 	
 	if( symNumber == INT_MAX )
 		return;
@@ -140,7 +143,7 @@ addSymbol( int symNumber, float probability, const boost::posix_time::ptime &tim
 	else
 		diff = time_duration(0, 0, 0);
 	 
-	//cerr << "addSymbol: " << time << " " << fromTime << " " << prevTime << " "<< (first?"true":"false") << endl;
+	//WEBFW_LOG_DEBUG( "addSymbol: " << time << " " << fromTime << " " << prevTime << " "<< (first?"true":"false") );
 	if( first && prevTime.is_special() && diff.hours() == 0 ) {
 		prevTime = time;
 		prevTemperature = temperatureAtTime;
@@ -159,7 +162,7 @@ addSymbol( int symNumber, float probability, const boost::posix_time::ptime &tim
 		h = diff;
 
 	if( fromTime != prevTime )
-		cerr << "SymbolContext::addSymbol: WARNING: fromTime!=prevtime '" << fromTime << " != " << prevTime <<"'. [" << provider << "]" <<endl;
+		WEBFW_LOG_WARN( "SymbolContext::addSymbol: fromTime!=prevtime '" << fromTime << " != " << prevTime <<"'. [" << provider << "]" );
 	
 	prevTime = time;
 	
@@ -174,7 +177,7 @@ addSymbol( int symNumber, float probability, const boost::posix_time::ptime &tim
 	
 	//May have a symbol for the first iteration.
 	if( first && ! symTmp.time.is_special() && prevProvider == provider ) { 
-		//cerr << "addSymbol: tmp " << symTmp.time << " " <<  min << endl;
+		//WEBFW_LOG_DEBUG( "addSymbol: tmp " << symTmp.time << " " <<  min );
 		symTmp.symNumber = correctSymbol( prevTemperature, symTmp.symNumber );
 		
 		doAddSymbol( symTmp.symNumber, symTmp.probability, symTmp.time, provider, symTmp.latitude, min );

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <HandlerBase.h>
 #include <App.h>
+#include <Logger4cpp.h>
 
 using namespace std;
 
@@ -21,7 +22,8 @@ doConfigure( const wdb2ts::config::ActionParam &params,
 			setLogLevels( loggers );
 		}
 		catch( const std::exception &ex ) {
-			cerr << "wdb2ts: " << name() << " : " << ex.what() << endl; 
+			WEBFW_USE_LOGGER( "handler" );
+			WEBFW_LOG_ERROR( "wdb2ts: " << name() << " : " << ex.what() );
 		}
 	}		
 	

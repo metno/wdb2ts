@@ -35,6 +35,7 @@
 #include <UpdateProviderReftimes.h>
 #include <transactor/ProviderRefTime.h>
 #include <wdb2TsApp.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -175,6 +176,8 @@ SymbolConfProvider
 symbolConfProviderSetPlacename( const SymbolConfProvider &symbolConfProvider, 
 		                          WciConnectionPtr wciConnection )
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	SymbolConfProvider resList;
 		
 	for( SymbolConfProvider::const_iterator it=symbolConfProvider.begin(); 
@@ -210,16 +213,16 @@ symbolConfProviderSetPlacename( const SymbolConfProvider &symbolConfProvider,
 			}
 		}
 		catch( const std::ios_base::failure &ex ) {
-			cerr << "EXCEPTION:std::ios_base::failure: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::ios_base::failure: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( const std::runtime_error &ex ) {
-			cerr << "EXCEPTION:std::runtime_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::runtime_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( const std::logic_error &ex ) {
-			cerr << "EXCEPTION:std::logic_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::logic_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( ... ) {
-			cerr << "EXCEPTION:unknown: LocationForecastHandler::providerPrioritySetPlacename" << endl;
+			WEBFW_LOG_ERROR( "unknown: LocationForecastHandler::providerPrioritySetPlacename" );
 		}
 	}
 		
@@ -234,18 +237,18 @@ symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
 {
 	WciConnectionPtr wciConnection;
 	SymbolConfProvider tmpList;
+
+	WEBFW_USE_LOGGER( "handler" );
 		
 	try {
 		wciConnection = app->newWciConnection( wdbDB );
 	}
 	catch( exception &ex ) {
-		cerr << "EXCEPTION: symbolConfProviderWithPlacename: NO DB CONNECTION. "
-		     << ex.what() << endl;
+		WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. " << ex.what() );
 		return tmpList;
 	}
 	catch( ... ) {
-		cerr << "EXCEPTION: symbolConfProviderWithPlacename: NO DB CONNECTION. unknown exception "
-		     << endl;
+		WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. unknown exception " );
 		return tmpList;
 	}
 

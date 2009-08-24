@@ -34,6 +34,7 @@
 #include <ptimeutil.h>
 #include <wdb2tsProfiling.h>
 #include <ProviderList.h>
+#include <Logger4cpp.h>
 
 DEFINE_MI_PROFILE;
 
@@ -126,13 +127,15 @@ doGetProviderReftime( const std::string &provider,
 {
 	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
 	ProviderItem pvItem;
+
+	WEBFW_USE_LOGGER( "handler" );
 	
-	cerr << "doGetProviderReftime: providerIn: " << provider 
-	     << " '" << pvItemIn.providerWithPlacename() << "'" << endl;
+	WEBFW_LOG_DEBUG( "doGetProviderReftime: providerIn: " << provider
+	     << " '" << pvItemIn.providerWithPlacename() << "'");
 	
 	for( ProviderRefTimeList::const_iterator it = reftimes.begin();
 			it != reftimes.end(); ++it ) {
-		cerr << "    " << it->first << " -> " << it->second.refTime << endl;
+		WEBFW_LOG_DEBUG( "    " << it->first << " -> " << it->second.refTime );
 		pvItem = ProviderList::decodeItem( it->first );
 		
 		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
@@ -161,20 +164,20 @@ getProviderReftime( const std::string &provider,
 		              boost::posix_time::ptime &refTimeFrom,  
 		              boost::posix_time::ptime &refTimeTo ) 
 {
+	WEBFW_USE_LOGGER( "handler" );
 	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
-	
 	refTimeFrom = boost::posix_time::ptime(); //undef
-	cerr << "getProviderReftime: " << provider << endl;
+	WEBFW_LOG_DEBUG( "getProviderReftime: " << provider );
 
 	doGetProviderReftime( provider, refTimeFrom, refTimeTo ); 
 		
 	if( refTimeFrom.is_special() ) {
-		cerr << " --- Return: getProviderReftime: No reftime found. " << endl;
+		WEBFW_LOG_WARN( " --- Return: getProviderReftime: No reftime found. " );;
 		return false;
 	}
  
-	cerr << " --- Return: getProviderReftime:" << pvItemIn.providerWithPlacename() 
-	     << "  " << refTimeFrom << " - " << refTimeTo << endl;
+	WEBFW_LOG_DEBUG( " --- Return: getProviderReftime:" << pvItemIn.providerWithPlacename()
+	     << "  " << refTimeFrom << " - " << refTimeTo );
 	
 	if( refTimeTo == refTimeFrom )
 		refTimeFrom_IsEqualTo_ReftTimeTo = true;
@@ -190,6 +193,7 @@ getProviderReftime( const std::list<std::string> &providerList,
 		              boost::posix_time::ptime &refTimeFrom,  
 		              boost::posix_time::ptime &refTimeTo ) 
 {
+	WEBFW_USE_LOGGER( "handler" );
 	string log;
 
 	refTimeFrom = boost::posix_time::ptime(); //undef
@@ -206,12 +210,12 @@ getProviderReftime( const std::list<std::string> &providerList,
 	}
 		
 	if( refTimeFrom.is_special() ) {
-		cerr << " --- Return: getProviderReftime: No reftime found. [" << log << "]" << endl;
+		WEBFW_LOG_WARN( " --- Return: getProviderReftime: No reftime found. [" << log << "]" );;
 		return false;
 	}
  
-	cerr << " --- Return: getProviderReftime: [" << log << "]"
-	     << "  " << refTimeFrom << " - " << refTimeTo << endl;
+	WEBFW_LOG_DEBUG( " --- Return: getProviderReftime: [" << log << "]"
+	     << "  " << refTimeFrom << " - " << refTimeTo );
 	
 	if( refTimeTo == refTimeFrom )
 		refTimeFrom_IsEqualTo_ReftTimeTo = true;
@@ -303,6 +307,8 @@ hasNext( )
 	USE_MI_PROFILE;
 	START_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	ptime refTimeFrom;
 	ptime refTimeTo;
 	dataProviders.erase();
@@ -375,13 +381,12 @@ hasNext( )
 			     itCurProviderPriority != curProviderPriority.end() ;
 			     ++itCurProviderPriority ) 
 			{
-				cerr << "getProviderRefTime: " << itCurProviderPriority->provider << " " 
-				     << refTimeFrom << " - " << refTimeTo << endl;
+				WEBFW_LOG_DEBUG( "getProviderRefTime: " << itCurProviderPriority->provider << " " << refTimeFrom << " - " << refTimeTo );
 				if( ! getProviderReftime( itCurProviderPriority->provider, refTimeFrom, refTimeTo ) ) {
-					cerr << " --- Not found" << endl;
+					WEBFW_LOG_DEBUG( " --- Not found" );;
 					continue;
 				}
-				cerr << " --- found" << endl;
+				WEBFW_LOG_DEBUG( " --- found" );;
 				break;
 			}
 		

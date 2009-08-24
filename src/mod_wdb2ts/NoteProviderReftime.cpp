@@ -35,6 +35,7 @@
 #include <ptimeutil.h>
 #include <splitstr.h>
 #include <string>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -45,17 +46,17 @@ bool
 NoteProviderReftimes::
 saveNote( std::ostream &out )
 {
-	
+	WEBFW_USE_LOGGER( "handler" );
 	try {
-		cerr << "NoteProviderReftimes::saveNote: " << size() << endl;
+		std::ostringstream toLog;
+
 		for( NoteProviderReftimes::iterator it = begin(); it != end(); ++it ) {
-			out << it->first << "|" << isotimeString( it->second.refTime, true, false ) 
+			toLog << it->first << "|" << isotimeString( it->second.refTime, true, false )
 			    << "|" << isotimeString( it->second.updatedTime, true, false ) 
 			    << "|" << it->second.dataversion << endl;
-			cerr << it->first << "|" << isotimeString( it->second.refTime, true, false ) 
-			     << "|" << isotimeString( it->second.updatedTime, true, false )
-			     << "|" << it->second.dataversion << endl;
 		}
+		out << toLog.str();
+		WEBFW_LOG_DEBUG("NoteProviderReftimes::saveNote: " << size() << '\n' << toLog.str());
 	}
 	catch( ... ) {
 		return false;

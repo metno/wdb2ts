@@ -29,6 +29,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <wdb2tsProfiling.h>
 #include <transactor/Version.h>
+#include <Logger4cpp.h>
 
 DECLARE_MI_PROFILE;
 
@@ -55,7 +56,9 @@ operator () ( argument_type &t )
 
 	string q("SELECT * FROM wci.version()");
 
-	cerr << "WCI version (Transactor): query: " << q << endl;
+	WEBFW_USE_LOGGER( "handler" );
+
+	WEBFW_LOG_DEBUG( "WCI version (Transactor): query: " << q );
 	
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("wci.version (Transactor)");

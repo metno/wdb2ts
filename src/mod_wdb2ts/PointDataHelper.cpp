@@ -155,7 +155,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			if( alias !=  paramDef->alias() ) {
 				alias = paramDef->alias();
-				//cerr << "Decoding: " << paramDef->alias() << "  (" << it.at("dataprovidername").c_str() <<")" << endl;
+				//WEBFW_LOG_DEBUG( "Decoding: " << paramDef->alias() << "  (" << it.at("dataprovidername").c_str() <<")" );
 			}
 			
 			START_MARK_MI_PROFILE("db::it");
@@ -201,7 +201,7 @@ decodePData( const ParamDefList &paramDefs,
 			//defined in the paramdef section for the parameter in the
 			//configuration file.
 			if( paramDef->isNullValue( value ) ) {
-				//cerr << "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" << endl
+				//WEBFW_LOG_DEBUG( "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" )
 				//     << "  " << *paramDef << endl;
 				++it;
 				continue;
@@ -220,7 +220,7 @@ decodePData( const ParamDefList &paramDefs,
 			else if( paramDef->alias() == "MSLP" )
 			   pd.PR = value;
 			else if( paramDef->alias() == "T.2M" ) {
-				//cerr << "decode: T.2M: " << value << endl;
+				//WEBFW_LOG_DEBUG( "decode: T.2M: " << value );
 				pd.T2M = value;
 			} else if( paramDef->alias() == "T.2M.LAND" )
 				pd.T2M_LAND = value;
@@ -251,27 +251,27 @@ decodePData( const ParamDefList &paramDefs,
 			else if( paramDef->alias() == "seaTemperature" )
 				pd.seaTemperature = value;
 			else if( paramDef->alias() == "meanTotalWaveDirection" ) {
-				//cerr << "decode: waveDirection: " << value << endl;
+				//WEBFW_LOG_DEBUG( "decode: waveDirection: " << value );
 				pd.meanTotalWaveDirection = value;
 			} else if( paramDef->alias() == "significantTotalWaveHeight" ) {
-				//cerr << "decode: significantWaveHeight: " << value << endl; 
+				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
 				pd.significantTotalWaveHeight = value;
 			}else if( paramDef->alias() == "seaBottomTopography" ) {
 				ptime seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
 						                         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//cerr << "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value << endl;
+				//WEBFW_LOG_DEBUG( "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value );
 				timeSerie[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
 			}else if( paramDef->alias() == "seaIcePresence" ) {
 				ptime iceTime( boost::gregorian::date(1970, 1, 1),
 						         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//cerr << "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value << endl;
+				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
 				timeSerie[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
 			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
 				//string topo=it.at("dataprovidername").c_str()+string("__MODEL_TOPO__");
 				string topo=providerWithPlacename+string("__MODEL_TOPO__");
 				ptime topoTime( boost::gregorian::date(1970, 1, 1),
 						          boost::posix_time::time_duration( 0, 0, 0 ) );
-				//cerr << "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value << endl;
+				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
 				timeSerie[topoTime][topoTime][topo].modeltopography = value;
 			}
 			else if( paramDef->alias() == "TOTAL.CLOUD" )

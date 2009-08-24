@@ -30,6 +30,7 @@
 #include <ptimeutil.h>
 #include <transactor/ProviderRefTime.h>
 #include <wdb2tsProfiling.h>
+#include <Logger4cpp.h>
 
 DECLARE_MI_PROFILE;
 
@@ -56,13 +57,15 @@ void
 ProviderRefTime::
 operator () ( argument_type &t )
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	ostringstream ost;
 	*refTimesResult=refTimes;
 
 	ost << "SELECT * FROM wci.browse( ARRAY['" << provider <<"'], NULL,"<< reftimespec 
 	    << ",NULL,NULL,NULL,NULL,NULL::wci.browseplace)";
 
-	cerr << "ProviderReftimes (Transactor): query: " << ost.str() << endl;
+	WEBFW_LOG_DEBUG( "ProviderReftimes (Transactor): query: " << ost.str() );
 	
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("ProviderRefTimes (Transactor)");

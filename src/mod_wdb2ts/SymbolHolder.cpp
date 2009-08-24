@@ -29,9 +29,9 @@
 
 #include <iostream>
 #include <algorithm>
-#include <iostream>
 #include "SymbolHolder.h"
 #include <SymbolGenerator.h>
+#include <Logger4cpp.h>
 
 using namespace std;
 
@@ -73,6 +73,8 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 {
 	using namespace boost::posix_time;
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	boost::gregorian::date datePart( time.date() );
 	time_duration timePart( time.time_of_day() );
 	miutil::miTime miT( datePart.year(), datePart.month(), datePart.day(),
@@ -81,7 +83,7 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 	miSymbol sym = SymbolGenerator::getSymbol( custNumber );
 	
 	if( symbolMaker::getErrorSymbol() == sym ) {
-		cerr << "SymbolHolder::addSymbol: " << custNumber << " not a valid miSymbol.";
+		WEBFW_LOG_ERROR( "SymbolHolder::addSymbol: " << custNumber << " not a valid miSymbol." );
 		return;
 	}
 	
@@ -138,7 +140,7 @@ initIndex( const boost::posix_time::ptime &fromtime_ )
    index_=0;
    
    while ( next( symbolid, name, idname, time, from, to, prob ) ) {
-   	//cerr << "initIndex: ft: " << fromtime << " from: " << from << endl;
+   	//WEBFW_LOG_DEBUG( "initIndex: ft: " << fromtime << " from: " << from );
       if ( from < fromtime ) 
       	continue;
 

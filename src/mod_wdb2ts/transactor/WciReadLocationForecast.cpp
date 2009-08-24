@@ -29,6 +29,7 @@
 #include <transactor/WciReadLocationForecast.h>
 #include <WdbQueryHelper.h>
 #include <wdb2tsProfiling.h>
+#include <Logger4cpp.h>
 
 DECLARE_MI_PROFILE;
 
@@ -72,6 +73,8 @@ operator () ( argument_type &t )
 	string decodeProfileProvider__; //Only used when profiling
 	bool   mustHaveData;
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 //	timeSerie->clear();
 	
 	USE_MI_PROFILE;
@@ -97,10 +100,10 @@ operator () ( argument_type &t )
 				
 			}
 			catch( const NoReftime &exNoReftime ) {
-				cerr << exNoReftime.what() << endl;
+				WEBFW_LOG_WARN(exNoReftime.what());
 				continue;
 			}
-			cerr << "SQL [" << wciReadQuery << "]\n";
+			WEBFW_LOG_DEBUG( "SQL [" << wciReadQuery << "]" );
 			
 #ifdef __MI_PROFILE__
 			dbProfileProvider__ = "db::("+wdbQueryHelper.dataprovider()+")";
@@ -111,7 +114,7 @@ operator () ( argument_type &t )
 			MARK_ID_MI_PROFILE( dbProfileProvider__ );
 		   
 			if( mustHaveData && res.empty() ) {
-				//cerr << "**** The query must have data!" << endl;
+				//WEBFW_LOG_ERROR( "**** The query must have data!" );
 				timeSerie->clear();
 				return;
 			}
@@ -122,8 +125,7 @@ operator () ( argument_type &t )
 		}
 	}
 	catch( const exception &ex ){
-		cerr << "EXCEPTION: WciReadLocationForecast: query [" << wciReadQuery << "] reason: "
-		     << ex.what() << endl;
+		WEBFW_LOG_ERROR( "WciReadLocationForecast: query [" << wciReadQuery << "] reason: " << ex.what() );
 		throw;
 	}	
 	MARK_ID_MI_PROFILE("requestWdb");

@@ -56,6 +56,7 @@
 #include <ptimeutil.h>
 #include <probabilityCode.h>
 #include <ProviderList.h>
+#include <Logger4cpp.h>
 
 // SYSTEM INCLUDES
 //
@@ -355,6 +356,8 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 			            std::ostream &ost, 
 			            miutil::Indent &indent )
 {
+	WEBFW_USE_LOGGER( "encode" );
+
 	int hours[] = { 1, 3, 6, 12, 24 };
 	int N=sizeof( hours )/sizeof(hours[0]);
 	int precipCount[N];
@@ -375,13 +378,12 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	BreakTimeList::const_iterator itbt = findBreakTime( from );
 
 	if( itbt == breakTimes.end() ) {
-		cerr << "EncodeLocationForecast::encodePrecipitation: No data." << endl;
+		WEBFW_LOG_WARN( "EncodeLocationForecast::encodePrecipitation: No data." );
 		return;
 	}
 	
 	prevFromTime = itbt->from;
-	//cerr << "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to 
-	//     << " prevFromTime: " << prevFromTime << " req from: " << from <<endl;
+	//WEBFW_LOG_DEBUG( "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to << " prevFromTime: " << prevFromTime << " req from: " << from );
 	   
 	for( ; 
 	     itbt != breakTimes.end();
@@ -416,8 +418,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   			
 				precip = location->PRECIP( hours[precipIndex], fromTime );
 	   		
-				//cerr << "fromTime: " << fromTime << " prevFromTime: "<< prevFromTime 
-				//     << " precipCount[" << precipIndex << "]: " << precipCount[precipIndex] << " precip: " << precip << endl;
+				//WEBFW_LOG_DEBUG( "fromTime: " << fromTime << " prevFromTime: "<< prevFromTime << " precipCount[" << precipIndex << "]: " << precipCount[precipIndex] << " precip: " << precip );
 			
 				if( precip == FLT_MAX || fromTime<prevFromTime ) {
 					continue;
@@ -480,7 +481,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   	continue;
 	   
 	   firstFromTime = itbt->from;
-	   //cerr << "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to << endl;
+	   //WEBFW_LOG_DEBUG( "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to );
 	   
 	   for( ; 
 	        itbt != breakTimes.end();

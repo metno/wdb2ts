@@ -27,7 +27,6 @@
 */
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <wdb2TsApp.h>
-#include <iostream>
 #include <sstream>
 #include <pgconpool/dbSetup.h>
 #include <pgconpool/dbConnectionPool.h>
@@ -42,6 +41,7 @@
 #include <RequestHandlerFactory.h>
 #include <transactor/Version.h>
 #include <splitstr.h>
+#include <Logger4cpp.h>
 
 using namespace std;
  
@@ -266,17 +266,21 @@ initHightMapImpl()
 	
 	if( initHightMapTryed )
 		return;
+
+	WEBFW_USE_LOGGER( "main" );
 	
 	string error;
 	inInitHightMap = true;
 
-	cerr << "Loading map File: '" << 	WDB2TS_MAP_FILE << "'." << endl; 
+	WEBFW_LOG_DEBUG( "Loading map File: '" << 	WDB2TS_MAP_FILE << "'." );
 	hightMap = readMapFile( WDB2TS_MAP_FILE, error );
 	
-	if( hightMap )
-		cerr << "Map File: '" << 	WDB2TS_MAP_FILE << "' loaded." << endl;
-	else
-		cerr << "No Map File: '" << 	WDB2TS_MAP_FILE << "'." << endl;
+	if( hightMap ) {
+		WEBFW_LOG_INFO( "Map File: '" << 	WDB2TS_MAP_FILE << "' loaded." );
+	}
+	else {
+		WEBFW_LOG_WARN( "No Map File: '" << 	WDB2TS_MAP_FILE << "'." );
+	}
 	inInitHightMap = false;
 	initHightMapTryed = true;
 }
@@ -288,6 +292,7 @@ wciProtocol( const std::string &wdbid )
 	const int defaultProtocol=1;
 	Version versionTransactor;
 	string version;
+	WEBFW_USE_LOGGER( "main" );
 	
 	try {
 		WciConnectionPtr wciConnection = newWciConnection( wdbid );
@@ -295,23 +300,23 @@ wciProtocol( const std::string &wdbid )
 		version = *versionTransactor.result();
 	}
 	catch( const exception &ex ) {
-		cerr << "wciProtocol exception: " << ex.what() << endl;
+		WEBFW_LOG_ERROR( "wciProtocol exception: " << ex.what() );;
 		return -1;
 	}
 	
-	cerr << "wciProtocol: version '" << version << "'." << endl;
+	WEBFW_LOG_DEBUG( "wciProtocol: version '" << version << "'." );
 	
 	string::size_type i = version.find_first_of("0123456789");
 	
 	if( i == string::npos ) {
-		cerr << "wciProtocol: Cant find start of version number." << endl;
+		WEBFW_LOG_WARN( "wciProtocol: Cant find start of version number." );
 		return defaultProtocol;
 	}
 	
 	std::vector<std::string> vstr = miutil::splitstr( version.substr( i ), '.' );
 	
 	if( vstr.size() < 2 ) {
-		cerr << "wciProtocol: To few version elements." << endl;
+		WEBFW_LOG_WARN( "wciProtocol: To few version elements." );
 		return defaultProtocol;
 	}
 	
@@ -321,7 +326,7 @@ wciProtocol( const std::string &wdbid )
 	
 	if( sscanf( vstr[0].c_str(), "%d", &major ) != 1 ||
 		 sscanf( vstr[1].c_str(), "%d", &minor )	!= 1  ) {
-		cerr << "wciProtocol: The version elements must be numbers." << endl;
+		WEBFW_LOG_WARN( "wciProtocol: The version elements must be numbers." );
 		return defaultProtocol;
 	}
 	

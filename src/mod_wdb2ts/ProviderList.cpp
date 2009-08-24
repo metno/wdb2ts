@@ -36,7 +36,7 @@
 #include <transactor/ProviderRefTime.h>
 #include <ProviderList.h>
 #include <wdb2TsApp.h>
-
+#include <Logger4cpp.h>
 
 
 using namespace std;
@@ -52,6 +52,8 @@ decode( const std::string &toDecode_, std::string &provider )
 	ProviderList pList;
 	string::size_type i = toDecode.find("[");
 	
+	WEBFW_USE_LOGGER( "handler" );
+
 	if( i == string::npos ) {
 		pList.push_back( ProviderItem( toDecode ) );
 		provider = toDecode;
@@ -62,8 +64,8 @@ decode( const std::string &toDecode_, std::string &provider )
 	miutil::trimstr( provider );
 	
 	if( provider.empty() ) {
-		cerr << "ProviderList::decode provider priority failed. Expecting a definition on the form " 
-		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" << endl;
+		WEBFW_LOG_ERROR( "ProviderList::decode provider priority failed. Expecting a definition on the form "
+		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" );
 		return pList;
 	}
 	
@@ -72,8 +74,8 @@ decode( const std::string &toDecode_, std::string &provider )
 	i = toDecode.find("]");
 	
 	if( i == string::npos ) {
-		cerr << "ProviderList::Decode provider priority failed. Expecting a definition on the form " 
-		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" << endl;
+		WEBFW_LOG_ERROR( "ProviderList::Decode provider priority failed. Expecting a definition on the form "
+		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" );
 		return pList;
 	}
 	
@@ -224,18 +226,17 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 {
 	WciConnectionPtr wciConnection;
 	ProviderList resList;
+	WEBFW_USE_LOGGER( "handler" );
 	
 	try {
 		wciConnection = app->newWciConnection( wdbDB );
 	}
 	catch( exception &ex ) {
-		cerr << "EXCEPTION: LocationForecastHandler::providerPrioritySetPlacename: NO DB CONNECTION. "
-		<< ex.what() << endl;
+		WEBFW_LOG_ERROR( "LocationForecastHandler::providerPrioritySetPlacename: NO DB CONNECTION. " << ex.what() );
 		return resList;
 	}
 	catch( ... ) {
-		cerr << "EXCEPTION: LocationForecastHandler::providerPrioritySetPlacename: NO DB CONNECTION. unknown exception "
-		<< endl;
+		WEBFW_LOG_ERROR( "LocationForecastHandler::providerPrioritySetPlacename: NO DB CONNECTION. unknown exception ");
 		return resList;
 	}
 	
@@ -266,16 +267,16 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 			}
 		}
 		catch( const std::ios_base::failure &ex ) {
-			cerr << "EXCEPTION:std::ios_base::failure: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::ios_base::failure: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( const std::runtime_error &ex ) {
-			cerr << "EXCEPTION:std::runtime_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::runtime_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( const std::logic_error &ex ) {
-			cerr << "EXCEPTION:std::logic_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() << endl;
+			WEBFW_LOG_ERROR( "std::logic_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
 		}
 		catch( ... ) {
-			cerr << "EXCEPTION:unknown: LocationForecastHandler::providerPrioritySetPlacename" << endl;
+			WEBFW_LOG_ERROR( "unknown: LocationForecastHandler::providerPrioritySetPlacename" );
 		}
 	}
 		
@@ -292,13 +293,15 @@ configureProviderList( const wdb2ts::config::ActionParam &params,
 	ProviderList providerPriority;
 	ProviderList retProviderPriority;
 	wdb2ts::config::ActionParam::const_iterator it;
+
+	WEBFW_USE_LOGGER( "handler" );
 	
 	it=params.find("provider_priority");
 	
 	if( it != params.end() ) {
 		vector<string> pp = miutil::splitstr( it->second.asString(), ';' );
 		
-		cerr << "configureProviderPriority: provider_priority: <" << it->second.asString() << "> Size: " << pp.size() << endl;
+		WEBFW_LOG_DEBUG( "configureProviderPriority: provider_priority: <" << it->second.asString() << "> Size: " << pp.size() );
 		
 		for( vector<string>::size_type i=0; i<pp.size(); ++i ) {
 			ProviderList pList = ProviderList::decode( pp[i], provider );
@@ -307,17 +310,20 @@ configureProviderList( const wdb2ts::config::ActionParam &params,
 				providerPriority.push_back( *pit );
 		}	
 		
-		cerr << "configureProviderPriority: ProviderPriority: defined. " << endl;
+		std::ostringstream logMsg;
+		logMsg << "configureProviderPriority: ProviderPriority: defined.\n";
 		for( ProviderList::size_type i=0; i < providerPriority.size(); ++i )
-			cerr << "  " << providerPriority[i].providerWithPlacename() << endl;
+			logMsg << "  " << providerPriority[i].providerWithPlacename() << '\n';
+		WEBFW_LOG_DEBUG(logMsg.str());
 
 		retProviderPriority = providerPrioritySetPlacename( providerPriority, wdbDB, app );
 		
-		cerr << "configureProviderPriority: ProviderPriority: defined (resolved). " << endl;
+		logMsg.clear();
+		logMsg << "configureProviderPriority: ProviderPriority: defined (resolved).\n";
 
 		for( ProviderList::size_type i=0; i < retProviderPriority.size(); ++i )
-			cerr << "  " << retProviderPriority[i].providerWithPlacename() << endl;
-	
+			logMsg << "  " << retProviderPriority[i].providerWithPlacename() << endl;
+		WEBFW_LOG_DEBUG(logMsg.str());
 	}
 	
 	return retProviderPriority;
