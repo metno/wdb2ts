@@ -160,7 +160,7 @@ debian:	dist clean-debian
 	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
 	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
-	lintian --info $(DEBIAN_PACKAGE_NAME)
+#	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
 update-debian:
