@@ -525,7 +525,7 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 
 				precip = location->PRECIP( hours[hoursIndex], fromTime );
 
-				WEBFW_LOG_DEBUG( "encodePrecipitationMulti: hours: " << hours[hoursIndex] << " fromTime: " << fromTime << " precip: " << precip );
+				//WEBFW_LOG_DEBUG( "encodePrecipitationMulti: hours: " << hours[hoursIndex] << " fromTime: " << fromTime << " precip: " << precip );
 
 				if( precip == FLT_MAX )
 					continue;
