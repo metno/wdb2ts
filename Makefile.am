@@ -167,7 +167,7 @@ update-debian:
 	rm -rf $(DEBIAN_DIR)/*
 	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
-	lintian --info $(DEBIAN_PACKAGE_NAME)
+#	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
 
