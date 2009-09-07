@@ -30,6 +30,7 @@
 #include <float.h>
 #include <limits.h>
 #include <LocationElem.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
@@ -246,6 +247,8 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	boost::posix_time::ptime startTime;
 	boost::posix_time::ptime savedFromTime;
 	
+	WEBFW_USE_LOGGER( "main" );
+
 	backTime_=boost::posix_time::ptime(); //Set it to undefined.
 	
 	stopTime=itTimeSerie->first;
@@ -259,17 +262,21 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	//the totime.
 	startTime = fromTime + hours( 1 );
 	
+	WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
 	for( CITimeSerie it = timeSerie->find( startTime );
 	     it != timeSerie->end() && it->first <= stopTime;
 	     ++it ) 
 	{
+
 		precipNow = getValue( &PData::PRECIP_1T, 
 				                it->second,
 				                fromTime , 
 		                      const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 
+		//WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
 		fromTime = it->first;
 		
+
 		if( precipNow == FLT_MAX )
 			return FLT_MAX;
 		
@@ -277,15 +284,17 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 		count++;
 	}
 
-	if( count == 0 )
+	if( count == 0 ) {
+		WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip: FLT_MAX" );
 		return FLT_MAX;
+	}
 
 	backTime_ = savedFromTime;
 	
 	if( sumPrecip < 0 )
 		sumPrecip = 0;
 	
-	//cerr << "PRECIP_1H: sumPrecip:" << sumPrecip << endl;
+	WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
 	return sumPrecip;
 }
 

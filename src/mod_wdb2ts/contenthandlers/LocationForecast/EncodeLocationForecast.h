@@ -39,7 +39,7 @@
 #include <MetaModelConf.h>
 #include <SymbolContext.h>
 #include <ProjectionHelper.h>
-
+#include <PrecipitationConfig.h>
 /**
  * @addtogroup wdb2ts
  * @{
@@ -102,24 +102,33 @@ class EncodeLocationForecast : public Encode
 	//that has encoded symbol fields.
 	SymbolContext symbolContext;
 	
+	//The precipitation configuration.
+	ProviderPrecipitationConfig *precipitationConfig;
+
 	//Expire randomization.
 	int expireRand;
 	
 	void encodeSymbols( std::ostream &out, 
-					        miutil::Indent &indent );
+					    miutil::Indent &indent );
 
 	void encodePrecipitation( const boost::posix_time::ptime &from, 
-			                    std::ostream &out, 
-				                 miutil::Indent &indent );
+			                  std::vector<int> &precipHours,
+			                  std::ostream &out,
+				              miutil::Indent &indent );
+
+	void encodePrecipitationMulti( const boost::posix_time::ptime &from,
+			                       std::vector<int> &precipHours,
+				                   std::ostream &out,
+					               miutil::Indent &indent );
 
 	void encodePrecipitationPercentiles( const boost::posix_time::ptime &from, 
-		    	                            std::ostream &ost, 
-					                         miutil::Indent &indent );
+			                             std::ostream &ost,
+					                     miutil::Indent &indent );
 
 	
 	void encodeMoment( const boost::posix_time::ptime &from, 
-				          std::ostream &out, 
-			             miutil::Indent &indent );
+				       std::ostream &out,
+			           miutil::Indent &indent );
 	
 	void encodeMeta( std::string &result );
 	
@@ -142,16 +151,17 @@ public:
 	 * @param	timeSerie	The timeSerie.
 	 */
 	EncodeLocationForecast( LocationData &locationData,
-			                  const ProjectionHelper *projectionHelper,
-									float longitude,
-									float latitude,
-									int   altitude,
-									const boost::posix_time::ptime &from,
-									const ProviderSymbolHolderList &symbols,
-									PtrProviderRefTimes refTimes,
-									MetaModelConfList &metaConf,
-									int expire_rand
-			         		 );
+			                const ProjectionHelper *projectionHelper,
+			                float longitude,
+			                float latitude,
+			                int   altitude,
+			                const boost::posix_time::ptime &from,
+			                const ProviderSymbolHolderList &symbols,
+			                PtrProviderRefTimes refTimes,
+			                MetaModelConfList &metaConf,
+			                ProviderPrecipitationConfig *precipitationConfig,
+			                int expire_rand
+		                  );
 
 	
 	/// Destructor

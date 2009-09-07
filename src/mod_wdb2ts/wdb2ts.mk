@@ -18,53 +18,53 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/XmlBase.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/XmlTag.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbForecastsTag.h \
-							 src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbForecastTag.h \
-							 src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/PointTag.h \
+					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbForecastTag.h \
+					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/PointTag.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbMomentTags.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbMomentTags.cpp \
-							 src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/TimePeriodTag.h \
-							 src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/InstantTimeTag.h \
+					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/TimePeriodTag.h \
+					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/InstantTimeTag.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.h \
-	                   src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
-	                   src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
-	                   src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
-	                   src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
-	                   src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.cpp \
-						    src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
-	                   src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.cpp \
+					  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
+	                  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
                       src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
-							 src/mod_wdb2ts/contenthandlers/Location/LocationHandler.h\
-							 src/mod_wdb2ts/Map.cpp \
-							 src/mod_wdb2ts/Map.h \
-							 src/mod_wdb2ts/matrix.h \
-							 src/mod_wdb2ts/matrix.cpp \
-							 src/mod_wdb2ts/ReadMapFile.h \
-							 src/mod_wdb2ts/ReadMapFile.cpp \
-	                   src/mod_wdb2ts/DbManager.cpp \
-	                   src/mod_wdb2ts/DbManager.h \
-	                   src/mod_wdb2ts/LocationElem.h \
-	                   src/mod_wdb2ts/LocationElem.cpp \
-	                   src/mod_wdb2ts/LocationData.h \
-	                   src/mod_wdb2ts/LocationData.cpp \
-	                   src/mod_wdb2ts/Encode.cpp \
-	                   src/mod_wdb2ts/Encode.h \
-	                   src/mod_wdb2ts/ParamDef.h \
-	                   src/mod_wdb2ts/ParamDef.cpp \
-	                   src/mod_wdb2ts/PointDataHelper.cpp \
-	                   src/mod_wdb2ts/PointDataHelper.h \
-	                   src/mod_wdb2ts/WdbQueryHelper.h \
-	                   src/mod_wdb2ts/WdbQueryHelper.cpp \
-	                   src/mod_wdb2ts/preprocessdata.h \
-	                   src/mod_wdb2ts/preprocessdata.cpp \
-	                   src/mod_wdb2ts/ProviderList.h \
-	                   src/mod_wdb2ts/ProviderList.cpp \
-	                   src/mod_wdb2ts/UpdateProviderReftimes.h \
-	                   src/mod_wdb2ts/UpdateProviderReftimes.cpp \
-	                   src/mod_wdb2ts/wdb2TsApp.cpp \
-	                   src/mod_wdb2ts/wdb2TsApp.h \
-	                   src/mod_wdb2ts/wdb2TsExceptions.h \
-	                   src/mod_wdb2ts/wdb2tsProfiling.h \
-	                   src/mod_wdb2ts/HandlerBase.cpp \
+					  src/mod_wdb2ts/contenthandlers/Location/LocationHandler.h\
+					  src/mod_wdb2ts/Map.cpp \
+					  src/mod_wdb2ts/Map.h \
+					  src/mod_wdb2ts/matrix.h \
+					  src/mod_wdb2ts/matrix.cpp \
+					  src/mod_wdb2ts/ReadMapFile.h \
+					  src/mod_wdb2ts/ReadMapFile.cpp \
+	                  src/mod_wdb2ts/DbManager.cpp \
+	                  src/mod_wdb2ts/DbManager.h \
+	                  src/mod_wdb2ts/LocationElem.h \
+	                  src/mod_wdb2ts/LocationElem.cpp \
+	                  src/mod_wdb2ts/LocationData.h \
+	                  src/mod_wdb2ts/LocationData.cpp \
+	                  src/mod_wdb2ts/Encode.cpp \
+	                  src/mod_wdb2ts/Encode.h \
+	                  src/mod_wdb2ts/ParamDef.h \
+	                  src/mod_wdb2ts/ParamDef.cpp \
+	                  src/mod_wdb2ts/PointDataHelper.cpp \
+	                  src/mod_wdb2ts/PointDataHelper.h \
+	                  src/mod_wdb2ts/WdbQueryHelper.h \
+	                  src/mod_wdb2ts/WdbQueryHelper.cpp \
+	                  src/mod_wdb2ts/preprocessdata.h \
+	                  src/mod_wdb2ts/preprocessdata.cpp \
+	                  src/mod_wdb2ts/ProviderList.h \
+	                  src/mod_wdb2ts/ProviderList.cpp \
+	                  src/mod_wdb2ts/UpdateProviderReftimes.h \
+	                  src/mod_wdb2ts/UpdateProviderReftimes.cpp \
+	                  src/mod_wdb2ts/wdb2TsApp.cpp \
+	                  src/mod_wdb2ts/wdb2TsApp.h \
+	                  src/mod_wdb2ts/wdb2TsExceptions.h \
+	                  src/mod_wdb2ts/wdb2tsProfiling.h \
+	                  src/mod_wdb2ts/HandlerBase.cpp \
                       src/mod_wdb2ts/HandlerBase.h \
                       src/mod_wdb2ts/RequestHandlerFactory.h \
                       src/mod_wdb2ts/RequestHandlerFactory.cpp \
@@ -92,8 +92,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/probabilityCode.h \
                       src/mod_wdb2ts/probabilityCode.cpp \
                       src/mod_wdb2ts/WebQuery.h \
-                      src/mod_wdb2ts/WebQuery.cpp
-
+                      src/mod_wdb2ts/WebQuery.cpp \
+					  src/mod_wdb2ts/PrecipitationConfig.h \
+					  src/mod_wdb2ts/PrecipitationConfig.cpp
+					  
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 
 mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \

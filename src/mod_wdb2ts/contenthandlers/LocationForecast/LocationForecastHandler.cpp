@@ -63,6 +63,7 @@ LocationForecastHandler::
 LocationForecastHandler()
 	: providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
+	  precipitationConfig( 0 ),
 	  expireRand( 120 )
 {
 	// NOOP
@@ -73,6 +74,7 @@ LocationForecastHandler( int major, int minor, const std::string &note_ )
 	: HandlerBase( major, minor), note( note_ ),
 	  providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false ), 
+	  precipitationConfig( 0 ),
 	  wciProtocolIsInitialized( false ),
 	  expireRand( 120 )
 {
@@ -203,6 +205,8 @@ configure( const wdb2ts::config::ActionParam &params,
 	
 	configureSymbolconf( params, symbolConf_ );
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
+
+	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
 		
 	extraConfigure( params, app );
 	return true;
@@ -453,13 +457,14 @@ get( webfw::Request  &req,
 		*/
     	
 		EncodeLocationForecast encode( locationData,
-   	                               &projectionHelper,
-   			                         webQuery.longitude(), webQuery.latitude(), altitude,
-   			                         webQuery.from(),
-   			                         sh,
-   			                         refTimes,
-   			                         metaModelConf,
-   			                         expireRand );
+									   &projectionHelper,
+									   webQuery.longitude(), webQuery.latitude(), altitude,
+									   webQuery.from(),
+									   sh,
+									   refTimes,
+									   metaModelConf,
+									   precipitationConfig,
+									   expireRand );
 		MARK_ID_MI_PROFILE("encodeXML");  
 		encode.encode( response );
 		MARK_ID_MI_PROFILE("encodeXML");

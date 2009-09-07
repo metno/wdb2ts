@@ -63,7 +63,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-
+#include <map>
 using namespace std;
 
 using namespace miutil;
@@ -76,6 +76,28 @@ namespace {
 	wdb2ts::TopoProviderMap dummyTopoProvider;
 	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
+
+
+	//Used by encodePrecipitation to compute the precipitation agregations.
+	struct Precip { string provider;
+	                float  precip;
+
+	                Precip():precip(FLT_MAX) {}
+	                Precip( const Precip &p ) : provider( p.provider ), precip( p.precip ) {}
+	                Precip( const string &provider_, float precip_ )
+						: provider( provider_ ), precip( precip_ ) {}
+
+	                Precip& operator=( const Precip &rhs ) {
+	                	if( this != &rhs ) {
+	                		provider = rhs.provider;
+	                		precip = rhs.precip;
+	                	}
+
+	                	return *this;
+	                }
+
+				  };
+
 }
 
 namespace wdb2ts {
@@ -123,18 +145,20 @@ EncodeLocationForecast():
 EncodeLocationForecast::
 EncodeLocationForecast( LocationData &locationData_,
                         const ProjectionHelper *projectionHelper_,
-		                  float longitude,
-								float latitude,
-								int   altitude,
-								const boost::posix_time::ptime &from,
-								const ProviderSymbolHolderList &symbols_,
-								PtrProviderRefTimes refTimes_,
-								MetaModelConfList &metaConf_,
-								int expire_rand )
+                        float longitude,
+                        float latitude,
+                        int   altitude,
+                        const boost::posix_time::ptime &from,
+                        const ProviderSymbolHolderList &symbols_,
+                        PtrProviderRefTimes refTimes_,
+                        MetaModelConfList &metaConf_,
+                        ProviderPrecipitationConfig *precipitationConfig_,
+                        int expire_rand )
    : locationData( locationData_ ), projectionHelper( projectionHelper_ ),
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
      symbols( symbols_ ), refTimes( refTimes_ ), metaConf( metaConf_ ),
+     precipitationConfig( precipitationConfig_ ),
      expireRand( expire_rand )
 {
 }
@@ -228,7 +252,7 @@ encodeSymbols( std::ostream &out,
 	     	  ++ itbt ) 
 		{
 			boost::shared_ptr<SymbolHolder> ptrSh=findSymbolHolder( itbt->provider,
-					                                                  (*it)->timespanInHours() );
+					                                                (*it)->timespanInHours() );
 		
 			if( ! ptrSh ) 
 				continue;
@@ -352,14 +376,14 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 
 void
 EncodeLocationForecast::
-encodePrecipitation( const boost::posix_time::ptime &from, 
-			            std::ostream &ost, 
-			            miutil::Indent &indent )
+encodePrecipitation( const boost::posix_time::ptime &from,
+		             std::vector<int> &hours,
+			         std::ostream &ost,
+			         miutil::Indent &indent )
 {
 	WEBFW_USE_LOGGER( "encode" );
-
-	int hours[] = { 1, 3, 6, 12, 24 };
-	int N=sizeof( hours )/sizeof(hours[0]);
+//	int hours[] = { 1, 3, 6, 12, 24 };
+	int N = hours.size();
 	int precipCount[N];
 	float precip;
 	ptime fromTime;
@@ -378,12 +402,12 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	BreakTimeList::const_iterator itbt = findBreakTime( from );
 
 	if( itbt == breakTimes.end() ) {
-		WEBFW_LOG_WARN( "EncodeLocationForecast::encodePrecipitation: No data." );
+		WEBFW_LOG_WARN( "encodePrecipitation: No data." );
 		return;
 	}
 	
 	prevFromTime = itbt->from;
-	//WEBFW_LOG_DEBUG( "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to << " prevFromTime: " << prevFromTime << " req from: " << from );
+	WEBFW_LOG_DEBUG( "encodePrecipitation: Precip: provider: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to << " prevFromTime: " << prevFromTime << " req from: " << from );
 	   
 	for( ; 
 	     itbt != breakTimes.end();
@@ -391,9 +415,12 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	{
 		precipIndex=-1;
 		
-		for( int i=0; precipCount[i]<N; ++i )
-			if( precipCount[i] >0 )
+		for( int i=0; i<N; ++i ) {
+			if( precipCount[i] >0 ) {
 				precipIndex = i;
+				break;
+			}
+		}
 		
 		precipIndex++;
 		
@@ -418,7 +445,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   			
 				precip = location->PRECIP( hours[precipIndex], fromTime );
 	   		
-				//WEBFW_LOG_DEBUG( "fromTime: " << fromTime << " prevFromTime: "<< prevFromTime << " precipCount[" << precipIndex << "]: " << precipCount[precipIndex] << " precip: " << precip );
+				WEBFW_LOG_DEBUG( "encodePrecipitation: hours: " << hours[precipIndex] << " fromTime: " << fromTime << " prevFromTime: "<< prevFromTime << " precipCount[" << precipIndex << "]: " << precipCount[precipIndex] << " precip: " << precip );
 			
 				if( precip == FLT_MAX || fromTime<prevFromTime ) {
 					continue;
@@ -453,6 +480,98 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	}
 }
 
+void
+EncodeLocationForecast::
+encodePrecipitationMulti( const boost::posix_time::ptime &from,
+		                  std::vector<int> &hours,
+			              std::ostream &ost,
+			              miutil::Indent &indent )
+{
+
+	WEBFW_USE_LOGGER( "encode" );
+	//int hours[] = { 1, 3, 6 };
+	int N=hours.size();
+	int hoursIndex;
+	map< int, map<ptime, Precip>  > precipHours;
+
+	ptime fromTime;
+	string prevProvider;
+	string provider;
+	LocationElem *location=0;
+	float precip;
+
+	BreakTimeList::const_iterator itbt = findBreakTime( from );
+
+	if( itbt == breakTimes.end() ) {
+		WEBFW_LOG_WARN( "encodePrecipitationMulti: No data." );
+		return;
+	}
+
+	for( ;
+	     itbt != breakTimes.end();
+	     ++itbt )
+	{
+		hoursIndex = 0;
+
+		for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
+			if( ! locationData.init( itbt->from, itbt->provider ) )
+				continue;
+
+			while( locationData.hasNext() ) {
+				location = locationData.next();
+
+				if(  location->time() > itbt->to )
+					break;
+
+				precip = location->PRECIP( hours[hoursIndex], fromTime );
+
+				WEBFW_LOG_DEBUG( "encodePrecipitationMulti: hours: " << hours[hoursIndex] << " fromTime: " << fromTime << " precip: " << precip );
+
+				if( precip == FLT_MAX )
+					continue;
+
+				precipHours[ hours[ hoursIndex ] ] [ fromTime ] = Precip( itbt->provider, precip );
+			}
+		}
+	}
+
+	for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
+		map< int, map<ptime, Precip>  >::const_iterator itHours = precipHours.find( hours[ hoursIndex ] );
+
+		if( itHours == precipHours.end() )
+			continue;
+
+		prevProvider.erase();
+
+		for( map<ptime, Precip>::const_iterator itPrecip = itHours->second.begin();
+		     itPrecip != itHours->second.end();
+		     ++itPrecip )
+		{
+			IndentLevel level3( indent );
+
+			if( prevProvider != itPrecip->second.provider ) {
+				ost << level3.indent() << "<!-- Precip: " << hours[ hoursIndex ] << " hours provider: "
+					    << itPrecip->second.provider << " -->\n";
+			}
+
+			prevProvider = itPrecip->second.provider;
+			fromTime = itPrecip->first;
+
+			TimeTag timeTag( fromTime, fromTime+boost::posix_time::hours( hours[hoursIndex] ) );
+			timeTag.output( ost, level3.indent() );
+
+			IndentLevel level4( indent );
+			LocationTag locationTag( latitude, longitude, altitude );
+			locationTag.output( ost, level4.indent() );
+
+			IndentLevel level5( indent );
+			PrecipitationTags precipitationTag( itPrecip->second.precip );
+			precipitationTag.output( ost, level5.indent() );
+		}
+	}
+}
+
+
 
 
 #if 0
@@ -462,7 +581,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 			            std::ostream &ost, 
 			            miutil::Indent &indent )
 {
-	int hours[] = { 1, 3, 6 };
+	int hours[] = { 1, 3, 6, 12, 24 };
 	int n=sizeof( hours )/sizeof(hours[0]);
 	float precip;
 	ptime fromTime;
@@ -739,7 +858,14 @@ encode(  webfw::Response &response )
 		productTag.output( ost, level2.indent() );
 		
 		encodeMoment( from, ost, indent );	
-		encodePrecipitation( from, ost, indent );
+
+		PrecipConfigElement precip = precipitationConfig->getDefault();
+
+		if( precip.precipType == PrecipSequence )
+			encodePrecipitation( from, precip.precipHours, ost, indent );
+		else  // precip.precipType == PrecipMulti
+			encodePrecipitationMulti( from, precip.precipHours, ost, indent );
+
 		encodeSymbols( ost, indent );
 		encodePrecipitationPercentiles( from, ost, indent );
 	}
