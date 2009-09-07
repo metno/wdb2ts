@@ -262,7 +262,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	//the totime.
 	startTime = fromTime + hours( 1 );
 	
-	WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
+	//WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
 	for( CITimeSerie it = timeSerie->find( startTime );
 	     it != timeSerie->end() && it->first <= stopTime;
 	     ++it ) 
@@ -285,7 +285,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	}
 
 	if( count == 0 ) {
-		WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip: FLT_MAX" );
+		//WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip: FLT_MAX" );
 		return FLT_MAX;
 	}
 
@@ -294,7 +294,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	if( sumPrecip < 0 )
 		sumPrecip = 0;
 	
-	WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
+	//WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
 	return sumPrecip;
 }
 
@@ -315,9 +315,9 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 	backTime=itTimeSerie->first - hours( hoursBack );
 	
 	precipNow = getValue( &PData::PRECIP_ACCUMULATED, 
-			                itTimeSerie->second,
-			                fromTime , 
-                         const_cast<string&>(forecastProvider), FLT_MAX, tryHard, true );
+			              itTimeSerie->second,
+			              fromTime ,
+			              const_cast<string&>(forecastProvider), FLT_MAX, tryHard, true );
 
 	if( precipNow == FLT_MAX || fromTime.is_special() )
 		return FLT_MAX;
@@ -397,9 +397,9 @@ LocationElem::
 NN(bool tryHard)const
 {
 	return getValue( &PData::NN,
-			           itTimeSerie->second,
-			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			         itTimeSerie->second,
+			         const_cast<ptime&>(itTimeSerie->first),
+			         const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
 

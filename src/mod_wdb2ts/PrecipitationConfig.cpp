@@ -90,9 +90,9 @@ decodeValue( const std::string &value, PrecipConfigElement &precip )
 			precip.precipHours.push_back( 6 );
 		} else {
 			WEBFW_LOG_WARN("precipitation spec (PrecipSequence): No aggregation hours given. Setting hours to 1, 3, 6 and 12 as default.");
-			precip.precipHours.push_back( 1 );
-			precip.precipHours.push_back( 3 );
-			precip.precipHours.push_back( 6 );
+			precip.precipHours.push_back(  1 );
+			precip.precipHours.push_back(  3 );
+			precip.precipHours.push_back(  6 );
 			precip.precipHours.push_back( 12 );
 			precip.precipHours.push_back( 24 );
 		}
