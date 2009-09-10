@@ -128,19 +128,21 @@ EncodeLocationForecastGml():
 
 EncodeLocationForecastGml::
 EncodeLocationForecastGml( LocationData &locationData_,
-                        const ProjectionHelper *projectionHelper_,
-		                  float longitude,
-								float latitude,
-								int   altitude,
-								const boost::posix_time::ptime &from,
-								const ProviderSymbolHolderList &symbols_,
-								PtrProviderRefTimes refTimes_,
-								MetaModelConfList &metaConf_,
-								int expire_rand )
+                           const ProjectionHelper *projectionHelper_,
+                           float longitude,
+                           float latitude,
+                           int   altitude,
+                           const boost::posix_time::ptime &from,
+                           const ProviderSymbolHolderList &symbols_,
+                           PtrProviderRefTimes refTimes_,
+                           MetaModelConfList &metaConf_,
+                           ProviderPrecipitationConfig *precipitationConfig_,
+                           int expire_rand )
    : locationData( locationData_ ), gmlContext( projectionHelper_ ),
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
      symbols( symbols_ ), refTimes( refTimes_ ), metaConf( metaConf_ ),
+     precipitationConfig( precipitationConfig_ ),
      expireRand( expire_rand )
 {
 }
@@ -360,11 +362,12 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 void
 EncodeLocationForecastGml::
 encodePrecipitation( const boost::posix_time::ptime &from, 
-			            std::ostream &ost, 
-			            miutil::Indent &indent )
+					 const std::vector<int> &hours,
+			         std::ostream &ost,
+			         miutil::Indent &indent )
 {
-	int hours[] = { 1, 3, 6 };
-	int n=sizeof( hours )/sizeof(hours[0]);
+	//int hours[] = { 1, 3, 6 };
+	int n = hours.size();
 	float precip;
 	ptime fromTime;
 	ptime firstFromTime;
@@ -437,13 +440,18 @@ void
 EncodeLocationForecastGml::
 updateBreakTimes( const std::string &provider, const boost::posix_time::ptime &time)
 {
+//	WEBFW_USE_LOGGER( "encode" );
+
+//	WEBFW_LOG_DEBUG( "updateBreakTimes: called! Provider: " << provider << " breakTimeForecastProvider: " << breakTimeForecastProvider);
 	if( breakTimeForecastProvider != provider ) {
-		 breakTimeForecastProvider = provider;
+	//	WEBFW_LOG_DEBUG( "updateBreakTimes: breakTimeForecastProvider: " << breakTimeForecastProvider << " != "<< provider );
+		breakTimeForecastProvider = provider;
 		BreakTimeList::iterator itBreakTimes = curItBreakTimes;
 		curItBreakTimes = breakTimes.insert( breakTimes.end(), 
-						                         BreakTimes( breakTimeForecastProvider )
+				                             BreakTimes( breakTimeForecastProvider )
 		                                   ); 
 		curItBreakTimes->from = time;
+
 		if( ! prevBreakTime.is_special() )
 			curItBreakTimes->prevTo = prevBreakTime;
 		
@@ -530,6 +538,16 @@ encodeMoment( const boost::posix_time::ptime &from,
 	gmlContext.symbolContext.update( symbols );
 }
 
+
+void
+EncodeLocationForecastGml::
+encodePeriods( const boost::posix_time::ptime &from,
+			   std::ostream &ost,
+			   miutil::Indent &indent )
+{
+
+}
+
 void 
 EncodeLocationForecastGml::
 encodeHeader( std::string &result )
@@ -543,11 +561,14 @@ encodeHeader( std::string &result )
 	boost::posix_time::ptime termin;
 	ostringstream ost;
 	
+	WEBFW_USE_LOGGER( "encode" );
+
 	ost.setf(ios::floatfield, ios::fixed);
-   ost.precision(0);
+	ost.precision(0);
 
 	
 	if( breakTimes.empty() ) {
+		WEBFW_LOG_DEBUG( "encodeHeader: No breaktimes." );
 		replace( result, metatemplate, "" );
 		return;
 	}
@@ -731,8 +752,17 @@ encode(  webfw::Response &response )
 		IndentLevel level2( indent );
 		encodeMoment( from, ost, indent );	
 
-		//encodePrecipitation( from, ost, indent );
-		//encodeSymbols( ost, indent );
+		PrecipConfigElement precip = precipitationConfig->getDefault();
+
+		encodePeriods( from, ost, indent );
+
+		if( precip.precipType == PrecipSequence ) {
+			encodePrecipitation( from, precip.precipHours, ost, indent );
+		} else {
+
+		}
+
+		encodeSymbols( ost, indent );
 		//encodePrecipitationPercentiles( from, ost, indent );
 	}
 

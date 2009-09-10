@@ -70,6 +70,7 @@ class LocationElem {
 	ProviderList providerPriority;
 	TopoProviderMap modelTopoProviders;
 	std::string forecastProvider;
+	std::string oceanProvider_;
 	std::string percentileProvider;
 	std::string modelTopoProvider;
 	std::string symbolProvider;
@@ -87,6 +88,9 @@ class LocationElem {
 	
 	void init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie ); 
 	
+	std::string modeltopographyProvider( const std::string &provider_ );
+
+
 	
 	/**
 	 * Search for a value in the 'fromTimeSerie'. 
@@ -132,7 +136,7 @@ class LocationElem {
 		ProviderList::const_iterator itProvider;
 		//cerr << "getValue: ft: " << fromTime << " '" << provider << "' notValidValue: " << notValidValue << endl; 
 
-		const_cast<LocationElem*>(this)->lastUsedProvider_.erase();
+		//const_cast<LocationElem*>(this)->lastUsedProvider_.erase();
 		
 		if( ! fromTime.is_special() ) 
 			itFromTimeSerie = fromTimeSerie.find( fromTime ) ;
@@ -250,6 +254,7 @@ public:
 	std::string lastUsedProvider() const { return lastUsedProvider_; }
 	std::string forecastprovider() const { return forecastProvider; }
 	std::string percentileprovider() const { return percentileProvider; }
+	std::string oceanProvider() const { return oceanProvider_; }
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
 	

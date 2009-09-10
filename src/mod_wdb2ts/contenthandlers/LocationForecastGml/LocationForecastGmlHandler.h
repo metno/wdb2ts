@@ -41,6 +41,7 @@
 #include <SymbolGenerator.h>
 #include <MetaModelConf.h>
 #include <ProjectionHelper.h>
+#include <PrecipitationConfig.h>
 
 namespace wdb2ts {
 
@@ -113,6 +114,7 @@ private:
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
    bool                projectionHelperIsInitialized;
+   ProviderPrecipitationConfig *precipitationConfig;
    bool                wciProtocolIsInitialized;
    int                 wciProtocol;
    int                 expireRand; //Randomize the expire header. Default 120s.

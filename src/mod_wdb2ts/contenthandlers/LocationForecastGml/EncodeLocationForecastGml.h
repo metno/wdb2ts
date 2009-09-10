@@ -40,6 +40,8 @@
 #include <SymbolContext.h>
 #include <ProjectionHelper.h>
 #include <contenthandlers/LocationForecastGml/GMLContext.h>
+#include <PrecipitationConfig.h>
+
 
 /**
  * @addtogroup wdb2ts
@@ -99,6 +101,10 @@ class EncodeLocationForecastGml : public Encode
 	//Metadata configuration.
 	MetaModelConfList &metaConf;
 	
+	//The precipitation configuration.
+	ProviderPrecipitationConfig *precipitationConfig;
+
+
 	//Expire randomization.
 	int expireRand;
 	
@@ -106,26 +112,32 @@ class EncodeLocationForecastGml : public Encode
 					        miutil::Indent &indent );
 
 	void encodePrecipitation( const boost::posix_time::ptime &from, 
-			                    std::ostream &out, 
-				                 miutil::Indent &indent );
+				              const std::vector<int> &precipHours,
+				              std::ostream &out,
+				              miutil::Indent &indent );
 
 	void encodePrecipitationPercentiles( const boost::posix_time::ptime &from, 
-		    	                            std::ostream &ost, 
-					                         miutil::Indent &indent );
+			                             std::ostream &ost,
+					                     miutil::Indent &indent );
 
 	bool encodeFeatureMemberTag( const LocationElem &location,
 		         					  std::ostream &ost, miutil::Indent &indent );
 	
 	void encodeMoment( const boost::posix_time::ptime &from, 
-				          std::ostream &out, 
-			             miutil::Indent &indent );
+   			           std::ostream &out,
+			           miutil::Indent &indent );
+
+	void encodePeriods( const boost::posix_time::ptime &from,
+			            std::ostream &ost,
+			            miutil::Indent &indent );
+
 	
-	void	encodeHeader( std::string &result );
+	void encodeHeader( std::string &result );
 
 	void encodeMeta( std::string &result );
 	
-	void 	updateBreakTimes( const std::string &provider, 
-			                  const boost::posix_time::ptime &time );
+	void updateBreakTimes( const std::string &provider,
+		                   const boost::posix_time::ptime &time );
 	
 	BreakTimeList::const_iterator findBreakTime( const boost::posix_time::ptime &time )const;
 		
@@ -143,15 +155,16 @@ public:
 	 * @param	timeSerie	The timeSerie.
 	 */
 	EncodeLocationForecastGml( LocationData &locationData,
-			                     const ProjectionHelper *projectionHelper,
-									   float longitude,
-									   float latitude,
-									   int   altitude,
-									   const boost::posix_time::ptime &from,
-									   const ProviderSymbolHolderList &symbols,
-									   PtrProviderRefTimes refTimes,
-									   MetaModelConfList &metaConf,
-									   int expire_rand
+			                   const ProjectionHelper *projectionHelper,
+			                   float longitude,
+			                   float latitude,
+			                   int   altitude,
+			                   const boost::posix_time::ptime &from,
+			                   const ProviderSymbolHolderList &symbols,
+			                   PtrProviderRefTimes refTimes,
+			                   MetaModelConfList &metaConf,
+			                   ProviderPrecipitationConfig *precipitationConfig,
+			                   int expire_rand
 			         		   );
 
 	

@@ -59,7 +59,9 @@ namespace wdb2ts {
 
 LocationForecastGmlHandler::
 LocationForecastGmlHandler()
-	:projectionHelperIsInitialized( false), expireRand( 120 )
+	:projectionHelperIsInitialized( false),
+	 precipitationConfig( 0 ),
+	 expireRand( 120 )
 {
 	// NOOP
 }
@@ -69,6 +71,7 @@ LocationForecastGmlHandler( int major, int minor, const std::string &note_ )
 	: HandlerBase( major, minor), note( note_ ), 
 	  providerPriorityIsInitialized( false ),	
 	  projectionHelperIsInitialized( false ), 
+	  precipitationConfig( 0 ),
 	  wciProtocolIsInitialized( false ),
 	  expireRand( 120 )
 {
@@ -195,14 +198,18 @@ configure( const wdb2ts::config::ActionParam &params,
 		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
 		
 		if( i != string::npos && i==0 ) {
-			string provider=it->first;
+			ProviderItem item = ProviderList::decodeItem( it->first );
+			string provider = item.providerWithPlacename();
 			provider.erase(0, MODEL_TOPO_PROVIDER_KEY.size() );
-			modelTopoProviders[provider]=it->second.asString();
+			item = ProviderList::decodeItem( it->second.asString() );
+			WEBFW_LOG_INFO( "Configure modeltopo provider alias: " << provider << " --> " << item.providerWithPlacename() );
+			modelTopoProviders[provider]= item.providerWithPlacename();
 		}
 	}
 	
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
+	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
 	extraConfigure( params, app );
 	
 	return true;
@@ -419,7 +426,7 @@ get( webfw::Request  &req,
     
 	try{
 		TimeSeriePtr timeSerie = requestWdb( webQuery.latitude(), webQuery.longitude(), altitude, 
-				                               refTimes, providerPriority );
+											 refTimes, providerPriority );
    	
 		/*
 		if( timeSerie->empty() ){
@@ -434,9 +441,9 @@ get( webfw::Request  &req,
 		*/
     	
 		LocationData locationData( timeSerie, 
-											webQuery.longitude(), webQuery.latitude(), altitude, 
-				                     providerPriority,
-				                     modelTopoProviders );
+				                   webQuery.longitude(), webQuery.latitude(), altitude,
+				                   providerPriority,
+				                   modelTopoProviders );
     	
 		string          error;
 		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");
@@ -452,13 +459,15 @@ get( webfw::Request  &req,
     	
     	
 		EncodeLocationForecastGml encode( locationData,
-   	                                  &projectionHelper,
-   	                                  webQuery.longitude(), webQuery.latitude(), altitude,
-   	                                  webQuery.from(),
-   			                            sh,
-   			                            refTimes,
-   			                            metaModelConf,
-   			                            expireRand );
+   	                                      &projectionHelper,
+   	                                      webQuery.longitude(), webQuery.latitude(), altitude,
+   	                                      webQuery.from(),
+   			                              sh,
+   			                              refTimes,
+   			                              metaModelConf,
+   			                              precipitationConfig,
+   			                              expireRand );
+
 		MARK_ID_MI_PROFILE("encodeXML");  
 		encode.encode( response );
 		MARK_ID_MI_PROFILE("encodeXML");

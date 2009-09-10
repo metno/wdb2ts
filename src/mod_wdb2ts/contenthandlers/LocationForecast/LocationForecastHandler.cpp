@@ -155,12 +155,11 @@ configure( const wdb2ts::config::ActionParam &params,
 		
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	actionParams = params;
-	
+	WEBFW_USE_LOGGER( "handler" );
 	
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
 	
 	if( it != params.end() )  {
-		WEBFW_USE_LOGGER( "handler" );
 		try {
 			expireRand = it->second.asInt();
 			expireRand = abs( expireRand );
@@ -197,9 +196,12 @@ configure( const wdb2ts::config::ActionParam &params,
 		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
 		
 		if( i != string::npos && i==0 ) {
-			string provider=it->first;
+			ProviderItem item = ProviderList::decodeItem( it->first );
+			string provider = item.providerWithPlacename();
 			provider.erase(0, MODEL_TOPO_PROVIDER_KEY.size() );
-			modelTopoProviders[provider]=it->second.asString();
+			item = ProviderList::decodeItem( it->second.asString() );
+			WEBFW_LOG_INFO( "Configure modeltopo provider alias: " << provider << " --> " << item.providerWithPlacename() );
+			modelTopoProviders[provider]= item.providerWithPlacename();
 		}
 	}
 	
@@ -433,9 +435,9 @@ get( webfw::Request  &req,
 		*/
     	
 		LocationData locationData( timeSerie, 
-				                     webQuery.longitude(), webQuery.latitude(), altitude, 
-				                     providerPriority,
-				                     modelTopoProviders );
+				                   webQuery.longitude(), webQuery.latitude(), altitude,
+				                   providerPriority,
+				                   modelTopoProviders );
     	
 		string          error;
 		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");

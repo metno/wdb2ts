@@ -80,6 +80,7 @@ init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie )
 	this->itTimeSerie = itTimeSerie;
 	this->timeSerie = timeSerie;
 	
+	lastUsedProvider_.erase();
 	//forecastProvider.erase();
    //percentileProvider.erase();
 	//precipRefTime = ptime();
@@ -91,20 +92,22 @@ float
 LocationElem::
 computeTempCorrection( const std::string &provider ) const
 {
+	//WEBFW_USE_LOGGER( "decode" );
+	//WEBFW_LOG_DEBUG( "computeTempCorrection: " << "Realight=" << hight_ << " provider: "<< provider );
 	
-	//cerr << "HIGHT CORRECTION: Realight=" << hight_ << " provider: "<< provider<< endl;
-	if( hight_ == INT_MIN )
+	if( hight_ == INT_MIN ) {
+		//WEBFW_LOG_DEBUG( "computeTempCorrection: " << "Realight=INT_MIN (" << hight_ << ") provider: "<< provider );
 		return 0.0;
+	}
 		
 	int modelTopo = modeltopography( provider );
 	
-	if( modelTopo == INT_MIN )
+	if( modelTopo == INT_MIN ) {
+	//	WEBFW_LOG_DEBUG( "computeTempCorrection: " << "modelTopo height=INT_MIN (" << modelTopo << ") provider: "<< provider );
 		return 0.0;
-		
+	}
 	int relTopo  = modelTopo -  hight_ ;
 	
-	//cerr << "HIGHT CORRECTION: Realight=" << hight_ << " modelTopo: "<< modelTopo << 
-	//        " relTopo: " << relTopo << " corr: " << relTopo * 0.006 << endl;
 	return relTopo * HEIGHT_CORRECTION_PER_METER;
 }
 
@@ -792,7 +795,7 @@ seaCurrentVelocityU( bool tryHard )const
 	return getValue( &PData::seaCurrentVelocityU, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 float 
@@ -802,7 +805,7 @@ seaCurrentVelocityV( bool tryHard )const
 	return getValue( &PData::seaCurrentVelocityV, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 float 
@@ -812,7 +815,7 @@ seaSalinity( bool tryHard )const
 	return getValue( &PData::seaSalinity, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 float 
@@ -822,7 +825,7 @@ seaSurfaceHeight( bool tryHard )const
 	return getValue( &PData::seaSurfaceHeight, 
 			                itTimeSerie->second,
 			                const_cast<ptime&>(itTimeSerie->first), 
-						       const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+						       const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 float 
@@ -832,7 +835,7 @@ seaTemperature( bool tryHard )const
 	return getValue( &PData::seaTemperature, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
   
 float 
@@ -842,7 +845,7 @@ meanTotalWaveDirection( bool tryHard )const
 	return getValue( &PData::meanTotalWaveDirection, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 float 
@@ -852,7 +855,7 @@ significantTotalWaveHeight( bool tryHard )const
 	return getValue( &PData::significantTotalWaveHeight, 
 			           itTimeSerie->second,
 			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+			           const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
 }
 
 int   
@@ -948,41 +951,111 @@ seaIcePresence( std::string &usedProvider, const std::string &useProvider )const
 	return static_cast<int>( retVal );
 }
 
+std::string
+LocationElem::
+modeltopographyProvider( const std::string &provider_ )
+{
+	string provider( provider_ );
+
+//	WEBFW_USE_LOGGER( "decode" );
+
+//	WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider_ );
+	TopoProviderMap::const_iterator it=modelTopoProviders.find( provider_ );
+
+	if( it != modelTopoProviders.end() ) {
+//		WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider << " --> " << it->second );
+		provider = it->second;
+	} else {
+		ProviderItem item = ProviderList::decodeItem( provider_ );
+
+		if( ! item.placename.empty() ) {
+			it=modelTopoProviders.find( item.provider );
+			if( it != modelTopoProviders.end() ) {
+//				WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider << " --> " << item.provider << " --> " << it->second );
+				provider = it->second;
+				modelTopoProviders[ provider_ ] = provider;
+			}
+		}
+	}
+
+	//provider += topoPostfix;
+
+	return provider;
+}
+
+
 int
 LocationElem::
 modeltopography( const std::string &provider_ )const
 {
-	string provider( provider_ );
-	TopoProviderMap::const_iterator it=modelTopoProviders.find( provider_ );
-	
-	if( it != modelTopoProviders.end() )
-		provider = it->second;
-	
-	provider += topoPostfix;
-	
-	//cerr << "TopoGraphy:  topoTime: " << topoTime << " provider: " << provider << endl;
-	
+	WEBFW_USE_LOGGER( "decode" );
 
+	string provider =  const_cast<LocationElem*>( this )->modeltopographyProvider( provider_ );
 	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
 	
-	if( it1 == timeSerie->end() )
+	if( it1 == timeSerie->end() ) {
+		WEBFW_LOG_WARN( "modeltopography: No topography fields loaded." );
 		return INT_MIN;
+	}
 	
 	FromTimeSerie::const_iterator it2=it1->second.find( topoTime );
 	
-	if( it2 == it1->second.end() )
+	if( it2 == it1->second.end() ) {
+		WEBFW_LOG_WARN( "modeltopography: No topography fields loaded." );
 		return INT_MIN;
+	}
 	
-	ProviderPDataList::const_iterator it3=it2->second.find( provider );
+	ProviderPDataList::const_iterator it3=it2->second.find( provider + topoPostfix );
 	
-	if( it3 == it2->second.end() )
+	if( it3 == it2->second.end() ) {
+		ProviderItem item = ProviderList::decodeItem( provider );
+
+		if( item.placename.empty() ) {
+			ProviderItem itemIn = ProviderList::decodeItem( provider_ );
+
+			if( ! itemIn.placename.empty() ) {
+				item.placename = itemIn.placename;
+
+				provider = item.providerWithPlacename();
+				it3=it2->second.find( provider + topoPostfix );
+
+				//WEBFW_LOG_DEBUG( "modeltopography: provider in: " << provider_ << " Use provider: " << provider );
+
+				if( it3 == it2->second.end() ) {
+					if( provider_ != provider ) {
+						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+					}else {
+						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+					}
+
+					return INT_MIN;
+				}
+
+				WEBFW_LOG_INFO( "modeltopography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
+				const_cast<LocationElem*>(this)->modelTopoProviders[provider_] = provider;
+			}
+		} else {
+			if( provider_ != provider ) {
+				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+			}else {
+				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+			}
+
+			return INT_MIN;
+		}
+	}
+	
+	if( it3->second.modeltopography == FLT_MAX ) {
+		if( provider_ != provider ) {
+			WEBFW_LOG_ERROR( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">, but the field is present." );
+		}else {
+			WEBFW_LOG_ERROR( "modeltopography: No topo data for provider <" << provider_ <<">, but the field is present." );
+		}
+
 		return INT_MIN;
-	
-	if( it3->second.modeltopography == FLT_MAX )
-		return INT_MIN;
+	}
 	
 	return static_cast<int>( it3->second.modeltopography );
-
 }
 
 }

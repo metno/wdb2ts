@@ -302,7 +302,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	//Wave parameters
 	value = pd->meanTotalWaveDirection( true );
 	if( value != FLT_MAX ) {
-		out << "<!-- provider: " << pd->forecastprovider() << " (meanWaveDirection) ice: " << ice << " -->\n";
+		out << "<!-- provider: " << pd->oceanProvider() << " (meanWaveDirection) ice: " << ice << " -->\n";
 
 		if( ice ) {
 			out << indent << "<mox:meanTotalWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
@@ -315,7 +315,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->significantTotalWaveHeight( true );
 	if( value != FLT_MAX ){
 		
-		out << "<!-- provider: " << pd->forecastprovider() << " (significantTotalWaveHeight) ice: " << ice << " -->\n";
+		out << "<!-- provider: " << pd->oceanProvider()  << " (significantTotalWaveHeight) ice: " << ice << " -->\n";
 
 		if(  ice )
 			out << indent << "<mox:significantTotalWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
@@ -331,12 +331,12 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	u = pd->seaCurrentVelocityU(true);
 	v = pd->seaCurrentVelocityV();
 	
-	if( vectorLengthAndDirection( pd->forecastprovider(), 
+	if( vectorLengthAndDirection( pd->oceanProvider() ,
 				                     pd->latitude(), pd->longitude(),
 				                     u, v,
 				                     direction, length, true )  )
 	{
-		out << "<!-- provider: " << pd->forecastprovider() << " (seaCurrentDirection/seaCurrentSpeed) -->\n";
+		out << "<!-- provider: " << pd->oceanProvider()  << " (seaCurrentDirection/seaCurrentSpeed) -->\n";
 		out << indent << "<mox:seaCurrentDirection uom=\"deg\">" << direction << "</mox:seaCurrentDirection>\n";
 		out << indent << "<mox:seaCurrentSpeed uom=\"m/s\">" << setprecision(2) << length << setprecision(1) << "</mox:seaCurrentSpeed>\n";
       count += 2;
@@ -345,21 +345,21 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 
 	value = pd->seaSalinity( true );
 	if( value != FLT_MAX ) {
-		out << "<!-- provider: " << pd->forecastprovider() << " (seaSalinity) -->\n";
+		out << "<!-- provider: " << pd->oceanProvider()  << " (seaSalinity) -->\n";
 		out << indent << "<mox:seaSalinity>" << value << "</mox:seaSalinity>\n";
       count++;
    }
 
 	value = pd->seaSurfaceHeight( true );
 	if( value != FLT_MAX ) {
-		out << "<!-- provider: " << pd->forecastprovider() << " (seaSurfaceHeight) -->\n";
+		out << "<!-- provider: " << pd->oceanProvider()  << " (seaSurfaceHeight) -->\n";
 		out << indent << "<mox:seaSurfaceHeight uom=\"m\">" << setprecision(2) << value << setprecision(1) << "</mox:seaSurfaceHeight>\n";
       count++;
    }
 
 	value = pd->seaTemperature( true );
 	if( value != FLT_MAX ) {
-		out << "<!-- provider: " << pd->forecastprovider() << " (seaTemperature) -->\n";
+		out << "<!-- provider: " << pd->oceanProvider()  << " (seaTemperature) -->\n";
 		out << indent << "<mox:seaTemperature uom=\"Cel\">" << value << "</mox:seaTemperature>\n";
       count++;
    }
