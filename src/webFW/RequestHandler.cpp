@@ -26,6 +26,8 @@
     MA  02110-1301, USA
 */
 
+#include <errno.h>
+#include <string.h>
 #include <iostream>
 #include <list>
 #include <boost/thread/tss.hpp>
@@ -193,7 +195,20 @@ setupLogger( const std::string &logdir,
 	
 	if( reqHandler ) {
 		cerr << "Add logger category: " << category <<". Logging to file: " << filename  << endl;
+		errno = 0;
 		appender = new log4cpp::RollingFileAppender( category, filename, 1024 * 1024, 10 );
+		int savedErr = errno;
+		char buf[256];
+		buf[0]='\0';
+
+#ifdef _GNU_SOURCE
+		strerror_r( errno, buf, 256 );
+		cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'." << endl;
+#else
+		strerror_r( errno, buf, 256 );
+		cerr << " **** errno: " << savedErr << " '" << buf << "'." << endl;
+#endif
+
 	} else {
 		cerr << "Add logger. Logging to default logfile."  << endl;
 		appender = new log4cpp::OstreamAppender( "TheLogger", & std::cout );
