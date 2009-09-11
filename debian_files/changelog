@@ -1,11 +1,10 @@
 metno-wdb2ts (0.5.0-dev-4) unstable; urgency=low
-  * Added more flexibility to the generation of aggregated precipitation.
-  * Added configuration option to how to aggregate precipitation.
-  * The logsystem is changed to log4cpp.
+  * Do not send precipitation data with a period starting before the requesttime.
+  * Add logic to use placename in the lookup of model topography. Fix bug in the computation of adiabatic temperature correction
+  * Some cout was converted to new logsystem.
+  * Add logging of logsetup to the apache logfile.
 
- -- Borge Moe <borge.moe@met.no>  Mon, 07 Sep 2009 09:30:00 +0200
-
-
+ -- Borge Moe <borge.moe@met.no>  Fri, 11 Sep 2009 09:45:00 +0200
 
 metno-wdb2ts (0.5.0-dev-3) unstable; urgency=low
   * Added more flexibility to the generation of aggregated precipitation.
