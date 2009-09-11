@@ -183,6 +183,8 @@ bool
 LocationForecastUpdateHandler::
 getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )const
 {
+	WEBFW_USE_LOGGER( "handler" );
+
 	providerPriorityList.clear();
 	
 	boost::shared_ptr<NoteTag> note=app->notes.getNote(updateid + ".LocationProviderList");
@@ -194,13 +196,16 @@ getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )con
 			providerPriorityList = *myNote;
 	}
 	
-	cerr << "LocationForecastUpdateHandler: providerPriorityList: " ;
+	std::ostringstream logMsg;
+	logMsg << "LocationForecastUpdateHandler: providerPriorityList: " ;
 	for( ProviderList::iterator it=providerPriorityList.begin();
 	     it != providerPriorityList.end();
 	     ++it )
-		cerr << "'" << it->providerWithPlacename() << "'";
+		logMsg << "'" << it->providerWithPlacename() << "'";
 			
-	cerr << endl;
+	logMsg << endl;
+
+	WEBFW_LOG_DEBUG( logMsg.str() );
 	
 	return true;
 }
@@ -209,6 +214,7 @@ void
 LocationForecastUpdateHandler::
 checkProviders( const ProviderList &providerList,  ProviderRefTimeList &requestedUpdate ) const
 {
+	WEBFW_USE_LOGGER( "handler" );
 	list<string> providers=providerList.providerWithoutPlacename();
 	list<string>::const_iterator pit;
 	
@@ -237,8 +243,8 @@ checkProviders( const ProviderList &providerList,  ProviderRefTimeList &requeste
 		if( pit == providers.end() ) {
 			//It is requested update for a provider that is not defined 
 			//in the priority_provider. It is removed from the list.
-			cerr << "WARNING: LocationUpdateHandler: It is requested an update for an provider '" 
-			     << it->first << "' that is not in the provider_priority list. The provider is ignored." << endl;
+			WEBFW_LOG_WARN( "WARNING: LocationUpdateHandler: It is requested an update for an provider '"
+			     << it->first << "' that is not in the provider_priority list. The provider is ignored.");
 			it = miutil::eraseElement( requestedUpdate, it );
 		} else {
 			++it;
@@ -270,16 +276,19 @@ LocationForecastUpdateHandler::
 updateStatus( ProviderRefTimeList &oldRefTime, 
 			     ProviderRefTimeList &newRefTime )const
 {
+	WEBFW_USE_LOGGER( "handler" );
 	ProviderRefTimeList::const_iterator itOld;
 	ProviderRefTimeList::const_iterator itNew;
 	
-	cerr << "LocationForecastUpdateHandler: refTimes. " << endl;
+	std::ostringstream logMsg;
+	logMsg << "LocationForecastUpdateHandler: refTimes. " << endl;
 	for( ProviderRefTimeList::iterator it = newRefTime.begin();
 	     it != newRefTime.end();
 		  ++it )
-		cerr << "  " << it->first << ": " << it->second.refTime
-		     << ": " << it->second.dataversion << endl;;
-		
+		logMsg << "  " << it->first << ": " << it->second.refTime
+		       << ": " << it->second.dataversion << endl;;
+
+	WEBFW_LOG_INFO( logMsg.str() );
 	
 	
 	for( itOld = oldRefTime.begin(); itOld != oldRefTime.end(); ++itOld ) {
@@ -445,9 +454,9 @@ get( webfw::Request  &req,
 		for( ProviderRefTimeList::const_iterator it=oldRefTime.begin();
 					     it!=oldRefTime.end();
 					     ++ it )
-			cerr << "*** oldRefTime: " << it->first << ": " << it->second.refTime 
+			WEBFW_LOG_DEBUG( "*** oldRefTime: " << it->first << ": " << it->second.refTime
 				  << ": " << it->second.updatedTime 
-				  << ": " << it->second.dataversion << endl;
+				  << ": " << it->second.dataversion );
 
 		
 		//Get a list of the providers with placename that is exiting in the database. It my happend that
@@ -457,23 +466,22 @@ get( webfw::Request  &req,
 			for( ProviderRefTimeList::const_iterator it=exitingProviders.begin();
    		     it!=exitingProviders.end();
 			     ++ it )
-				cerr << "*** exitingProviders: " << it->first << ": " << it->second.refTime 
+				WEBFW_LOG_DEBUG( "*** exitingProviders: " << it->first << ": " << it->second.refTime
 				     << ": " << it->second.updatedTime 
-				     << ": " << it->second.dataversion << endl;
+				     << ": " << it->second.dataversion );
 			
 			if( updateProviderRefTimes( wciConnection, requestedProviders, newRefTime, wciProtocol_ ) ) {
 				for( ProviderRefTimeList::const_iterator it=newRefTime.begin();
 				     it!=newRefTime.end();
 				     ++ it )
-					cerr << "*** newRefTime: " << it->first << ": " << it->second.refTime << ": " 
+					WEBFW_LOG_DEBUG( "*** newRefTime: " << it->first << ": " << it->second.refTime << ": "
 					     << it->second.updatedTime 
-					     << ": " << it->second.dataversion << endl;;
+					     << ": " << it->second.dataversion );
 				
 				checkAgainstExistingProviders( exitingProviders, newRefTime );
 				app->notes.setNote( updateid + ".LocationProviderReftimeList", new NoteProviderReftimes( newRefTime ) );
-				cerr << "LocationForecastUpdateHandler: note updated: '" << updateid + ".LocationProviderReftimeList" 
-				  	  << "'." <<  endl;
-			   app->notes.checkForUpdatedPersistentNotes();
+				WEBFW_LOG_DEBUG("LocationForecastUpdateHandler: note updated: '" << updateid + ".LocationProviderReftimeList." );
+				app->notes.checkForUpdatedPersistentNotes();
 			}
 		}
    		

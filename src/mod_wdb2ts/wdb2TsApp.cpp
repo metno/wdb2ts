@@ -65,9 +65,9 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	miutil::pgpool::DbDefList dbsetup;
 	string buf;
 	
-	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << endl ;
-	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << endl ;
-	log << "WDB2TS_LOCALSTATEDIR=" << WDB2TS_LOCALSTATEDIR << endl;
+	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << ". " ;
+	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << ". " ;
+	log << "WDB2TS_LOCALSTATEDIR=" << WDB2TS_LOCALSTATEDIR << ". ";
 	
 	notes.setPersistentNotePath( WDB2TS_LOCALSTATEDIR );
 	

@@ -495,6 +495,7 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 	map< int, map<ptime, Precip>  > precipHours;
 
 	ptime fromTime;
+	ptime timeBack;
 	string prevProvider;
 	string provider;
 	LocationElem *location=0;
@@ -520,10 +521,17 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 			while( locationData.hasNext() ) {
 				location = locationData.next();
 
+
 				if(  location->time() > itbt->to )
 					break;
 
 				precip = location->PRECIP( hours[hoursIndex], fromTime );
+
+
+				//COMMENT: To be compatible with ts2xml do not send out data before the request time.
+				if( fromTime < from )
+					continue;
+
 
 				//WEBFW_LOG_DEBUG( "encodePrecipitationMulti: hours: " << hours[hoursIndex] << " fromTime: " << fromTime << " precip: " << precip );
 

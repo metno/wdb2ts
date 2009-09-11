@@ -191,10 +191,13 @@ setupLogger( const std::string &logdir,
 	
 	log4cpp::Appender *appender;
 	
-	if( reqHandler )
+	if( reqHandler ) {
+		cerr << "Add logger category: " << category <<". Logging to file: " << filename  << endl;
 		appender = new log4cpp::RollingFileAppender( category, filename, 1024 * 1024, 10 );
-	else
+	} else {
+		cerr << "Add logger. Logging to default logfile."  << endl;
 		appender = new log4cpp::OstreamAppender( "TheLogger", & std::cout );
+	}
 	
 	log4cpp::Priority::Value logLevel;
 	
