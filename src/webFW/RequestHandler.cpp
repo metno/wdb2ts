@@ -25,7 +25,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
-
+#include <unistd.h>
+#include <sys/types.h>
 #include <errno.h>
 #include <string.h>
 #include <iostream>
@@ -196,18 +197,22 @@ setupLogger( const std::string &logdir,
 	if( reqHandler ) {
 		cerr << "Add logger category: " << category <<". Logging to file: " << filename  << endl;
 		errno = 0;
-		appender = new log4cpp::RollingFileAppender( category, filename, 1024 * 1024, 10 );
+		appender = new log4cpp::RollingFileAppender( category, filename, 1024 * 1024, 10, true, 00640 );
 		int savedErr = errno;
 		char buf[256];
 		buf[0]='\0';
 
+		if( savedErr != 0 ) {
 #ifdef _GNU_SOURCE
-		strerror_r( errno, buf, 256 );
-		cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'." << endl;
+			strerror_r( errno, buf, 256 );
+			cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'. uid: " << getuid()
+			     << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
 #else
-		strerror_r( errno, buf, 256 );
-		cerr << " **** errno: " << savedErr << " '" << buf << "'." << endl;
+			strerror_r( errno, buf, 256 );
+			cerr << " **** errno: " << savedErr << " '" << buf << "'. uid: " << getuid()
+			     << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
 #endif
+		}
 
 	} else {
 		cerr << "Add logger. Logging to default logfile."  << endl;
