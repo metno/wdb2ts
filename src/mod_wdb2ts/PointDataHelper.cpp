@@ -193,11 +193,11 @@ decodePData( const ParamDefList &paramDefs,
 
  			STOP_MARK_MI_PROFILE("timeSerie");
 	
- 		/*	if( it.at("value").is_null() ) {
+ 			if( it.at("value").is_null() ) {
  				++it;
  				continue;
  			}
-*/
+
 			value = it.at("value").as<float>();
 			
 			//Check if it is a null value. Most relevant to fields
