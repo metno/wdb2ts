@@ -1,3 +1,9 @@
+metno-wdb2ts (0.5.0-dev-5) unstable; urgency=low
+  * Ignore NULL values from the database in decoding of pointdata.
+  * Add a check off errno when a logfile is created and write the result to the apache logfile.
+
+ -- Borge Moe <borge.moe@met.no>  Fri, 11 Sep 2009 13:15:00 +0200
+
 metno-wdb2ts (0.5.0-dev-4) unstable; urgency=low
   * Do not send precipitation data with a period starting before the requesttime.
   * Add logic to use placename in the lookup of model topography. Fix bug in the computation of adiabatic temperature correction
