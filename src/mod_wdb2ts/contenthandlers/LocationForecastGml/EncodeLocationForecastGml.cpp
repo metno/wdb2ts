@@ -751,7 +751,7 @@ encode(  webfw::Response &response )
 
 		IndentLevel level2( indent );
 		encodeMoment( from, ost, indent );	
-
+#if 0
 		PrecipConfigElement precip = precipitationConfig->getDefault();
 
 		encodePeriods( from, ost, indent );
@@ -764,6 +764,7 @@ encode(  webfw::Response &response )
 
 		encodeSymbols( ost, indent );
 		//encodePrecipitationPercentiles( from, ost, indent );
+#endif
 	}
 
 	result = ost.str();
