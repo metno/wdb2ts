@@ -1,3 +1,8 @@
+metno-wdb2ts (0.5.0-dev-6) unstable; urgency=low
+  * Write the wdb2ts logs to the directory /var/log/metno-wdb2ts.
+  
+ -- Borge Moe <borge.moe@met.no>  Mon, 14 Sep 2009 08:00:00 +0200
+
 metno-wdb2ts (0.5.0-dev-5) unstable; urgency=low
   * Ignore NULL values from the database in decoding of pointdata.
   * Add a check off errno when a logfile is created and write the result to the apache logfile.
