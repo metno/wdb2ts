@@ -39,24 +39,28 @@
 
 namespace wdb2ts {
 
+
+
+
 class SymbolHolder
 {
    SymbolHolder(const SymbolHolder &);
    SymbolHolder& operator=(const SymbolHolder &);
 
-   struct Symbol 
+public:
+   struct Symbol
    {
       int min, max;
       miSymbol  symbol;
       float     probability;
 
       Symbol() : min(-1), max( -1 ), probability( FLT_MAX ) {}
-      Symbol( int min_, int max_, const miSymbol &symbol_, float probability_=FLT_MAX ) 
+      Symbol( int min_, int max_, const miSymbol &symbol_, float probability_=FLT_MAX )
          : min( min_ ), max( max_ ), symbol ( symbol_ ), probability( probability_ ) {}
-      
-      Symbol( const Symbol &s ) 
+
+      Symbol( const Symbol &s )
          : min( s.min ), max( s.max ), symbol( s.symbol ), probability( s.probability ) {}
-         
+
       Symbol& operator=( const Symbol &rhs ) {
                     if ( this != &rhs ) {
                         min    = rhs.min;
@@ -64,25 +68,33 @@ class SymbolHolder
                         symbol = rhs.symbol;
                         probability = rhs.probability;
                     }
-                    
+
                     return *this;
                }
-               
-      //needed by std::merge  (algorithm)       
+
+      //needed by std::merge  (algorithm)
       bool operator < ( const Symbol &rhs ) const {
                   return this->from() < rhs.from();
-           } 
-            
+           }
+
       //needed by std::unique (algorithm)
       bool operator == ( const Symbol &rhs ) const {
                   return this->from() == rhs.from();
            }
-              
+
+      std::string idname()const;
       int timespanInHours() const { return max + min + 1; }
       miutil::miTime to()const { miTime t(symbol.getTime()); t.addHour( max ); return t; }
-      miutil::miTime from()const { miTime t(symbol.getTime()); t.addHour( -1*min-1 ); return t; }         
+      miutil::miTime from()const { miTime t(symbol.getTime()); t.addHour( -1*min-1 ); return t; }
+
+      void fromAndToTime( boost::posix_time::ptime &fromTime, boost::posix_time::ptime &toTime) const;
+
+      boost::posix_time::ptime getTime() const;
+
    };
 
+
+private:
    std::vector<Symbol> symbols_;
    int                 min_, max_; 
    int                 index_;
@@ -102,6 +114,8 @@ class SymbolHolder
       
       int timespanInHours()const { return max_+min_+1; }
       
+      bool findSymbol( const boost::posix_time::ptime &fromTime, SymbolHolder::Symbol &symbol ) const;
+
       void initIndex(){ index_=0;}
             
       /**
@@ -147,7 +161,18 @@ std::ostream&
 operator<<(std::ostream &o, SymbolHolder &sh );
 
 typedef std::list<boost::shared_ptr<SymbolHolder> > SymbolHolderList;
-typedef std::map<std::string, SymbolHolderList > ProviderSymbolHolderList;
+
+class  ProviderSymbolHolderList :
+	public std::map<std::string, SymbolHolderList >
+{
+public:
+		ProviderSymbolHolderList(){};
+
+		bool findSymbol( const std::string &provider,
+				         const boost::posix_time::ptime &fromtime,
+				         int timespanInHours,
+				         SymbolHolder::Symbol &symbol ) const;
+};
 
 
 }

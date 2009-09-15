@@ -82,6 +82,8 @@ namespace {
 	wdb2ts::TopoProviderMap dummyTopoProvider;
 	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
+
+
 }
 
 namespace wdb2ts {
@@ -541,11 +543,158 @@ encodeMoment( const boost::posix_time::ptime &from,
 
 void
 EncodeLocationForecastGml::
+computePrecipitationMulti( const boost::posix_time::ptime &from,
+		                  const std::vector<int> &hours,
+		                  PrecipAggregations &aggregates
+                         )const
+{
+
+	WEBFW_USE_LOGGER( "encode" );
+	//int hours[] = { 1, 3, 6 };
+	int N=hours.size();
+	int hoursIndex;
+	ptime fromTime;
+	LocationElem *location=0;
+	float precip;
+
+	BreakTimeList::const_iterator itbt = findBreakTime( from );
+
+	if( itbt == breakTimes.end() ) {
+		WEBFW_LOG_WARN( "computePrecipitationMulti: No data." );
+		return;
+	}
+
+	for( ;
+	     itbt != breakTimes.end();
+	     ++itbt )
+	{
+		hoursIndex = 0;
+
+		for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
+			if( ! locationData.init( itbt->from, itbt->provider ) )
+				continue;
+
+			while( locationData.hasNext() ) {
+				location = locationData.next();
+
+
+				if(  location->time() > itbt->to )
+					break;
+
+				precip = location->PRECIP( hours[hoursIndex], fromTime );
+
+
+				//COMMENT: To be compatible with ts2xml do not send out data before the request time.
+				if( fromTime < from )
+					continue;
+
+
+				//WEBFW_LOG_DEBUG( "encodePrecipitationMulti: hours: " << hours[hoursIndex] << " fromTime: " << fromTime << " precip: " << precip );
+
+				if( precip == FLT_MAX )
+					continue;
+
+				aggregates[ hours[ hoursIndex ] ] [ fromTime ] = Precip( itbt->provider, precip );
+			}
+		}
+	}
+}
+
+
+void
+EncodeLocationForecastGml::
 encodePeriods( const boost::posix_time::ptime &from,
 			   std::ostream &ost,
 			   miutil::Indent &indent )
 {
+	WEBFW_USE_LOGGER( "encode" );
+	PrecipConfigElement precip = precipitationConfig->getDefault();
+	PrecipAggregations precipAggregates;
 
+	if( precip.precipType == PrecipMulti ) {
+		computePrecipitationMulti( from, precip.precipHours, precipAggregates );
+	} else if( precip.precipType == PrecipSequence ){
+		WEBFW_LOG_ERROR( "Encode periods: Precip type sequence not implemented." );
+		return;
+	}
+
+	if( precipAggregates.empty() ) {
+		WEBFW_LOG_NOTICE( "Encode periods: No precipitations aggregates was computed. This my occur if the precipitation config is wrong." );
+		return;
+	}
+
+	string prevProvider;
+	ptime fromTime;
+	SymbolHolder::Symbol symbol;
+	for( vector<int>::size_type hourIndex = 0; hourIndex < precip.precipHours.size(); ++hourIndex ) {
+		PrecipAggregations::const_iterator itHours = precipAggregates.find( precip.precipHours[ hourIndex ] );
+
+		if( itHours == precipAggregates.end() )
+			continue;
+
+		prevProvider.erase();
+
+		for( map<ptime, Precip>::const_iterator itPrecip = itHours->second.begin();
+		     itPrecip != itHours->second.end();
+		     ++itPrecip )
+		{
+			IndentLevel level3( indent );
+
+			if( prevProvider != itPrecip->second.provider ) {
+				ost << level3.indent() << "<!-- Precip: " << precip.precipHours[ hourIndex ] << " hours provider: "
+					    << itPrecip->second.provider << " -->\n";
+			}
+
+			prevProvider = itPrecip->second.provider;
+			fromTime = itPrecip->first;
+
+			{
+				WdbForecastTag forcastTag( gmlContext );
+				forcastTag.output( ost, indent );
+
+				{
+					IndentLevel level4( indent );
+					XmlTag oceanForecast( gmlContext, "metno:OceanForecast", "f");
+					oceanForecast.output( ost, indent );
+
+					{
+						IndentLevel level5( indent );
+
+						TimePeriodTag timePeriodTag( gmlContext, "mox:validTime",
+								                     fromTime,
+							                         fromTime+boost::posix_time::hours( precip.precipHours[hourIndex] ) );
+						timePeriodTag.output( ost, indent );
+					} //Close timePeriodTag
+
+					ost << level4.indent() << "<mox:precipitation  uom=\"mm\">" << itPrecip->second.precip << "</mox:precipitation>\n";
+
+					if( symbols.findSymbol( prevProvider, fromTime, precip.precipHours[hourIndex], symbol ) ) {
+						ost << level4.indent() << "<mox:symbol uom=\"code\">" << symbol.idname() << "</mox:symbol> \n";
+					}
+
+				} //Close oceanForecastTag
+			} //Close forecastTag
+
+
+
+#if 0
+			TimeTag timeTag( fromTime, fromTime+boost::posix_time::hours( precip.precipHours[hourIndex] ) );
+			timeTag.output( ost, level3.indent() );
+
+			IndentLevel level4( indent );
+			LocationTag locationTag( latitude, longitude, altitude );
+			locationTag.output( ost, level4.indent() );
+
+			IndentLevel level5( indent );
+			PrecipitationTags precipitationTag( itPrecip->second.precip );
+			precipitationTag.output( ost, level5.indent() );
+
+			if( symbols.findSymbol( prevProvider, fromTime, precip.precipHours[hourIndex], symbol ) ) {
+				ost << level5.indent() << "<symbol value=\"" << symbol.idname() << "\"/> \n";
+			}
+#endif
+		}
+	}
 }
 
 void 
@@ -751,6 +900,7 @@ encode(  webfw::Response &response )
 
 		IndentLevel level2( indent );
 		encodeMoment( from, ost, indent );	
+		encodePeriods( from, ost, indent );
 #if 0
 		PrecipConfigElement precip = precipitationConfig->getDefault();
 

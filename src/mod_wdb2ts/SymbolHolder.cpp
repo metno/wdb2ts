@@ -44,6 +44,42 @@ symbolidToName(int id);
 
 namespace wdb2ts {
 
+std::string
+SymbolHolder::Symbol::
+idname() const
+{
+	return symbolidToName(  const_cast<SymbolHolder::Symbol*>(this)->symbol.customNumber() );
+}
+
+void
+SymbolHolder::Symbol::
+fromAndToTime( boost::posix_time::ptime &fromTime, boost::posix_time::ptime &toTime) const
+{
+	using namespace boost::posix_time;
+
+	miTime t = from();
+	fromTime = ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+			          time_duration( t.hour(), t.min(), t.sec() ) );
+
+	t = to();
+	toTime = ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+                    time_duration( t.hour(), t.min(), t.sec() ) );
+
+}
+
+boost::posix_time::ptime
+SymbolHolder::Symbol::
+getTime() const
+{
+	using namespace boost::posix_time;
+
+	miTime t = symbol.getTime();
+
+	return ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+	             time_duration( t.hour(), t.min(), t.sec() ) );
+}
+
+
 SymbolHolder::
 SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols)
 :  min_( min ), max_( max ), index_(0)
@@ -112,6 +148,26 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability ) );
 }
 
+bool
+SymbolHolder::
+findSymbol( const boost::posix_time::ptime &fromTime, SymbolHolder::Symbol &symbol )const
+{
+   	miutil::miTime miFromTime(fromTime.date().year(), fromTime.date().month(), fromTime.date().day(),
+   			         fromTime.time_of_day().hours(), fromTime.time_of_day().minutes());
+   	miutil::miTime symbolTime;
+
+	for( std::vector<Symbol>::size_type index = 0; index < symbols_.size(); ++index ) {
+		symbolTime = symbols_[index].from();
+
+		if( symbolTime == miFromTime ) {
+			symbol = symbols_[index];
+			return true;
+		} else if( symbolTime > miFromTime )
+			return false;
+	}
+
+	return false;
+}
 
 bool 
 SymbolHolder::
@@ -251,6 +307,32 @@ operator<<(std::ostream &o, SymbolHolder &sh )
    
    return o;    
 }
+
+bool
+ProviderSymbolHolderList::
+findSymbol( const std::string &provider,
+            const boost::posix_time::ptime &fromtime,
+            int timespanInHours,
+            SymbolHolder::Symbol &symbol ) const
+{
+	const_iterator itProv = find( provider );
+
+	if( itProv == end() )
+		return false;
+
+	for( SymbolHolderList::const_iterator itSh = itProv->second.begin();
+		 itSh != itProv->second.end();
+		 ++itSh ) {
+
+		if( (*itSh)->timespanInHours() == timespanInHours ) {
+			if( (*itSh)->findSymbol( fromtime, symbol ) )
+				return true;
+		}
+	}
+
+	return false;
+}
+
 
 
 }
