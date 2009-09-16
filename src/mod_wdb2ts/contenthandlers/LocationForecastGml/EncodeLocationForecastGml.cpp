@@ -642,7 +642,7 @@ encodePeriods( const boost::posix_time::ptime &from,
 
 			if( prevProvider != itPrecip->second.provider ) {
 				ost << level3.indent() << "<!-- Precip: " << precip.precipHours[ hourIndex ] << " hours provider: "
-					    << itPrecip->second.provider << " -->\n";
+				    << itPrecip->second.provider << " -->\n";
 			}
 
 			prevProvider = itPrecip->second.provider;
@@ -669,7 +669,8 @@ encodePeriods( const boost::posix_time::ptime &from,
 					ost << level4.indent() << "<mox:precipitation  uom=\"mm\">" << itPrecip->second.precip << "</mox:precipitation>\n";
 
 					if( symbols.findSymbol( prevProvider, fromTime, precip.precipHours[hourIndex], symbol ) ) {
-						ost << level4.indent() << "<mox:symbol uom=\"code\">" << symbol.idname() << "</mox:symbol> \n";
+						ost << level4.indent() << "<!-- yrWeatherSymbol idname: " << symbol.idname() << " -->\n";
+						ost << level4.indent() << "<mox:yrWeatherSymbol>" << symbol.idnumber() << "</mox:yrWeatherSymbol> \n";
 					}
 
 				} //Close oceanForecastTag
