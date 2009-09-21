@@ -49,17 +49,17 @@ class WciReadLocationForecast
 {
 public:
 	WciReadLocationForecast(float latitude, float longitude, int altitude,
-	      						const ParamDefList &paramDefs,
-	      						PtrProviderRefTimes refTimes,
-	      						const ProviderList  &providerPriority,
-	      						const wdb2ts::config::Config::Query &urlQuerys,
-	      						int wciProtocol );
+	      					const ParamDefList &paramDefs,
+	      					PtrProviderRefTimes refTimes,
+	      					const ProviderList  &providerPriority,
+	      					const wdb2ts::config::Config::Query &urlQuerys,
+	      					int wciProtocol );
 	
 	~WciReadLocationForecast();
 
 	void operator () ( argument_type &t );
 
-	wdb2ts::TimeSeriePtr result() const { return timeSerie; }
+	wdb2ts::LocationPointDataPtr result() const { return locationPointData; }
 
 	void on_abort( const char msg_[] )throw (); 
 
@@ -68,13 +68,14 @@ private:
 	const float latitude;
 	const float longitude;
 	const int   altitude;
+	bool  polygonRequest;
 	const ParamDefList &paramDefs;
 	PtrProviderRefTimes refTimes;
 	const ProviderList  &providerPriority;
 	const wdb2ts::config::Config::Query &urlQuerys;
 	const int wciProtocol;
 
-	wdb2ts::TimeSeriePtr timeSerie; 
+	wdb2ts::LocationPointDataPtr locationPointData;
 };
 
 }

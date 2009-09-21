@@ -44,9 +44,9 @@ WciReadLocationForecast(float latitude_, float longitude_, int altitude_,
       						const ProviderList &providerPriority_,
       						const wdb2ts::config::Config::Query &urlQuerys_,
       						int wciProtocol_ )
-	: latitude( latitude_ ), longitude( longitude_), altitude( altitude_ ),
+	: latitude( latitude_ ), longitude( longitude_), altitude( altitude_ ),polygonRequest( false ),
 	  paramDefs( paramDefs_ ), refTimes( refTimes_ ), providerPriority( providerPriority_ ),
-	  urlQuerys( urlQuerys_ ), wciProtocol( wciProtocol_ ), timeSerie( new TimeSerie() )
+	  urlQuerys( urlQuerys_ ), wciProtocol( wciProtocol_ ), locationPointData( new LocationPointData() )
 {
 }
 
@@ -60,7 +60,7 @@ void
 WciReadLocationForecast::
 on_abort( const char msg_[] )throw () 
 {
-	timeSerie->clear();
+	locationPointData->clear();
 }
 	
 
@@ -115,12 +115,12 @@ operator () ( argument_type &t )
 		   
 			if( mustHaveData && res.empty() ) {
 				//WEBFW_LOG_ERROR( "**** The query must have data!" );
-				timeSerie->clear();
+				locationPointData->clear();
 				return;
 			}
 			
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
-			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, *timeSerie );
+			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, polygonRequest, *locationPointData );
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 		}
 	}

@@ -96,7 +96,7 @@ public:
 	virtual void noteUpdated( const std::string &noteName, 
                              boost::shared_ptr<NoteTag> note );
 	
-	int getAltitude( LocationData &ld ); 
+	int getAltitude( LocationPointDataPtr ld );
 private:
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
@@ -119,9 +119,9 @@ private:
    int                 expireRand; //Randomize the expire header. Default 120s.
    boost::mutex        mutex; 
       
-  	TimeSeriePtr requestWdb( float latitude, float longitude, int altitude,
-  		                      PtrProviderRefTimes refTime,
-  		                      const ProviderList &providerPriority )const;
+  	LocationPointDataPtr requestWdb( float latitude, float longitude, int altitude,
+  		                             PtrProviderRefTimes refTime,
+  		                             const ProviderList &providerPriority )const;
   	
   	/*
   	bool updateProviderReftimes( WciConnectionPtr con );

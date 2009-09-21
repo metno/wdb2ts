@@ -59,6 +59,32 @@ LocationData::
 	//delete timeSerie;
 }
 	
+
+int
+LocationData::
+hightFromModelTopo()
+{
+	int alt;
+	init( boost::posix_time::ptime() );
+
+	if( ! hasNext() )
+		return INT_MIN;
+
+	LocationElem &elem= *next();
+
+	ProviderList::const_iterator it;
+
+	for( it=providerPriority_.begin(); it != providerPriority_.end(); ++it ){
+		alt = elem.modeltopography( it->providerWithPlacename() );
+
+		if( alt != INT_MIN )
+			return alt;
+	}
+
+	return INT_MIN;
+
+}
+
 bool
 LocationData::
 hasDataForTime( const boost::posix_time::ptime &fromtime, 

@@ -26,20 +26,181 @@
     MA  02110-1301, USA
 */
 
-
+#include <stdexcept>
 #include <iostream>
 #include <float.h>
 #include <PointDataHelper.h>
 #include <ptimeutil.h>
 #include <stdexcept>
 #include <wdb2tsProfiling.h>
-#include <boost/date_time/gregorian/gregorian.hpp> 
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <Logger4cpp.h>
+
+#define LATLONG_DEG2INT 10000
+
 
 DEFINE_MI_PROFILE;
 
+using namespace std;
+
+namespace {
+
+	/*
+	 * Decode a string on the format point( longitude latitude )
+	 */
+	 bool decodePoint( const std::string &sPoint, wdb2ts::LocationPoint &locationPoint )
+	 {
+		 string::size_type iStart = sPoint.find("(");
+		 string::size_type iEnd;
+
+		 if( iStart == string::npos )
+			 return false;
+
+		 iEnd = sPoint.find(")", iStart );
+
+		 if( iEnd == string::npos )
+			 return false;
+
+		 string buf = sPoint.substr(iStart+1, iEnd - iStart -1 );
+
+		 if( buf.empty() )
+			 return false;
+
+		 float lon;
+		 float lat;
+
+		 if( sscanf( buf.c_str(), " %f %f ", &lon, &lat )  != 2 )
+			 return false;
+
+		 try {
+			 locationPoint.set( lat, lon );
+		 }
+		 catch( const exception &ex ) {
+			 WEBFW_USE_LOGGER( "decode" );
+			 WEBFW_LOG_ERROR( "EXCEPTION: decodePoint:   " << ex.what()  );
+			 return false;
+		 }
+
+		 return true;
+	 }
+}
+
+
 namespace wdb2ts {
 
-using namespace std;
+LocationPoint::
+LocationPoint()
+	: latitude_( INT_MIN ), longitude_( INT_MIN )
+{
+}
+
+LocationPoint::
+LocationPoint( const LocationPoint &lp )
+	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ )
+{
+}
+
+LocationPoint::
+LocationPoint( float latitude, float longitude )
+{
+	set( latitude, longitude );
+}
+
+bool
+LocationPoint::
+operator<( const LocationPoint &rhs ) const
+{
+	if( (latitude_< rhs.latitude_) ||
+	    (latitude_ == rhs.latitude_ && longitude_ < rhs.longitude_ ) )
+		return true;
+
+	return false;
+}
+
+LocationPoint&
+LocationPoint::
+operator=( const LocationPoint &rhs )
+{
+	if( this != &rhs ) {
+		latitude_ = rhs.latitude_;
+		longitude_ = rhs.longitude_;
+	}
+
+	return *this;
+}
+
+bool
+LocationPoint::
+operator==( const LocationPoint &rhs ) const
+{
+	return latitude_ == rhs.latitude_ && longitude_== rhs.longitude_;
+}
+
+
+void
+LocationPoint::
+set( float latitude, float longitude )
+{
+	if( latitude > 180 || latitude < -180 )
+		throw range_error( "Latitude out of range. Valid range [-180,180]." );
+
+	if( longitude > 180 || longitude < -180 )
+			throw range_error( "Longitude out of range. Valid range [-180,180]." );
+
+	latitude_  = int(latitude*LATLONG_DEG2INT);
+	longitude_ = int(longitude*LATLONG_DEG2INT);
+}
+
+void
+LocationPoint::
+get( float &latitude, float &longitude )
+{
+	if( latitude_ == INT_MIN || longitude_ == INT_MIN )
+		throw logic_error( "The locationpoint is not initialized.");
+
+	latitude = latitude_/LATLONG_DEG2INT;
+	longitude = longitude_/LATLONG_DEG2INT;
+}
+
+float
+LocationPoint::
+latitude() const
+{
+	if( latitude_ == INT_MIN )
+		throw logic_error( "The locationpoint is not initialized.");
+
+	return latitude_/LATLONG_DEG2INT;
+}
+
+float
+LocationPoint::
+longitude() const
+{
+	if( longitude_ == INT_MIN )
+			throw logic_error( "The locationpoint is not initialized.");
+
+	return longitude_/LATLONG_DEG2INT;
+}
+
+int
+LocationPoint::
+iLatitude() const
+{
+	if( latitude_ == INT_MIN )
+			throw logic_error( "The locationpoint is not initialized.");
+
+	return latitude_;
+}
+
+int
+LocationPoint::
+iLongitude() const
+{
+	if( longitude_ == INT_MIN )
+		throw logic_error( "The locationpoint is not initialized.");
+
+	return longitude_;
+}
 
 std::string
 toBeaufort(float mps, std::string &description)
@@ -111,11 +272,12 @@ windDirectionName(float dd)
 
 void 
 decodePData( const ParamDefList &paramDefs, 
-				 const ProviderList &providers,
-				 const ProviderRefTimeList &refTimeList,
-				 int   protocol,
-		       const pqxx::result &result,
-		       TimeSerie &timeSerie )
+			 const ProviderList &providers,
+			 const ProviderRefTimeList &refTimeList,
+			 int   protocol,
+		     const pqxx::result &result,
+		     const bool isPolygonRequest,
+		     LocationPointData &locationPointData )
 {
 	using namespace boost::posix_time;
 	using namespace miutil;
@@ -131,8 +293,14 @@ decodePData( const ParamDefList &paramDefs,
 	string providerWithPlacename;
 	float value;
 	int dataversion;
+	LocationPoint locationPoint;
+	LocationPointData::iterator itLpd;
 	
+	cerr << "Called: decodePData." << endl;
+
+
 	USE_MI_PROFILE;
+	WEBFW_USE_LOGGER( "decode" );
 	
 	try {
 		START_MARK_MI_PROFILE("db::it");
@@ -187,9 +355,37 @@ decodePData( const ParamDefList &paramDefs,
 					continue;
 				}
 			}
+
+			if( !decodePoint( it.at("point").c_str(), locationPoint ) ) {
+				++it;
+				continue;
+			}
 			
 			//cerr << "decode: pdRef: timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
- 			PData &pd = timeSerie[to][from][providerWithPlacename];
+
+			cerr << "checkpoint: PData ++ "<< endl;
+
+			itLpd = locationPointData.find( locationPoint );
+
+			if( itLpd == locationPointData.end() ) {
+				if( ! isPolygonRequest &&  ! locationPointData.empty() )
+					itLpd = locationPointData.begin();
+
+				if( itLpd == locationPointData.end() ) {
+					WEBFW_LOG_DEBUG( "decodePData: new location point: " << locationPoint.iLatitude() << "/" << locationPoint.iLongitude() );
+					locationPointData[locationPoint] = TimeSeriePtr( new TimeSerie() );
+					itLpd = locationPointData.find( locationPoint );
+
+					if( itLpd == locationPointData.end() ) {
+						WEBFW_LOG_ERROR( "decodePData: Unexpected serious error. Problem to lookup newly inserted TimeSerie." );
+						++it;
+						continue;
+					}
+				}
+			}
+
+ 			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
+ 			cerr << "checkpoint: PData -- "<< endl;
 
  			STOP_MARK_MI_PROFILE("timeSerie");
 	
@@ -214,7 +410,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			value = value*paramDef->scale()+paramDef->offset();
 			
-			//cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
+			cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
 			
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;
@@ -265,19 +461,19 @@ decodePData( const ParamDefList &paramDefs,
 				ptime seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
 						                         boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value );
-				timeSerie[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
+				(*itLpd->second)[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
 			}else if( paramDef->alias() == "seaIcePresence" ) {
 				ptime iceTime( boost::gregorian::date(1970, 1, 1),
 						         boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
-				timeSerie[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
+				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
 			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
 				//string topo=it.at("dataprovidername").c_str()+string("__MODEL_TOPO__");
 				string topo=providerWithPlacename+string("__MODEL_TOPO__");
 				ptime topoTime( boost::gregorian::date(1970, 1, 1),
 						          boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				timeSerie[topoTime][topoTime][topo].modeltopography = value;
+				(*itLpd->second)[topoTime][topoTime][topo].modeltopography = value;
 			}
 			else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;

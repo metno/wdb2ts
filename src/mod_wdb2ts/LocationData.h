@@ -34,6 +34,7 @@
 #include <list>
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/shared_ptr.hpp>
 #include <PointDataHelper.h>
 #include <UpdateProviderReftimes.h>
 #include <LocationElem.h>
@@ -65,9 +66,9 @@ class LocationData
 public:
 	LocationData():timeSerie(0){}
 	LocationData( wdb2ts::TimeSeriePtr timeSerie,
-					  float longitude, float latitude, int hight,
-			        const ProviderList &providerPriority,
-			        const TopoProviderMap &modelTopoProviders );
+				  float longitude, float latitude, int hight,
+			      const ProviderList &providerPriority,
+			      const TopoProviderMap &modelTopoProviders );
 	
 	~LocationData();
 	
@@ -76,6 +77,15 @@ public:
 	int hight() const { return locationElem.hight(); }
 	void hight( int h ) { locationElem.hight( h ); }
 	
+
+	/**
+	 *Use the hight to model topografi for the point given with latitude/longitude.
+	 *
+	 *The call of the method destroy the state of the clss so a new call to init is needed
+	 *before hasNext and next is called again.
+	 */
+	int hightFromModelTopo();
+
 	ProviderList providerPriority() const { return providerPriority_; }
 	
 	bool hasDataForTime( const boost::posix_time::ptime &fromtime, 
@@ -107,6 +117,8 @@ public:
 	 */
 	LocationElem *next();
 };
+
+typedef boost::shared_ptr<LocationData> LocationDataPtr;
 
 }
 

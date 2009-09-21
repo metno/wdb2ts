@@ -62,7 +62,9 @@
 #include <wdb2tsProfiling.h>
 #include <ptimeutil.h>
 #include <probabilityCode.h>
+#include <SymbolGenerator.h>
 #include <Logger4cpp.h>
+
 
 // SYSTEM INCLUDES
 //
@@ -82,6 +84,7 @@ namespace {
 	wdb2ts::TopoProviderMap dummyTopoProvider;
 	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
+	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
 
 
 }
@@ -122,29 +125,36 @@ operator=(const BreakTimes &rhs )
 
 
 EncodeLocationForecastGml::
-EncodeLocationForecastGml(): 
-	locationData( dummy ), gmlContext( 0 ), metaConf( dummyMetaConf )
+EncodeLocationForecastGml()
+	:  gmlContext( 0 ), metaConf( dummyMetaConf ),
+      providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
+      symbolConf( dummySymbolConfProvider )
 {
-	// NOOP
 }
 
+
 EncodeLocationForecastGml::
-EncodeLocationForecastGml( LocationData &locationData_,
+EncodeLocationForecastGml( LocationPointDataPtr locationPointData_,
                            const ProjectionHelper *projectionHelper_,
                            float longitude,
                            float latitude,
                            int   altitude,
                            const boost::posix_time::ptime &from,
-                           const ProviderSymbolHolderList &symbols_,
                            PtrProviderRefTimes refTimes_,
                            MetaModelConfList &metaConf_,
                            ProviderPrecipitationConfig *precipitationConfig_,
+                           const ProviderList &providerPriority_,
+                           const TopoProviderMap &modelTopoProviders_,
+                           const SymbolConfProvider &symbolConf_,
                            int expire_rand )
-   : locationData( locationData_ ), gmlContext( projectionHelper_ ),
+   : locationPointData( locationPointData_ ), gmlContext( projectionHelper_ ),
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
-     symbols( symbols_ ), refTimes( refTimes_ ), metaConf( metaConf_ ),
+     refTimes( refTimes_ ), metaConf( metaConf_ ),
      precipitationConfig( precipitationConfig_ ),
+     providerPriority( providerPriority_ ),
+     modelTopoProviders( modelTopoProviders_),
+     symbolConf( symbolConf_ ),
      expireRand( expire_rand )
 {
 }
@@ -303,15 +313,15 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 	outOst.precision( ost.precision() );
 	
 	for( int i=0; i<n; ++i ) {
-		if( ! locationData.init( from ) )
+		if( ! locationData->init( from ) )
 			return;
 			
 		prevProvider.erase();	
 		first = true;
 		percentileOst.str("");
 		   
-		while( locationData.hasNext() ) {
-			LocationElem& location = *locationData.next();
+		while( locationData->hasNext() ) {
+			LocationElem& location = *locationData->next();
 			
 			if( ! percentileOst.str().empty() ) {
 				ost << outOst.str();
@@ -396,15 +406,15 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   	if( first ) {
 	   		first = false;
 	   	   
-	   		if( ! locationData.init( from, itbt->provider ) )
+	   		if( ! locationData->init( from, itbt->provider ) )
 	   			continue;
-	   	} else if( ! locationData.init(itbt->from, itbt->provider ) )
+	   	} else if( ! locationData->init(itbt->from, itbt->provider ) )
 	   		continue;
 	   		
 	   	doComment = true;
 	   	
-	   	while( locationData.hasNext() ) {
-   			location = locationData.next();
+	   	while( locationData->hasNext() ) {
+   			location = locationData->next();
 			
 	   		if(  location->time() > itbt->to )  
 	   			break;
@@ -522,15 +532,15 @@ encodeMoment( const boost::posix_time::ptime &from,
 
 	WEBFW_LOG_DEBUG( "encodeMoment: from: " << from );
 	
-	if( ! locationData.init( from ) ) {
+	if( ! locationData->init( from ) ) {
 		WEBFW_LOG_WARN( "encodeMoment: from: " << from << " NO data!" );
 		return;
 	}
 	
 	curItBreakTimes = breakTimes.end();
 					
-	while( locationData.hasNext() ) {
-		LocationElem &location = *locationData.next();
+	while( locationData->hasNext() ) {
+		LocationElem &location = *locationData->next();
 
 		if( encodeFeatureMemberTag( location, ost, indent ) )
 				updateBreakTimes( location.forecastprovider(), location.time() );
@@ -571,11 +581,11 @@ computePrecipitationMulti( const boost::posix_time::ptime &from,
 		hoursIndex = 0;
 
 		for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
-			if( ! locationData.init( itbt->from, itbt->provider ) )
+			if( ! locationData->init( itbt->from, itbt->provider ) )
 				continue;
 
-			while( locationData.hasNext() ) {
-				location = locationData.next();
+			while( locationData->hasNext() ) {
+				location = locationData->next();
 
 
 				if(  location->time() > itbt->to )
@@ -870,9 +880,12 @@ encode(  webfw::Response &response )
 	ptime validFrom;
 	ptime validTo;
 	ptime expire;
+	LocationDataPtr myLocationData;
+	string error;
   	
  	USE_MI_PROFILE;
  	MARK_ID_MI_PROFILE("EncodeGML");
+ 	WEBFW_USE_LOGGER( "encode" );
  	
  	//Use one decimal precision as default.
  	ost.setf(ios::floatfield, ios::fixed);
@@ -882,9 +895,9 @@ encode(  webfw::Response &response )
  	unsigned int seed=static_cast<unsigned int>(time(0));
  	
  	response.contentType("text/xml");
-   response.directOutput( true );
+ 	response.directOutput( true );
 	
-   expire = second_clock::universal_time();
+ 	expire = second_clock::universal_time();
 	expire += hours( 1 );
 	expire = ptime( expire.date(), 
 	                time_duration( expire.time_of_day().hours(), 0, 0, 0 ));
@@ -892,6 +905,26 @@ encode(  webfw::Response &response )
 	if( expireRand > 0 )
 		expire = expire + seconds( rand_r( &seed ) % expireRand );
 	
+	WEBFW_LOG_DEBUG( "encode: Number of locations: " << locationPointData->size() );
+
+	if( locationPointData->empty() ) {
+		locationData.reset( new LocationData() );
+	} else if ( locationPointData->size() == 1 ){
+		locationData.reset( new LocationData( locationPointData->begin()->second, longitude, latitude, altitude,
+				                               providerPriority, modelTopoProviders ) );
+
+		if( altitude == INT_MIN )
+			altitude = locationData->hightFromModelTopo();
+
+	} else {
+		WEBFW_LOG_ERROR( "Polygon not supported.");
+		locationData.reset( new LocationData() );
+	}
+	symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
+
+	if( altitude == INT_MIN )
+		altitude = locationData->hightFromModelTopo();
+
 	{ //Create a scope for the weatherdatatag and producttag.
 		WdbForecastsTag wdbForecastsTag( gmlContext, createdTime, schemaName() );
 		wdbForecastsTag.output( ost, indent );

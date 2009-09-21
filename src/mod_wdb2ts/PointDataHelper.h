@@ -35,11 +35,42 @@
 #include <string>
 #include <pqxx/pqxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/shared_ptr.hpp>
 #include <ParamDef.h>
 #include <ProviderList.h>
 #include <UpdateProviderReftimes.h>
 
 namespace wdb2ts {
+
+
+/**
+ *  LocationPoint hold a point as two integer. The latitude and longitude
+ *  is given in decimal grades.
+ *
+ *  The coding into integer is done as int(dg*10000), ie a resolution on 5 desimals.
+ *  The decoding back to desimal grades is: i/10000.
+ */
+class LocationPoint {
+	int latitude_;
+	int longitude_;
+
+public:
+	LocationPoint();
+	LocationPoint( const LocationPoint &lp );
+	LocationPoint( float latitude, float longitude );
+
+	bool operator<( const LocationPoint &rhs ) const;
+	bool operator==( const LocationPoint &rhs ) const;
+	LocationPoint& operator=( const LocationPoint &rhs ) ;
+
+	void   set( float latitude, float longitude );
+	void   get( float &latitude, float &longitude );
+	float  latitude() const;
+	float  longitude() const;
+	int    iLatitude() const;
+	int    iLongitude() const;
+};
+
 
 struct PData{
 	float windV10m;
@@ -264,6 +295,9 @@ typedef std::map<boost::posix_time::ptime, FromTimeSerie>::const_iterator CITime
 
 typedef boost::shared_ptr<TimeSerie> TimeSeriePtr;
 
+typedef std::map<LocationPoint, TimeSeriePtr> LocationPointData;
+typedef boost::shared_ptr<LocationPointData> LocationPointDataPtr;
+
 std::string
 toBeaufort( float mps, std::string &description );
 
@@ -276,11 +310,12 @@ symbolidToName( int id );
 
 void 
 decodePData( const ParamDefList &paramDefs,
-		       const ProviderList &providers,
-		       const ProviderRefTimeList &refTimeList,
-		       int   protocol,
-		       const pqxx::result &result,
-		       TimeSerie &timeSerie );
+		     const ProviderList &providers,
+		     const ProviderRefTimeList &refTimeList,
+		     int   protocol,
+		     const pqxx::result &result,
+		     const bool isPolygonRequest,
+		     LocationPointData &timeSerie );
 
 }
 

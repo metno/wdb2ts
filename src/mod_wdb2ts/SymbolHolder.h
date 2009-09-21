@@ -83,6 +83,7 @@ public:
            }
 
       std::string idname()const;
+      int         idnumber()const { return const_cast<Symbol*>(this)->symbol.customNumber(); }
       int timespanInHours() const { return max + min + 1; }
       miutil::miTime to()const { miTime t(symbol.getTime()); t.addHour( max ); return t; }
       miutil::miTime from()const { miTime t(symbol.getTime()); t.addHour( -1*min-1 ); return t; }

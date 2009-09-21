@@ -64,14 +64,16 @@ public:
 	               float latitude, int min, int max, std::string &error);
 
 	
+	static
 	SymbolHolder*
 	computeSymbols( LocationData& data,
 			          const std::string &provider,
 		             int min, int max, int precipHours, std::string &error );
 
+	static
 	ProviderSymbolHolderList computeSymbols( LocationData& data, 
-			                           const SymbolConfProvider &symbolConf,
-			                           std::string &error );
+			                                 const SymbolConfProvider &symbolConf,
+			                                 std::string &error );
 			                           
 };
 

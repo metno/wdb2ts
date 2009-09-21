@@ -40,6 +40,7 @@
 #include <SymbolContext.h>
 #include <ProjectionHelper.h>
 #include <PrecipitationConfig.h>
+#include <SymbolConf.h>
 /**
  * @addtogroup wdb2ts
  * @{
@@ -76,7 +77,8 @@ class EncodeLocationForecast : public Encode
 	typedef std::list<BreakTimes> BreakTimeList;
 	
 	static const std::string metatemplate;
-	LocationData &locationData;
+	LocationPointDataPtr locationPointData;
+	LocationDataPtr locationData;
 	const ProjectionHelper *projectionHelper;
 	float longitude;
 	float latitude;
@@ -104,6 +106,11 @@ class EncodeLocationForecast : public Encode
 	
 	//The precipitation configuration.
 	ProviderPrecipitationConfig *precipitationConfig;
+
+	const ProviderList &providerPriority;
+	const TopoProviderMap &modelTopoProviders;
+	const SymbolConfProvider &symbolConf;
+
 
 	//Expire randomization.
 	int expireRand;
@@ -150,16 +157,18 @@ public:
 	 * 
 	 * @param	timeSerie	The timeSerie.
 	 */
-	EncodeLocationForecast( LocationData &locationData,
+	EncodeLocationForecast( LocationPointDataPtr locationPointData,
 			                const ProjectionHelper *projectionHelper,
 			                float longitude,
 			                float latitude,
 			                int   altitude,
 			                const boost::posix_time::ptime &from,
-			                const ProviderSymbolHolderList &symbols,
 			                PtrProviderRefTimes refTimes,
 			                MetaModelConfList &metaConf,
 			                ProviderPrecipitationConfig *precipitationConfig,
+			                const ProviderList &providerPriority,
+			                const TopoProviderMap &modelTopoProviders,
+			                const SymbolConfProvider &symbolConf,
 			                int expire_rand
 		                  );
 

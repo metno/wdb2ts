@@ -325,8 +325,10 @@ getProviderReftimes()
 
 int 
 LocationForecastGmlHandler::
-getAltitude( LocationData &ld )
+getAltitude( LocationPointDataPtr ld )
 {
+	return INT_MIN;
+#if 0
 	int alt;
 	ld.init( boost::posix_time::ptime() );
 	
@@ -347,6 +349,7 @@ getAltitude( LocationData &ld )
 	}
 	
 	return INT_MIN;
+#endif
 }
 
 
@@ -425,8 +428,8 @@ get( webfw::Request  &req,
 	getProtectedData( symbolConf, providerPriority );
     
 	try{
-		TimeSeriePtr timeSerie = requestWdb( webQuery.latitude(), webQuery.longitude(), altitude, 
-											 refTimes, providerPriority );
+		LocationPointDataPtr locationPointData = requestWdb( webQuery.latitude(), webQuery.longitude(), altitude,
+											                refTimes, providerPriority );
    	
 		/*
 		if( timeSerie->empty() ){
@@ -440,14 +443,15 @@ get( webfw::Request  &req,
 		}
 		*/
     	
-		LocationData locationData( timeSerie, 
+		/*
+		LocationData locationData( timeSerie,
 				                   webQuery.longitude(), webQuery.latitude(), altitude,
 				                   providerPriority,
 				                   modelTopoProviders );
-    	
+    	*/
 		string          error;
 		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");
-		ProviderSymbolHolderList sh = symbolGenerator.computeSymbols( locationData, symbolConf, error );
+		//ProviderSymbolHolderList sh = symbolGenerator.computeSymbols( locationData, symbolConf, error );
 		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");
     	
     	//MARK_ID_MI_PROFILE("preprocess");
@@ -455,17 +459,19 @@ get( webfw::Request  &req,
    	  	//MARK_ID_MI_PROFILE("preprocess");
         
 		if( altitude == INT_MIN )
-			altitude = getAltitude( locationData );
+			altitude = getAltitude( locationPointData );
     	
     	
-		EncodeLocationForecastGml encode( locationData,
+		EncodeLocationForecastGml encode( locationPointData,
    	                                      &projectionHelper,
    	                                      webQuery.longitude(), webQuery.latitude(), altitude,
    	                                      webQuery.from(),
-   			                              sh,
    			                              refTimes,
    			                              metaModelConf,
    			                              precipitationConfig,
+   			                              providerPriority,
+   			                              modelTopoProviders,
+   			                              symbolConf,
    			                              expireRand );
 
 		MARK_ID_MI_PROFILE("encodeXML");  
@@ -505,7 +511,7 @@ get( webfw::Request  &req,
 	PRINT_MI_PROFILE_SUMMARY( cerr );
 }
 
-TimeSeriePtr 
+LocationPointDataPtr
 LocationForecastGmlHandler::
 requestWdb( float latitude, float longitude, int altitude,
 		      PtrProviderRefTimes refTimes,
@@ -535,7 +541,7 @@ requestWdb( float latitude, float longitude, int altitude,
 		if( i != string::npos ) {
 			WEBFW_USE_LOGGER( "handler" );
 			WEBFW_LOG_WARN( "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." );
-			return TimeSeriePtr( new TimeSerie() );
+			return LocationPointDataPtr( new LocationPointData() );
 		}
 		
 		throw;
