@@ -1,3 +1,10 @@
+metno-wdb2ts (0.5.0-dev-7) unstable; urgency=low
+  * Support polygon request in mox format.
+  * Allow use of ' to protect strings in provider_priority.
+  
+ -- Borge Moe <borge.moe@met.no>  Fri, 25 Sep 2009 15:30:00 +0200
+
+
 metno-wdb2ts (0.5.0-dev-6) unstable; urgency=low
   * Write the wdb2ts logs to the directory /var/log/metno-wdb2ts.
   
