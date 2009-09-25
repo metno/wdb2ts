@@ -81,7 +81,7 @@ decode( const std::string &toDecode_, std::string &provider )
 	
 	toDecode.erase( i );
 	
-	vector<string> placenames = miutil::splitstr( toDecode, ',' );
+	vector<string> placenames = miutil::splitstr( toDecode, ',', '\'' );
 	
 	if( placenames.empty() ) {
 		pList.push_back( ProviderItem( provider ) );

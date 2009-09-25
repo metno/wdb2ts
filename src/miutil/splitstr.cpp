@@ -8,19 +8,19 @@ using namespace std;
 
 namespace {
 	int   
-	count(const std::string &str, char sep);
+	count(const std::string &str, char sep, char stringProtector );
 }
 
 
 std::vector<std::string> 
 miutil::
-splitstr(const std::string &str, char sep)
+splitstr(const std::string &str, char sep, char stringProtector )
 {
  	ostringstream ost;
   	char          ch=0;
   	bool          inString=false;
  	int i=0;
-  	int n=count(str, sep);
+  	int n=count(str, sep, stringProtector );
   	vector<string> data;
   	string elem;
   	
@@ -28,7 +28,7 @@ splitstr(const std::string &str, char sep)
   	std::string::const_iterator it=str.begin();
 
   	for(;it!=str.end(); it++){
-    	if(*it=='"' && ch!='\\'){
+    	if(*it==stringProtector && ch!='\\'){
     		ost << *it;
       	ch=*it;
       	inString=!inString;
@@ -62,7 +62,7 @@ splitstr(const std::string &str, char sep)
 
 namespace {
 	int   
-	count(const std::string &str, char sep)
+	count(const std::string &str, char sep, char stringProtector)
 	{
   		string::const_iterator it;
   		char                   ch=0;
@@ -70,7 +70,7 @@ namespace {
  		bool                   inString=false;
 
   		for(it=str.begin();it!=str.end(); it++){
-    		if(*it=='"' && ch!='\\')
+    		if(*it==stringProtector && ch!='\\')
       		inString=!inString;
     		else if(*it==sep && !inString)
       		cnt++;

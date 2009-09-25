@@ -15,9 +15,10 @@ namespace miutil{
 	 * 
 	 * @param str the string to split.
 	 * @param separator Split the string at this separator.
+	 * @param stringProtector What protects a string, default ".
 	 * @return a vector of strings.
 	 */
-	std::vector<std::string> splitstr(const std::string &str, char separator=',');
+	std::vector<std::string> splitstr(const std::string &str, char separator=',', char stringProtector = '"');
 }
 
 #endif /*SPLITSTR_H_*/
