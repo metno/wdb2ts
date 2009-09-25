@@ -15,10 +15,11 @@ namespace miutil{
 	 * @param source the string to replace content in.
 	 * @param what The content to be replaced.
 	 * @param with The new content.
+	 * @param nToReplace Replace only this number of occurs of what. A value of 0 means all.
 	 * @return a reference to source.
 	 */
 	std::string& 
-	replace(std::string &source, const std::string &what, const std::string &with);
+	replace(std::string &source, const std::string &what, const std::string &with, int nToReplace = 0 );
 }
 
 #endif /*REPLACE_H_*/

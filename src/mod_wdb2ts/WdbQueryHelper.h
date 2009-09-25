@@ -37,6 +37,7 @@
 #include <wdb2TsApp.h>
 #include <wdb2TsExceptions.h>
 #include <Config.h>
+#include <LocationPoint.h>
 
 namespace wdb2ts {
 
@@ -66,6 +67,7 @@ class WdbQueryHelper
 	WciWebQuery webQuery;
 	bool        queryMustHaveData; 
 	bool        refTimeFrom_IsEqualTo_ReftTimeTo;
+	bool        isPolygon;
 	
 	std::string getDataversionString( const std::list<std::string> &dataproviderList )const;
 
@@ -106,11 +108,13 @@ public:
 	 * @param lon the longitude part of the request.
 	 * @param A map of provider/reftimes for the request.
 	 * @param extraParams additional url params to use in the request.
+	 * @throws logic_error if the locationPoints is empty.
 	 */
-	void init( float lat, float lon,
-			     const ProviderRefTimeList &reftimes,
-			     const ProviderList &providerPriority,
-			     const std::string &extraParams="" );
+	void init( const LocationPointList &locationPoints,
+			   bool isPolygon,
+			   const ProviderRefTimeList &reftimes,
+			   const ProviderList &providerPriority,
+			   const std::string &extraParams="" );
 	
 	/**
 	 * Check if there is more querys to be executed.

@@ -312,35 +312,6 @@ getProviderReftimes()
 	return providerReftimes;	
 }
 
-int 
-LocationForecastHandler::
-getAltitude( LocationPointDataPtr ld )
-{
-	return INT_MIN;
-
-#if 0
-	int alt;
-	ld.init( boost::posix_time::ptime() );
-	
-	if( ! ld.hasNext() )
-		return INT_MIN;
-	
-	LocationElem &elem= *ld.next();
-	
-	ProviderList::const_iterator it;
-	
-	boost::mutex::scoped_lock lock( mutex );
-	
-	for( it=providerPriority_.begin(); it != providerPriority_.end(); ++it ){
-		alt = elem.modeltopography( it->providerWithPlacename() );
-		
-		if( alt != INT_MIN )
-			return alt;
-	}
-	
-	return INT_MIN;
-#endif
-}
 
 
 void 
@@ -353,11 +324,11 @@ get( webfw::Request  &req,
 	WEBFW_USE_LOGGER( "handler" );
 	ostringstream ost;
 	int   altitude;
-	//ptime fromtime;
 	PtrProviderRefTimes refTimes;
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
+
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
 	USE_MI_PROFILE;
@@ -367,6 +338,7 @@ get( webfw::Request  &req,
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	    << "Query: " << req.urlQuery() << endl;
 	WEBFW_LOG_DEBUG( ost.str() );
+
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery() );
@@ -423,45 +395,9 @@ get( webfw::Request  &req,
 	
     
 	try{
-		LocationPointDataPtr locationPointData = requestWdb( webQuery.latitude(), webQuery.longitude(),
+		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.isPolygon(),
 				                                             altitude, refTimes, providerPriority );
    	
-		/*
-		if( timeSerie->empty() ){
-			ost.str("");
-			ost << "No data found for the query: latitude="  << latitude 
-			    << " longitude=" << longitude << " altitude=" << altitude;
-			response.errorDoc( ost.str() );
-			response.status( webfw::Response::NOT_FOUND );
-			logger.info( ost.str() );
-			return;
-		}
-		*/
-    /*
-		LocationData locationData( timeSerie, 
-				                   webQuery.longitude(), webQuery.latitude(), altitude,
-				                   providerPriority,
-				                   modelTopoProviders );
-    	*/
-		string          error;
-		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");
-		//ProviderSymbolHolderList sh = symbolGenerator.computeSymbols( locationData, symbolConf, error );
-		MARK_ID_MI_PROFILE("symboGenerator::computeSymbols");
-    	
-    	//MARK_ID_MI_PROFILE("preprocess");
-   	  	//preprocessdata( *timeSerie );
-   	  	//MARK_ID_MI_PROFILE("preprocess");
-        
-		if( altitude == INT_MIN )
-			altitude = getAltitude( locationPointData );
-    	
-		/*DEBUG:
-		for( ProviderList::iterator it=providerPriority.begin();
-		     it != providerPriority.end(); ++it ) {
-			cerr << "ProviderPriority: " << it->providerWithPlacename() << endl;
-		}
-		*/
-    	
 		EncodeLocationForecast encode( locationPointData,
 									   &projectionHelper,
 									   webQuery.longitude(), webQuery.latitude(), altitude,
@@ -512,16 +448,19 @@ get( webfw::Request  &req,
 
 LocationPointDataPtr
 LocationForecastHandler::
-requestWdb( float latitude, float longitude, int altitude,
-		      PtrProviderRefTimes refTimes,
-		      const ProviderList &providerPriority
+requestWdb( const LocationPointList &locationPoints,
+	        bool isPolygon, int altitude,
+		    PtrProviderRefTimes refTimes,
+		    const ProviderList &providerPriority
           ) const
 {	
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 	WciReadLocationForecast readLocationForecastTransactor(
-			                               latitude, longitude, altitude, 
+			                               locationPoints,
+			                               isPolygon,
+			                               altitude,
 			                               app->paramDefs(), refTimes, providerPriority, urlQuerys,
 			                               wciProtocol
 			                           );

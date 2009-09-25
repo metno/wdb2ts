@@ -94,7 +94,9 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/WebQuery.h \
                       src/mod_wdb2ts/WebQuery.cpp \
 					  src/mod_wdb2ts/PrecipitationConfig.h \
-					  src/mod_wdb2ts/PrecipitationConfig.cpp
+					  src/mod_wdb2ts/PrecipitationConfig.cpp \
+					  src/mod_wdb2ts/LocationPoint.h \
+					  src/mod_wdb2ts/LocationPoint.cpp
 					  
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 

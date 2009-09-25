@@ -38,6 +38,7 @@
 #include <UrlParamParameter.h>
 #include <UrlParamLevelSpec.h>
 #include <UrlParamFormat.h>
+#include <UrlParamPolygon.h>
 
 namespace wdb2ts {
 
@@ -85,9 +86,11 @@ public:
 	UrlParamTimeSpec      validtime;
 	UrlParamParameter     parameter;
 	UrlParamLevelSpec     levelspec;
-	UrlParamInteger   	 dataversion;
+	UrlParamInteger   	  dataversion;
 	UrlParamFormat        format;
 	UrlParamFloat         altitude;
+	UrlParamPolygon       polygon;
+	bool                  isPolygon;
 
 	/** 
 	 * Default Constructor

@@ -272,20 +272,46 @@ getDataversionString( const std::list<std::string> &dataproviderList ) const
 
 void 
 WdbQueryHelper::
-init( float lat, float lon, 
-		const ProviderRefTimeList &reftimes_,
-		const ProviderList &providerPriority_,
-		const std::string &extraParams )
+init( const LocationPointList &locationPoints,
+	  bool isPolygon_,
+	  const ProviderRefTimeList &reftimes_,
+	  const ProviderList &providerPriority_,
+	  const std::string &extraParams )
 {
 	ostringstream ost;
+	ost.setf(ios::floatfield, ios::fixed);
+	ost.precision(4);
+
+	isPolygon = isPolygon_;
+
 	first=true;
 	
+	if( locationPoints.empty() )
+		throw logic_error( "No location is given in the request.");
+
 	reftimes = reftimes_;
 	providerPriority = providerPriority_;
 
 	itCurProviderPriority = curProviderPriority.end();
 	
-	ost << "lat=" << lat << ";lon=" << lon << ";";
+	if( ! isPolygon )
+		ost << "lat=" << locationPoints.begin()->latitude() << ";lon=" << locationPoints.begin()->longitude() << ";";
+	else {
+		ost << "polygon=";
+		LocationPointList::const_iterator it = locationPoints.begin();
+
+		if( it != locationPoints.end() ) {
+			ost << it->longitude() << " " << it->latitude();
+			++it;
+		}
+
+		for( ; it != locationPoints.end(); ++it )
+			ost << "," << it->longitude() << " " << it->latitude();
+
+		ost << ";";
+
+	}
+
 	
 	if( ! extraParams.empty() ) {
 		if( extraParams[0] == ';')

@@ -97,7 +97,6 @@ public:
 	virtual void noteUpdated( const std::string &noteName, 
                              boost::shared_ptr<NoteTag> note );
 	
-	int getAltitude( LocationPointDataPtr ld );
 private:
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
@@ -121,9 +120,10 @@ private:
    boost::mutex        mutex; 
    
   	
-   LocationPointDataPtr requestWdb( float latitude, float longitude, int altitude,
-  		                      PtrProviderRefTimes refTime,
-  		                      const ProviderList &providerPriority )const;
+   LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
+									bool isPolygon, int altitude,
+									PtrProviderRefTimes refTime,
+									const ProviderList &providerPriority )const;
   	
   	/*
   	bool updateProviderReftimes( WciConnectionPtr con );

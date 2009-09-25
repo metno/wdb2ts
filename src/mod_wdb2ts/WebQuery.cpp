@@ -5,6 +5,7 @@
 #include <WebQuery.h>
 #include <UrlQuery.h>
 #include <limits.h>
+#include <float.h>
 
 using namespace std;
 
@@ -18,18 +19,21 @@ WebQuery
 
 WebQuery::
 WebQuery( )
-	: latitude_(FLT_MAX), longitude_(FLT_MAX), altitude_(INT_MIN)
+	: altitude_(INT_MIN)
 {
 }
 
 WebQuery::
-WebQuery( float latitude, float longitude, int altitude, 
-		    const boost::posix_time::ptime &from, 
-		    const boost::posix_time::ptime &reftime,
-		    const std::string &dataprovider   )
-	: latitude_( latitude ), longitude_( longitude ), altitude_( altitude ),
-	  from_( from ), reftime_( reftime ), dataprovider_( dataprovider )
+WebQuery( const LocationPointList &locationPoints, int altitude,
+		  const boost::posix_time::ptime &from,
+		  const boost::posix_time::ptime &reftime,
+		  const std::string &dataprovider,
+		  bool isPolygon)
+	: altitude_( altitude ),
+	  from_( from ), reftime_( reftime ), dataprovider_( dataprovider ),
+	  isPolygon_( isPolygon )
 {
+	points = locationPoints;
 }
 
 
@@ -49,7 +53,7 @@ decodeQuery( const std::string &queryToDecode )
 	boost::posix_time::ptime from;
 	boost::posix_time::ptime refTime;
 	string dataprovider;
-	
+	bool isPolygon( false );
 	     
 	try { 
 		urlQuery.decode( queryToDecode );
@@ -60,12 +64,16 @@ decodeQuery( const std::string &queryToDecode )
 	  
 		param = urlQuery.hasParams( mustHaveParams );
 
-		if( ! param.empty() ) 
-			throw logic_error("Missing mandatory parameter  '" + param + "'.");
+		if( urlQuery.hasParam("polygon") ){
+			isPolygon = true;
+		} else {
+			if( ! param.empty() )
+				throw logic_error("Missing mandatory parameter  '" + param + "'.");
 	   	  
-		lat = urlQuery.asFloat( "lat" );
-		lon = urlQuery.asFloat( "long" );
-		alt = urlQuery.asInt( "alt", INT_MIN );
+			lat = urlQuery.asFloat( "lat" );
+			lon = urlQuery.asFloat( "long" );
+			alt = urlQuery.asInt( "alt", INT_MIN );
+		}
 		
 		if( urlQuery.hasParam( "from" ) ) {
 			string sfrom=urlQuery.asString( "from", "" );
@@ -89,7 +97,15 @@ decodeQuery( const std::string &queryToDecode )
 		if( urlQuery.hasParam( "dataprovider" ) ) 
 			dataprovider = urlQuery.asString("dataprovider", "" );
 
-		return WebQuery( lat, lon, alt, from, refTime, dataprovider );
+		LocationPointList myPoints;
+
+		if( isPolygon ) {
+			LocationPoint::decodePointList( urlQuery.asString( "polygon", "" ), myPoints );
+		} else {
+			myPoints.push_back( LocationPoint( lat, lon ) );
+		}
+
+		return WebQuery( myPoints, alt, from, refTime, dataprovider, isPolygon );
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;
@@ -110,11 +126,40 @@ bool
 WebQuery::
 isValid()const
 {
-	if( latitude_ == FLT_MAX || longitude_ == FLT_MAX )
+	if( points.empty() )
 		return false;
 	
 	return true;
 }
+
+float
+WebQuery::
+latitude() const
+{
+	if( ! points.empty() )
+		return points.begin()->latitude();
+
+	return FLT_MAX;
+}
+
+float
+WebQuery::
+longitude()const
+{
+	if( ! points.empty() )
+		return points.begin()->longitude();
+
+	return FLT_MAX;
+}
+
+int
+WebQuery::
+altitude() const
+{
+	return altitude_;
+}
+
+
 
 }
 

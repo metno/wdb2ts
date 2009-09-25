@@ -42,7 +42,7 @@
 #include <contenthandlers/LocationForecastGml/GMLContext.h>
 #include <PrecipitationConfig.h>
 #include <SymbolConf.h>
-
+#include <wdb2TsApp.h>
 
 /**
  * @addtogroup wdb2ts
@@ -132,6 +132,9 @@ class EncodeLocationForecastGml : public Encode
 	const TopoProviderMap &modelTopoProviders;
 	const SymbolConfProvider &symbolConf;
 
+	bool isPolygon;
+	Wdb2TsApp *app;
+
 
 
 	//Expire randomization.
@@ -189,7 +192,8 @@ public:
 	 * 
 	 * @param	timeSerie	The timeSerie.
 	 */
-	EncodeLocationForecastGml( LocationPointDataPtr pointData,
+	EncodeLocationForecastGml( Wdb2TsApp *app,
+			                   LocationPointDataPtr pointData,
 			                   const ProjectionHelper *projectionHelper,
 			                   float longitude,
 			                   float latitude,

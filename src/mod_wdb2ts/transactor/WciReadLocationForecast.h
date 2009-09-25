@@ -48,7 +48,9 @@ class WciReadLocationForecast
 	: public pqxx::transactor<>
 {
 public:
-	WciReadLocationForecast(float latitude, float longitude, int altitude,
+	WciReadLocationForecast(const LocationPointList &locationPoints,
+						    bool isPloygon,
+						    int altitude,
 	      					const ParamDefList &paramDefs,
 	      					PtrProviderRefTimes refTimes,
 	      					const ProviderList  &providerPriority,
@@ -65,16 +67,14 @@ public:
 
 	
 private:
-	const float latitude;
-	const float longitude;
 	const int   altitude;
-	bool  polygonRequest;
 	const ParamDefList &paramDefs;
 	PtrProviderRefTimes refTimes;
 	const ProviderList  &providerPriority;
 	const wdb2ts::config::Config::Query &urlQuerys;
+	const LocationPointList &locationPoints;
+	bool isPloygon;
 	const int wciProtocol;
-
 	wdb2ts::LocationPointDataPtr locationPointData;
 };
 

@@ -19,6 +19,8 @@ libWciWebQuery_la_SOURCES= \
 	                  src/mod_wdb2ts/WciWebQuery/UrlParamLevelSpec.h \
 	                  src/mod_wdb2ts/WciWebQuery/UrlParamFormat.cpp \
 	                  src/mod_wdb2ts/WciWebQuery/UrlParamFormat.h \
+	                  src/mod_wdb2ts/WciWebQuery/UrlParamPolygon.h \
+	                  src/mod_wdb2ts/WciWebQuery/UrlParamPolygon.cpp \
 	                  src/mod_wdb2ts/WciWebQuery/WciWebQuery.cpp \
 	                  src/mod_wdb2ts/WciWebQuery/WciWebQuery.h 
 	                                        

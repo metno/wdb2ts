@@ -38,15 +38,18 @@ using namespace std;
 namespace wdb2ts {
 
 WciReadLocationForecast::
-WciReadLocationForecast(float latitude_, float longitude_, int altitude_,
-      						const ParamDefList &paramDefs_,
-      						PtrProviderRefTimes refTimes_,
-      						const ProviderList &providerPriority_,
-      						const wdb2ts::config::Config::Query &urlQuerys_,
-      						int wciProtocol_ )
-	: latitude( latitude_ ), longitude( longitude_), altitude( altitude_ ),polygonRequest( false ),
+WciReadLocationForecast( const LocationPointList &locationPoints_,
+			             bool isPloygon_,
+			             int altitude_,
+			             const ParamDefList &paramDefs_,
+			             PtrProviderRefTimes refTimes_,
+			             const ProviderList &providerPriority_,
+			             const wdb2ts::config::Config::Query &urlQuerys_,
+			             int wciProtocol_ )
+	: altitude( altitude_ ),
 	  paramDefs( paramDefs_ ), refTimes( refTimes_ ), providerPriority( providerPriority_ ),
-	  urlQuerys( urlQuerys_ ), wciProtocol( wciProtocol_ ), locationPointData( new LocationPointData() )
+	  urlQuerys( urlQuerys_ ), locationPoints( locationPoints_), isPloygon( isPloygon_ ),
+	  wciProtocol( wciProtocol_ ), locationPointData( new LocationPointData() )
 {
 }
 
@@ -88,8 +91,8 @@ operator () ( argument_type &t )
 	WdbQueryHelper wdbQueryHelper( urlQuerys, wciProtocol );
 	
 	try {
-   	MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
-		wdbQueryHelper.init( latitude, longitude, *refTimes, providerPriority );
+		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
+		wdbQueryHelper.init( locationPoints, isPloygon, *refTimes, providerPriority );
 		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
 		
 		while ( wdbQueryHelper.hasNext() ) {
@@ -120,7 +123,7 @@ operator () ( argument_type &t )
 			}
 			
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
-			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, polygonRequest, *locationPointData );
+			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, isPloygon, *locationPointData );
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 		}
 	}

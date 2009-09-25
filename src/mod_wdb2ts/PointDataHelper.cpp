@@ -36,8 +36,6 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <Logger4cpp.h>
 
-#define LATLONG_DEG2INT 10000
-
 
 DEFINE_MI_PROFILE;
 
@@ -88,119 +86,6 @@ namespace {
 
 namespace wdb2ts {
 
-LocationPoint::
-LocationPoint()
-	: latitude_( INT_MIN ), longitude_( INT_MIN )
-{
-}
-
-LocationPoint::
-LocationPoint( const LocationPoint &lp )
-	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ )
-{
-}
-
-LocationPoint::
-LocationPoint( float latitude, float longitude )
-{
-	set( latitude, longitude );
-}
-
-bool
-LocationPoint::
-operator<( const LocationPoint &rhs ) const
-{
-	if( (latitude_< rhs.latitude_) ||
-	    (latitude_ == rhs.latitude_ && longitude_ < rhs.longitude_ ) )
-		return true;
-
-	return false;
-}
-
-LocationPoint&
-LocationPoint::
-operator=( const LocationPoint &rhs )
-{
-	if( this != &rhs ) {
-		latitude_ = rhs.latitude_;
-		longitude_ = rhs.longitude_;
-	}
-
-	return *this;
-}
-
-bool
-LocationPoint::
-operator==( const LocationPoint &rhs ) const
-{
-	return latitude_ == rhs.latitude_ && longitude_== rhs.longitude_;
-}
-
-
-void
-LocationPoint::
-set( float latitude, float longitude )
-{
-	if( latitude > 180 || latitude < -180 )
-		throw range_error( "Latitude out of range. Valid range [-180,180]." );
-
-	if( longitude > 180 || longitude < -180 )
-			throw range_error( "Longitude out of range. Valid range [-180,180]." );
-
-	latitude_  = int(latitude*LATLONG_DEG2INT);
-	longitude_ = int(longitude*LATLONG_DEG2INT);
-}
-
-void
-LocationPoint::
-get( float &latitude, float &longitude )
-{
-	if( latitude_ == INT_MIN || longitude_ == INT_MIN )
-		throw logic_error( "The locationpoint is not initialized.");
-
-	latitude = latitude_/LATLONG_DEG2INT;
-	longitude = longitude_/LATLONG_DEG2INT;
-}
-
-float
-LocationPoint::
-latitude() const
-{
-	if( latitude_ == INT_MIN )
-		throw logic_error( "The locationpoint is not initialized.");
-
-	return latitude_/LATLONG_DEG2INT;
-}
-
-float
-LocationPoint::
-longitude() const
-{
-	if( longitude_ == INT_MIN )
-			throw logic_error( "The locationpoint is not initialized.");
-
-	return longitude_/LATLONG_DEG2INT;
-}
-
-int
-LocationPoint::
-iLatitude() const
-{
-	if( latitude_ == INT_MIN )
-			throw logic_error( "The locationpoint is not initialized.");
-
-	return latitude_;
-}
-
-int
-LocationPoint::
-iLongitude() const
-{
-	if( longitude_ == INT_MIN )
-		throw logic_error( "The locationpoint is not initialized.");
-
-	return longitude_;
-}
 
 std::string
 toBeaufort(float mps, std::string &description)
@@ -296,9 +181,6 @@ decodePData( const ParamDefList &paramDefs,
 	LocationPoint locationPoint;
 	LocationPointData::iterator itLpd;
 	
-	cerr << "Called: decodePData." << endl;
-
-
 	USE_MI_PROFILE;
 	WEBFW_USE_LOGGER( "decode" );
 	
@@ -363,8 +245,6 @@ decodePData( const ParamDefList &paramDefs,
 			
 			//cerr << "decode: pdRef: timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
 
-			cerr << "checkpoint: PData ++ "<< endl;
-
 			itLpd = locationPointData.find( locationPoint );
 
 			if( itLpd == locationPointData.end() ) {
@@ -385,7 +265,6 @@ decodePData( const ParamDefList &paramDefs,
 			}
 
  			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
- 			cerr << "checkpoint: PData -- "<< endl;
 
  			STOP_MARK_MI_PROFILE("timeSerie");
 	
@@ -410,7 +289,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			value = value*paramDef->scale()+paramDef->offset();
 			
-			cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
+//			cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
 			
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;

@@ -39,37 +39,10 @@
 #include <ParamDef.h>
 #include <ProviderList.h>
 #include <UpdateProviderReftimes.h>
+#include <LocationPoint.h>
 
 namespace wdb2ts {
 
-
-/**
- *  LocationPoint hold a point as two integer. The latitude and longitude
- *  is given in decimal grades.
- *
- *  The coding into integer is done as int(dg*10000), ie a resolution on 5 desimals.
- *  The decoding back to desimal grades is: i/10000.
- */
-class LocationPoint {
-	int latitude_;
-	int longitude_;
-
-public:
-	LocationPoint();
-	LocationPoint( const LocationPoint &lp );
-	LocationPoint( float latitude, float longitude );
-
-	bool operator<( const LocationPoint &rhs ) const;
-	bool operator==( const LocationPoint &rhs ) const;
-	LocationPoint& operator=( const LocationPoint &rhs ) ;
-
-	void   set( float latitude, float longitude );
-	void   get( float &latitude, float &longitude );
-	float  latitude() const;
-	float  longitude() const;
-	int    iLatitude() const;
-	int    iLongitude() const;
-};
 
 
 struct PData{

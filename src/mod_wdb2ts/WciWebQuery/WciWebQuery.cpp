@@ -77,7 +77,8 @@ WciWebQuery( int protocol, const std::string &returnCol )
 	   levelspec( protocol ),
 		dataversion( protocol, true, -1 ),
 		format( protocol, UrlParamFormat::CSV ),
-		altitude( protocol )
+		altitude( protocol ),
+		isPolygon( false )
 {
     // NOOP
 }
@@ -113,7 +114,7 @@ std::string
 WciWebQuery::
 decode( const std::string &query )
 {
-    ostringstream ost;
+	ostringstream ost;
     string        currentKey;
     list<string>  keys; 
     string        val;
@@ -133,53 +134,57 @@ decode( const std::string &query )
 	{"dataversion",   &dataversion},
 	{"levelspec",     &levelspec},
 	{"format",        &format},
+	{"polygon",       &polygon},
 	{0, 0}
     };
 
     
-   //Reset all values to the default values. 
- 	for( decoderIndex=0; decoders[decoderIndex].key ; ++decoderIndex )
- 		decoders[decoderIndex].decoder->clean();
+    //Reset all values to the default values.
+	for( decoderIndex=0; decoders[decoderIndex].key ; ++decoderIndex )
+		decoders[decoderIndex].decoder->clean();
  		
-   try{
-   	urlQuery.decode( query );
-   }
-   catch( const std::exception &ex ) {
-   	//Rewamp the exceptions.
-   	throw std::logic_error( ex.what() );
-   }
+	try{
+		urlQuery.decode( query );
+	}
+	catch( const std::exception &ex ) {
+		//Rewamp the exceptions.
+		throw std::logic_error( ex.what() );
+	}
  	
-   wciReadQuery_.erase();
-   keys = urlQuery.keys();
+	wciReadQuery_.erase();
+	keys = urlQuery.keys();
     
-   for( list<string>::const_iterator itKey = keys.begin(); itKey != keys.end(); ++itKey ) {
-   	if( itKey->empty() )
-   		continue;
+	for( list<string>::const_iterator itKey = keys.begin(); itKey != keys.end(); ++itKey ) {
+		if( itKey->empty() )
+			continue;
    	
-   	for( decoderIndex=0; 
-   	     decoders[decoderIndex].key && decoders[decoderIndex].key != *itKey; 
-	        ++decoderIndex );
+		for( decoderIndex=0;
+			 decoders[decoderIndex].key && decoders[decoderIndex].key != *itKey;
+			 ++decoderIndex );
        
-   	if( ! decoders[decoderIndex].key  ) {
-   		ost << "Unknown key: " << *itKey << ".";
-   		throw logic_error( ost.str() );
-   	}
+		if( ! decoders[decoderIndex].key  ) {
+			ost << "Unknown key: " << *itKey << ".";
+			throw logic_error( ost.str() );
+		}
         
-   	try {
-   		val = urlQuery.asString( *itKey, "");
+		try {
+			val = urlQuery.asString( *itKey, "");
    		
-   		if( val.empty() )
-   			continue;
+			if( val.empty() )
+				continue;
    		
-   		decoders[decoderIndex].decoder->decode( val );
-   	}
-   	catch( const logic_error &ex ){
-   		ost << "Invalid value for <" << *itKey << ">. " << ex.what();
-   		throw logic_error( ost.str() );
-   	}
-   }
+			decoders[decoderIndex].decoder->decode( val );
+
+			if( decoders[decoderIndex].key == "polygon" )
+				isPolygon = true;
+		}
+		catch( const logic_error &ex ){
+			ost << "Invalid value for <" << *itKey << ">. " << ex.what();
+			throw logic_error( ost.str() );
+		}
+	}
    
-   return wciReadQuery();
+	return wciReadQuery();
 }
     
 std::string 
@@ -188,33 +193,47 @@ wciReadQuery() const
 {
    ostringstream        ost;
    
-   if( ! latitude.valid() || ! longitude.valid() )
+   if( !isPolygon && ( ! latitude.valid() || ! longitude.valid() ) )
        throw logic_error("Missing 'lat' or 'lon/long'.");
    
-   string sPointInterpolation=pointInterpolation.selectPart();
+   if( ! isPolygon ) {
+	   string sPointInterpolation=pointInterpolation.selectPart();
       
-   /* If the pointInterpolation string is NULL, erase it.
-    * If the pointInterpolation string is different from
-    * null it will start and end with the SQL quota character ',
-    * they must be removed. 
-    */
+	   /* If the pointInterpolation string is NULL, erase it.
+	    * If the pointInterpolation string is different from
+	    * null it will start and end with the SQL quota character ',
+	    * they must be removed.
+	    */
    
-   if( sPointInterpolation=="NULL" )
-   	sPointInterpolation.erase();
-   else
-   	miutil::trimstr( sPointInterpolation, miutil::TRIMBOTH, "'" );
+	   if( sPointInterpolation=="NULL" )
+		   sPointInterpolation.erase();
+	   else
+		   miutil::trimstr( sPointInterpolation, miutil::TRIMBOTH, "'" );
       
-   ost << "SELECT " << returnColoumns << " FROM wci.read(" << endl  
-       << "   " << dataprovider.selectPart() << ", " << endl
-       << "   '" << sPointInterpolation << " POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
-//       << "   'POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
-       << "   " << reftime.selectPart() << ", " << endl
-       << "   " << validtime.selectPart() << ", " << endl
-       << "   " << parameter.selectPart() << ", " << endl
-       << "   " << levelspec.selectPart() << ", " << endl
-       << "   " << dataversion.selectPart() << ", " << endl
-       << "   NULL::wci.returnfloat )" << endl;
+	   ost << "SELECT " << returnColoumns << " FROM wci.read(" << endl
+		   << "   " << dataprovider.selectPart() << ", " << endl
+		   << "   '" << sPointInterpolation << " POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
+//       	<< "   'POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
+		   << "   " << reftime.selectPart() << ", " << endl
+		   << "   " << validtime.selectPart() << ", " << endl
+		   << "   " << parameter.selectPart() << ", " << endl
+		   << "   " << levelspec.selectPart() << ", " << endl
+		   << "   " << dataversion.selectPart() << ", " << endl
+		   << "   NULL::wci.returnfloat )" << endl;
    
+   } else {
+	   ost << "SELECT " << returnColoumns << " FROM wci.read(" << endl
+	  		   << "   " << dataprovider.selectPart() << ", " << endl
+	  		   << "   '" <<polygon.selectPart() << "', " << endl
+	  		   << "   " << reftime.selectPart() << ", " << endl
+	  		   << "   " << validtime.selectPart() << ", " << endl
+	  		   << "   " << parameter.selectPart() << ", " << endl
+	  		   << "   " << levelspec.selectPart() << ", " << endl
+	  		   << "   " << dataversion.selectPart() << ", " << endl
+	  		   << "   NULL::wci.returnfloat )" << endl;
+
+   }
+
    return ost.str();
 }
     

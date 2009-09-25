@@ -85,8 +85,6 @@ namespace {
 	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
 	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
-
-
 }
 
 namespace wdb2ts {
@@ -128,13 +126,14 @@ EncodeLocationForecastGml::
 EncodeLocationForecastGml()
 	:  gmlContext( 0 ), metaConf( dummyMetaConf ),
       providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
-      symbolConf( dummySymbolConfProvider )
+      symbolConf( dummySymbolConfProvider ), isPolygon( false )
 {
 }
 
 
 EncodeLocationForecastGml::
-EncodeLocationForecastGml( LocationPointDataPtr locationPointData_,
+EncodeLocationForecastGml( Wdb2TsApp *app_,
+		                   LocationPointDataPtr locationPointData_,
                            const ProjectionHelper *projectionHelper_,
                            float longitude,
                            float latitude,
@@ -155,8 +154,12 @@ EncodeLocationForecastGml( LocationPointDataPtr locationPointData_,
      providerPriority( providerPriority_ ),
      modelTopoProviders( modelTopoProviders_),
      symbolConf( symbolConf_ ),
+     isPolygon( false ),
+     app( app_ ),
      expireRand( expire_rand )
 {
+	if(  locationPointData )
+		isPolygon = locationPointData->size() > 1;
 }
 
 EncodeLocationForecastGml::
@@ -511,6 +514,11 @@ encodeFeatureMemberTag( const LocationElem &location,
 	
 				TimePeriodTag timePeriodTag( gmlContext, "mox:validTime", location.time(), location.time() );
 				timePeriodTag.output( ost, indent );
+
+				if( isPolygon ) {
+					PointTag pointTag( gmlContext, "mox:forecastPoint", latitude, longitude, altitude );
+					pointTag.output( ost, indent );
+				}
 			} //Close timePeriodTag
 	
 			ost << momentOst.str();
@@ -536,7 +544,11 @@ encodeMoment( const boost::posix_time::ptime &from,
 		WEBFW_LOG_WARN( "encodeMoment: from: " << from << " NO data!" );
 		return;
 	}
-	
+
+	//Reset the breakTime logic.
+	breakTimes.clear();
+	breakTimeForecastProvider.erase();
+	prevBreakTime = boost::posix_time::ptime();
 	curItBreakTimes = breakTimes.end();
 					
 	while( locationData->hasNext() ) {
@@ -674,6 +686,11 @@ encodePeriods( const boost::posix_time::ptime &from,
 								                     fromTime,
 							                         fromTime+boost::posix_time::hours( precip.precipHours[hourIndex] ) );
 						timePeriodTag.output( ost, indent );
+
+						if( isPolygon ) {
+							PointTag pointTag( gmlContext, "mox:forecastPoint", latitude, longitude, altitude );
+							pointTag.output( ost, indent );
+						}
 					} //Close timePeriodTag
 
 					ost << level4.indent() << "<mox:precipitation  uom=\"mm\">" << itPrecip->second.precip << "</mox:precipitation>\n";
@@ -737,7 +754,7 @@ encodeHeader( std::string &result )
 	ost << indent.spaces() << "<mox:procedure xlink:href=\"http://api.met.no/yr-procedure-desc.html\"/>\n";
 	ost << indent.spaces() << "<mox:observedProperty xlink:href=\"urn:x-ogc:def:phenomenon:weather\"/>\n";
 
-	{
+	if( !isPolygon ) {
 		PointTag pointTag( gmlContext, "mox:forecastPoint", latitude, longitude, altitude );
 		pointTag.output( ost, indent );
 	}
@@ -797,7 +814,7 @@ encodeHeader( std::string &result )
 		timeTag.output( ost, indent );
 	}
 		
-	replace( result, metatemplate, ost.str() );
+	replace( result, metatemplate, ost.str(), 1 );
 }
 
 
@@ -858,7 +875,7 @@ encodeMeta( std::string &result )
 			
 			if( ! nextrun.is_special() )
 				ost << " nextrun=\"" << isotimeString( nextrun, true, true ) << "\"";
-				
+
 			ost << " from=\"" << isotimeString( it->from, true, true ) << "\"";
 			ost << " to=\"" << isotimeString( it->to, true, true ) << "\"";
 			ost << " />\n";
@@ -909,21 +926,8 @@ encode(  webfw::Response &response )
 
 	if( locationPointData->empty() ) {
 		locationData.reset( new LocationData() );
-	} else if ( locationPointData->size() == 1 ){
-		locationData.reset( new LocationData( locationPointData->begin()->second, longitude, latitude, altitude,
-				                               providerPriority, modelTopoProviders ) );
-
-		if( altitude == INT_MIN )
-			altitude = locationData->hightFromModelTopo();
-
-	} else {
-		WEBFW_LOG_ERROR( "Polygon not supported.");
-		locationData.reset( new LocationData() );
 	}
-	symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
 
-	if( altitude == INT_MIN )
-		altitude = locationData->hightFromModelTopo();
 
 	{ //Create a scope for the weatherdatatag and producttag.
 		WdbForecastsTag wdbForecastsTag( gmlContext, createdTime, schemaName() );
@@ -932,23 +936,34 @@ encode(  webfw::Response &response )
 		//Make room for the meta tag.
 		ost << metatemplate;
 
-		IndentLevel level2( indent );
-		encodeMoment( from, ost, indent );	
-		encodePeriods( from, ost, indent );
-#if 0
-		PrecipConfigElement precip = precipitationConfig->getDefault();
+		for( LocationPointData::const_iterator it = locationPointData->begin();
+				it != locationPointData->end();
+				++it )
+		{
+			if( isPolygon ) {
+				longitude = it->first.longitude();
+				latitude = it->first.latitude();
 
-		encodePeriods( from, ost, indent );
+				try{
+					altitude = app->getHight( latitude, longitude );
+				}
+				catch( ... ) {
+					WEBFW_LOG_WARN( "Unexpected exception: cant get the alitude for location: " << longitude << "/" << latitude << " (lon/lat)." );
+					altitude = INT_MIN;
+				}
+			}
 
-		if( precip.precipType == PrecipSequence ) {
-			encodePrecipitation( from, precip.precipHours, ost, indent );
-		} else {
+			locationData.reset( new LocationData( it->second, longitude, latitude, altitude,
+							                      providerPriority, modelTopoProviders ) );
 
+			if( altitude == INT_MIN )
+				altitude = locationData->hightFromModelTopo();
+
+			symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
+			IndentLevel level2( indent );
+			encodeMoment( from, ost, indent );
+			encodePeriods( from, ost, indent );
 		}
-
-		encodeSymbols( ost, indent );
-		//encodePrecipitationPercentiles( from, ost, indent );
-#endif
 	}
 
 	result = ost.str();

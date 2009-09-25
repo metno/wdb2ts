@@ -81,7 +81,7 @@ public:
 	/**
 	 *Use the hight to model topografi for the point given with latitude/longitude.
 	 *
-	 *The call of the method destroy the state of the clss so a new call to init is needed
+	 *The call of the method destroy the state of the class so a new call to init is needed
 	 *before hasNext and next is called again.
 	 */
 	int hightFromModelTopo();
