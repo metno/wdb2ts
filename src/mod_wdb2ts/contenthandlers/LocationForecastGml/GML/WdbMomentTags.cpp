@@ -187,9 +187,10 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	string description;
 	string indent( indent_.spaces() );
 	float value;
+	float tempNoAdiabatic;
 	float iValue;
-	string prevProvider( pd->forecastprovider() );
 	string provider;
+	string tempNoAdiabaticProvider;
 	string tmpProvider;
 	float tempCorrection;
 	float tempProb = FLT_MAX;
@@ -205,23 +206,58 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	
 	out.setf(ios::floatfield, ios::fixed);
 	out.precision(1);
-	
-	value = pd->TA( true );
-	if( value != FLT_MAX ) {
-		provider = pd->forecastprovider();
-		tempCorrection = pd->computeTempCorrection( provider ); 
 		
-		out << indent << "<!-- Dataprovider: " << provider << " -->\n";
-		
-		prevProvider = provider;
-		value += tempCorrection;
-		doSymbol( value );
-		tempProb = getTemperatureProability( value );
+	/*
+	 * Coding of temperature.
+	 * The temperature may or may not be corrected for height. If the
+	 * temperature is corrected the difference between the model height and
+	 * real height is used to do a adiabatic height correction.
+	 *
+	 * We decide if we shall do a height correction or not on the avalable
+	 * temperatures. If the parameter pd->T2M_NO_ADIABATIC_HIGHT_CORRECTION
+	 * has a value we do not do height correction, if no we do. ie. the no
+	 * height correction has priority.
+	 */
 
+	tempNoAdiabatic = pd->T2M_NO_ADIABATIC_HIGHT_CORRECTION( true );
+
+	if( tempNoAdiabatic != FLT_MAX )
+		tempNoAdiabaticProvider = provider = pd->forecastprovider();
+
+	value = pd->TA( true );
+
+	if( value != FLT_MAX )
+		provider = pd->forecastprovider();
+
+	if( tempNoAdiabatic != FLT_MAX ) {
+		value = tempNoAdiabatic;
+	} else 	if( value != FLT_MAX ) {
+		tempCorrection = pd->computeTempCorrection( provider );
+		value += tempCorrection;
+		tempProb = getTemperatureProability( value );
+	}
+
+	if( value != FLT_MAX ) {
+		if( tempNoAdiabaticProvider.empty())
+			out << indent << "<!-- Dataprovider: " << provider << " -->\n";
+		else
+			out << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
+
+		doSymbol( value );
 		out << indent << "<mox:airTemperature uom=\"Cel\">" << value << "</mox:airTemperature>\n";
 		count++;
-	}	
-	
+	}
+
+	//If we only have a temperature for the no "height correction" choice we need
+	//another parameter to lock into the provider to use. We use the U component to the wind.
+	if( provider.empty() && tempNoAdiabatic != FLT_MAX  ) {
+		float tmp = pd->windU10m( true );
+
+		if( tmp != FLT_MAX )
+			provider = pd->forecastprovider();
+	}
+
+
 	
 	if( vectorLengthAndDirection( provider, 
 			                        pd->latitude(), pd->longitude(),
