@@ -341,10 +341,13 @@ wciProtocol( const std::string &wdbid )
 	if( major == 0 && minor == 8 )
 		return 2;
 		
-	if( major == 0 && minor == 9 && patch > 1 )
+	if( major == 0 && minor == 9 && patch > 1 && patch <= 4)
 		return 3;
 	
-	return 3;	
+	if( major == 0 && minor == 9 && patch >= 5 )
+		return 4;
+
+	return 4;
 }
 
 
