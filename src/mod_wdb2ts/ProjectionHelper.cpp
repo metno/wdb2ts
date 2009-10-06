@@ -269,6 +269,7 @@ loadFromDBWciProtocol_1( pqxx::connection& con,
 			// the PROJ string.
 			switch ( row["originalsrid"].as<int>() ) {
 			case 50000:
+			case 50007:
 				//From comments in milib shall gs allways be set to
 				//this value for geographic projection.
 				gs[0] = 1.0;
@@ -371,6 +372,7 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 			// the PROJ string.
 			switch ( row["originalsrid"].as<int>() ) {
 			case 50000:
+			case 50007:
 				//From comments in milib shall gs allways be set to
 				//this value for geographic projection.
 				gs[0] = 1.0;
@@ -479,6 +481,7 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 			// the PROJ string.
 			switch ( row["originalsrid"].as<int>() ) {
 			case 50000:
+			case 50007:
 				//From comments in milib shall gs allways be set to
 				//this value for geographic projection.
 				gs[0] = 1.0;
