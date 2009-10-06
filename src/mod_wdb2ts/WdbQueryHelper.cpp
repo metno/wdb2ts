@@ -167,6 +167,7 @@ getProviderReftime( const std::string &provider,
 	WEBFW_USE_LOGGER( "handler" );
 	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
 	refTimeFrom = boost::posix_time::ptime(); //undef
+
 	WEBFW_LOG_DEBUG( "getProviderReftime: " << provider );
 
 	doGetProviderReftime( provider, refTimeFrom, refTimeTo ); 

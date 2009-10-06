@@ -527,7 +527,7 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 
 		for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
 
-			WEBFW_LOG_DEBUG( "encodePrecipitationMulti: " << itbt->provider << "  " << itbt->from  );
+			//WEBFW_LOG_DEBUG( "encodePrecipitationMulti: " << itbt->provider << "  " << itbt->from  );
 
 			if( ! locationData->init( itbt->from, itbt->provider ) )
 				continue;
