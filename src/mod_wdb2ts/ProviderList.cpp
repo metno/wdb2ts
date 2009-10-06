@@ -54,7 +54,7 @@ decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayB
 	
 	WEBFW_USE_LOGGER( "handler" );
 
-	WEBFW_LOG_DEBUG( "ProviderList::decode_: toDecode '" << toDecode <<"' mayBeList: "  << (toDecodeMayBeList ? "true":"false") );
+	//WEBFW_LOG_DEBUG( "ProviderList::decode_: toDecode '" << toDecode <<"' mayBeList: "  << (toDecodeMayBeList ? "true":"false") );
 
 	if( i == string::npos ) {
 		pList.push_back( ProviderItem( toDecode ) );
@@ -105,7 +105,7 @@ decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayB
 				miutil::trimstr( buf );
 			}
 
-			WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << buf << "]");
+		//	WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << buf << "]");
 			pList.push_back( ProviderItem( provider, buf ) );
 		}
 	} else {
@@ -115,7 +115,7 @@ decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayB
 		}
 
 		if( !toDecode.empty() ) {
-			WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << toDecode << "]");
+			//WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << toDecode << "]");
 			pList.push_back( ProviderItem( provider, toDecode ) );
 		}
 	}
@@ -123,8 +123,10 @@ decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayB
 	if( pList.empty() ) 
 		pList.push_back( ProviderItem( provider ) );
 	
-	for( ProviderList::iterator it = pList.begin(); it!=pList.end(); ++it)
-		WEBFW_LOG_DEBUG( "ProvderList::decode: pList: '" << it->providerWithPlacename() << "'" );
+	if( toDecodeMayBeList ) {
+		for( ProviderList::iterator it = pList.begin(); it!=pList.end(); ++it)
+			WEBFW_LOG_DEBUG( "ProvderList::decode: pList: '" << it->providerWithPlacename() << "'" );
+	}
 
 	return pList;
 }
