@@ -102,7 +102,9 @@ public:
 };
 
 //typedef std::map<std::string, ProviderTimes > ProviderRefTimeList;
-typedef std::map<std::string, std::string > TopoProviderMap;
+//typedef std::map<std::string, std::string > TopoProviderMap;
+
+//typedef std::map<std::string, std::list<std::string> > TopoProviderMap;
 typedef boost::shared_ptr<ProviderRefTimeList> PtrProviderRefTimes;
 
 
@@ -112,15 +114,15 @@ typedef boost::shared_ptr<ProviderRefTimeList> PtrProviderRefTimes;
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-		                  ProviderRefTimeList &refTimes,
-		                  const ProviderList &providers, 
-		                  int wciProtocol );
+		                ProviderRefTimeList &refTimes,
+		                const ProviderList &providers,
+		                int wciProtocol );
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-								const ProviderRefTimeList &requestedUpdates,
-		                  ProviderRefTimeList &refTimes,
-		                  int wciProtocol );
+						const ProviderRefTimeList &requestedUpdates,
+		                ProviderRefTimeList &refTimes,
+		                int wciProtocol );
 
 }
 
