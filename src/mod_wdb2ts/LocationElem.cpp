@@ -41,25 +41,26 @@ LocationElem::
 LocationElem():
 	topoTime( boost::gregorian::date(1970, 1, 1),
 		   	 boost::posix_time::time_duration( 0, 0, 0 ) ),
-	topoPostfix("__MODEL_TOPO__"),
+	topoPostfix("__MODEL_TOPO__"), topographyPostfix( "__TOPOGRAPHY__" ),
 	seaIceTime( boost::gregorian::date(1970, 1, 1),
 			   	boost::posix_time::time_duration( 0, 0, 0 ) ),
 	seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
 	   	                   boost::posix_time::time_duration( 0, 0, 0 ) ),
    timeSerie( 0 ),
    latitude_( FLT_MAX ), longitude_( FLT_MAX ),
-	hight_( INT_MIN ), topoHight_( INT_MIN ),
-	topoSearched(false)
+   hight_( INT_MIN ), topoHight_( INT_MIN ),
+   modeltopoSearched(false)
 {
 }
 
 LocationElem::
 LocationElem( const ProviderList &providerPriority_,
-				  const TopoProviderMap &modelTopoProviders_,
-				float longitude, float latitude, int hight)
+			  const TopoProviderMap &modelTopoProviders_,
+			  const TopoProviderMap &topographyProviders_,
+			  float longitude, float latitude, int hight)
 	: topoTime( boost::gregorian::date(1970, 1, 1),
 	            boost::posix_time::time_duration( 0, 0, 0 ) ),
-	  topoPostfix("__MODEL_TOPO__"),
+	  topoPostfix("__MODEL_TOPO__"), topographyPostfix( "__TOPOGRAPHY__" ),
 	  seaIceTime( boost::gregorian::date(1970, 1, 1),
 		           boost::posix_time::time_duration( 0, 0, 0 ) ),
 	  seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
@@ -67,8 +68,9 @@ LocationElem( const ProviderList &providerPriority_,
 	  timeSerie(0),
      providerPriority( providerPriority_ ),
      modelTopoProviders( modelTopoProviders_ ),
+     topographyProviders( topographyProviders_ ),
      latitude_( latitude ), longitude_( longitude ),
-     hight_( hight ), topoHight_( INT_MIN ), topoSearched( false )
+     hight_( hight ), topoHight_( INT_MIN ), modeltopoSearched( false )
 {
 	
 }
@@ -199,9 +201,19 @@ T2M_LAND(bool tryHard)const
 			           const_cast<ptime&>(itTimeSerie->first), 
 			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
-   
 
 float 
+LocationElem::
+T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard )const
+{
+	return getValue( &PData::T2M_NO_ADIABATIC_HIGHT_CORRECTION,
+			         itTimeSerie->second,
+			         const_cast<ptime&>(itTimeSerie->first),
+			         const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+}
+
+
+float
 LocationElem::
 UU(bool tryHard)const
 {
@@ -905,6 +917,7 @@ seaBottomTopography( std::string &usedProvider, const std::string &useProvider )
 }
 	
 
+
 int 
 LocationElem::
 seaIcePresence( std::string &usedProvider, const std::string &useProvider )const
@@ -953,27 +966,30 @@ seaIcePresence( std::string &usedProvider, const std::string &useProvider )const
 
 std::string
 LocationElem::
-modeltopographyProvider( const std::string &provider_ )
+topoProvider( const std::string &provider_, TopoProviderMap &topoProviders )
 {
 	string provider( provider_ );
 
 //	WEBFW_USE_LOGGER( "decode" );
 
 //	WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider_ );
-	TopoProviderMap::const_iterator it=modelTopoProviders.find( provider_ );
+	TopoProviderMap::const_iterator it=topoProviders.find( provider_ );
 
-	if( it != modelTopoProviders.end() ) {
-//		WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider << " --> " << it->second );
-		provider = it->second;
+	if( it != topoProviders.end() ) {
+//		WEBFW_LOG_DEBUG( "topoProvider: provider: "<< provider << " --> " << it->second );
+		if( ! it->second.empty() )
+			provider = *it->second.begin();
 	} else {
 		ProviderItem item = ProviderList::decodeItem( provider_ );
 
 		if( ! item.placename.empty() ) {
-			it=modelTopoProviders.find( item.provider );
-			if( it != modelTopoProviders.end() ) {
+			it=topoProviders.find( item.provider );
+			if( it != topoProviders.end() ) {
 //				WEBFW_LOG_DEBUG( "modeltopographyProvider: provider: "<< provider << " --> " << item.provider << " --> " << it->second );
-				provider = it->second;
-				modelTopoProviders[ provider_ ] = provider;
+				if( ! it->second.empty() ) {
+					provider = *it->second.begin();
+					topoProviders[ provider_ ].push_back( provider );
+				}
 			}
 		}
 	}
@@ -990,7 +1006,8 @@ modeltopography( const std::string &provider_ )const
 {
 	WEBFW_USE_LOGGER( "decode" );
 
-	string provider =  const_cast<LocationElem*>( this )->modeltopographyProvider( provider_ );
+	string provider =  const_cast<LocationElem*>( this )->topoProvider( provider_,
+			                                                            const_cast<LocationElem*>( this )->modelTopoProviders );
 	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
 	
 	if( it1 == timeSerie->end() ) {
@@ -1032,7 +1049,7 @@ modeltopography( const std::string &provider_ )const
 				}
 
 				WEBFW_LOG_INFO( "modeltopography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
-				const_cast<LocationElem*>(this)->modelTopoProviders[provider_] = provider;
+				const_cast<LocationElem*>(this)->modelTopoProviders[provider_].push_back( provider );
 			}
 		} else {
 			if( provider_ != provider ) {
@@ -1057,6 +1074,84 @@ modeltopography( const std::string &provider_ )const
 	
 	return static_cast<int>( it3->second.modeltopography );
 }
+
+int
+LocationElem::
+topography( const std::string &provider_ )const
+{
+	WEBFW_USE_LOGGER( "decode" );
+
+	string provider =  const_cast<LocationElem*>( this )->topoProvider( provider_,
+			                                                            const_cast<LocationElem*>( this )->topographyProviders );
+	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
+
+	if( it1 == timeSerie->end() ) {
+		WEBFW_LOG_WARN( "topography: No topography fields loaded." );
+		return INT_MIN;
+	}
+
+	FromTimeSerie::const_iterator it2=it1->second.find( topoTime );
+
+	if( it2 == it1->second.end() ) {
+		WEBFW_LOG_WARN( "topography: No topography fields loaded." );
+		return INT_MIN;
+	}
+
+	ProviderPDataList::const_iterator it3=it2->second.find( provider + topographyPostfix );
+
+	if( it3 == it2->second.end() ) {
+		ProviderItem item = ProviderList::decodeItem( provider );
+
+		if( item.placename.empty() ) {
+			ProviderItem itemIn = ProviderList::decodeItem( provider_ );
+
+			if( ! itemIn.placename.empty() ) {
+				item.placename = itemIn.placename;
+
+				provider = item.providerWithPlacename();
+				it3=it2->second.find( provider + topographyPostfix );
+
+				//WEBFW_LOG_DEBUG( "topography: provider in: " << provider_ << " Use provider: " << provider );
+
+				if( it3 == it2->second.end() ) {
+					if( provider_ != provider ) {
+						WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+					}else {
+						WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
+					}
+
+					return INT_MIN;
+				}
+
+				WEBFW_LOG_INFO( "topography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
+				const_cast<LocationElem*>(this)->topographyProviders[provider_].push_back( provider );
+			}
+		} else {
+			if( provider_ != provider ) {
+				WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+			}else {
+				WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
+			}
+
+			return INT_MIN;
+		}
+	}
+
+	if( it3->second.topography == FLT_MAX ) {
+		if( provider_ != provider ) {
+			WEBFW_LOG_ERROR( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">, but the field is present." );
+		}else {
+			WEBFW_LOG_ERROR( "topography: No topo data for provider <" << provider_ <<">, but the field is present." );
+		}
+
+		return INT_MIN;
+	}
+
+	return static_cast<int>( it3->second.topography );
+
+}
+
+
 
 }
 

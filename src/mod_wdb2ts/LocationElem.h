@@ -36,6 +36,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <PointDataHelper.h>
 #include <UpdateProviderReftimes.h>
+#include <TopoProvider.h>
 
 namespace wdb2ts {
 
@@ -63,12 +64,14 @@ class LocationElem {
 	
 	const boost::posix_time::ptime topoTime;
 	const std::string topoPostfix;
+	const std::string topographyPostfix;
 	const boost::posix_time::ptime seaIceTime;
 	const boost::posix_time::ptime seaBottomTopographyTime;
 	const TimeSerie *timeSerie;
 	CITimeSerie itTimeSerie;
 	ProviderList providerPriority;
 	TopoProviderMap modelTopoProviders;
+	TopoProviderMap topographyProviders;
 	std::string forecastProvider;
 	std::string oceanProvider_;
 	std::string percentileProvider;
@@ -80,15 +83,16 @@ class LocationElem {
 	float       longitude_;
 	int         hight_;
 	int         topoHight_;
-	bool        topoSearched;
+	bool        modeltopoSearched;
 	LocationElem();
-	LocationElem(const ProviderList &providerPriority,
-					 const TopoProviderMap &modelTopoProviders,
-			       float longitude, float latitude, int hight);
+	LocationElem( const ProviderList &providerPriority,
+				  const TopoProviderMap &modelTopoProviders,
+				  const TopoProviderMap &topographyProviders,
+			      float longitude, float latitude, int hight  );
 	
 	void init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie ); 
 	
-	std::string modeltopographyProvider( const std::string &provider_ );
+	std::string topoProvider( const std::string &provider_, TopoProviderMap &topoProviders );
 
 
 	
@@ -271,6 +275,7 @@ public:
    float TA( bool tryHard=false )const;
    float T2M( bool tryHard=false )const;
    float T2M_LAND( bool tryHard=false )const;
+   float T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard=false )const;
    
    float UU( bool tryHard=false )const;
    
@@ -345,15 +350,20 @@ public:
 	 * Return INT_MIN if no value is found.
 	 */
    int modeltopography( const std::string &provider )const;
-   
-	float latitude() const { return latitude_; }
-	float longitude() const { return longitude_; }
-	
+
 	/**
-	 * Return INT_MIN if no value is given.
+	 * Return INT_MIN if no value is found.
 	 */
-	int hight() const { return hight_; }
-	void hight( int h )  { hight_ = h; }
+   int topography( const std::string &provider )const;
+   
+   float latitude() const { return latitude_; }
+   float longitude() const { return longitude_; }
+	
+   /**
+    * Return INT_MIN if no value is given.
+    */
+   int hight() const { return hight_; }
+   void hight( int h )  { hight_ = h; }
 	
 };
 
