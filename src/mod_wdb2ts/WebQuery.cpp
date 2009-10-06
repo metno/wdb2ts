@@ -37,6 +37,13 @@ WebQuery( const LocationPointList &locationPoints, int altitude,
 }
 
 
+
+boost::posix_time::ptime
+WebQuery::
+decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError )
+{
+	return boost::posix_time::pos_infin;
+}
 	/**
 	 * @exception logic_error
 	 */	
@@ -50,6 +57,7 @@ decodeQuery( const std::string &queryToDecode )
 	float lat(FLT_MAX);
 	float lon(FLT_MAX);
 	int alt(INT_MIN);
+	boost::posix_time::ptime to;
 	boost::posix_time::ptime from;
 	boost::posix_time::ptime refTime;
 	string dataprovider;
@@ -83,6 +91,17 @@ decodeQuery( const std::string &queryToDecode )
 				from = urlQuery.asPTime("from", boost::posix_time::not_a_date_time );
 		}
 		
+		if( urlQuery.hasParam( "to" ) ) {
+			string sto=urlQuery.asString( "to", "" );
+
+			to = urlQuery.asPTime("to", boost::posix_time::pos_infin );
+
+			if( to.is_special() ) {
+				string sto=urlQuery.asString( "to", "" );
+				to = decodeTimeduration( sto, boost::posix_time::pos_infin );
+			}
+		}
+
 		//Adjust the fromtime to the nearest hour in the future. 
 		if( from.is_not_a_date_time() ) {
 			from = second_clock::universal_time();

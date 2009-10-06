@@ -22,6 +22,9 @@ class WebQuery {
 	std::string dataprovider_;
 	bool isPolygon_;
 
+	static boost::posix_time::ptime
+	decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError );
+
 	
 public:
 	WebQuery( const std::string &queryToDecode );
