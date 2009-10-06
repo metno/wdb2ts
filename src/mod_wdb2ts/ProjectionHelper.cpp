@@ -447,6 +447,113 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 	return true;
 }
 
+bool
+ProjectionHelper::
+loadFromDBWciProtocol_4( pqxx::connection& con,
+		                   const wdb2ts::config::ActionParam &params
+		                 )
+{
+	WEBFW_USE_LOGGER( "handler" );
+
+	try {
+		pqxx::work work( con, "WciPlaceSpecification");
+		pqxx::result  res = work.exec( "SELECT * FROM wci.placespecification()" );
+
+		placenameMap.clear();
+
+		MiProjection::GridSpec gs;
+		MiProjection::ProjectionType pType;
+		int nCols;
+		int nRows;
+
+		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
+		{
+			nCols = row["numberX"].as<int>();
+			nRows = row["numberY"].as<int>();
+			gs[0] = row["startY"].as<float>();
+			gs[1] = row["startX"].as<float>();
+			gs[2] = row["incrementY"].as<float>();
+			gs[3] = row["incrementX"].as<float>();
+
+			// The SRIDs are hardcoded into the code, instead of trying to decode
+			// the PROJ string.
+			switch ( row["originalsrid"].as<int>() ) {
+			case 50000:
+				//From comments in milib shall gs allways be set to
+				//this value for geographic projection.
+				gs[0] = 1.0;
+				gs[1] = 1.0;
+				gs[2] = 1.0;
+				gs[3] = 1.0;
+				gs[4] = 0.0;
+				gs[5] = 0.0;
+				pType = MiProjection::geographic;
+				break;
+			case 50001: // Hirlam 10
+				gs[4] = -40.0;
+				gs[5] = 68.0;
+				pType = MiProjection::spherical_rotated;
+				break;
+			case 50002: // Hirlam 20
+				gs[4] = 0.0;
+				gs[5] = 65.0;
+				pType = MiProjection::spherical_rotated;
+				break;
+			case 50003: // PROFET
+				gs[4] = -24.0;
+				gs[5] = 66.5;
+				pType = MiProjection::spherical_rotated;
+				break;
+			case 50004: //Sea and wave models
+				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
+				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
+				gs[3] = 58;
+				gs[4] = 60;
+				gs[5] = 0.0;
+				pType = MiProjection::polarstereographic;
+				break;
+			case 50005: //Sea and wave models
+				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
+				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
+				gs[3] = 24;
+				gs[4] = 60;
+				gs[5] = 0.0;
+				pType = MiProjection::polarstereographic;
+				break;
+			default:
+				pType =  MiProjection::undefined_projection;
+				/*
+				gs[4] = 0.0;
+				gs[5] = 0.0;
+				pType = MiProjection::spherical_rotated;
+				*/
+				break;
+			}
+		/*
+		WEBFW_LOG_DEBUG( row.at("placename").c_str() << "i#: " << row.at("numberX").as<int>()
+			     << " j#: " << row.at("numberY").as<int>()
+			     << " incrX: " << row.at("incrementX").as<float>()
+			     << " incrY: " << row.at("incrementY").as<float>()
+			     << " startY: " << row.at("startY").as<float>()
+			     << " startX: " << row.at("startX").as<float>()
+			     << " srid: " << row.at("originalsrid").as<int>()
+			     << " proj: " << row.at("projdefinition").c_str() );
+		*/
+
+			placenameMap[row.at("placename").c_str()] = MiProjection( gs, pType );
+		}
+	}
+	catch( std::exception &ex ) {
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() );
+		return false;
+	}
+	catch( ... ) {
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" );
+		return false;
+	}
+
+	return true;
+}
 
 bool 
 ProjectionHelper::
@@ -458,9 +565,13 @@ loadFromDB( pqxx::connection& con,
 	
 	wciProtocol = wciProtocol_;
 	
-	if( wciProtocol > 1 )
+	if( wciProtocol > 1  && wciProtocol <= 3 )
 		return loadFromDBWciProtocol_2( con, params );
 	
+	if( wciProtocol >= 4 )
+		return loadFromDBWciProtocol_4( con, params );
+
+
 	return loadFromDBWciProtocol_1( con, params );
 }
 

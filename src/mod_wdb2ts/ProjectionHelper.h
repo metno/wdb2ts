@@ -144,10 +144,14 @@ protected:
 			findProjection( const std::string &provider );
 
 	bool loadFromDBWciProtocol_1( pqxx::connection& con, 
-			                        const wdb2ts::config::ActionParam &params );
+			                      const wdb2ts::config::ActionParam &params );
 	
 	bool loadFromDBWciProtocol_2( pqxx::connection& con, 
-				                     const wdb2ts::config::ActionParam &params );
+				                  const wdb2ts::config::ActionParam &params );
+
+	bool loadFromDBWciProtocol_4( pqxx::connection& con,
+			                      const wdb2ts::config::ActionParam &params );
+
 
 public:
 	
