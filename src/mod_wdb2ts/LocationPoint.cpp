@@ -174,7 +174,7 @@ latitude() const
 	if( latitude_ == INT_MIN )
 		throw logic_error( "The locationpoint is not initialized.");
 
-	return latitude_/LATLONG_DEG2INT;
+	return float(latitude_)/LATLONG_DEG2INT;
 }
 
 float
@@ -184,7 +184,7 @@ longitude() const
 	if( longitude_ == INT_MIN )
 			throw logic_error( "The locationpoint is not initialized.");
 
-	return longitude_/LATLONG_DEG2INT;
+	return float(longitude_)/LATLONG_DEG2INT;
 }
 
 int
