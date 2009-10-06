@@ -75,7 +75,7 @@ DEFINE_MI_PROFILE;
 namespace {
 	wdb2ts::ProviderList dummyProviderPriority;
 	wdb2ts::TopoProviderMap dummyTopoProvider;
-	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
+	//wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
 	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
 
@@ -140,6 +140,7 @@ EncodeLocationForecast::
 EncodeLocationForecast(): 
 	metaConf( dummyMetaConf ),
 	providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
+	topographyProviders( dummyTopoProvider ),
 	symbolConf( dummySymbolConfProvider )
 {
 	// NOOP
@@ -157,6 +158,7 @@ EncodeLocationForecast( LocationPointDataPtr locationPointData_,
                         ProviderPrecipitationConfig *precipitationConfig_,
                         const ProviderList &providerPriority_,
                         const TopoProviderMap &modelTopoProviders_,
+                        const TopoProviderMap &topographyProviders_,
                         const SymbolConfProvider &symbolConf_,
                         int expire_rand )
    : locationPointData( locationPointData_ ), projectionHelper( projectionHelper_ ),
@@ -166,6 +168,7 @@ EncodeLocationForecast( LocationPointDataPtr locationPointData_,
      precipitationConfig( precipitationConfig_ ),
      providerPriority( providerPriority_ ),
      modelTopoProviders( modelTopoProviders_),
+     topographyProviders( topographyProviders_ ),
      symbolConf( symbolConf_ ),
      expireRand( expire_rand )
 {
@@ -271,12 +274,12 @@ encodeSymbols( std::ostream &out,
 			else
 				startAt = itbt->prevTo;
 			
-			out << indent.spaces() << "<!-- Symbols (BreakTimes) timespan: " << (*it)->timespanInHours()  
-				 << " (" << itbt->provider << ")  " << startAt << " - " << itbt->to << "  -->" << endl;
-
 			SymbolHolder *sh = ptrSh.get();
-			
 			sh->initIndex( startAt );
+
+			out << indent.spaces() << "<!-- Symbols (BreakTimes) timespan: " << (*it)->timespanInHours()
+							 << " (" << itbt->provider << ")  " << startAt << " - " << itbt->to << " -->" << endl;
+
 			while ( sh->next(symbolid, name, idname, time, from, to, prob) && to <= itbt->to ) {
 				IndentLevel level3( indent );
 				TimeTag timeTag( 	from, to );
@@ -523,6 +526,9 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 		hoursIndex = 0;
 
 		for( hoursIndex = 0; hoursIndex < N; ++hoursIndex ) {
+
+			WEBFW_LOG_DEBUG( "encodePrecipitationMulti: " << itbt->provider << "  " << itbt->from  );
+
 			if( ! locationData->init( itbt->from, itbt->provider ) )
 				continue;
 
@@ -870,7 +876,7 @@ encode(  webfw::Response &response )
 		locationData.reset( new LocationData() );
 	} else if ( locationPointData->size() == 1 ){
 		locationData.reset( new LocationData( locationPointData->begin()->second, longitude, latitude, altitude,
-					                               providerPriority, modelTopoProviders ) );
+					                               providerPriority, modelTopoProviders, topographyProviders ) );
 
 		if( altitude == INT_MIN )
 			altitude = locationData->hightFromModelTopo();

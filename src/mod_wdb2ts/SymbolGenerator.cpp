@@ -108,8 +108,8 @@ computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
 SymbolHolder*
 SymbolGenerator::
 computeSymbols( LocationData& data,
-		          const std::string &provider,
-	             int min, int max, int precipHours, std::string &error )
+		        const std::string &provider,
+	            int min, int max, int precipHours, std::string &error )
 {
 	//stringstream ost;
 	symbolMaker sm;
@@ -195,6 +195,8 @@ computeSymbols( LocationData& data,
 		if( ( mitime.hour() % precipHours ) == 0 ) {
 			val = elem.PRECIP( precipHours, precipFromtime );
 			
+			//cerr << "computeSym: hour: " << precipHours << " from: " << precipFromtime << " to: " << mitime << " (min: " << min << " max: " << max << ") val: " << val << endl;
+
 			if( val != FLT_MAX ) {
 				//ost << " (17): " << val;
 				allParameters[17][mitime] = val;
@@ -226,8 +228,8 @@ computeSymbols( LocationData& data,
    //is garbage. 
   
    while ( tmpIt != tmpSymbols.end() ) 
-   	tmpIt = miutil::eraseElementIf( tmpSymbols, tmpIt, 
-   			                          (tmpIt->getTime().hour() % precipHours) != 0 );
+	   tmpIt = miutil::eraseElementIf( tmpSymbols, tmpIt,
+   			                           (tmpIt->getTime().hour() % precipHours) != 0 );
       
    symbols.reserve(tmpSymbols.size());
 
@@ -236,42 +238,42 @@ computeSymbols( LocationData& data,
    
    int nSymbols=0;
    boost::posix_time::ptime testTime;
+
    for ( vector<miSymbol>::size_type i=0; i<tmpSymbols.size(); ++i) {
-   	if ( symbolMaker::getErrorSymbol()==tmpSymbols[i] )
-   		continue;
+	   if ( symbolMaker::getErrorSymbol()==tmpSymbols[i] )
+		   continue;
          
-   	mitime = tmpSymbols[i].getTime();
-   	pTime = boost::posix_time::ptime( boost::gregorian::date( mitime.year(),
-   			                                                    mitime.month(),
-   			                                                    mitime.day() ),
-   			                            boost::posix_time::time_duration( mitime.hour(),
-   			                           		                             mitime.min(),
-   			                           		                             mitime.sec() )
-   	                                );
-   	testTime = pTime + boost::posix_time::hours( -1*min-1 );
+	   mitime = tmpSymbols[i].getTime();
+	   pTime = boost::posix_time::ptime( boost::gregorian::date( mitime.year(),
+   		                                                         mitime.month(),
+   			                                                     mitime.day() ),
+   			                             boost::posix_time::time_duration( mitime.hour(),
+   			                           		                               mitime.min(),
+   			                           		                               mitime.sec() )
+   	                                    );
+	   testTime = pTime + boost::posix_time::hours( -1*min-1 );
    	         
-   	if ( !data.hasDataForTime(testTime, testTime, provider ) )
-   		continue; 
+	   if ( !data.hasDataForTime(testTime, testTime, provider ) )
+		   continue;
       
-   	testTime = pTime + boost::posix_time::hours( max );
+	   testTime = pTime + boost::posix_time::hours( max );
    	
-      if ( data.hasDataForTime( testTime, testTime, provider ) ) {
-   		symbols.push_back(tmpSymbols[i]);
-   		nSymbols++;
-   	} 
+	   if ( data.hasDataForTime( testTime, testTime, provider ) ) {
+		   //cerr << "computeSym: insert: time: " << pTime << "(" << testTime<< ")  min (" << min << ") : " << -1*min-1 << " max: "<< max << endl;
+		   symbols.push_back(tmpSymbols[i]);
+		   nSymbols++;
+	   }
    }
    
    symbols.resize(nSymbols);
    
    try {   
-   	return new SymbolHolder(min, max, symbols);
+	   return new SymbolHolder(min, max, symbols);
    }
    catch ( ... ) {
    }
          
    return 0;
-
-   
 }
 
 ProviderSymbolHolderList 
@@ -292,10 +294,34 @@ computeSymbols( LocationData& data,
 			sh = computeSymbols( data, it->first, 
 					               itConf->min(), itConf->max(), itConf->precipHours(),
 					               myerror );
-			if( !sh )
+			if( !sh ) {
 				error += myerror;
-			else
-				symbols[it->first].push_back( boost::shared_ptr<SymbolHolder>( sh ) );
+			} else {
+				//If we allready have symbols for this provider and the timespan is equal we must merge the symbols.
+
+				ProviderSymbolHolderList::iterator itProvider = symbols.find( it->first );
+
+				if( itProvider != symbols.end() ) {
+					for( SymbolHolderList::iterator itSym = itProvider->second.begin();
+					     itSym != itProvider->second.end();
+					     ++itSym )
+					{
+						if( (*itSym)->timespanInHours() == sh->timespanInHours() ) {
+							SymbolHolder *mergedSymbols = (*itSym)->merge( *sh );
+
+							if( mergedSymbols ) {
+								delete sh;
+								sh = 0;
+								itSym->reset( mergedSymbols );
+								break;
+							}
+						}
+					}
+				}
+
+				if( sh )
+					symbols[it->first].push_back( boost::shared_ptr<SymbolHolder>( sh ) );
+			}
 		}
 	}
 	

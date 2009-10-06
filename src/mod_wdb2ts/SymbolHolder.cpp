@@ -302,7 +302,7 @@ operator<<(std::ostream &o, SymbolHolder &sh )
    	else
    		tost << " Prob: " << prob;
    	
-      o << from << " - " << to << " (" << time << ") " << sid << "    " << name << tost.str() << endl;
+      o << from << " - " << to << " (" << time << ") " << sid << "    " << name << " (" << idname << ")  " << tost.str() << endl;
    }
    
    return o;    

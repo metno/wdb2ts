@@ -82,7 +82,6 @@ DEFINE_MI_PROFILE;
 namespace {
 	wdb2ts::ProviderList dummyProviderPriority;
 	wdb2ts::TopoProviderMap dummyTopoProvider;
-	wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
 	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
 }
@@ -126,6 +125,7 @@ EncodeLocationForecastGml::
 EncodeLocationForecastGml()
 	:  gmlContext( 0 ), metaConf( dummyMetaConf ),
       providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
+      topographyProviders( dummyTopoProvider ),
       symbolConf( dummySymbolConfProvider ), isPolygon( false )
 {
 }
@@ -144,6 +144,7 @@ EncodeLocationForecastGml( Wdb2TsApp *app_,
                            ProviderPrecipitationConfig *precipitationConfig_,
                            const ProviderList &providerPriority_,
                            const TopoProviderMap &modelTopoProviders_,
+                           const TopoProviderMap &topographyProviders_,
                            const SymbolConfProvider &symbolConf_,
                            int expire_rand )
    : locationPointData( locationPointData_ ), gmlContext( projectionHelper_ ),
@@ -153,6 +154,7 @@ EncodeLocationForecastGml( Wdb2TsApp *app_,
      precipitationConfig( precipitationConfig_ ),
      providerPriority( providerPriority_ ),
      modelTopoProviders( modelTopoProviders_),
+     topographyProviders( topographyProviders_),
      symbolConf( symbolConf_ ),
      isPolygon( false ),
      app( app_ ),
@@ -921,8 +923,6 @@ encode(  webfw::Response &response )
 	
 	if( expireRand > 0 )
 		expire = expire + seconds( rand_r( &seed ) % expireRand );
-	
-	WEBFW_LOG_DEBUG( "encode: Number of locations: " << locationPointData->size() );
 
 	if( locationPointData->empty() ) {
 		locationData.reset( new LocationData() );
@@ -954,7 +954,7 @@ encode(  webfw::Response &response )
 			}
 
 			locationData.reset( new LocationData( it->second, longitude, latitude, altitude,
-							                      providerPriority, modelTopoProviders ) );
+							                      providerPriority, modelTopoProviders, topographyProviders ) );
 
 			if( altitude == INT_MIN )
 				altitude = locationData->hightFromModelTopo();

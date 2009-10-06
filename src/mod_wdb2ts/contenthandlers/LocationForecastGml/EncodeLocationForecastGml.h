@@ -130,6 +130,7 @@ class EncodeLocationForecastGml : public Encode
 
 	const ProviderList &providerPriority;
 	const TopoProviderMap &modelTopoProviders;
+	const TopoProviderMap &topographyProviders;
 	const SymbolConfProvider &symbolConf;
 
 	bool isPolygon;
@@ -204,6 +205,7 @@ public:
 			                   ProviderPrecipitationConfig *precipitationConfig,
 			                   const ProviderList &providerPriority,
 			                   const TopoProviderMap &modelTopoProviders,
+			                   const TopoProviderMap &topographyProviders,
 			                   const SymbolConfProvider &symbolConf,
 			                   int expire_rand
 			         		   );
