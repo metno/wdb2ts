@@ -243,7 +243,7 @@ decodePData( const ParamDefList &paramDefs,
 				continue;
 			}
 			
-			//cerr << "decode: pdRef: timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
+			//WEBFW_LOG_DEBUG( "decode: pdRef: timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 
 			itLpd = locationPointData.find( locationPoint );
 
@@ -252,7 +252,7 @@ decodePData( const ParamDefList &paramDefs,
 					itLpd = locationPointData.begin();
 
 				if( itLpd == locationPointData.end() ) {
-					WEBFW_LOG_DEBUG( "decodePData: new location point: " << locationPoint.iLatitude() << "/" << locationPoint.iLongitude() );
+					//WEBFW_LOG_DEBUG( "decodePData: new location point: " << locationPoint.iLatitude() << "/" << locationPoint.iLongitude() );
 					locationPointData[locationPoint] = TimeSeriePtr( new TimeSerie() );
 					itLpd = locationPointData.find( locationPoint );
 
@@ -289,7 +289,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			value = value*paramDef->scale()+paramDef->offset();
 			
-//			cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
+			WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 			
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;
@@ -304,6 +304,8 @@ decodePData( const ParamDefList &paramDefs,
 				pd.T2M = value;
 			} else if( paramDef->alias() == "T.2M.LAND" )
 				pd.T2M_LAND = value;
+			else if( paramDef->alias() == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
+				pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION = value;
 			else if( paramDef->alias() == "UU" )
 				pd.UU = value;
 			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
@@ -347,14 +349,18 @@ decodePData( const ParamDefList &paramDefs,
 				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
 				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
 			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
-				//string topo=it.at("dataprovidername").c_str()+string("__MODEL_TOPO__");
 				string topo=providerWithPlacename+string("__MODEL_TOPO__");
 				ptime topoTime( boost::gregorian::date(1970, 1, 1),
 						          boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
 				(*itLpd->second)[topoTime][topoTime][topo].modeltopography = value;
-			}
-			else if( paramDef->alias() == "TOTAL.CLOUD" )
+			} else if( paramDef->alias() == "TOPOGRAPHY" ) {
+				string topo=providerWithPlacename+string("__TOPOGRAPHY__");
+				ptime topoTime( boost::gregorian::date(1970, 1, 1),
+						boost::posix_time::time_duration( 0, 0, 0 ) );
+				WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
+				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
+			}else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;
 			else if( paramDef->alias() == "FOG" )
 				pd.fog = value;

@@ -54,6 +54,7 @@ class LocationData
 	
 	ProviderList providerPriority_;
 	TopoProviderMap modelTopoProviders_;
+	TopoProviderMap topographyProviders_;
 	TimeSeriePtr timeSeriePtr;
 	TimeSerie *timeSerie;
 	CITimeSerie itTimeSerie;
@@ -68,8 +69,8 @@ public:
 	LocationData( wdb2ts::TimeSeriePtr timeSerie,
 				  float longitude, float latitude, int hight,
 			      const ProviderList &providerPriority,
-			      const TopoProviderMap &modelTopoProviders );
-	
+			      const TopoProviderMap &modelTopoProviders,
+			      const TopoProviderMap &topographyProviders );
 	~LocationData();
 	
 	float latitude() const { return locationElem.latitude(); }

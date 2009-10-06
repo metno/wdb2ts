@@ -40,12 +40,14 @@ LocationData::
 LocationData( wdb2ts::TimeSeriePtr timeSerie_, 
 				  float longitude, float latitude, int hight,
 		        const ProviderList &providerPriority,
-		        const TopoProviderMap &modelTopoProviders )
+		        const TopoProviderMap &modelTopoProviders,
+		        const TopoProviderMap &topographyProviders )
  	: providerPriority_( providerPriority ),
 	  modelTopoProviders_( modelTopoProviders ),
+	  topographyProviders_( topographyProviders ),
  	  timeSeriePtr( timeSerie_ ),
  	  timeSerie( timeSeriePtr.get() ),
- 	  locationElem( providerPriority, modelTopoProviders, longitude, latitude, hight )
+ 	  locationElem( providerPriority, modelTopoProviders, topographyProviders, longitude, latitude, hight )
 {
 	if( timeSerie )
 		itTimeSerie = timeSerie->begin();
@@ -88,9 +90,10 @@ hightFromModelTopo()
 bool
 LocationData::
 hasDataForTime( const boost::posix_time::ptime &fromtime, 
-			       const boost::posix_time::ptime &totime,
-			       const std::string &provider ) const
+			    const boost::posix_time::ptime &totime,
+			    const std::string &provider ) const
 {
+
 	if( ! timeSerie )
 		return false;
 	
@@ -108,7 +111,7 @@ hasDataForTime( const boost::posix_time::ptime &fromtime,
 	
 	if( itpdl == itfts->second.end() )
 		return false;
-	
+
 	return true;
 }	
 
