@@ -289,7 +289,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			value = value*paramDef->scale()+paramDef->offset();
 			
-			WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
+			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 			
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;
