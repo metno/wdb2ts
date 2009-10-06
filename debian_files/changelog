@@ -1,3 +1,11 @@
+metno-wdb2ts (0.5.0-dev-8) unstable; urgency=low
+  * Fix bug in symbol and precipitation generation for multiple providers.
+  * Add new SRID for EC.
+  * Added a posibility to stop after a given database request. Use "stop_if_data=true" attribut in the query tag.
+  * Allow use of ' to protect strings in provider_priority (placename).
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 06 Oct 2009 12:50:00 +0200
+
 metno-wdb2ts (0.5.0-dev-7) unstable; urgency=low
   * Support polygon request in mox format.
   * Allow use of ' to protect strings in provider_priority.

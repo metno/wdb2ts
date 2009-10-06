@@ -22,12 +22,14 @@ public:
 	{
 		std::string query_;
 		bool probe_;
+		bool stopIfData_;
 	public:
-		QueryElement( const std::string &query, bool probe )
-			: query_( query ), probe_( probe ) {}
+		QueryElement( const std::string &query, bool probe, bool stopIfData )
+			: query_( query ), probe_( probe ), stopIfData_( stopIfData ) {}
 		
 		std::string query()const { return query_;}
 		bool probe()const { return probe_; }
+		bool stopIfData() const { return stopIfData_; }
 	};
 	
 	typedef std::list< QueryElement >      Query;

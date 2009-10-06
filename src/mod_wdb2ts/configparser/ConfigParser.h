@@ -22,6 +22,7 @@ class ConfigParser : public miutil::SAXParser
 	Config::QueryDefs::iterator itCurrentQueryDef;
 	ParamDef currentParamDef;
 	bool currentQueryProbe;
+	bool currentQueryStopIfData;
 	std::list<std::string> currentParamDefProvider;
 	
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );

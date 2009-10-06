@@ -138,12 +138,21 @@ ConfigParser::
 doQuery( const AttributeMap &attributes )
 {
 	string probe;
+	string stopIfData;
 	getAttr( attributes, "must_have_data", probe, "false" );
 	
 	if( !probe.empty() && (probe[0]=='t' || probe[0]=='T') )
 		currentQueryProbe = true;
 	else
 		currentQueryProbe = false;
+
+
+	getAttr( attributes, "stop_if_data", stopIfData, "false" );
+
+	if( !stopIfData.empty() && (stopIfData[0]=='t' || stopIfData[0]=='T') )
+		currentQueryStopIfData = true;
+	else
+		currentQueryStopIfData = false;
 }
 
 bool
@@ -153,7 +162,7 @@ doQueryDef( const AttributeMap &attributes )
 	string id;
 	
 	if( ! getAttr( attributes, "id", id) || id.empty() ) {
-		error("Mandatory 'querydef' attribute 'id' missiung.");
+		error("Mandatory 'querydef' attribute 'id' missing.");
 		return false;
 	}
 	
@@ -553,7 +562,7 @@ endElement( const std::string &name )
 
 		if( !buf.empty() ) {
 			if( itCurrentQueryDef != config->querys.end() ){
-				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe ) );
+				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe, currentQueryStopIfData ) );
 			}
 		}
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {

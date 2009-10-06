@@ -75,6 +75,7 @@ operator () ( argument_type &t )
 	string dbProfileProvider__; //Only used when profiling
 	string decodeProfileProvider__; //Only used when profiling
 	bool   mustHaveData;
+	bool   stopIfQueryHasData;
 	
 	WEBFW_USE_LOGGER( "handler" );
 
@@ -98,7 +99,7 @@ operator () ( argument_type &t )
 		while ( wdbQueryHelper.hasNext() ) {
 			try {
 				START_MARK_MI_PROFILE("WciReadLocationForecast::wdbQueryHelper::next");
-				wciReadQuery = wdbQueryHelper.next( mustHaveData );
+				wciReadQuery = wdbQueryHelper.next( mustHaveData, stopIfQueryHasData );
 				STOP_MARK_MI_PROFILE("WciReadLocationForecast::wdbQueryHelper::next");
 				
 			}
@@ -125,6 +126,9 @@ operator () ( argument_type &t )
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, isPloygon, *locationPointData );
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
+
+			if( stopIfQueryHasData && !res.empty() )
+				return;
 		}
 	}
 	catch( const exception &ex ){

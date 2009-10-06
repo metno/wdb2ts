@@ -378,6 +378,7 @@ hasNext( )
 		
 		q = position + itNext->query();
 		queryMustHaveData = itNext->probe();
+		stopIfQueryHasData = itNext->stopIfData();
 		
 		webQuery.decode( q );
 	
@@ -471,9 +472,10 @@ hasNext( )
 
 std::string 
 WdbQueryHelper::
-next(  bool &mustHaveData )
+next(  bool &mustHaveData, bool &stopIfData )
 {
 	mustHaveData = queryMustHaveData;
+	stopIfData = stopIfQueryHasData;
 	
 	if( refTimeFrom_IsEqualTo_ReftTimeTo )
 		return webQuery.wciReadQuery();

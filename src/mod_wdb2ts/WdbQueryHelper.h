@@ -66,6 +66,7 @@ class WdbQueryHelper
 	std::string reftimeProvider;
 	WciWebQuery webQuery;
 	bool        queryMustHaveData; 
+	bool        stopIfQueryHasData;
 	bool        refTimeFrom_IsEqualTo_ReftTimeTo;
 	bool        isPolygon;
 	
@@ -138,7 +139,7 @@ public:
 	 * @exception std::logic_error
 	 * @exception wdb2ts::NoReftime when we dont have  any data for a providerid.
 	 */
-	std::string next( bool &mustHaveData );
+	std::string next( bool &mustHaveData, bool &stopIfData );
 	
 };
 
