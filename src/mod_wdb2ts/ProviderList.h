@@ -49,7 +49,7 @@ struct ProviderItem {
 		{}
 	
 	explicit ProviderItem( const std::string &provider_, 
-			                 const std::string &placename_ )
+			               const std::string &placename_ )
 			: provider( provider_ ), placename( placename_ )
 			{}
 		
@@ -118,10 +118,14 @@ public:
 
 	/**
 	 * Decode a string on the form 'provider [placename0, placename1, .., placenameN]'
-	 * to a ProviderList.
+	 * to a ProviderList. If placename contain the character ',' it must be protected
+	 * with a ' characters. Ex if the placename is:  1440,721 res 0.25 start -179.75,-90
+	 * it must be giaven as '1440,721 res 0.25 start -179.75,-90'.
+	 *
 	 */
 	static ProviderList decode( const std::string &toDecode );
 	static ProviderList decode( const std::string &toDecode, std::string &provider );
+
 	static ProviderItem decodeItem( const std::string &toDecode );
 
 	ProviderList providerListWithoutPlacename() const;
@@ -131,7 +135,7 @@ public:
 
 /**
  * For providers that is not defined with a placename, search the database and 
- * set the placename. The priority for the placename for these providers is 
+ * set the placename. The priority for the placename for these providers is
  * unpredictable.
  */
 ProviderList

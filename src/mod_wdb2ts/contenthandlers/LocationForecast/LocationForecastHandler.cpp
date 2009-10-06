@@ -191,19 +191,21 @@ configure( const wdb2ts::config::ActionParam &params,
 		app->notes.setNote( updateid+".LocationForecastWdbId", new NoteString( wdbDB ) );
 	
 	//configureProviderPriority( params, app );
-	
+	/*
 	for( it = params.begin(); it!=params.end(); ++it ) {
-		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
-		
-		if( i != string::npos && i==0 ) {
-			ProviderItem item = ProviderList::decodeItem( it->first );
-			string provider = item.providerWithPlacename();
-			provider.erase(0, MODEL_TOPO_PROVIDER_KEY.size() );
-			item = ProviderList::decodeItem( it->second.asString() );
-			WEBFW_LOG_INFO( "Configure modeltopo provider alias: " << provider << " --> " << item.providerWithPlacename() );
-			modelTopoProviders[provider]= item.providerWithPlacename();
+			string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
+
+			if( i != string::npos && i==0 ) {
+				ProviderItem item = ProviderList::decodeItem( it->first );
+				string provider = item.providerWithPlacename();
+				provider.erase(0, MODEL_TOPO_PROVIDER_KEY.size() );
+				item = ProviderList::decodeItem( it->second.asString() );
+				WEBFW_LOG_INFO( "Configure modeltopo provider alias: " << provider << " --> " << item.providerWithPlacename() );
+				modelTopoProviders[provider]= item.providerWithPlacename();
+			}
 		}
-	}
+	*/
+	modelTopoProviders = configureModelTopographyProvider( params );
 	
 	configureSymbolconf( params, symbolConf_ );
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
@@ -407,6 +409,7 @@ get( webfw::Request  &req,
 									   precipitationConfig,
 									   providerPriority,
 									   modelTopoProviders,
+									   topographyProviders,
 									   symbolConf,
 									   expireRand );
 		MARK_ID_MI_PROFILE("encodeXML");  

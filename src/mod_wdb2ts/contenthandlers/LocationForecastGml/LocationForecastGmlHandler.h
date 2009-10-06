@@ -42,6 +42,7 @@
 #include <MetaModelConf.h>
 #include <ProjectionHelper.h>
 #include <PrecipitationConfig.h>
+#include <TopoProvider.h>
 
 namespace wdb2ts {
 
@@ -108,6 +109,7 @@ private:
    ProviderList        providerPriority_;
    bool                providerPriorityIsInitialized;
    TopoProviderMap     modelTopoProviders;
+   TopoProviderMap     topographyProviders;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  

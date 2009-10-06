@@ -41,18 +41,20 @@
 
 using namespace std;
 
+namespace {
 
-namespace wdb2ts {
-
-ProviderList
-ProviderList::
-decode( const std::string &toDecode_, std::string &provider )
+wdb2ts::ProviderList
+decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayBeList )
 {
+	using namespace wdb2ts;
+
 	string toDecode( toDecode_ );
 	ProviderList pList;
 	string::size_type i = toDecode.find("[");
 	
 	WEBFW_USE_LOGGER( "handler" );
+
+	WEBFW_LOG_DEBUG( "ProviderList::decode_: toDecode '" << toDecode <<"' mayBeList: "  << (toDecodeMayBeList ? "true":"false") );
 
 	if( i == string::npos ) {
 		pList.push_back( ProviderItem( toDecode ) );
@@ -64,7 +66,7 @@ decode( const std::string &toDecode_, std::string &provider )
 	miutil::trimstr( provider );
 	
 	if( provider.empty() ) {
-		WEBFW_LOG_ERROR( "ProviderList::decode provider priority failed. Expecting a definition on the form "
+		WEBFW_LOG_ERROR( "ProviderList::decode_ provider priority failed. Expecting a definition on the form "
 		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" );
 		return pList;
 	}
@@ -74,35 +76,70 @@ decode( const std::string &toDecode_, std::string &provider )
 	i = toDecode.find("]");
 	
 	if( i == string::npos ) {
-		WEBFW_LOG_ERROR( "ProviderList::Decode provider priority failed. Expecting a definition on the form "
+		WEBFW_LOG_ERROR( "ProviderList::Decode_ provider priority failed. Expecting a definition on the form "
 		     << " 'provider [placename, placename1, ... ]', but got '" << toDecode_ << "'" );
 		return pList;
 	}
 	
 	toDecode.erase( i );
+	miutil::trimstr( toDecode );
 	
-	vector<string> placenames = miutil::splitstr( toDecode, ',', '\'' );
+	if( toDecodeMayBeList ) {
+		vector<string> placenames = miutil::splitstr( toDecode, ',', '\'' );
 	
-	if( placenames.empty() ) {
-		pList.push_back( ProviderItem( provider ) );
-		return pList;
-	}
+		if( placenames.empty() ) {
+			pList.push_back( ProviderItem( provider ) );
+			return pList;
+		}
 
 	
-	for( vector<string>::size_type index=0; index < placenames.size(); ++index ) {
-		string buf( placenames[index] );
-		miutil::trimstr( buf );
+		for( vector<string>::size_type index=0; index < placenames.size(); ++index ) {
+			string buf( placenames[index] );
+			miutil::trimstr( buf );
 		
-		if( buf.empty() )
-			continue;
-		
-		pList.push_back( ProviderItem( provider, buf ) );
+			if( buf.empty() )
+				continue;
+
+			if( buf.length() >= 2 && buf[0]=='\'' && buf[buf.length()-1] == '\'' ) {
+				buf  = buf.substr(1, buf.length()-2 );
+				miutil::trimstr( buf );
+			}
+
+			WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << buf << "]");
+			pList.push_back( ProviderItem( provider, buf ) );
+		}
+	} else {
+		if( toDecode.length() >= 2 && toDecode[0]=='\'' && toDecode[toDecode.length()-1] == '\'' ) {
+			toDecode  = toDecode.substr(1, toDecode.length()-2 );
+			miutil::trimstr( toDecode );
+		}
+
+		if( !toDecode.empty() ) {
+			WEBFW_LOG_DEBUG( "ProviderList::decode_: '" << provider << "'  [" << toDecode << "]");
+			pList.push_back( ProviderItem( provider, toDecode ) );
+		}
 	}
 	
 	if( pList.empty() ) 
 		pList.push_back( ProviderItem( provider ) );
 	
+	for( ProviderList::iterator it = pList.begin(); it!=pList.end(); ++it)
+		WEBFW_LOG_DEBUG( "ProvderList::decode: pList: '" << it->providerWithPlacename() << "'" );
+
 	return pList;
+}
+
+
+}
+
+
+namespace wdb2ts {
+
+ProviderList
+ProviderList::
+decode( const std::string &toDecode_, std::string &provider )
+{
+	return decode_( toDecode_, provider, true );
 }
 
 ProviderList 
@@ -111,15 +148,16 @@ decode( const std::string &toDecode_ )
 {
 	string dummy;
 	
-	return decode( toDecode_, dummy );
+	return decode_( toDecode_, dummy, true );
 }
 
 
 ProviderItem 
 ProviderList::
-decodeItem( const std::string &toDecode )
+decodeItem( const std::string &toDecode)
 {
-	ProviderList pvList = decode( toDecode );
+	string dummy;
+	ProviderList pvList = decode_( toDecode, dummy, false );
 	
 	if( pvList.empty() )
 		return ProviderItem();
@@ -144,8 +182,8 @@ findProvider( const std::string &providerWithPlacename )const
 ProviderList::const_iterator 
 ProviderList::
 findProvider( const std::string &provider, 
-			     const std::string &pointPlacename_,
-			     std::string &providerWithplacename)const
+			  const std::string &pointPlacename_,
+			  std::string &providerWithplacename)const
 {
 	string placename;
 	string::size_type i = pointPlacename_.find_last_of( ")" );
@@ -221,8 +259,8 @@ providerListWithoutPlacename() const
 
 ProviderList
 providerPrioritySetPlacename( const ProviderList &pvList, 
-										const std::string &wdbDB,
-										Wdb2TsApp *app )
+				              const std::string &wdbDB,
+							  Wdb2TsApp *app )
 {
 	WciConnectionPtr wciConnection;
 	ProviderList resList;
@@ -249,8 +287,8 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 		try {
 			ProviderRefTimeList dummyRefTimeList;
 			ProviderRefTime providerReftimeTransactor( dummyRefTimeList, 
-					                                     it->provider, 
-					                                     "NULL" );
+					                                   it->provider,
+					                                   "NULL" );
 
 			wciConnection->perform( providerReftimeTransactor, 3 );
 			PtrProviderRefTimes res = providerReftimeTransactor.result();
@@ -261,9 +299,10 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 			for( ProviderRefTimeList::iterator pit = res->begin(); 
 			     pit != res->end(); 
 			     ++pit ) {
-				ProviderList tmp = ProviderList::decode( pit->first );
-				for( ProviderList::size_type i=0; i < tmp.size(); ++i )
-					resList.push_back( tmp[i] );
+				ProviderItem tmp = ProviderList::decodeItem( pit->first );
+
+				if( ! tmp.provider.empty() )
+					resList.push_back( tmp );
 			}
 		}
 		catch( const std::ios_base::failure &ex ) {
@@ -279,7 +318,7 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 			WEBFW_LOG_ERROR( "unknown: LocationForecastHandler::providerPrioritySetPlacename" );
 		}
 	}
-		
+
 	return resList;			
 }
 
@@ -326,6 +365,11 @@ configureProviderList( const wdb2ts::config::ActionParam &params,
 		WEBFW_LOG_DEBUG(logMsg.str());
 	}
 	
+
+	cerr << "configureProviderList: #" << retProviderPriority.size() << endl;
+	for( ProviderList::iterator it = retProviderPriority.begin(); it!= retProviderPriority.end(); ++it )
+		cerr << "configureProviderList: '" << it->providerWithPlacename() << "'" << endl;
+
 	return retProviderPriority;
 }
 

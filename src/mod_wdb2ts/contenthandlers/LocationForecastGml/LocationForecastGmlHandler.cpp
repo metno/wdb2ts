@@ -193,7 +193,8 @@ configure( const wdb2ts::config::ActionParam &params,
 	
 	
 	//configureProviderPriority( params, app );
-		
+
+	/*
 	for( it = params.begin(); it!=params.end(); ++it ) {
 		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
 		
@@ -206,6 +207,9 @@ configure( const wdb2ts::config::ActionParam &params,
 			modelTopoProviders[provider]= item.providerWithPlacename();
 		}
 	}
+	*/
+
+	modelTopoProviders = configureModelTopographyProvider( params );
 	
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
@@ -414,6 +418,7 @@ get( webfw::Request  &req,
    			                              precipitationConfig,
    			                              providerPriority,
    			                              modelTopoProviders,
+   			                              topographyProviders,
    			                              symbolConf,
    			                              expireRand );
 
