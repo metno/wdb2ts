@@ -20,6 +20,7 @@ set -e
 . /usr/share/debconf/confmodule
 
 WDB2TS_DIRS="/var/lib/metno-wdb2ts
+             /var/lib/metno-wdb2ts/tmp
              /var/log/metno-wdb2ts" 
 
 case "$1" in

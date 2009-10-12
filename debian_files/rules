@@ -27,6 +27,7 @@ configure-stamp:
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) \
 	            --with-wdb2ts-configdir=/etc/metno-wdb2ts \
 	            --with-wdb2ts-logdir=/var/log/metno-wdb2ts \
+	            --with-wdb2ts-tmpdir=/var/lib/metno-wdb2ts/tmp \
 	            --prefix=/usr \
 	            --with-apxs=/usr/bin/apxs2 \
                 --with-libcurl \

@@ -1,3 +1,10 @@
+metno-wdb2ts (0.5.0-dev-9) unstable; urgency=low
+  * Reduce memory footprint for polygon request.
+  * Add paramet for wessel icing index and visibility. 
+  
+ -- Borge Moe <borge.moe@met.no>  Mon, 12 Oct 2009 12:30:00 +0200
+
+
 metno-wdb2ts (0.5.0-dev-8) unstable; urgency=low
   * Fix bug in symbol and precipitation generation for multiple providers.
   * Add new SRID for EC.
