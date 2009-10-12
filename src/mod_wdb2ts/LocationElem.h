@@ -292,6 +292,7 @@ public:
     */
    float PRECIP( int horsBack, boost::posix_time::ptime &fromtime,bool tryHard=false )const;
    float NN( bool tryHard=false )const;
+   float visibility( bool tryHard=false )const;
    float fog( bool tryHard=false )const;
    float highCloud( bool tryHard=false )const;
    float mediumCloud( bool tryHard=false )const;
@@ -335,6 +336,8 @@ public:
    int   symbol( boost::posix_time::ptime &fromTime, bool tryHard=false )const;
       
    
+   float iceingIndex( bool tryHard=false  )const;
+
    /*ocean parameters.*/
    float seaCurrentVelocityU( bool tryHard=false )const; 
    float seaCurrentVelocityV( bool tryHard=false )const;

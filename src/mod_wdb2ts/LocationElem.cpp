@@ -417,6 +417,15 @@ NN(bool tryHard)const
 			         const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
+float
+LocationElem::
+visibility( bool tryHard)const
+{
+	return getValue( &PData::visibility,
+			         itTimeSerie->second,
+				     const_cast<ptime&>(itTimeSerie->first),
+				     const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+}
 
 float
 LocationElem::
@@ -801,6 +810,16 @@ symbol( boost::posix_time::ptime &fromTime, bool tryHard)const
 }
 
 float 
+LocationElem::
+iceingIndex( bool tryHard )const
+{
+	return getValue( &PData::iceingIndex,
+			         itTimeSerie->second,
+				     const_cast<ptime&>(itTimeSerie->first),
+				     const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
 LocationElem::
 seaCurrentVelocityU( bool tryHard )const
 {

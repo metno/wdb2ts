@@ -46,7 +46,7 @@ namespace wdb2ts {
 
 
 struct PData{
-	float windV10m;
+   float windV10m;
    float windU10m;
    float PP;
    float PR;
@@ -70,8 +70,10 @@ struct PData{
    float meanTotalWaveDirection;
    float significantTotalWaveHeight;
    float seaIcePresence;
+   float iceingIndex;
    float seaBottomTopography;
    float NN;
+   float visibility;
    float fog;
    float highCloud;
    float mediumCloud;
@@ -114,9 +116,9 @@ struct PData{
    	 seaCurrentVelocityV( FLT_MAX ), seaSalinity( FLT_MAX ),
    	 seaSurfaceHeight( FLT_MAX ), seaTemperature( FLT_MAX ),
    	 meanTotalWaveDirection( FLT_MAX ), significantTotalWaveHeight( FLT_MAX ),
-   	 seaIcePresence( FLT_MAX), 
+   	 seaIcePresence( FLT_MAX), iceingIndex( FLT_MAX ),
    	 seaBottomTopography( FLT_MAX ),
-   	 NN( FLT_MAX ), fog( FLT_MAX ), 
+   	 NN( FLT_MAX ), visibility( FLT_MAX), fog( FLT_MAX ),
    	 highCloud( FLT_MAX ), mediumCloud( FLT_MAX ), lowCloud( FLT_MAX ),
    	 RH2M( FLT_MAX ), thunderProability( FLT_MAX ), fogProability( FLT_MAX ),
    	 WIND_PROBABILITY( FLT_MAX ),
@@ -159,9 +161,9 @@ struct PData{
        seaSalinity( pd.seaSalinity ),
        seaSurfaceHeight( pd.seaSurfaceHeight ), seaTemperature( pd.seaTemperature ),
        meanTotalWaveDirection( pd.meanTotalWaveDirection ), significantTotalWaveHeight( pd.significantTotalWaveHeight ),
-       seaIcePresence( pd.seaIcePresence ), 
+       seaIcePresence( pd.seaIcePresence ), iceingIndex( pd.iceingIndex ),
        seaBottomTopography( pd.seaBottomTopography ),
-       NN(pd.NN), fog(pd.fog),
+       NN(pd.NN), visibility( pd.visibility), fog(pd.fog),
        highCloud(pd.highCloud), mediumCloud(pd.mediumCloud),
        lowCloud(pd.lowCloud),RH2M(pd.RH2M), 
        thunderProability( pd.thunderProability ), fogProability( pd.fogProability ),
@@ -217,8 +219,10 @@ struct PData{
          meanTotalWaveDirection       = rhs.meanTotalWaveDirection;
          significantTotalWaveHeight = rhs.significantTotalWaveHeight;
          seaIcePresence = rhs.seaIcePresence;
+         iceingIndex = rhs.iceingIndex;
          seaBottomTopography = rhs.seaBottomTopography;
          NN       = rhs.NN;
+         visibility = rhs.visibility;
          fog      = rhs.fog;
          highCloud   = rhs.highCloud;
          mediumCloud = rhs.mediumCloud;

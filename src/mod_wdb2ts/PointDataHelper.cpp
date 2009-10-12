@@ -348,6 +348,8 @@ decodePData( const ParamDefList &paramDefs,
 						         boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
 				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
+			}else if( paramDef->alias() == "iceingIndex" ) {
+				pd.iceingIndex = value;
 			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
 				string topo=providerWithPlacename+string("__MODEL_TOPO__");
 				ptime topoTime( boost::gregorian::date(1970, 1, 1),
@@ -362,6 +364,8 @@ decodePData( const ParamDefList &paramDefs,
 				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
 			}else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;
+			else if( paramDef->alias() == "visibility" )
+				pd.visibility = value;
 			else if( paramDef->alias() == "FOG" )
 				pd.fog = value;
 			else if( paramDef->alias() == "LOW.CLOUD" )
