@@ -211,7 +211,7 @@ getWith( char_type *buf, std::streamsize N )
 
 	if( gWith < with.length() ) {
 		n = with.length()-gWith;
-		n = std::min( n, N );
+		n = std::min( n, static_cast<int>(N) );
 		with.copy( buf, n, gWith );
 		gWith += n;
 	}
