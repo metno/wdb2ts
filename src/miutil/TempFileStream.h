@@ -60,7 +60,7 @@ public:
 	 *  file is removed when the instace goes out of scope.
 	 * @throws std::logic_error if the file cant be created.
 	 */
-	std::fstream& create( const std::string &prefix, const std::string &path="" );
+	std::fstream *create( const std::string &prefix, const std::string &path="" );
 	std::string filename()const { return filename_; }
 };
 

@@ -49,7 +49,7 @@ TempFileStream::
 		unlink( filename_.c_str() );
 }
 
-std::fstream&
+std::fstream*
 TempFileStream::
 create(const std::string &prefix, const std::string &path )
 {
@@ -87,7 +87,7 @@ create(const std::string &prefix, const std::string &path )
 		throw logic_error("Cant reopen temporary file as an fstream: " + filename_ );
 	}
 
-	return fs;
+	return &fs;
 }
 
 
