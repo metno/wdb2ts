@@ -59,15 +59,19 @@
 #include <PrecipitationPercentileTags.h>
 #include <Indent.h>
 #include <replace.h>
+#include <StreamReplace.h>
 #include <wdb2tsProfiling.h>
 #include <ptimeutil.h>
 #include <probabilityCode.h>
 #include <SymbolGenerator.h>
 #include <Logger4cpp.h>
+#include <TempFileStream.h>
 
 
 // SYSTEM INCLUDES
 //
+#include <fstream>
+#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -540,7 +544,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 {
 	WEBFW_USE_LOGGER( "encode" );
 
-	WEBFW_LOG_DEBUG( "encodeMoment: from: " << from );
+	//WEBFW_LOG_DEBUG( "encodeMoment: from: " << from );
 	
 	if( ! locationData->init( from ) ) {
 		WEBFW_LOG_WARN( "encodeMoment: from: " << from << " NO data!" );
@@ -748,7 +752,8 @@ encodeHeader( std::string &result )
 	
 	if( breakTimes.empty() ) {
 		WEBFW_LOG_DEBUG( "encodeHeader: No breaktimes." );
-		replace( result, metatemplate, "" );
+		//replace( result, metatemplate, "" );
+		result = "";
 		return;
 	}
 	
@@ -816,7 +821,8 @@ encodeHeader( std::string &result )
 		timeTag.output( ost, indent );
 	}
 		
-	replace( result, metatemplate, ost.str(), 1 );
+	result = ost.str();
+	//replace( result, metatemplate, ost.str(), 1 );
 }
 
 
@@ -835,7 +841,8 @@ encodeMeta( std::string &result )
 	
 	
 	if( breakTimes.empty() ) {
-		replace( result, metatemplate, "" );
+		//replace( result, metatemplate, "" );
+		result = "";
 		return;
 	}
 	
@@ -886,7 +893,8 @@ encodeMeta( std::string &result )
 		ost << level2.indent() << "</meta>\n";
 	}
 	
-	replace( result, metatemplate, ost.str() );
+	//replace( result, metatemplate, ost.str() );
+	result = ost.str();
 }
 
 void  
@@ -894,18 +902,37 @@ EncodeLocationForecastGml::
 encode(  webfw::Response &response )
 {
 	miutil::Indent indent;
-	ostringstream ost;
+	stringstream sost;
+	fstream      fost;
+	iostream     *tmpost;
 	string        result;
 	ptime validFrom;
 	ptime validTo;
 	ptime expire;
 	LocationDataPtr myLocationData;
 	string error;
+	string temporaryFilenamePrefix("metno_wdb2ts");
+	miutil::TempFileStream tempFile;
   	
  	USE_MI_PROFILE;
  	MARK_ID_MI_PROFILE("EncodeGML");
  	WEBFW_USE_LOGGER( "encode" );
  	
+
+ 	if( isPolygon ) {
+ 		try{
+ 			tmpost = tempFile.create( temporaryFilenamePrefix, app->getTmpDir() );
+ 		}
+ 		catch( const exception &ex ) {
+ 			WEBFW_LOG_DEBUG("encode: Could not create temporary file in directory <" << app->getTmpDir() << ">");
+ 			tmpost = &sost;
+ 		}
+ 	} else {
+ 		tmpost = &sost;
+ 	}
+
+ 	iostream &ost = *tmpost;
+
  	//Use one decimal precision as default.
  	ost.setf(ios::floatfield, ios::fixed);
  	ost.precision(1);
@@ -914,8 +941,7 @@ encode(  webfw::Response &response )
  	unsigned int seed=static_cast<unsigned int>(time(0));
  	
  	response.contentType("text/xml");
- 	response.directOutput( true );
-	
+
  	expire = second_clock::universal_time();
 	expire += hours( 1 );
 	expire = ptime( expire.date(), 
@@ -936,7 +962,7 @@ encode(  webfw::Response &response )
 		//Make room for the meta tag.
 		ost << metatemplate;
 
-		for( LocationPointData::const_iterator it = locationPointData->begin();
+		for( LocationPointData::iterator it = locationPointData->begin();
 				it != locationPointData->end();
 				++it )
 		{
@@ -963,21 +989,42 @@ encode(  webfw::Response &response )
 			IndentLevel level2( indent );
 			encodeMoment( from, ost, indent );
 			encodePeriods( from, ost, indent );
+
+			//Delete the dataset. We don't need it anymore
+			it->second.reset();
 		}
 	}
 
-	result = ost.str();
-	
-	encodeHeader( result );
+	//result = ost.str();
+	string header;
+	encodeHeader( header );
 	//encodeMeta( result );
 	
 	MARK_ID_MI_PROFILE("EncodeGML");
 	response.expire( expire );
-	response.contentLength( result.size() );
-	
-	MARK_ID_MI_PROFILE("SendGML");
-	response.out() << result;
-	MARK_ID_MI_PROFILE("SendGML");
+	ost.flush();
+
+	ost.seekg( 0, ios::end );
+
+	int contentLength = ost.tellg();
+	contentLength = contentLength - metatemplate.length() + header.length();
+
+	WEBFW_LOG_DEBUG("ContentLength: " << contentLength );
+
+	if( contentLength < 0  )
+		contentLength = 0;
+
+	response.contentLength( contentLength );
+
+	//response.out() << result;
+
+	if( contentLength > 0 ) {
+		MARK_ID_MI_PROFILE("SendGML");
+		ost.seekg( 0, ios::beg );
+		miutil::istreamreplace toSendStream( miutil::StreamReplaceSource(ost, metatemplate, header, 1 ) );
+		response.sendStream(  toSendStream );
+		MARK_ID_MI_PROFILE("SendGML");
+	}
 }
 
 /**
