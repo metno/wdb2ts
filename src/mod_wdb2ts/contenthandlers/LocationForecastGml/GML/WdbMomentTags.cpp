@@ -291,6 +291,11 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 		out << indent << "<mox:totalCloudCover uom=\"percent\">" << value << "</mox:totalCloudCover>\n";
       count++;
    }
+	value = pd->visibility();
+	if( value != FLT_MAX ) {
+		out << indent << "<mox:visibility uom=\"m\">" << value << "</mox:visibility>\n";
+		count++;
+	}
 
 	value = pd->fog();
 	if( value != FLT_MAX ) {
@@ -308,23 +313,26 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	if( value !=FLT_MAX ) {
 		out << indent << "<mox:mediumCloudCover uom=\"percent\">" << value << "</mox:mediumCloudCover>\n";
       count++;
-   }
+	}
 
 	value = pd->highCloud();
 	if( value != FLT_MAX ) {
 		out << indent << "<mox:highCloudCover uom=\"percent\">" << value << "</mox:highCloudCover>\n";
       count++;
-   }
+	}
+
+
+
 
 	/* Ocean paramaters */
+
 	
 	iValue = pd->seaBottomTopography( tmpProvider );
 	if( iValue != INT_MAX ) {
 		out << "<!-- provider: " << tmpProvider << " (seaBottomTopography) -->\n";
 		out << indent << "<mox:seaBottomTopography>" << iValue << "</mox:seaBottomTopography>\n";
       count++;
-   }
-
+	}
 	
 	ice = pd->seaIcePresence( tmpProvider );
 	
@@ -335,6 +343,13 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 		ice = 0;
 	}
 	
+	value = pd->iceingIndex( true );
+	if( value != FLT_MAX ) {
+		out << "<!-- provider: " << pd->oceanProvider() << " (seaIceingIndex) ice: " << ice << " -->\n";
+		out << indent << "<mox:seaIceingIndex>" << value << "</mox:seaIceingIndex>\n";
+		count++;
+	}
+
 	//Wave parameters
 	value = pd->meanTotalWaveDirection( true );
 	if( value != FLT_MAX ) {
@@ -346,7 +361,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 			out << indent << "<mox:meanTotalWaveDirection uom=\"deg\">" << value << "</mox:meanTotalWaveDirection>\n";
 		}
 		count++;
-   }
+	}
 
 	value = pd->significantTotalWaveHeight( true );
 	if( value != FLT_MAX ){
