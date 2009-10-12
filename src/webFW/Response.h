@@ -131,6 +131,16 @@ class Response
        * @exception webFW::IOError.
        */
       virtual std::ostream& out()=0;
+
+      /**
+       * sendStream may throw webFW::IOError when
+       * an error from the protocol is detetected.
+       *
+       * This may occour in the HTTP protocol.
+       *
+       * @exception webFW::IOError.
+       */
+      virtual void sendStream( std::istream &ist )=0;
 };
 
 }

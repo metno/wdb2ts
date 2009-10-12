@@ -27,6 +27,7 @@
 */
 #include <ptimeutil.h>
 #include <ApacheResponse.h>
+#include <Logger4cpp.h>
 
 webfw::
 ApacheResponse::
@@ -139,4 +140,32 @@ ApacheResponse::
 out()
 {
    return out_;
+}
+
+void
+webfw::
+ApacheResponse::
+sendStream( std::istream &ist )
+{
+	int N(1024*1024);
+	char buf[N+1];
+	int n=0;
+
+//	WEBFW_USE_LOGGER( "encode" );
+
+	directOutput( true );
+
+	while( ist.read( buf, N ) ) {
+		n = ist.gcount();
+		buf[ n ] = '\0';
+		(*const_cast<OutStream*>(&out_))->sendToClient( buf );
+	}
+
+	if( ist.eof() ) {
+		n = ist.gcount();
+		buf[ n ] = '\0';
+		(*const_cast<OutStream*>(&out_))->sendToClient( buf );
+	} else {
+		throw IOError("ERROR: Failed to read the input when sending the response to the clent.!", true );
+	}
 }

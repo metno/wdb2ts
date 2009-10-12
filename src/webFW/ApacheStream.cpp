@@ -171,7 +171,7 @@ directOutput( bool flag )
    bb = apr_brigade_create( r->pool, r->connection->bucket_alloc );
    
    if( ! bb )
-      throw IOError("ERROR: No output buffer (bucket_brigade)!", true );
+      throw IOError("ERROR: Cant create output buffer (bucket_brigade)!", true );
       
    if( nChunck > chunckSize ) 
       sendToClient( ost.str().c_str() );

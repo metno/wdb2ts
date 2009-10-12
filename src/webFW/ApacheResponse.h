@@ -87,6 +87,8 @@ class ApacheResponse
        */
       virtual std::ostream& out() ;
       
+      virtual void sendStream( std::istream &ist );
+
 };
 
 }
