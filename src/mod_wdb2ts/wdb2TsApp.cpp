@@ -67,12 +67,14 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	
 	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << ". " ;
 	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << ". " ;
+	log << "WDB2TS_DEFAULT_SYSTMPDIR=" << WDB2TS_DEFAULT_SYSTMPDIR << ". " ;
 	log << "WDB2TS_LOCALSTATEDIR=" << WDB2TS_LOCALSTATEDIR << ". ";
 	
 	notes.setPersistentNotePath( WDB2TS_LOCALSTATEDIR );
 	
 	setConfDir( WDB2TS_DEFAULT_SYSCONFDIR );
 	setLogDir( WDB2TS_DEFAULT_SYSLOGDIR );
+	setTmpDir( WDB2TS_DEFAULT_SYSTMPDIR );
 	
 	logger.info( log.str() );
 	log.str("");
