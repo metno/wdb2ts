@@ -81,7 +81,7 @@ init( Logger &logger, IAbortHandlerManager *abortHandlerMgr )
 void
 webfw::
 App::
-setPathsFromConffile( const char *confpath, const char *logpath )
+setPathsFromConffile( const char *confpath, const char *logpath, const char *tmppath )
 {
 	boost::mutex::scoped_lock locl( mutex );
 
@@ -90,6 +90,9 @@ setPathsFromConffile( const char *confpath, const char *logpath )
 
 	if( logpathFromConffile_.empty() )
 		logpathFromConffile_ = logpath;
+
+	if( tmppathFromConffile_.empty() )
+		tmppathFromConffile_ = tmppath;
 }
    
 void 
@@ -129,6 +132,28 @@ getLogDir()const
 
 	return logpathFromConffile_.empty() ? logdir_ : logpathFromConffile_;
 }
+
+void
+webfw::
+App::
+setTmpDir( const std::string &tmpdir )
+{
+	boost::mutex::scoped_lock locK( mutex );
+
+	tmpdir_ = tmpdir;
+}
+
+std::string
+webfw::
+App::
+getTmpDir()const
+{
+	boost::mutex::scoped_lock locK( mutex );
+
+	return tmppathFromConffile_.empty() ? tmpdir_ : tmppathFromConffile_;
+}
+
+
 
 bool
 webfw:: 

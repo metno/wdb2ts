@@ -93,3 +93,10 @@ out()
 {
    return out_;
 }
+
+void
+webfw::
+DefaultResponse::
+sendStream( std::istream &ist )
+{
+}

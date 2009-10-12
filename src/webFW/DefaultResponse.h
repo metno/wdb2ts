@@ -53,6 +53,7 @@ class DefaultResponse
       virtual void directOutput(bool /*flag */) { /* do nothing*/ };
       
       virtual std::ostream& out() ;
+      virtual void sendStream( std::istream &ist );
 };
 
 }

@@ -54,8 +54,10 @@ class App
    IAbortHandlerManager  *abortHandlerManager_;
    std::string confpathFromConffile_;
    std::string logpathFromConffile_;
+   std::string tmppathFromConffile_;
    std::string confdir_;
    std::string logdir_;
+   std::string tmpdir_;
    
    mutable boost::mutex mutex;
 
@@ -78,7 +80,9 @@ class App
        *
        * modulename is the name of the module.
        */
-      void setPathsFromConffile( const char *confpath, const char *logpath );
+      void setPathsFromConffile( const char *confpath,
+    		                     const char *logpath,
+    		                     const char *tmppath );
 
       /**
        * All configuration files is read from the directory
@@ -103,6 +107,16 @@ class App
       
       std::string getLogDir()const;
       
+      /**
+       * Write temporary files to this directory.
+       *
+       * @param tmpdir The directory to write temporary files to.
+       */
+      void setTmpDir( const std::string &tmpdir );
+
+      std::string getTmpDir()const;
+
+
       
       /**
        * Read the contents of a configuration file into a string. The
