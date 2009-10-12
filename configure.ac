@@ -72,6 +72,9 @@ WITH_WDB2TS_CONFIG_DIR
 # wdb2ts-logdir
 WITH_WDB2TS_LOG_DIR
 
+# wdb2ts-tmpdir
+WITH_WDB2TS_TMP_DIR
+
 
 WDB2TS_MAP_FILE='${pkgdatadir}/topography100.asc'
 AC_SUBST(WDB2TS_MAP_FILE)

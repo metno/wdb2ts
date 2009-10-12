@@ -46,13 +46,20 @@ else
    WDB2TS_SYSLOGDIR=$(APACHE_SYSLOGDIR)
 endif
 
+if HAS_WDB2TS_TMPDIR
+   WDB2TS_SYSTMPDIR=$(WDB2TS_TMPDIR)
+else
+   WDB2TS_SYSTMPDIR=/tmp
+endif
+
 
 WDB2TS_LOCALSTATEDIR=$(localstatedir)/lib/metno-wdb2ts
 
 AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
-				  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
+			  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
+			  -DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
               -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
-              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\""  
+              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\""
 
  
 #-----------------------------------------------------------------------------
@@ -83,6 +90,7 @@ include src/miutil/test/wdb2ts.mk
 install-data-hook:
 	install -d $(DESTDIR)/$(WDB2TS_SYSCONFDIR)
 	install -d $(DESTDIR)/$(WDB2TS_SYSLOGDIR)
+	install -d $(DESTDIR)/$(WDB2TS_SYSTMPDIR)
 	install -d $(DESTDIR)/$(pkgdatadir)
 	install -d $(DESTDIR)/$(WDB2TS_LOCALSTATEDIR)
 	$(INSTALL) -m644 etc/metno-wdb2ts.conf.template 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
