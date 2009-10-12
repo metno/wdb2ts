@@ -77,6 +77,7 @@ AppClass::app()->init( Logger, IAbortManager )
 struct Name##_conf {                               \
 	const char *confpath;                          \
 	const char *logpath;                           \
+	const char *tmppath;                           \
 };                                                 \
                                                    \
 static const char*                                        \
@@ -84,6 +85,10 @@ Name##_set_confpath( cmd_parms *cmd, void *dummy, const char *arg );  \
 	                                                                  \
 static const char*                                                    \
 Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg );   \
+                                                                      \
+	                                                                  \
+static const char*                                                    \
+Name##_set_tmppath( cmd_parms *cmd, void *dummy, const char *arg );   \
                                                                       \
 static int                                         \
 Name##_handler( request_rec *r );                  \
@@ -103,6 +108,12 @@ static const command_rec Name##_cmds[] = {         \
 	               NULL,                                   \
 	               RSRC_CONF,                              \
 				   #Name "_logpath, where shall the log files be written. Default is undefined or compiled in." \
+                 ),                                \
+    AP_INIT_TAKE1( #Name "_tmppath",              \
+	               (const char* (*)())Name##_set_tmppath, \
+	               NULL,                                   \
+	               RSRC_CONF,                              \
+				   #Name "_tmppath, where shall the temporary files be written. Default is \"/tmp\" in." \
 				 ),                                \
 	             { NULL }                          \
 };                                                 \
@@ -113,6 +124,7 @@ Name##_create_srv_conf(apr_pool_t* pool, server_rec* svr) \
 	Name##_conf *conf= (Name##_conf*) apr_pcalloc( pool, sizeof( Name##_conf ) ); \
 	conf->confpath = apr_pstrdup (pool, "");              \
 	conf->logpath = apr_pstrdup (pool, "");               \
+	conf->tmppath = apr_pstrdup (pool, "");               \
 	return conf;                                          \
 }                                                         \
                                                           \
@@ -174,7 +186,7 @@ Name##_handler(request_rec *r)                     \
    server_rec *s = r->server;                      \
    Name##_conf *conf=(Name##_conf*)ap_get_module_config( s->module_config, \
                                                          &Name##_module);  \
-   myApp->setPathsFromConffile( conf->confpath, conf->logpath ); \
+   myApp->setPathsFromConffile( conf->confpath, conf->logpath, conf->tmppath ); \
                                                    \
    MARK_ID_MI_PROFILE("dispatch");                 \
    myApp->dispatch( request, response, logger );   \
@@ -309,4 +321,19 @@ Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg) \
    	conf->logpath = apr_pstrdup (cmd->pool, buf.c_str() );                  \
    	                                                                   \
    	return NULL;                                                       \
+}                                                                      \
+	                                                                   \
+const char*                                                            \
+Name##_set_tmppath( cmd_parms *cmd, void *dummy, const char *arg) \
+{                                                                      \
+   	server_rec      *s = cmd->server;                                  \
+   	Name##_conf *conf = (Name##_conf*) ap_get_module_config ( s->module_config,   \
+                                                              &Name##_module    );\
+                                                                       \
+   	std::string buf( arg );                                            \
+   	miutil::trimstr( buf );                                            \
+   	conf->tmppath = apr_pstrdup (cmd->pool, buf.c_str() );                  \
+   	                                                                   \
+   	return NULL;                                                       \
 }
+
