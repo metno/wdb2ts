@@ -30,26 +30,26 @@ splitstr(const std::string &str, char sep, char stringProtector )
   	for(;it!=str.end(); it++){
     	if(*it==stringProtector && ch!='\\'){
     		ost << *it;
-      	ch=*it;
-      	inString=!inString;
-      	continue;
+    		ch=*it;
+    		inString=!inString;
+    		continue;
     	}
     
     	ch=*it;
     	
     	if(inString){
     		ost<<*it;
-      	continue;
+    		continue;
     	}
  
     	if(*it!=sep){
-      	ost << *it;
+    		ost << *it;
     	}else{
-      	elem=ost.str();
-      	trimstr(elem);
-      	data[i]=elem;
-      	i++;
-      	ost.str("");
+    		elem=ost.str();
+    		trimstr(elem);
+    		data[i]=elem;
+    		i++;
+    		ost.str("");
     	}
   	}
 
