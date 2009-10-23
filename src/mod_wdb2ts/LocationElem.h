@@ -71,7 +71,7 @@ class LocationElem {
 	CITimeSerie itTimeSerie;
 	ProviderList providerPriority;
 	TopoProviderMap modelTopoProviders;
-	TopoProviderMap topographyProviders;
+	std::list<std::string>  topographyProviders;
 	std::string forecastProvider;
 	std::string oceanProvider_;
 	std::string percentileProvider;
@@ -81,13 +81,13 @@ class LocationElem {
 	boost::posix_time::ptime precipRefTime;
 	float       latitude_;
 	float       longitude_;
-	int         hight_;
-	int         topoHight_;
+	int         height_;
+	int         topoHeight_;
 	bool        modeltopoSearched;
 	LocationElem();
 	LocationElem( const ProviderList &providerPriority,
 				  const TopoProviderMap &modelTopoProviders,
-				  const TopoProviderMap &topographyProviders,
+				  const std::list<std::string> &topographyProviders,
 			      float longitude, float latitude, int hight  );
 	
 	void init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie ); 
@@ -262,7 +262,7 @@ public:
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
 	
-	float computeTempCorrection( const std::string &provider )const;
+	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;
 	
 	boost::posix_time::ptime time()const { return itTimeSerie->first; }
 		
@@ -365,8 +365,8 @@ public:
    /**
     * Return INT_MIN if no value is given.
     */
-   int hight() const { return hight_; }
-   void hight( int h )  { hight_ = h; }
+   int height() const { return height_; }
+   void height( int h )  { height_ = h; }
 	
 };
 

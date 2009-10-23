@@ -54,7 +54,7 @@ class LocationData
 	
 	ProviderList providerPriority_;
 	TopoProviderMap modelTopoProviders_;
-	TopoProviderMap topographyProviders_;
+	std::list<std::string>  topographyProviders_;
 	TimeSeriePtr timeSeriePtr;
 	TimeSerie *timeSerie;
 	CITimeSerie itTimeSerie;
@@ -70,13 +70,13 @@ public:
 				  float longitude, float latitude, int hight,
 			      const ProviderList &providerPriority,
 			      const TopoProviderMap &modelTopoProviders,
-			      const TopoProviderMap &topographyProviders );
+			      const std::list<std::string> &topographyProviders );
 	~LocationData();
 	
 	float latitude() const { return locationElem.latitude(); }
 	float longitude() const { return locationElem.longitude(); }
-	int hight() const { return locationElem.hight(); }
-	void hight( int h ) { locationElem.hight( h ); }
+	int height() const { return locationElem.height(); }
+	void height( int h ) { locationElem.height( h ); }
 	
 
 	/**
@@ -86,6 +86,8 @@ public:
 	 *before hasNext and next is called again.
 	 */
 	int hightFromModelTopo();
+	int	hightFromTopography();
+
 
 	ProviderList providerPriority() const { return providerPriority_; }
 	

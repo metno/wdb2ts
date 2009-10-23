@@ -48,7 +48,7 @@ LocationElem():
 	   	                   boost::posix_time::time_duration( 0, 0, 0 ) ),
    timeSerie( 0 ),
    latitude_( FLT_MAX ), longitude_( FLT_MAX ),
-   hight_( INT_MIN ), topoHight_( INT_MIN ),
+   height_( INT_MIN ), topoHeight_( INT_MIN ),
    modeltopoSearched(false)
 {
 }
@@ -56,7 +56,7 @@ LocationElem():
 LocationElem::
 LocationElem( const ProviderList &providerPriority_,
 			  const TopoProviderMap &modelTopoProviders_,
-			  const TopoProviderMap &topographyProviders_,
+			  const std::list<std::string>  &topographyProviders_,
 			  float longitude, float latitude, int hight)
 	: topoTime( boost::gregorian::date(1970, 1, 1),
 	            boost::posix_time::time_duration( 0, 0, 0 ) ),
@@ -70,7 +70,7 @@ LocationElem( const ProviderList &providerPriority_,
      modelTopoProviders( modelTopoProviders_ ),
      topographyProviders( topographyProviders_ ),
      latitude_( latitude ), longitude_( longitude ),
-     hight_( hight ), topoHight_( INT_MIN ), modeltopoSearched( false )
+     height_( hight ), topoHeight_( INT_MIN ), modeltopoSearched( false )
 {
 	
 }
@@ -92,24 +92,26 @@ const double HEIGHT_CORRECTION_PER_METER = 0.006;
 
 float
 LocationElem::
-computeTempCorrection( const std::string &provider ) const
+computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo ) const
 {
 	//WEBFW_USE_LOGGER( "decode" );
 	//WEBFW_LOG_DEBUG( "computeTempCorrection: " << "Realight=" << hight_ << " provider: "<< provider );
 	
-	if( hight_ == INT_MIN ) {
+	if( height_ == INT_MIN ) {
 		//WEBFW_LOG_DEBUG( "computeTempCorrection: " << "Realight=INT_MIN (" << hight_ << ") provider: "<< provider );
 		return 0.0;
 	}
 		
-	int modelTopo = modeltopography( provider );
+	modelTopo = modeltopography( provider );
 	
 	if( modelTopo == INT_MIN ) {
 	//	WEBFW_LOG_DEBUG( "computeTempCorrection: " << "modelTopo height=INT_MIN (" << modelTopo << ") provider: "<< provider );
 		return 0.0;
 	}
-	int relTopo  = modelTopo -  hight_ ;
 	
+	relTopo  = modelTopo -  height_ ;
+
+
 	return relTopo * HEIGHT_CORRECTION_PER_METER;
 }
 
@@ -1019,6 +1021,7 @@ topoProvider( const std::string &provider_, TopoProviderMap &topoProviders )
 }
 
 
+
 int
 LocationElem::
 modeltopography( const std::string &provider_ )const
@@ -1100,8 +1103,8 @@ topography( const std::string &provider_ )const
 {
 	WEBFW_USE_LOGGER( "decode" );
 
-	string provider =  const_cast<LocationElem*>( this )->topoProvider( provider_,
-			                                                            const_cast<LocationElem*>( this )->topographyProviders );
+	string provider(provider_);
+
 	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
 
 	if( it1 == timeSerie->end() ) {
@@ -1115,6 +1118,8 @@ topography( const std::string &provider_ )const
 		WEBFW_LOG_WARN( "topography: No topography fields loaded." );
 		return INT_MIN;
 	}
+
+	WEBFW_LOG_DEBUG( "topography: lookingup: " << provider << topographyPostfix );
 
 	ProviderPDataList::const_iterator it3=it2->second.find( provider + topographyPostfix );
 
@@ -1143,7 +1148,6 @@ topography( const std::string &provider_ )const
 				}
 
 				WEBFW_LOG_INFO( "topography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
-				const_cast<LocationElem*>(this)->topographyProviders[provider_].push_back( provider );
 			}
 		} else {
 			if( provider_ != provider ) {

@@ -227,6 +227,15 @@ decodePData( const ParamDefList &paramDefs,
 					                               it.at("placename").c_str(), 
 					                               providerWithPlacename );
 
+			if( itProvider == providers.end() ) {
+				if( paramDef->alias() == "TOPOGRAPHY" ) {
+					providerWithPlacename = it.at("dataprovidername").c_str();
+				} else {
+					++it;
+					continue;
+				}
+			}
+
 			dataversion = refTimeList.getDataversion( providerWithPlacename );
 			
 			if( dataversion > -1 ) {

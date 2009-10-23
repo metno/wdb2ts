@@ -77,6 +77,7 @@ namespace {
 	wdb2ts::TopoProviderMap dummyTopoProvider;
 	//wdb2ts::LocationData dummy(wdb2ts::TimeSeriePtr(), FLT_MIN, FLT_MAX, INT_MIN, dummyProviderPriority,dummyTopoProvider );
 	wdb2ts::MetaModelConfList dummyMetaConf;
+	std::list<std::string> dummyTopoList;
 	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
 
 	//Used by encodePrecipitation to compute the precipitation agregations.
@@ -140,7 +141,7 @@ EncodeLocationForecast::
 EncodeLocationForecast(): 
 	metaConf( dummyMetaConf ),
 	providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
-	topographyProviders( dummyTopoProvider ),
+	topographyProviders( dummyTopoList ),
 	symbolConf( dummySymbolConfProvider )
 {
 	// NOOP
@@ -158,7 +159,7 @@ EncodeLocationForecast( LocationPointDataPtr locationPointData_,
                         ProviderPrecipitationConfig *precipitationConfig_,
                         const ProviderList &providerPriority_,
                         const TopoProviderMap &modelTopoProviders_,
-                        const TopoProviderMap &topographyProviders_,
+                        const std::list<std::string> &topographyProviders_,
                         const SymbolConfProvider &symbolConf_,
                         int expire_rand )
    : locationPointData( locationPointData_ ), projectionHelper( projectionHelper_ ),
@@ -879,7 +880,13 @@ encode(  webfw::Response &response )
 					                               providerPriority, modelTopoProviders, topographyProviders ) );
 
 		if( altitude == INT_MIN )
+			altitude = locationData->hightFromTopography();
+
+		if( altitude == INT_MIN )
 			altitude = locationData->hightFromModelTopo();
+
+		if( altitude != INT_MIN )
+			locationData->height( altitude );
 
 	} else {
 		WEBFW_LOG_ERROR( "Polygon not supported.");

@@ -210,6 +210,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	*/
 
 	modelTopoProviders = configureModelTopographyProvider( params );
+	topographyProviders = configureTopographyProvider( params );
 	
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );

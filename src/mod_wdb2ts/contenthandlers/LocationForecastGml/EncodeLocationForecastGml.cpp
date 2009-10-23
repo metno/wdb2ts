@@ -86,6 +86,7 @@ DEFINE_MI_PROFILE;
 namespace {
 	wdb2ts::ProviderList dummyProviderPriority;
 	wdb2ts::TopoProviderMap dummyTopoProvider;
+	std::list<std::string>  dummyTopoList;
 	wdb2ts::MetaModelConfList dummyMetaConf;
 	wdb2ts::SymbolConfProvider dummySymbolConfProvider;
 }
@@ -129,7 +130,7 @@ EncodeLocationForecastGml::
 EncodeLocationForecastGml()
 	:  gmlContext( 0 ), metaConf( dummyMetaConf ),
       providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
-      topographyProviders( dummyTopoProvider ),
+      topographyProviders( dummyTopoList ),
       symbolConf( dummySymbolConfProvider ), isPolygon( false )
 {
 }
@@ -148,7 +149,7 @@ EncodeLocationForecastGml( Wdb2TsApp *app_,
                            ProviderPrecipitationConfig *precipitationConfig_,
                            const ProviderList &providerPriority_,
                            const TopoProviderMap &modelTopoProviders_,
-                           const TopoProviderMap &topographyProviders_,
+                           const std::list<std::string>  &topographyProviders_,
                            const SymbolConfProvider &symbolConf_,
                            int expire_rand )
    : locationPointData( locationPointData_ ), gmlContext( projectionHelper_ ),
@@ -982,8 +983,15 @@ encode(  webfw::Response &response )
 			locationData.reset( new LocationData( it->second, longitude, latitude, altitude,
 							                      providerPriority, modelTopoProviders, topographyProviders ) );
 
+
+			if( altitude == INT_MIN )
+				altitude = locationData->hightFromTopography();
+
 			if( altitude == INT_MIN )
 				altitude = locationData->hightFromModelTopo();
+
+			if( altitude != INT_MIN )
+				locationData->height( altitude );
 
 			symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
 			IndentLevel level2( indent );

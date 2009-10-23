@@ -200,6 +200,8 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	float u, v;
 	ostringstream out;
 	int count=0;
+	int relTopo;
+	int modelTopo;
 	
 	if( ! pd )
 		return;
@@ -232,7 +234,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	if( tempNoAdiabatic != FLT_MAX ) {
 		value = tempNoAdiabatic;
 	} else 	if( value != FLT_MAX ) {
-		tempCorrection = pd->computeTempCorrection( provider );
+		tempCorrection = pd->computeTempCorrection( provider, relTopo, modelTopo );
 		value += tempCorrection;
 		tempProb = getTemperatureProability( value );
 	}
@@ -435,7 +437,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->T2M_PERCENTILE_10( true );
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 		
@@ -447,7 +449,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->T2M_PERCENTILE_25();
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 	
@@ -459,7 +461,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->T2M_PERCENTILE_50(); 
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 
@@ -471,7 +473,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->T2M_PERCENTILE_75(); 
 	if( value != FLT_MAX ){
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 
@@ -483,7 +485,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	value = pd->T2M_PERCENTILE_90();
 	if( pd->T2M_PERCENTILE_90() != FLT_MAX ){
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 

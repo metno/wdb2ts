@@ -211,6 +211,13 @@ ptimeFromIsoString( const std::string &isoTime )
 	string::size_type iIsoTime=0;
 	string::size_type iIsoTimePrev=0;
 	
+	if( isoTime == "infinity" )
+		return boost::posix_time::ptime( boost::posix_time::pos_infin );
+
+	if( isoTime == "-infinity" )
+		return boost::posix_time::ptime( boost::posix_time::neg_infin );
+
+
 	iIsoTime = isoTime.find_first_not_of( " ", 0 ); //Skip whitespace in front
 	
 	if( iIsoTime == string::npos )

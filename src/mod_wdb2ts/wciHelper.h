@@ -1,7 +1,7 @@
 /*
     wdb - weather and water data storage
 
-    Copyright (C) 2007 met.no
+    Copyright (C) 2008 met.no
 
     Contact information:
     Norwegian Meteorological Institute
@@ -26,30 +26,26 @@
     MA  02110-1301, USA
 */
 
-#ifndef __TOPOPROVIDER_H__
-#define __TOPOPROVIDER_H__
 
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <ParamDef.h>
 
-#include <string>
-#include <map>
-#include <list>
-
-#include <configparser/RequestConf.h>
+using namespace std;
 
 namespace wdb2ts {
-typedef std::map<std::string, std::list<std::string> > TopoProviderMap;
 
-std::list<std::string>
-configureTopographyProvider( const wdb2ts::config::ActionParam &conf );
+string
+wciReadReturnColoumns( int wciProtocol );
 
-TopoProviderMap
-configureModelTopographyProvider( const wdb2ts::config::ActionParam &conf );
+string
+wciTimeSpec( int wciProtocol, const boost::posix_time::ptime &reftimespec );
 
 
-//typedef std::map<std::string, std::list<std::string> > TopoProviderMap;
+string
+wciLevelSpec( int wciProtocol, const wdb2ts::ParamDef &paramDef );
 
+string
+wciValueParameter( int wciProtocol, const std::list<wdb2ts::ParamDef> &paramDefs );
 
 }
 
-
-#endif

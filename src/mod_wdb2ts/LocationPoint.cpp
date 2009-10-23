@@ -95,20 +95,20 @@ namespace wdb2ts {
 
 LocationPoint::
 LocationPoint()
-	: latitude_( INT_MIN ), longitude_( INT_MIN )
+	: latitude_( INT_MIN ), longitude_( INT_MIN ), height_( INT_MIN )
 {
 }
 
 LocationPoint::
 LocationPoint( const LocationPoint &lp )
-	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ )
+	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ ), height_( lp.height_ )
 {
 }
 
 LocationPoint::
-LocationPoint( float latitude, float longitude )
+LocationPoint( float latitude, float longitude, int height )
 {
-	set( latitude, longitude );
+	set( latitude, longitude, height );
 }
 
 bool
@@ -129,6 +129,7 @@ operator=( const LocationPoint &rhs )
 	if( this != &rhs ) {
 		latitude_ = rhs.latitude_;
 		longitude_ = rhs.longitude_;
+		height_ = rhs.height_;
 	}
 
 	return *this;
@@ -144,7 +145,7 @@ operator==( const LocationPoint &rhs ) const
 
 void
 LocationPoint::
-set( float latitude, float longitude )
+set( float latitude, float longitude, int height )
 {
 	if( latitude > 90 || latitude < -90 )
 		throw range_error( "Latitude out of range. Valid range [-90,90]." );
@@ -154,17 +155,19 @@ set( float latitude, float longitude )
 
 	latitude_  = int(latitude*LATLONG_DEG2INT);
 	longitude_ = int(longitude*LATLONG_DEG2INT);
+	height_ = height;
 }
 
 void
 LocationPoint::
-get( float &latitude, float &longitude )
+get( float &latitude, float &longitude, int &height )
 {
 	if( latitude_ == INT_MIN || longitude_ == INT_MIN )
 		throw logic_error( "The locationpoint is not initialized.");
 
 	latitude = latitude_/LATLONG_DEG2INT;
 	longitude = longitude_/LATLONG_DEG2INT;
+	height = height_;
 }
 
 float
@@ -207,6 +210,27 @@ iLongitude() const
 	return longitude_;
 }
 
+bool
+LocationPoint::
+hasHeight()const
+{
+	return height_ != INT_MIN;
+}
+
+int
+LocationPoint::
+height() const
+{
+	return height_;
+}
+
+void
+LocationPoint::
+height( int height )
+{
+	height_ = height;
+}
+
 void
 LocationPoint::
 decodePoint( const std::string &toDecode_, LocationPoint &point )
@@ -234,6 +258,67 @@ decodePointList( const std::string &toDecode, LocationPointList &points  )
 	if( points.empty() )
 		throw logic_error("Expecting a location point on the format: longitude latitude, .. , longitude latitude");
 }
+
+ bool
+ LocationPoint::
+ decodeGisPoint( const string &sPoint, LocationPoint &locationPoint )
+ {
+	 string::size_type iStart = sPoint.find("(");
+	 string::size_type iEnd;
+
+	 if( iStart == string::npos )
+		 return false;
+
+	 iEnd = sPoint.find(")", iStart );
+
+	 if( iEnd == string::npos )
+		 return false;
+
+	 string buf = sPoint.substr(iStart+1, iEnd - iStart -1 );
+
+	 if( buf.empty() )
+		 return false;
+
+	 float lon;
+	 float lat;
+
+	 if( sscanf( buf.c_str(), " %f %f ", &lon, &lat )  != 2 )
+		 return false;
+
+	 try {
+		 locationPoint.set( lat, lon );
+	 }
+	 catch( const exception &ex ) {
+		 return false;
+	 }
+
+	 return true;
+ }
+
+ LocationPointList::iterator
+ insertLocationPoint( LocationPointList &locations, LocationPoint  &locationPoint, bool replace )
+ {
+	 LocationPointList::iterator retIt=locations.end();
+	 LocationPointList::iterator it = locations.begin();
+	 for( ; it != locations.end() && *it<locationPoint; ++it );
+
+	 if( it==locations.end() ) {
+		 locations.push_back( locationPoint );
+		 retIt = locations.end();
+		 --retIt;
+	 } else if( *it == locationPoint ) {
+		 if( replace ) {
+			 *it = locationPoint;
+			 retIt = it;
+		 } else {
+			 retIt = locations.end();
+		 }
+	 } else {
+		 retIt = locations.insert( it, locationPoint );
+	 }
+
+	 return retIt;
+ }
 
 
 

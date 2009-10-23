@@ -4,6 +4,10 @@ noinst_LTLIBRARIES += libwdb2ts.la \
 libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/transactor/WciReadLocationForecast.h \
                       src/mod_wdb2ts/transactor/WciReadLocationForecast.cpp \
+                      src/mod_wdb2ts/transactor/Topography.h \
+                      src/mod_wdb2ts/transactor/Topography.cpp \
+                      src/mod_wdb2ts/transactor/LocationPointRead.h \
+                      src/mod_wdb2ts/transactor/LocationPointRead.cpp \
                       src/mod_wdb2ts/transactor/ProviderRefTime.h \
                       src/mod_wdb2ts/transactor/ProviderRefTime.cpp \
                       src/mod_wdb2ts/transactor/Version.h \
@@ -98,7 +102,11 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/LocationPoint.h \
 					  src/mod_wdb2ts/LocationPoint.cpp \
 					  src/mod_wdb2ts/TopoProvider.h \
-					  src/mod_wdb2ts/TopoProvider.cpp
+					  src/mod_wdb2ts/TopoProvider.cpp \
+					  src/mod_wdb2ts/NearestHeight.h \
+					  src/mod_wdb2ts/NearestHeight.cpp \
+					  src/mod_wdb2ts/wciHelper.h \
+					  src/mod_wdb2ts/wciHelper.cpp
 					  
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 

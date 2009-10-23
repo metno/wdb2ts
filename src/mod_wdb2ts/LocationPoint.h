@@ -31,6 +31,7 @@
 
 #include <stdexcept>
 #include <list>
+#include <limits.h>
 
 namespace wdb2ts {
 
@@ -48,11 +49,12 @@ class LocationPoint;
 class LocationPoint {
 	int latitude_;
 	int longitude_;
+	int height_;
 
 public:
 	LocationPoint();
 	LocationPoint( const LocationPoint &lp );
-	LocationPoint( float latitude, float longitude );
+	LocationPoint( float latitude, float longitude, int height=INT_MIN );
 
 	bool operator<( const LocationPoint &rhs ) const;
 	bool operator==( const LocationPoint &rhs ) const;
@@ -78,17 +80,29 @@ public:
 	static
 	void decodePointList( const std::string &toDecode, std::list<LocationPoint> &points );
 
+	/*
+	 * Decode a string on the format point( longitude latitude )
+	 */
+	static
+	bool decodeGisPoint( const std::string &toDecode, LocationPoint &point );
 
-	void   set( float latitude, float longitude );
-	void   get( float &latitude, float &longitude );
+	void   set( float latitude, float longitude, int height=INT_MIN );
+	void   get( float &latitude, float &longitude, int &height );
 	float  latitude() const;
 	float  longitude() const;
 	int    iLatitude() const;
 	int    iLongitude() const;
+
+	bool   hasHeight()const;
+	int    height() const;
+	void   height( int height );
 };
 
 
 typedef std::list<LocationPoint> LocationPointList;
+
+LocationPointList::iterator
+insertLocationPoint( LocationPointList &locations, LocationPoint  &locationPoint, bool replace=false );
 
 }
 

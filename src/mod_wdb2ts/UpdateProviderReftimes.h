@@ -99,6 +99,9 @@ public:
 	~ProviderRefTimeList(){}
 	
 	int getDataversion( const std::string &providerWithPlacename ) const;
+	bool providerReftime( const std::string &provider,
+			              boost::posix_time::ptime &refTime ) const;
+
 };
 
 //typedef std::map<std::string, ProviderTimes > ProviderRefTimeList;

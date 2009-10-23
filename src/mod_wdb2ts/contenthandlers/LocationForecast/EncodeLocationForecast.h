@@ -109,7 +109,7 @@ class EncodeLocationForecast : public Encode
 
 	const ProviderList &providerPriority;
 	const TopoProviderMap &modelTopoProviders;
-	const TopoProviderMap &topographyProviders;
+	const std::list<std::string>  &topographyProviders;
 	const SymbolConfProvider &symbolConf;
 
 
@@ -169,7 +169,7 @@ public:
 			                ProviderPrecipitationConfig *precipitationConfig,
 			                const ProviderList &providerPriority,
 			                const TopoProviderMap &modelTopoProviders,
-			                const TopoProviderMap &topographyProviders,
+			                const std::list<std::string> &topographyProviders,
 			                const SymbolConfProvider &symbolConf,
 			                int expire_rand
 		                  );

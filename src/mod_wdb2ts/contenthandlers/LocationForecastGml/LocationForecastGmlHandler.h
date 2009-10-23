@@ -109,7 +109,7 @@ private:
    ProviderList        providerPriority_;
    bool                providerPriorityIsInitialized;
    TopoProviderMap     modelTopoProviders;
-   TopoProviderMap     topographyProviders;
+   std::list<std::string>      topographyProviders;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  

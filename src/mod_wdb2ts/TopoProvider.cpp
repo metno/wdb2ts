@@ -31,7 +31,7 @@
 #include <ProviderList.h>
 #include <TopoProvider.h>
 #include <Logger4cpp.h>
-
+#include <splitstr.h>
 using namespace std;
 
 namespace {
@@ -77,7 +77,8 @@ configureModelTopographyProvider( const wdb2ts::config::ActionParam &conf )
 }
 
 
-TopoProviderMap
+/*
+std::list<std::string>
 configureTopographyProvider( const wdb2ts::config::ActionParam &conf )
 {
 	stringstream msg;
@@ -93,6 +94,35 @@ configureTopographyProvider( const wdb2ts::config::ActionParam &conf )
 	return topoProviders;
 
 }
+*/
+
+std::list<std::string>
+configureTopographyProvider( const wdb2ts::config::ActionParam &conf )
+{
+	std::list<std::string> topoList;
+
+	WEBFW_USE_LOGGER( "handler" );
+
+	WEBFW_LOG_DEBUG( " ---@@@@@@@@@@@@@@ topo provider: configureTopographyProvider" );
+
+	for( wdb2ts::config::ActionParam::const_iterator it = conf.begin(); it!=conf.end(); ++it ) {
+		string::size_type i=it->first.find( "topography_provider");
+
+		if( i != string::npos && i==0 ) {
+			vector<string> providers = miutil::splitstr( it->second.asString(), ';' );
+
+			for(vector<string>::size_type i=0; i<providers.size(); ++i  ) {
+				wdb2ts::ProviderItem item = wdb2ts::ProviderList::decodeItem( providers[i] );
+				WEBFW_LOG_DEBUG( " ---@@@@@@@@@@@@@@ topo provider " <<  item.providerWithPlacename() );
+				topoList.push_back( item.providerWithPlacename() );
+			}
+		}
+	}
+
+	return topoList;
+}
+
+
 
 
 }

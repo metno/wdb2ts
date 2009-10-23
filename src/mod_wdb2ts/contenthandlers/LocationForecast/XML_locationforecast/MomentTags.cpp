@@ -161,6 +161,7 @@ output( std::ostream &out, const std::string &indent )
 	string description;
 	float value;
 	float tempNoAdiabatic;
+	float tempAdiabatic;
 	float dd_, ff_;
 	string provider;
 	string tempNoAdiabaticProvider;
@@ -169,7 +170,8 @@ output( std::ostream &out, const std::string &indent )
 	float windProb = FLT_MAX;
 	bool hasTempCorr;
 	int oldPrec = out.precision();
-	
+	int modelTopo;
+	int relTopo; //The difference between modelTopo and real topography
 	if( ! pd )
 		return;
 	
@@ -193,15 +195,20 @@ output( std::ostream &out, const std::string &indent )
 		tempNoAdiabaticProvider = provider = pd->forecastprovider();
 
 	value = pd->TA( true );
+	tempAdiabatic = value;
 
-	if( value != FLT_MAX )
+	if( value != FLT_MAX ) {
 		provider = pd->forecastprovider();
+		tempCorrection = pd->computeTempCorrection( provider, relTopo, modelTopo );
+		tempAdiabatic += tempCorrection;
+		out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+						<< " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
+	}
 
 	if( tempNoAdiabatic != FLT_MAX ) {
 		value = tempNoAdiabatic;
-	} else 	if( value != FLT_MAX ) {
-		tempCorrection = pd->computeTempCorrection( provider ); 
-		value += tempCorrection;
+	} else 	if( tempAdiabatic != FLT_MAX ) {
+		value = tempAdiabatic;
 		tempProb = getTemperatureProability( value );
 	}
 
@@ -210,6 +217,11 @@ output( std::ostream &out, const std::string &indent )
 			out << indent << "<!-- Dataprovider: " << provider << " -->\n";
 		else
 			out << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
+
+		if( tempNoAdiabatic != FLT_MAX && tempAdiabatic!=FLT_MAX ) {
+			out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+				<< " tempNoAdiabatic: " << tempNoAdiabatic << " " <<  tempNoAdiabaticProvider << " -->\n";
+		}
 
 		doSymbol( value );
 		out << indent << "<temperature id=\"TT\" unit=\"celcius\" value=\""<< value << "\"/>\n";
@@ -286,7 +298,7 @@ output( std::ostream &out, const std::string &indent )
 	value = pd->T2M_PERCENTILE_10( true );
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 		
@@ -298,7 +310,7 @@ output( std::ostream &out, const std::string &indent )
 	value = pd->T2M_PERCENTILE_25();
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 	
@@ -310,7 +322,7 @@ output( std::ostream &out, const std::string &indent )
 	value = pd->T2M_PERCENTILE_50(); 
 	if( value != FLT_MAX ) {
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 
@@ -322,7 +334,7 @@ output( std::ostream &out, const std::string &indent )
 	value = pd->T2M_PERCENTILE_75(); 
 	if( value != FLT_MAX ){
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 
@@ -334,7 +346,7 @@ output( std::ostream &out, const std::string &indent )
 	value = pd->T2M_PERCENTILE_90();
 	if( pd->T2M_PERCENTILE_90() != FLT_MAX ){
 		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider() );
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
 			hasTempCorr = true;
 		} 
 

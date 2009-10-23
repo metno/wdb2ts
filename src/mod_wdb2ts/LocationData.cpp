@@ -41,7 +41,7 @@ LocationData( wdb2ts::TimeSeriePtr timeSerie_,
 				  float longitude, float latitude, int hight,
 		        const ProviderList &providerPriority,
 		        const TopoProviderMap &modelTopoProviders,
-		        const TopoProviderMap &topographyProviders )
+		        const std::list<std::string>  &topographyProviders )
  	: providerPriority_( providerPriority ),
 	  modelTopoProviders_( modelTopoProviders ),
 	  topographyProviders_( topographyProviders ),
@@ -86,6 +86,32 @@ hightFromModelTopo()
 	return INT_MIN;
 
 }
+
+int
+LocationData::
+hightFromTopography()
+{
+	int alt;
+	init( boost::posix_time::ptime() );
+
+	if( ! hasNext() )
+		return INT_MIN;
+
+	LocationElem &elem= *next();
+
+	std::list<std::string>::const_iterator it;
+
+	for( it=topographyProviders_.begin(); it != topographyProviders_.end(); ++it ){
+		alt = elem.topography( *it );
+
+		if( alt != INT_MIN )
+			return alt;
+	}
+
+	return INT_MIN;
+
+}
+
 
 bool
 LocationData::

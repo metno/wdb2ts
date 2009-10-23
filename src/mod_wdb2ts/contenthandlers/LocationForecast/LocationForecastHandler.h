@@ -43,6 +43,8 @@
 #include <ProjectionHelper.h>
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
+#include <NearestHeight.h>
+#include <LocationPoint.h>
 
 namespace wdb2ts {
 
@@ -108,7 +110,8 @@ private:
    ProviderList        providerPriority_;
    bool                providerPriorityIsInitialized;
    TopoProviderMap     modelTopoProviders;
-   TopoProviderMap     topographyProviders;
+   std::list<std::string> topographyProviders;
+   NearestHeights      nearestHeights;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
@@ -134,6 +137,15 @@ private:
   	//Get some mutex protected data.
   	void getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList );
   	
+  	void
+  	nearestHeightPoint( const LocationPointList &locationPoints,
+  			            LocationPointDataPtr data,
+  			            int altitude,
+  			            PtrProviderRefTimes refTimes,
+  			            const ProviderList &providerPriority
+  					  ) const;
+
+
    
 };
 

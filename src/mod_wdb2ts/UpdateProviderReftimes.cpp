@@ -62,6 +62,32 @@ getDataversion( const std::string &providerWithPlacename ) const
 	return it->second.dataversion;
 }
 
+bool
+ProviderRefTimeList::
+providerReftime( const std::string &provider,
+		         boost::posix_time::ptime &refTime ) const
+{
+	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+	ProviderItem pvItem;
+
+	for( ProviderRefTimeList::const_iterator it = begin();
+			it != end(); ++it ) {
+
+		pvItem = ProviderList::decodeItem( it->first );
+
+		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+			 ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
+		{
+			refTime = it->second.refTime;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
