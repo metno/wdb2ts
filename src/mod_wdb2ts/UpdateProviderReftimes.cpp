@@ -29,11 +29,13 @@
 
 #include <iostream>
 #include <sstream>
+#include <stlContainerUtil.h>
 #include <transactor/ProviderRefTime.h>
 #include <UpdateProviderReftimes.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <ptimeutil.h>
 #include <UpdateProviderReftimes.h>
+#include <Logger4cpp.h>
 
 using namespace std;
 using namespace boost::posix_time; //ptime, second_clock
@@ -86,14 +88,37 @@ providerReftime( const std::string &provider,
 	return false;
 }
 
+bool
+ProviderRefTimeList::
+disabled( const std::string &provider, bool &disabled_ ) const
+{
+	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+	ProviderItem pvItem;
+
+	for( ProviderRefTimeList::const_iterator it = begin();
+		it != end(); ++it ) {
+
+		pvItem = ProviderList::decodeItem( it->first );
+
+		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+			( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
+		{
+					disabled_ = it->second.disabled;
+					return true;
+		}
+	}
+
+	return false;
+}
+
 
 
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-								const ProviderRefTimeList &requestedUpdates,
-		                  ProviderRefTimeList &refTimes, 
-		                  int wciProtocol  )
+						const ProviderRefTimeList &requestedUpdates,
+		                ProviderRefTimeList &refTimes,
+		                int wciProtocol  )
 {
 	ProviderRefTimeList resRefTimes;
 	ptime now( second_clock::universal_time() );
@@ -103,6 +128,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 	ostringstream ost;
 	string provider;
 	bool changed=false;
+	ProviderRefTimeList::const_iterator itReftime;
 	
 	back -= hours( 8640 ); //8640 hours back from now
 	endTime += hours( 24 ); //1 day in the future.
@@ -136,14 +162,14 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 		if( getProviderReftimes( wciConnection, resRefTimes, provider, reftime ) ) {
 			
 			ProviderItem pi=ProviderList::decodeItem( provider );
-			
+
 			//It should be only one result.
 			for( ProviderRefTimeList::iterator rit = resRefTimes.begin();
 			     rit != resRefTimes.end();
 			     ++rit ) 
 			{
 				ProviderRefTimeList::iterator refTimeIt = refTimes.find( rit->first );
-				
+
 				//Do not update the reftime if we allready have a record for 
 				//this reftime. This is neccesary since the updatedTime is used
 				//in the meta data returned, runEnded or something other that tells
@@ -151,14 +177,19 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 				if( refTimeIt != refTimes.end() && refTimeIt->second.refTime == rit->second.refTime ) {
 					if( ! pi.placename.empty() ) { 
 						if( refTimeIt->first == pi.providerWithPlacename() ) {
-							if( refTimeIt->second.dataversion != it->second.dataversion )
+							if( refTimeIt->second.dataversion != it->second.dataversion ||
+								refTimeIt->second.disabled != it->second.disabled)
 								changed = true;
+
 							refTimeIt->second.dataversion = it->second.dataversion;
+							refTimeIt->second.disabled = it->second.disabled;
 						}
 					} else {
-						if( refTimeIt->second.dataversion != it->second.dataversion )
+						if( refTimeIt->second.dataversion != it->second.dataversion ||
+							refTimeIt->second.disabled != it->second.disabled)
 							changed = true;
 						refTimeIt->second.dataversion = it->second.dataversion;
+						refTimeIt->second.disabled = it->second.disabled;
 					}
 					continue;
 				}
@@ -166,11 +197,13 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 				if( ! pi.placename.empty() ) {
 					if( rit->first == pi.providerWithPlacename() ) {
 						rit->second.dataversion = it->second.dataversion;
+						rit->second.disabled = it->second.disabled;
 						refTimes[rit->first] = rit->second;
 						changed = true;
 					}
 				} else {
 					rit->second.dataversion = it->second.dataversion;
+					rit->second.disabled = it->second.disabled;
 					refTimes[rit->first] = rit->second;
 					changed = true;
 				}
@@ -184,9 +217,9 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-		                  ProviderRefTimeList &refTimes,
-		                  const ProviderList &providers, 
-		                  int wciProtocol  )
+		                ProviderRefTimeList &refTimes,
+		                const ProviderList &providers,
+		                int wciProtocol  )
 {
 	ostringstream ost;
 	ProviderRefTimeList tmpRefTimes;
@@ -238,6 +271,27 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 	}
 
 	return ! refTimes.empty();
+}
+
+
+void
+removeDisabledProviders( ProviderList &providers, const ProviderRefTimeList &reftimes )
+{
+	ProviderRefTimeList::const_iterator rit;
+	ProviderList::iterator it = providers.begin();
+
+	WEBFW_USE_LOGGER( "handler" );
+
+	while( it != providers.end() ) {
+		rit = reftimes.find( it->providerWithPlacename() );
+
+		if( rit != reftimes.end() && rit->second.disabled ) {
+			WEBFW_LOG_DEBUG("removeDisabledProviders: removing provider: " << it->providerWithPlacename() );
+			it = providers.erase( it );
+		} else {
+			++ it;
+		}
+	}
 }
 
 }

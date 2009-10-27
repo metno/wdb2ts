@@ -396,10 +396,20 @@ get( webfw::Request  &req,
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority );
 	
+	WEBFW_LOG_DEBUG(" @@@@@@@ before removeDisabledProviders @@@@@@");
+	try {
+	removeDisabledProviders( providerPriority, *refTimes );
+	}
+	catch( ... ) {
+		WEBFW_LOG_DEBUG(" @@@@@@@ exception @@@@@@");
+	}
+	WEBFW_LOG_DEBUG(" @@@@@@@ after removeDisabledProviders @@@@@@");
+
 	std::ostringstream logMsg;
 	logMsg << "RefTimes:\n";
 	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit )
-		logMsg << "  " << rit->first << " " << rit->second.refTime << '\n';
+		logMsg << "  " << rit->first << " " << rit->second.refTime << " disabled: "
+		       << (rit->second.disabled?"true":"false") << '\n';
 	WEBFW_LOG_DEBUG(logMsg.str());
 	
     

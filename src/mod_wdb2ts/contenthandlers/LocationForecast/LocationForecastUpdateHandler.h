@@ -77,7 +77,17 @@ private:
 							  ProviderRefTimeList &newRefTime )const;
 	bool decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const;
 	bool getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )const;
-	void checkProviders( const ProviderList &providerList,  ProviderRefTimeList &requestedUpdate )const;
+
+	/**
+	 * checkProviders checks if the requested providers is defined in the provider_priority list.
+	 * If not remove it from the requestedUpdate list.
+	 *
+	 * The disable status from oldRefTime is set for each requestedUpdate. This is to preserve
+	 * the disable status from between update request.
+	 */
+	void checkProviders( const ProviderList &providerList,
+			             const ProviderRefTimeList &oldRefTime,
+			             ProviderRefTimeList &requestedUpdate )const;
 	void checkAgainstExistingProviders( const ProviderRefTimeList &exitingProviders, 
 			                              ProviderRefTimeList &newRefTime ) const;
 };

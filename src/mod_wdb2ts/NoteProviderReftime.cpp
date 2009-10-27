@@ -53,7 +53,8 @@ saveNote( std::ostream &out )
 		for( NoteProviderReftimes::iterator it = begin(); it != end(); ++it ) {
 			toLog << it->first << "|" << isotimeString( it->second.refTime, true, false )
 			    << "|" << isotimeString( it->second.updatedTime, true, false ) 
-			    << "|" << it->second.dataversion << endl;
+			    << "|" << it->second.dataversion
+			    << "|" << (it->second.disabled?"true":"false") << endl;
 		}
 		out << toLog.str();
 		WEBFW_LOG_DEBUG("NoteProviderReftimes::saveNote: " << size() << '\n' << toLog.str());
@@ -74,6 +75,8 @@ loadNote( std::istream &in )
 	boost::posix_time::ptime refTime;
 	boost::posix_time::ptime updatedTime;
 	string buf;
+	int n;
+	bool disabled;
 	int dataversion;
 	
 	try{
@@ -82,7 +85,7 @@ loadNote( std::istream &in )
 		while( getline( in, buf ) ) {
 			data = splitstr( buf, '|' );
 			
-			if( data.size() < 3 ) {
+			if( data.size() < 4 ) {
 				delete note;
 				return 0;
 			}
@@ -90,16 +93,34 @@ loadNote( std::istream &in )
 			refTime = ptimeFromIsoString( data[1] );
 			updatedTime = ptimeFromIsoString( data[2] );
 			dataversion = -1;
+			disabled = false;
+
+			if( sscanf( data[3].c_str(), "%d", &n ) == 1)
+				dataversion = n;
 			
-			if( data.size() > 3 ) {
-				int n;
+			if( data.size() > 4 ) {
+				buf = data[4];
 				
-				if( sscanf( data[3].c_str(), "%d", &n ) == 1)
-					dataversion = n; 
+				if( buf.size() > 0 && ( buf[0] == 't' || buf[0]=='T') )
+					disabled = true;
 			}
-			
-			(*note)[ data[0] ] = ProviderTimes( refTime, updatedTime, dataversion );
+
+			(*note)[ data[0] ] = ProviderTimes( refTime, updatedTime, disabled, dataversion );
 		}
+
+		WEBFW_USE_LOGGER( "handler" );
+
+		std::ostringstream toLog;
+
+		for( NoteProviderReftimes::iterator it = note->begin(); it != note->end(); ++it ) {
+			toLog <<" ---- " << it->first << "|" << isotimeString( it->second.refTime, true, false )
+			    << "|" << isotimeString( it->second.updatedTime, true, false )
+			    << "|" << it->second.dataversion
+			    << "|" << (it->second.disabled?"true":"false") << endl;
+		}
+
+		WEBFW_LOG_DEBUG("NoteProviderReftimes::loadNote: " << note->size() << '\n' << toLog.str());
+
 	}
 	catch( ... ) {
 		if( note )

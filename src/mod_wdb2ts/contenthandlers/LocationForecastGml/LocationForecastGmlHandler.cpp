@@ -402,6 +402,7 @@ get( webfw::Request  &req,
 	
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority );
+	removeDisabledProviders( providerPriority, *refTimes );
     
 	try{
 		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(),

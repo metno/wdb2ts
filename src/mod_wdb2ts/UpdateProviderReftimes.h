@@ -49,17 +49,21 @@ namespace wdb2ts {
 struct ProviderTimes {
 	boost::posix_time::ptime refTime;
 	boost::posix_time::ptime updatedTime;
+	bool disabled;
 	int dataversion;
 
-	ProviderTimes( ) : dataversion( -1 ) {}
+	ProviderTimes( ) : disabled( false), dataversion( -1 ) {}
 	
 	ProviderTimes( const boost::posix_time::ptime &refTime_,
 	               const boost::posix_time::ptime &updatedTime_,
+	               bool disabled_ = false,
 	               int dataversion_ = -1 )
-		: refTime( refTime_), updatedTime( updatedTime_), dataversion( dataversion_ ) {}
+		: refTime( refTime_), updatedTime( updatedTime_), disabled( disabled_ ),
+		  dataversion( dataversion_ ) {}
 	
 	ProviderTimes( const ProviderTimes &pt) 
 		: refTime( pt.refTime ), updatedTime( pt.updatedTime ),
+		  disabled( pt.disabled ),
 		  dataversion( pt.dataversion ){}
 	
 	ProviderTimes& operator=( const ProviderTimes &rhs ) 
@@ -67,6 +71,7 @@ struct ProviderTimes {
 		if( this != &rhs ) {
 			refTime = rhs.refTime;
 			updatedTime = rhs.updatedTime;
+			disabled = rhs.disabled;
 			dataversion = rhs.dataversion;
 		}
 		
@@ -102,6 +107,8 @@ public:
 	bool providerReftime( const std::string &provider,
 			              boost::posix_time::ptime &refTime ) const;
 
+	bool disabled( const std::string &provider, bool &disabled ) const;
+
 };
 
 //typedef std::map<std::string, ProviderTimes > ProviderRefTimeList;
@@ -126,6 +133,8 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 						const ProviderRefTimeList &requestedUpdates,
 		                ProviderRefTimeList &refTimes,
 		                int wciProtocol );
+
+void removeDisabledProviders( ProviderList &providers, const ProviderRefTimeList &reftimes );
 
 }
 
