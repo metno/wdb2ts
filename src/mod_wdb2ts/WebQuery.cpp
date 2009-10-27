@@ -4,6 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <WebQuery.h>
 #include <UrlQuery.h>
+#include <ptimeutil.h>
 #include <limits.h>
 #include <float.h>
 
@@ -26,11 +27,12 @@ WebQuery( )
 WebQuery::
 WebQuery( const LocationPointList &locationPoints, int altitude,
 		  const boost::posix_time::ptime &from,
+		  const boost::posix_time::ptime &to,
 		  const boost::posix_time::ptime &reftime,
 		  const std::string &dataprovider,
 		  bool isPolygon)
 	: altitude_( altitude ),
-	  from_( from ), reftime_( reftime ), dataprovider_( dataprovider ),
+	  from_( from ), to_( to ), reftime_( reftime ), dataprovider_( dataprovider ),
 	  isPolygon_( isPolygon )
 {
 	points = locationPoints;
@@ -42,7 +44,39 @@ boost::posix_time::ptime
 WebQuery::
 decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError )
 {
-	return boost::posix_time::pos_infin;
+	using namespace boost::posix_time;
+	boost::posix_time::ptime to;
+	int n;
+	to = boost::posix_time::second_clock::universal_time();
+	to += hours( 1 );
+	to = ptime( to.date(),
+			    time_duration( to.time_of_day().hours(), 0, 0, 0 ) );
+
+	if( timeduration[timeduration.length()-1] == 't'  ||
+		timeduration[timeduration.length()-1] == 'd'	) {
+
+		if( timeduration.length() == 1 ) {
+			n = 1;
+		} else if( sscanf( timeduration.c_str(), "%d", &n ) != 1 ) {
+			return valueOnError;
+		}
+
+		if( to.is_special() ) {
+			if( timeduration[timeduration.length()-1] == 'd' )
+				n *= 24;
+
+			to += boost::posix_time::time_duration( n, 0, 0, 0 );
+		}
+	} else {
+		try{
+			to =  miutil::ptimeFromIsoString( timeduration );
+		}
+		catch( ... ) {
+			return valueOnError;
+		}
+	}
+
+	return to;
 }
 	/**
 	 * @exception logic_error
@@ -91,16 +125,8 @@ decodeQuery( const std::string &queryToDecode )
 				from = urlQuery.asPTime("from", boost::posix_time::not_a_date_time );
 		}
 		
-		if( urlQuery.hasParam( "to" ) ) {
-			string sto=urlQuery.asString( "to", "" );
-
-			to = urlQuery.asPTime("to", boost::posix_time::pos_infin );
-
-			if( to.is_special() ) {
-				string sto=urlQuery.asString( "to", "" );
-				to = decodeTimeduration( sto, boost::posix_time::pos_infin );
-			}
-		}
+		if( urlQuery.hasParam( "to" ) )
+			to = decodeTimeduration( urlQuery.asString( "to", "" ), boost::posix_time::pos_infin );
 
 		//Adjust the fromtime to the nearest hour in the future. 
 		if( from.is_not_a_date_time() ) {
@@ -124,7 +150,7 @@ decodeQuery( const std::string &queryToDecode )
 			myPoints.push_back( LocationPoint( lat, lon ) );
 		}
 
-		return WebQuery( myPoints, alt, from, refTime, dataprovider, isPolygon );
+		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon );
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;
