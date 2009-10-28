@@ -213,10 +213,25 @@ ptimeFromIsoString( const std::string &isoTime )
 	
 	if( isoTime == "infinity" )
 		return boost::posix_time::ptime( boost::posix_time::pos_infin );
-
-	if( isoTime == "-infinity" )
+	else if( isoTime == "-infinity" )
 		return boost::posix_time::ptime( boost::posix_time::neg_infin );
-
+	else if( isoTime == "epoch" )
+		return boost::posix_time::ptime( boost::gregorian::date( 1970, 1, 1 ),
+		       			                 boost::posix_time::time_duration( 0, 0, 0) );
+	else if( isoTime == "now" )
+		return boost::posix_time::second_clock::universal_time();
+	else if( isoTime == "today" ) {
+		boost::posix_time::ptime now( boost::posix_time::second_clock::universal_time() );
+		return boost::posix_time::ptime( now.date(), boost::posix_time::time_duration( 0, 0, 0) );
+	} else if( isoTime == "tomorrow" ) {
+		boost::posix_time::ptime now( boost::posix_time::second_clock::universal_time() );
+		now += boost::posix_time::hours(24);
+		return boost::posix_time::ptime( now.date(), boost::posix_time::time_duration( 0, 0, 0) );
+	} else if( isoTime == "yesterday" ) {
+		boost::posix_time::ptime now( boost::posix_time::second_clock::universal_time() );
+		now -= boost::posix_time::hours(24);
+		return boost::posix_time::ptime( now.date(), boost::posix_time::time_duration( 0, 0, 0) );
+	}
 
 	iIsoTime = isoTime.find_first_not_of( " ", 0 ); //Skip whitespace in front
 	
