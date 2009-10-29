@@ -124,6 +124,7 @@ private:
    boost::mutex        mutex; 
       
   	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
+									 const boost::posix_time::ptime &to,
 									 bool isPolygon, int altitude,
   		                             PtrProviderRefTimes refTime,
   		                             const ProviderList &providerPriority )const;
@@ -139,6 +140,7 @@ private:
   	
   	void
   	nearestHeightPoint( const LocationPointList &locationPoints,
+						const boost::posix_time::ptime &to,
   			            LocationPointDataPtr data,
   			            int altitude,
   			            PtrProviderRefTimes refTimes,

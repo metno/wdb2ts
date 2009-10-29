@@ -39,6 +39,7 @@ namespace wdb2ts {
 
 WciReadLocationForecast::
 WciReadLocationForecast( const LocationPointList &locationPoints_,
+			             const boost::posix_time::ptime &toTime_,
 			             bool isPloygon_,
 			             int altitude_,
 			             const ParamDefList &paramDefs_,
@@ -46,7 +47,7 @@ WciReadLocationForecast( const LocationPointList &locationPoints_,
 			             const ProviderList &providerPriority_,
 			             const wdb2ts::config::Config::Query &urlQuerys_,
 			             int wciProtocol_ )
-	: altitude( altitude_ ),
+	: toTime( toTime_ ), altitude( altitude_ ),
 	  paramDefs( paramDefs_ ), refTimes( refTimes_ ), providerPriority( providerPriority_ ),
 	  urlQuerys( urlQuerys_ ), locationPoints( locationPoints_), isPloygon( isPloygon_ ),
 	  wciProtocol( wciProtocol_ ), locationPointData( new LocationPointData() )
@@ -93,7 +94,7 @@ operator () ( argument_type &t )
 	
 	try {
 		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
-		wdbQueryHelper.init( locationPoints, isPloygon, *refTimes, providerPriority );
+		wdbQueryHelper.init( locationPoints, toTime, isPloygon, *refTimes, providerPriority );
 		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
 		
 		while ( wdbQueryHelper.hasNext() ) {

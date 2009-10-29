@@ -55,6 +55,7 @@ public:
 		               const ParamDefList &paramDefs,
 		               const ProviderList &providers,
 		               const ProviderRefTimeList &refTimeList,
+		               const boost::posix_time::ptime &to,
 		               LocationPointDataPtr locationPointData,
 		               int wciProtocol);
 	
@@ -70,6 +71,7 @@ private:
 	const ParamDefList paramDefs_;
     const ProviderList &providers_;
     const ProviderRefTimeList &refTimeList_;
+    const boost::posix_time::ptime &to_;
 	int wciProtocol_;
 	LocationPointDataPtr locationPointData_;
 	boost::shared_ptr<bool> isOk_;

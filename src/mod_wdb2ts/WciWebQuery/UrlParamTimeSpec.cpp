@@ -98,12 +98,17 @@ UrlParamTimeSpec::
 validDate( const std::string &dateString )
 {
     if( dateString.empty() )
-	return false;
+    	return false;
+
+    if( dateString=="epoch" || dateString=="-infinity" || dateString == "infinity" ||
+    	dateString == "now" || dateString=="today" || dateString=="tomorrow" ||
+    	dateString == "yesterday" )
+    	return true;
     
     string::size_type i=dateString.find_first_not_of("1234567890-:TtZ ");
     
     if( i != string::npos || ! isdigit( dateString[0] ) )
-	return false;
+    	return false;
     
     return true;
 }
@@ -123,10 +128,12 @@ validIndCode( const std::string &indCode )
     	return true;
     
     if( protocol > 1 ) { 
-   	 if ( indCode == "before" )
-   		 return true;
-   	 else if ( indCode == "after" )
-   		 return true;
+    	if ( indCode == "before" )
+    		return true;
+    	else if ( indCode == "after" )
+    		return true;
+    	else if ( indCode == "contains" )
+    		return true;
     }
   
   	return false;
@@ -198,7 +205,6 @@ decodeProtocol1( const std::string &toDecode )
 	if( from == "NULL" || to == "NULL" ) {
 		valid_ = true;
 		selectPart_ = "NULL";
-		isDecoded = true;
 		return;
 	}
 	
@@ -343,7 +349,9 @@ decodeProtocol2( const std::string &toDecode )
 		
 		ost << "'" << ind << " " << from <<"'";
 	} else {
-		ost << "'inside " << from << " TO " << to << "'";
+		if( !(ind=="inside" || ind=="contains") )
+			ind = "inside";
+		ost << "'" << ind << " " << from << " TO " << to << "'";
 	}
 	
 	valid_ = true;

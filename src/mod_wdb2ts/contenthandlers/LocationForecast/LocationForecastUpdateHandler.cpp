@@ -125,7 +125,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 		
 
 		//The val can be on the form YYYY-MM-DDThh:mm:ss,dataversion
-		//Where dataverion is optional.
+		//Where dataversion is optional.
 		//A dataversion is used only if the reftime is given.
 		keyvals = splitstr( val, ',' );
 		dataversion = -1;

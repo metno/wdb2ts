@@ -45,11 +45,12 @@ LocationPointRead( float latitude, float longitude,
         const ParamDefList &paramDefs,
         const ProviderList &providers,
         const ProviderRefTimeList &refTimeList,
+        const boost::posix_time::ptime &to,
         LocationPointDataPtr locationPointData,
         int wciProtocol )
 	: latitude_( latitude ), longitude_( longitude ),
 	  paramDefs_( paramDefs ), providers_( providers ),refTimeList_( refTimeList ),
-	  wciProtocol_( wciProtocol ),
+	  to_( to ), wciProtocol_( wciProtocol ),
 	  locationPointData_( locationPointData ),
 	  isOk_( new bool )
 {
@@ -81,8 +82,16 @@ operator () ( argument_type &t )
 {
 	ostringstream q;
 	boost::posix_time::ptime refTime;
+	string validTime;
 
 	WEBFW_USE_LOGGER( "handler" );
+
+	if( to_.is_special() )
+		validTime = "NULL";
+	else
+		validTime = wciTimeSpec( wciProtocol_,
+				                 boost::posix_time::ptime( boost::posix_time::neg_infin), to_ );
+
 
 	for( ParamDefList::const_iterator itPar=paramDefs_.begin();
 		itPar != paramDefs_.end();
@@ -100,7 +109,7 @@ operator () ( argument_type &t )
 	      << "ARRAY['" << itPar->first << "'], " << endl
 	      << "'POINT(" << longitude_ << " " << latitude_ << ")', " << endl
 	      << wciTimeSpec( wciProtocol_, refTime ) << ", " << endl
-	      << "NULL, " << endl
+	      << validTime << ", " << endl
 	      << wciValueParameter( wciProtocol_, itPar->second ) << ", " << endl
 	      << "NULL, " << endl
 	      << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime";

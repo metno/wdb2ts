@@ -38,7 +38,8 @@ string
 wciReadReturnColoumns( int wciProtocol );
 
 string
-wciTimeSpec( int wciProtocol, const boost::posix_time::ptime &reftimespec );
+wciTimeSpec( int wciProtocol, const boost::posix_time::ptime &from,
+		     const boost::posix_time::ptime &to = boost::posix_time::ptime( boost::posix_time::not_a_date_time)  );
 
 
 string

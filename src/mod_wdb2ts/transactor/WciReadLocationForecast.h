@@ -49,6 +49,7 @@ class WciReadLocationForecast
 {
 public:
 	WciReadLocationForecast(const LocationPointList &locationPoints,
+			                const boost::posix_time::ptime &toTime,
 						    bool isPloygon,
 						    int altitude,
 	      					const ParamDefList &paramDefs,
@@ -67,6 +68,7 @@ public:
 
 	
 private:
+	boost::posix_time::ptime toTime;
 	const int   altitude;
 	const ParamDefList &paramDefs;
 	PtrProviderRefTimes refTimes;

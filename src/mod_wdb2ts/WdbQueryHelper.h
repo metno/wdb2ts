@@ -69,6 +69,7 @@ class WdbQueryHelper
 	bool        stopIfQueryHasData;
 	bool        refTimeFrom_IsEqualTo_ReftTimeTo;
 	bool        isPolygon;
+	std::string validTime;
 	
 	std::string getDataversionString( const std::list<std::string> &dataproviderList )const;
 
@@ -112,6 +113,7 @@ public:
 	 * @throws logic_error if the locationPoints is empty.
 	 */
 	void init( const LocationPointList &locationPoints,
+			   const boost::posix_time::ptime &toTime,
 			   bool isPolygon,
 			   const ProviderRefTimeList &reftimes,
 			   const ProviderList &providerPriority,

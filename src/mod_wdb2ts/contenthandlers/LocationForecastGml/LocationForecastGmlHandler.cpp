@@ -406,6 +406,7 @@ get( webfw::Request  &req,
     
 	try{
 		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(),
+															 webQuery.to(),
 				                                             webQuery.isPolygon(),
 				                                             altitude,
 											                 refTimes, providerPriority );
@@ -464,6 +465,7 @@ get( webfw::Request  &req,
 LocationPointDataPtr
 LocationForecastGmlHandler::
 requestWdb( const LocationPointList &locationPoints,
+		    const boost::posix_time::ptime &to,
 		    bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
 		    const ProviderList &providerPriority
@@ -473,7 +475,7 @@ requestWdb( const LocationPointList &locationPoints,
 	
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 	WciReadLocationForecast readLocationForecastTransactor(
-			                               locationPoints, isPolygon, altitude,
+			                               locationPoints, to, isPolygon, altitude,
 			                               app->paramDefs(), refTimes, providerPriority, urlQuerys,
 			                               wciProtocol
 			                           );

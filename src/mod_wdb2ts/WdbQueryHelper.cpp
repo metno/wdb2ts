@@ -274,6 +274,7 @@ getDataversionString( const std::list<std::string> &dataproviderList ) const
 void 
 WdbQueryHelper::
 init( const LocationPointList &locationPoints,
+	  const	boost::posix_time::ptime &toTime,
 	  bool isPolygon_,
 	  const ProviderRefTimeList &reftimes_,
 	  const ProviderList &providerPriority_,
@@ -313,6 +314,11 @@ init( const LocationPointList &locationPoints,
 
 	}
 
+	if( ! toTime.is_special() ) {
+		ostringstream otmp;
+		otmp << "epoch," << miutil::isotimeString( toTime, true, true ) << ",inside";
+		validTime = otmp.str();
+	}
 	
 	if( ! extraParams.empty() ) {
 		if( extraParams[0] == ';')
@@ -360,6 +366,9 @@ hasNext( )
 				                   miutil::isotimeString( refTimeTo, true, true ) );
 		webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
 		
+		if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
+			webQuery.validtime.decode( validTime );
+
 		STOP_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
 		return true;
 	}
@@ -423,6 +432,10 @@ hasNext( )
 				webQuery.reftime.decode( miutil::isotimeString( refTimeFrom, true, true ) + "," +
 							                miutil::isotimeString( refTimeTo, true, true ) );
 				webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+
+				if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
+					webQuery.validtime.decode( validTime );
+
 				STOP_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
 				return true;
 			}
@@ -453,12 +466,20 @@ hasNext( )
 			}
 			
 			webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+
+			if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
+				webQuery.validtime.decode( validTime );
+
 			STOP_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
 			return true;
 		}
 		
 		webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
 		
+		if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
+			webQuery.validtime.decode( validTime );
+
+
 		STOP_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
 		return true;
 	}

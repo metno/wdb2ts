@@ -35,6 +35,23 @@
 
 using namespace std;
 
+namespace {
+
+string
+timeStr( const boost::posix_time::ptime &t )
+{
+	if( t.is_infinity() || t.is_pos_infinity()  )
+		return "infinity";
+	else if( t.is_neg_infinity() )
+		return "epoch";
+	else if( t.is_special() )
+		return "";
+	else
+		return miutil::isotimeString( t, false, true );
+}
+
+}
+
 namespace wdb2ts {
 
 string
@@ -51,22 +68,48 @@ wciReadReturnColoumns( int wciProtocol )
 }
 
 string
-wciTimeSpec( int wciProtocol, const boost::posix_time::ptime &reftimespec )
+wciTimeSpec( int wciProtocol,
+		     const boost::posix_time::ptime &from,
+		     const boost::posix_time::ptime &to_ )
 {
-	if( reftimespec.is_special() )
+	boost::posix_time::ptime to( to_ );
+	string sFrom;
+	string sTo;
+	if( from.is_not_a_date_time() )
 		return "NULL";
 
-	string sReftime = miutil::isotimeString( reftimespec, false, true );
+	if( to.is_not_a_date_time() )
+		to = from;
+
+	sFrom = timeStr( from );
+	sTo = timeStr( to );
+
+	if( sFrom.empty() )
+		return "NULL";
+
+	if( sTo.empty() ) {
+		to = from;
+		sTo = sFrom;
+	}
+
 	ostringstream o;
 
-	if( wciProtocol == 1 )
-		o << "('" << sReftime << "', '" << sReftime << "', 'exact')";
-	else if( wciProtocol == 2 )
-		o << "'exact " << sReftime <<"'";
-	else if( wciProtocol > 2 )
-		o << "'exact " << sReftime <<"'";
-	else
-		o << "'exact " << sReftime <<"'";
+	if( wciProtocol == 1 ) {
+		if( to == from )
+			o << "('" << sFrom << "', '" << sTo << "', 'exact')";
+		else
+			o << "('" << sFrom << "', '" << sTo << "', 'inside')";
+	}else if( wciProtocol >= 2 ) {
+		if( to == from )
+			o << "'exact " << sTo <<"'";
+		else
+			o << "'inside " << sFrom << " TO " << sTo << "'";
+	} else {
+		if( to == from )
+			o << "'exact " << sTo <<"'";
+		else
+			o << "'inside " << sFrom << " TO " << sTo << "'";
+	}
 
 	return o.str();
 }

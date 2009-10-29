@@ -396,14 +396,7 @@ get( webfw::Request  &req,
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority );
 	
-	WEBFW_LOG_DEBUG(" @@@@@@@ before removeDisabledProviders @@@@@@");
-	try {
 	removeDisabledProviders( providerPriority, *refTimes );
-	}
-	catch( ... ) {
-		WEBFW_LOG_DEBUG(" @@@@@@@ exception @@@@@@");
-	}
-	WEBFW_LOG_DEBUG(" @@@@@@@ after removeDisabledProviders @@@@@@");
 
 	std::ostringstream logMsg;
 	logMsg << "RefTimes:\n";
@@ -414,11 +407,12 @@ get( webfw::Request  &req,
 	
     
 	try{
-		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.isPolygon(),
+		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.to(),
+															 webQuery.isPolygon(),
 				                                             altitude, refTimes, providerPriority );
 
 		if( ! webQuery.isPolygon() )
-			nearestHeightPoint( webQuery.locationPoints(), locationPointData,
+			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
 						        altitude, refTimes, providerPriority );
 
 		EncodeLocationForecast encode( locationPointData,
@@ -474,6 +468,7 @@ get( webfw::Request  &req,
 LocationPointDataPtr
 LocationForecastHandler::
 requestWdb( const LocationPointList &locationPoints,
+		    const boost::posix_time::ptime &to,
 	        bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
 		    const ProviderList &providerPriority
@@ -484,6 +479,7 @@ requestWdb( const LocationPointList &locationPoints,
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 	WciReadLocationForecast readLocationForecastTransactor(
 			                               locationPoints,
+			                               to,
 			                               isPolygon,
 			                               altitude,
 			                               app->paramDefs(), refTimes, providerPriority, urlQuerys,
@@ -515,6 +511,7 @@ requestWdb( const LocationPointList &locationPoints,
 void
 LocationForecastHandler::
 nearestHeightPoint( const LocationPointList &locationPoints,
+			       const boost::posix_time::ptime &to,
 		            LocationPointDataPtr data,
 		            int altitude,
 		            PtrProviderRefTimes refTimes,
@@ -668,7 +665,7 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 		try{
 			LocationPointRead locationReadTransactor( itMinDiff->latitude(), itMinDiff->longitude(),
 					                                  dataForThisParams, providerPriority,
-					                                  *refTimes, data, wciProtocol );
+					                                  *refTimes, to, data, wciProtocol );
 			wciConnection->perform( locationReadTransactor );
 
 		}
