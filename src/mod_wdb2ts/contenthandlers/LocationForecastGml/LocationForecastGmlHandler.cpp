@@ -211,6 +211,7 @@ configure( const wdb2ts::config::ActionParam &params,
 
 	modelTopoProviders = configureModelTopographyProvider( params );
 	topographyProviders = configureTopographyProvider( params );
+	nearestHeights = NearestHeight::configureNearestHeight( params );
 	
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
@@ -410,6 +411,11 @@ get( webfw::Request  &req,
 				                                             webQuery.isPolygon(),
 				                                             altitude,
 											                 refTimes, providerPriority );
+
+		if( ! webQuery.isPolygon() )
+			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
+					            altitude, refTimes, providerPriority );
+
    	
 		EncodeLocationForecastGml encode( app,
 				                          locationPointData,
@@ -501,5 +507,31 @@ requestWdb( const LocationPointList &locationPoints,
 	}
 	
 }
+
+
+void
+LocationForecastGmlHandler::
+nearestHeightPoint( const LocationPointList &locationPoints,
+			       const boost::posix_time::ptime &to,
+		            LocationPointDataPtr data,
+		            int altitude,
+		            PtrProviderRefTimes refTimes,
+		            const ProviderList &providerPriority
+				  ) const
+{
+
+	if( nearestHeights.empty() || locationPoints.empty() )
+		return;
+
+	Wdb2TsApp *app=Wdb2TsApp::app();
+	ParamDefList params = app->paramDefs();
+	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
+
+	NearestHeight::processNearestHeightPoint( locationPoints,to, data, altitude, refTimes,
+			                                  providerPriority, params, nearestHeights,
+			                                  wciProtocol, wciConnection );
+
+}
+
 
 }

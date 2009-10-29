@@ -43,6 +43,7 @@
 #include <ProjectionHelper.h>
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
+#include <NearestHeight.h>
 
 namespace wdb2ts {
 
@@ -110,6 +111,7 @@ private:
    bool                providerPriorityIsInitialized;
    TopoProviderMap     modelTopoProviders;
    std::list<std::string>      topographyProviders;
+   NearestHeights      nearestHeights;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
@@ -127,6 +129,16 @@ private:
 									bool isPolygon, int altitude,
 									PtrProviderRefTimes refTime,
 									const ProviderList &providerPriority )const;
+
+	void
+ 	nearestHeightPoint( const LocationPointList &locationPoints,
+						const boost::posix_time::ptime &to,
+ 			            LocationPointDataPtr data,
+ 			            int altitude,
+ 			            PtrProviderRefTimes refTimes,
+ 			            const ProviderList &providerPriority
+ 					  ) const;
+
   	
   	/*
   	bool updateProviderReftimes( WciConnectionPtr con );

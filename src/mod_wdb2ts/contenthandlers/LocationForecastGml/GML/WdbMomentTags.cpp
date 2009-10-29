@@ -188,6 +188,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 	string indent( indent_.spaces() );
 	float value;
 	float tempNoAdiabatic;
+	float tempAdiabatic;
 	float iValue;
 	string provider;
 	string tempNoAdiabaticProvider;
@@ -227,15 +228,21 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 		tempNoAdiabaticProvider = provider = pd->forecastprovider();
 
 	value = pd->TA( true );
+	tempAdiabatic = value;
 
-	if( value != FLT_MAX )
+	if( value != FLT_MAX ) {
 		provider = pd->forecastprovider();
+		tempCorrection = pd->computeTempCorrection( provider, relTopo, modelTopo );
+		tempAdiabatic += tempCorrection;
+		out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+			<< " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
+
+	}
 
 	if( tempNoAdiabatic != FLT_MAX ) {
 		value = tempNoAdiabatic;
-	} else 	if( value != FLT_MAX ) {
-		tempCorrection = pd->computeTempCorrection( provider, relTopo, modelTopo );
-		value += tempCorrection;
+	} else 	if( tempAdiabatic != FLT_MAX ) {
+		value = tempAdiabatic;
 		tempProb = getTemperatureProability( value );
 	}
 
@@ -244,6 +251,11 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 			out << indent << "<!-- Dataprovider: " << provider << " -->\n";
 		else
 			out << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
+
+		if( tempNoAdiabatic != FLT_MAX && tempAdiabatic!=FLT_MAX ) {
+			out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+					<< " tempNoAdiabatic: " << tempNoAdiabatic << " " <<  tempNoAdiabaticProvider << " -->\n";
+		}
 
 		doSymbol( value );
 		out << indent << "<mox:airTemperature uom=\"Cel\">" << value << "</mox:airTemperature>\n";
