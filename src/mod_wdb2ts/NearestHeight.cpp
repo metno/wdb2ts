@@ -32,6 +32,11 @@
 #include <splitstr.h>
 #include <NearestHeight.h>
 #include <ProviderList.h>
+#include <ParamDef.h>
+#include <DbManager.h>
+#include <transactor/Topography.h>
+#include <transactor/LocationPointRead.h>
+
 
 using namespace std;
 
@@ -123,15 +128,173 @@ configureNearestHeight( const wdb2ts::config::ActionParam &conf )
 }
 
 
+
 void
 NearestHeight::
-processNearestHeightPoint( WciConnectionPtr dbcon,
-                           int          realHeight,
-                           LocationData &locationData,
-                           const NearestHeights &nearestHeights,
-                           PtrProviderRefTimes reftimes,
-                           const ParamDefList &paramDefs )
+processNearestHeightPoint( const LocationPointList &locationPoints,
+			               const boost::posix_time::ptime &to,
+		                   LocationPointDataPtr data,
+		                   int altitude,
+		                   PtrProviderRefTimes refTimes,
+		                   const ProviderList &providerPriority,
+		                   const ParamDefList &params,
+		                   const NearestHeights &nearestHeights,
+		                   int wciProtocol,
+		                   WciConnectionPtr wciConnection
+				          )
 {
+	ParamDefPtr itParam;
+	ParamDef topoParam;
+	ParamDef modelTopoParam;
+	LocationPointList topoLocations;
+	LocationPointList modelTopoLocations;
+	boost::posix_time::ptime dataRefTime;
+	boost::posix_time::ptime modelTopoRefTime;
+	boost::posix_time::ptime topoRefTime;
+
+
+	if( nearestHeights.empty() || locationPoints.empty() )
+		return;
+
+	WEBFW_USE_LOGGER( "handler" );
+
+	for( NearestHeights::const_iterator it=nearestHeights.begin();
+		 it != nearestHeights.end();
+		++it )
+	{
+		if( it->second.topoProvider().empty() ) {
+			WEBFW_LOG_WARN( "Nearest height: No TOPOGRAPHY provider defined in 'nearest_height-"<< it->first << "'.");
+			continue;
+		}
+
+		if( ! findParam( itParam, params, "TOPOGRAPHY", it->second.topoProvider() ) ) {
+			WEBFW_LOG_WARN( "Nearest height: No parameter definition for TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
+			continue;
+		}
+
+		topoParam = *itParam;
+
+		if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
+			WEBFW_LOG_WARN( "Nearest height: No parameter definition for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
+			continue;
+		}
+
+		modelTopoParam = *itParam;
+
+		if( ! refTimes->providerReftime( it->first, dataRefTime ) ) {
+			WEBFW_LOG_WARN( "Nearest height: No reference times found for provider '" << it->first << "'. Check that the provider is listed in provider_priority.");
+			continue;
+		}
+
+		if( ! refTimes->providerReftime( it->second.topoProvider(), topoRefTime ) ) {
+			WEBFW_LOG_INFO( "Nearest height: No reference times found for TOPOGRAPHY, provider '" << it->second.topoProvider() << "'. This is expected.");
+			topoRefTime = boost::posix_time::ptime();
+		}
+
+		if( ! refTimes->providerReftime( it->second.modelTopoProvider(), modelTopoRefTime ) ) {
+			WEBFW_LOG_INFO( "Nearest height: No reference times found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
+			modelTopoRefTime = boost::posix_time::ptime();
+		}
+
+		try{
+			Topography topographyTransactor( locationPoints.begin()->latitude(),
+					                         locationPoints.begin()->longitude(),
+					                         topoParam,
+					                         it->second.topoProvider(),
+					                         topoRefTime,
+					                         false,
+					                         wciProtocol );
+
+			wciConnection->perform( topographyTransactor );
+			topoLocations = topographyTransactor.result();
+
+			if( topoLocations.size() == 0 ) {
+				WEBFW_LOG_WARN( "Nearest height: No location heights found for TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
+				continue;
+			}
+
+			Topography modelTopographyTransactor( locationPoints.begin()->latitude(), locationPoints.begin()->longitude(),
+    											  modelTopoParam,
+												  it->second.modelTopoProvider(),
+												  modelTopoRefTime,
+												  true,
+												  wciProtocol );
+
+			wciConnection->perform( modelTopographyTransactor );
+			modelTopoLocations = modelTopographyTransactor.result();
+
+			if( modelTopoLocations.size() == 0 ) {
+				WEBFW_LOG_WARN( "Nearest height: No location heights found for MODEL.TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
+				continue;
+			}
+
+		}
+		catch( const exception &ex ) {
+			WEBFW_LOG_WARN( "nearestHeight: EXCEPTION: " << ex.what()  );
+			continue;
+		}
+
+		WEBFW_LOG_DEBUG( "Nearest height: #locations: " << topoLocations.size()
+				         << " lat: " << topoLocations.begin()->latitude()
+				         << " lon: " << topoLocations.begin()->longitude()
+				         << " height: " << topoLocations.begin()->height() );
+
+		int testHeight = topoLocations.begin()->height();
+		LocationPointList::iterator itMinDiff=modelTopoLocations.end();
+		int minDiff=INT_MAX;
+		int diff;
+
+		for( LocationPointList::iterator itModelTopoLocation=modelTopoLocations.begin();
+		     itModelTopoLocation != modelTopoLocations.end();
+		     ++itModelTopoLocation )
+		{
+			diff = abs( testHeight - itModelTopoLocation->height() );
+
+			if(  diff < minDiff ) {
+				itMinDiff = itModelTopoLocation;
+				minDiff = diff;
+			}
+		}
+
+		if( itMinDiff == modelTopoLocations.end() ) {
+			WEBFW_LOG_ERROR( "Nearest height: Cant find a Neareast height. This is a bug." );
+			continue;
+		}
+
+		WEBFW_LOG_DEBUG( "Nearest height: Nearest location: "
+				         << " lat: " << itMinDiff->latitude()
+				         << " lon: " << itMinDiff->longitude()
+				         << " height: " << itMinDiff->height() );
+
+		ParamDefList dataForThisParams;
+
+		std::map< std::string, std::string> nearestHeightParams = it->second.params();
+
+		for( std::map< std::string, std::string>::iterator itNearestHeightParams=nearestHeightParams.begin();
+			 itNearestHeightParams != nearestHeightParams.end();
+			 ++itNearestHeightParams )
+		{
+			if( ! findParam( itParam, params, itNearestHeightParams->first, itNearestHeightParams->second ) ) {
+				WEBFW_LOG_WARN( "Nearest height: No parameter definition for '" << itNearestHeightParams->first << ", provider '"
+						         << itNearestHeightParams->second << "'.");
+				continue;
+			}
+
+			dataForThisParams[itNearestHeightParams->second].push_back( *itParam );
+		}
+
+		try{
+			LocationPointRead locationReadTransactor( itMinDiff->latitude(), itMinDiff->longitude(),
+					                                  dataForThisParams, providerPriority,
+					                                  *refTimes, to, data, wciProtocol );
+			wciConnection->perform( locationReadTransactor );
+
+		}
+		catch( const exception &ex ) {
+			WEBFW_LOG_WARN( "nearestHeight: EXCEPTION: " << ex.what()  );
+			continue;
+		}
+	}
 }
 
 

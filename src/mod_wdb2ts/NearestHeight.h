@@ -73,12 +73,17 @@ class NearestHeight
 
 public:
 	static NearestHeights configureNearestHeight( const wdb2ts::config::ActionParam &conf );
-	static void processNearestHeightPoint( WciConnectionPtr dbcon,
-				                           int          realHeight,
-			                               LocationData &locationData,
-			                               const NearestHeights &nearestHeights,
-			                               PtrProviderRefTimes reftimes,
-			                               const ParamDefList &paramDefs );
+	static void processNearestHeightPoint( const LocationPointList &locationPoints,
+                                           const boost::posix_time::ptime &to,
+                                           LocationPointDataPtr data,
+                                           int altitude,
+                                           PtrProviderRefTimes refTimes,
+                                           const ProviderList &providerPriority,
+                                           const ParamDefList &params,
+                                           const NearestHeights &nearestHeights,
+                                           int wciProtocol,
+                                           WciConnectionPtr wciConnection );
+
 };
 
 }
