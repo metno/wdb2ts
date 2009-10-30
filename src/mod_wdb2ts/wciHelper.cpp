@@ -40,7 +40,7 @@ namespace {
 string
 timeStr( const boost::posix_time::ptime &t )
 {
-	if( t.is_infinity() || t.is_pos_infinity()  )
+	if( t.is_pos_infinity()  )
 		return "infinity";
 	else if( t.is_neg_infinity() )
 		return "epoch";

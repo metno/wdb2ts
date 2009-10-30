@@ -61,12 +61,10 @@ decodeTimeduration( const std::string &timeduration, const boost::posix_time::pt
 			return valueOnError;
 		}
 
-		if( to.is_special() ) {
-			if( timeduration[timeduration.length()-1] == 'd' )
-				n *= 24;
+		if( timeduration[timeduration.length()-1] == 'd' )
+			n *= 24;
 
-			to += boost::posix_time::time_duration( n, 0, 0, 0 );
-		}
+		to += boost::posix_time::time_duration( n, 0, 0, 0 );
 	} else {
 		try{
 			to =  miutil::ptimeFromIsoString( timeduration );
