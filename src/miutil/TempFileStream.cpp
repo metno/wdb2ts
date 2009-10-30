@@ -45,7 +45,7 @@ TempFileStream::
 	if( fs.is_open() )
 		fs.close();
 
-	if( filename_.empty() )
+	if( ! filename_.empty() )
 		unlink( filename_.c_str() );
 }
 
