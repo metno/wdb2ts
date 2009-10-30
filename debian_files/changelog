@@ -1,3 +1,12 @@
+metno-wdb2ts (0.9.4.0-1) unstable; urgency=low
+  * Add a to parameter to the request url.
+  * Add an option to use nearest height for selecting data. Temperature inversion. 
+  * Fix bug in removing of temporary files (polygon request).
+  * Several small bugfix.
+  
+ -- Borge Moe <borge.moe@met.no>  Fri, 30 Oct 2009 08:30:00 +0100
+
+
 metno-wdb2ts (0.5.0-dev-9) unstable; urgency=low
   * Reduce memory footprint for polygon request.
   * Add paramet for wessel icing index and visibility. 
