@@ -406,6 +406,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	string provider;
 	LocationElem *location=0;
 	int precipIndex=0; 
+	bool tryHard;
 	
 	for( int i=0; i<N; ++i ) 
 		precipCount[i]=0;
@@ -425,6 +426,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	     itbt != breakTimes.end();
 	     ++itbt ) 
 	{
+		tryHard = true;
 		precipIndex=-1;
 		
 		for( int i=0; i<N; ++i ) {
@@ -455,7 +457,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 				if(  location->time() > itbt->to )  
 					break;
 	   			
-				precip = location->PRECIP( hours[precipIndex], fromTime );
+				precip = location->PRECIP( hours[precipIndex], fromTime, tryHard );
 	   		
 				WEBFW_LOG_DEBUG( "encodePrecipitation: hours: " << hours[precipIndex] << " fromTime: " << fromTime << " prevFromTime: "<< prevFromTime << " precipCount[" << precipIndex << "]: " << precipCount[precipIndex] << " precip: " << precip );
 			
@@ -463,6 +465,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 					continue;
 				}
 				
+				tryHard=false;
 				++ precipCount[precipIndex];
 			
 				prevFromTime = location->time();

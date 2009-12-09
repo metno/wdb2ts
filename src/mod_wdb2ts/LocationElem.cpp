@@ -336,8 +336,13 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 			              fromTime ,
 			              const_cast<string&>(forecastProvider), FLT_MAX, tryHard, true );
 
-	if( precipNow == FLT_MAX || fromTime.is_special() )
+	if( precipNow == FLT_MAX || fromTime.is_special() ) {
+		//cerr << "PRECIP_N (" << hoursBack << "): " << "FLT_MAX" <<" provider <" << forecastProvider << "> tryHard: " << (tryHard?"true":"false")
+		//	 <<	" fromtime: "<< fromTime << endl;
 		return FLT_MAX;
+	}
+	//cerr << "PRECIP_N first (" << hoursBack << "): " << precipNow  <<" provider <" << forecastProvider << "> tryHard: " << (tryHard?"true":"false")
+	//	 <<	" fromtime: "<< fromTime << endl;
 
 	h = itTimeSerie->first - fromTime;
 	
@@ -377,10 +382,10 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 		if( precipBack == FLT_MAX ) 
 			return FLT_MAX;
 		
-		precip = precipNow;
+		precip = precipNow - precipBack;
 	} else if( h.hours() == hoursBack ) {
 		precip = precipNow;
-   } else {
+	} else {
 	   //cerr <<"PRECIP_N: ft: " << fromTime << "hb: " << hoursBack << " P: " << forecastProvider << endl;;
 
 		CITimeSerie itTimeSerieBack=timeSerie->find( backTime );
