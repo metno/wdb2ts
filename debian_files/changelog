@@ -1,3 +1,8 @@
+metno-wdb2ts (0.9.4.1-1) unstable; urgency=low
+  * Fix accumulated precipitation where validfromtime is equal to validtotime.
+
+-- Borge Moe <borge.moe@met.no>  Wed, 09 Dec 2009 21:30:00 +0100
+
 metno-wdb2ts (0.9.4.0-1) unstable; urgency=low
   * Add a to parameter to the request url.
   * Add an option to use nearest height for selecting data. Temperature inversion. 
