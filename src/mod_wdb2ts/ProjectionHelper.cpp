@@ -36,6 +36,26 @@
 #include <wdb2TsApp.h>
 #include <DbManager.h>
 #include <Logger4cpp.h>
+#include <boost/regex.hpp>
+
+namespace {
+	float getProjFloat( const std::string &projdef, const boost::regex &what ) {
+		using namespace boost;
+		smatch match;
+		float val;
+
+		if( ! regex_search( projdef, match, what ) )
+			return FLT_MAX;
+
+		std::string sval = match[1];
+
+		if( sscanf( sval.c_str(), " %f", &val) != 1 )
+			return FLT_MAX;
+
+		return val;
+	}
+
+}
 
 namespace wdb2ts {
 
@@ -455,11 +475,20 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 		                   const wdb2ts::config::ActionParam &params
 		                 )
 {
+	using namespace boost;
+
 	WEBFW_USE_LOGGER( "handler" );
+	const string reFloat = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
+	regex reproj( "\\+proj *= *(\\w+)" );
+	regex relat_0( "\\+lat_0 *= *("+ reFloat + ")" );
+	regex relon_0( "\\+lon_0 *= *("+ reFloat + ")" );
+	regex relat_ts( "\\+lat_ts *= *("+ reFloat + ")" );
+	regex reo_lat_p( "\\+o_lat_p *= *("+ reFloat + ")" );
+	string proj;
 
 	try {
-		pqxx::work work( con, "WciPlaceSpecification");
-		pqxx::result  res = work.exec( "SELECT * FROM wci.placespecification()" );
+		pqxx::work work( con, "wci.inforegulargrid");
+		pqxx::result  res = work.exec( "SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
 
 		placenameMap.clear();
 
@@ -467,21 +496,34 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 		MiProjection::ProjectionType pType;
 		int nCols;
 		int nRows;
+		smatch match;
 
 		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
 		{
-			nCols = row["numberX"].as<int>();
-			nRows = row["numberY"].as<int>();
-			gs[0] = row["startY"].as<float>();
-			gs[1] = row["startX"].as<float>();
-			gs[2] = row["incrementY"].as<float>();
-			gs[3] = row["incrementX"].as<float>();
+			nCols = row["numberx"].as<int>();
+			nRows = row["numbery"].as<int>();
+			gs[0] = row["starty"].as<float>();
+			gs[1] = row["startx"].as<float>();
+			gs[2] = row["incrementy"].as<float>();
+			gs[3] = row["incrementx"].as<float>();
+			proj = row["projdefinition"].c_str();
 
-			// The SRIDs are hardcoded into the code, instead of trying to decode
-			// the PROJ string.
-			switch ( row["originalsrid"].as<int>() ) {
-			case 50000:
-			case 50007:
+			if( ! regex_search( proj, match, reproj ) ) {
+				WEBFW_LOG_ERROR( "No projection in the proj string from wdb <"+proj+">." );
+				continue;
+			} else if( match[1] == "longlat" ) {
+				pType = MiProjection::geographic;
+			} else if( match[1] == "stere" ) {
+				pType = MiProjection::polarstereographic;
+			} else if( match[1] == "ob_tran" ) {
+				pType = MiProjection::spherical_rotated;
+			} else {
+				WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
+				continue;
+			}
+
+			switch( pType ) {
+			case MiProjection::geographic: {
 				//From comments in milib shall gs allways be set to
 				//this value for geographic projection.
 				gs[0] = 1.0;
@@ -491,57 +533,59 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 				gs[4] = 0.0;
 				gs[5] = 0.0;
 				pType = MiProjection::geographic;
-				break;
-			case 50001: // Hirlam 10
-				gs[4] = -40.0;
-				gs[5] = 68.0;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50002: // Hirlam 20
-				gs[4] = 0.0;
-				gs[5] = 65.0;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50003: // PROFET
-				gs[4] = -24.0;
-				gs[5] = 66.5;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50004: //Sea and wave models
-				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
-				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
-				gs[3] = 58;
-				gs[4] = 60;
-				gs[5] = 0.0;
-				pType = MiProjection::polarstereographic;
-				break;
-			case 50005: //Sea and wave models
-				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
-				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
-				gs[3] = 24;
-				gs[4] = 60;
-				gs[5] = 0.0;
-				pType = MiProjection::polarstereographic;
-				break;
-			default:
-				pType =  MiProjection::undefined_projection;
-				/*
-				gs[4] = 0.0;
-				gs[5] = 0.0;
-				pType = MiProjection::spherical_rotated;
-				*/
-				break;
 			}
-		/*
-		WEBFW_LOG_DEBUG( row.at("placename").c_str() << "i#: " << row.at("numberX").as<int>()
-			     << " j#: " << row.at("numberY").as<int>()
-			     << " incrX: " << row.at("incrementX").as<float>()
-			     << " incrY: " << row.at("incrementY").as<float>()
+			break;
+
+			case MiProjection::polarstereographic: {
+				float lat_0 = getProjFloat( proj, relat_0 );
+				float lon_0 = getProjFloat( proj, relon_0 );
+				float lat_ts = getProjFloat( proj, relat_ts );
+
+				if( lat_0 == FLT_MAX || lon_0==FLT_MAX || lat_ts == FLT_MAX ) {
+					WEBFW_LOG_ERROR( "Polarstereographic projection missing one of: +lat_0, +lon_0 or +lat_ts <"
+							         + proj +">.");
+					continue;
+				}
+
+				gs[0] = ( 0 - gs[0] ) / gs[3]; //poleGridX = (0 - startX) / iIncrement
+				gs[1] = ( 0 - gs[1] ) / gs[2];  //poleGridY = (0 - startY) / jIncrement
+				gs[3] = lon_0;
+				gs[4] = lat_ts;
+				gs[5] = 90-lat_0;
+			}
+			break;
+
+			case MiProjection::spherical_rotated: {
+				float lon_0 = getProjFloat( proj, relon_0 );
+				float o_lat_p = getProjFloat( proj, reo_lat_p );
+
+				if( lon_0==FLT_MAX || o_lat_p == FLT_MAX ) {
+					WEBFW_LOG_ERROR( "Spherical Rotated projection missing one of: +lon_0 or +o_lat_p <"
+							+ proj +">.");
+					continue;
+				}
+
+				gs[4] = lon_0;
+				gs[5] = 90 - o_lat_p;
+			}
+			break;
+
+			default:
+				WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
+				continue;
+
+			}
+
+			if( pType ==  MiProjection::undefined_projection )
+				continue;
+
+			WEBFW_LOG_DEBUG( row.at("placename").c_str() << "numberX: " << row.at("numberX").as<int>()
+			     << " numberY: " << row.at("numberY").as<int>()
+			     << " incrementX: " << row.at("incrementX").as<float>()
+			     << " incrementY: " << row.at("incrementY").as<float>()
 			     << " startY: " << row.at("startY").as<float>()
 			     << " startX: " << row.at("startX").as<float>()
-			     << " srid: " << row.at("originalsrid").as<int>()
 			     << " proj: " << row.at("projdefinition").c_str() );
-		*/
 
 			placenameMap[row.at("placename").c_str()] = MiProjection( gs, pType );
 		}
