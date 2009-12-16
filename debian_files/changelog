@@ -1,3 +1,10 @@
+metno-wdb2ts (0.9.5.0-1) unstable; urgency=low
+  * Compatible with wdb 0.9.5
+  * Comment out debug message for precipitation.
+
+ -- Borge Moe <borge.moe@met.no>  Wed, 16 Dec 2009 11:00:00 +0100
+
+
 metno-wdb2ts (0.9.4.1-1) unstable; urgency=low
   * Fix accumulated precipitation where validfromtime is equal to validtotime.
 
