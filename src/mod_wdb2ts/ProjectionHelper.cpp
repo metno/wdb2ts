@@ -37,6 +37,7 @@
 #include <DbManager.h>
 #include <Logger4cpp.h>
 #include <boost/regex.hpp>
+#include <sstream>
 
 namespace {
 	float getProjFloat( const std::string &projdef, const boost::regex &what ) {
@@ -456,6 +457,14 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 
 			placenameMap[row.at("placename").c_str()] = MiProjection( gs, pType );
 		}
+
+		ostringstream msg;
+		for( ProjectionMap::const_iterator it=placenameMap.begin();
+			 it != placenameMap.end(); ++it ) {
+			 msg.str("");
+			 msg << "Projection (P2): " << it->first << "  " << it->second;
+			 WEBFW_LOG_DEBUG( msg.str() );
+		}
 	}
 	catch( std::exception &ex ) {
 		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() );
@@ -485,8 +494,11 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 	regex relat_ts( "\\+lat_ts *= *("+ reFloat + ")" );
 	regex reo_lat_p( "\\+o_lat_p *= *("+ reFloat + ")" );
 	string proj;
+	ostringstream msg;
 
 	try {
+
+		WEBFW_LOG_DEBUG( "ProjectionHelper::P4: SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
 		pqxx::work work( con, "wci.inforegulargrid");
 		pqxx::result  res = work.exec( "SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
 
@@ -502,8 +514,8 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 		{
 			nCols = row["numberx"].as<int>();
 			nRows = row["numbery"].as<int>();
-			gs[0] = row["starty"].as<float>();
-			gs[1] = row["startx"].as<float>();
+			gs[0] = row["startx"].as<float>();
+			gs[1] = row["starty"].as<float>();
 			gs[2] = row["incrementy"].as<float>();
 			gs[3] = row["incrementx"].as<float>();
 			proj = row["projdefinition"].c_str();
@@ -518,12 +530,14 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 			} else if( match[1] == "ob_tran" ) {
 				pType = MiProjection::spherical_rotated;
 			} else {
+				pType = MiProjection::undefined_projection;
 				WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
 				continue;
 			}
 
 			switch( pType ) {
 			case MiProjection::geographic: {
+//				WEBFW_LOG_DEBUG( "ProjectionHelper::P4: geographic: "+proj);
 				//From comments in milib shall gs allways be set to
 				//this value for geographic projection.
 				gs[0] = 1.0;
@@ -546,6 +560,10 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 							         + proj +">.");
 					continue;
 				}
+//				msg.str("");
+//				msg << "ProjectionHelper::P4: polarstereographic: lat_0: " << lat_0 << " lon_0: " << lon_0 << " lat_ts: " << lat_ts <<
+//						" (" << proj << ")";
+//				WEBFW_LOG_DEBUG( msg.str() );
 
 				gs[0] = ( 0 - gs[0] ) / gs[3]; //poleGridX = (0 - startX) / iIncrement
 				gs[1] = ( 0 - gs[1] ) / gs[2];  //poleGridY = (0 - startY) / jIncrement
@@ -565,6 +583,10 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 					continue;
 				}
 
+//				msg.str("");
+//				msg << "ProjectionHelper::P4: spherical_rotated: lon_0: " << lon_0 << " o_lat_p: " << o_lat_p <<
+//				       " (" << proj << ")";
+//				WEBFW_LOG_DEBUG( msg.str() );
 				gs[4] = lon_0;
 				gs[5] = 90 - o_lat_p;
 			}
@@ -579,23 +601,22 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 			if( pType ==  MiProjection::undefined_projection )
 				continue;
 
-			WEBFW_LOG_DEBUG( row.at("placename").c_str() << "numberX: " << row.at("numberX").as<int>()
-			     << " numberY: " << row.at("numberY").as<int>()
-			     << " incrementX: " << row.at("incrementX").as<float>()
-			     << " incrementY: " << row.at("incrementY").as<float>()
-			     << " startY: " << row.at("startY").as<float>()
-			     << " startX: " << row.at("startX").as<float>()
-			     << " proj: " << row.at("projdefinition").c_str() );
-
 			placenameMap[row.at("placename").c_str()] = MiProjection( gs, pType );
+		}
+
+		for( ProjectionMap::const_iterator it=placenameMap.begin();
+		     it != placenameMap.end(); ++it ) {
+			msg.str("");
+			msg << "Projection (P4): " << it->first << "  " << it->second;
+			WEBFW_LOG_DEBUG( msg.str() );
 		}
 	}
 	catch( std::exception &ex ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() );
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB (protocol 4): " << ex.what() );
 		return false;
 	}
 	catch( ... ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" );
+		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB (protocol 4): UNKNOWN reason!" );
 		return false;
 	}
 
