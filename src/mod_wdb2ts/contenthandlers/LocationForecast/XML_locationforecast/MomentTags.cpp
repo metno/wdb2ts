@@ -237,10 +237,10 @@ output( std::ostream &out, const std::string &indent )
 	}
 	
 	if( ! provider.empty() ) {
-		computeWind( pd->windU10m(), pd->windV10m() );
+		computeWind( pd->windU10m(true), pd->windV10m() );
 		projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
-		   	                                         pd->windU10m(), pd->windV10m(),
-			                                            dd_, ff_ );
+		   	                                           pd->windU10m(), pd->windV10m(),
+			                                           dd_, ff_ );
 		if( dd!=FLT_MAX && ff != FLT_MAX ) {
 			out << indent << "<!-- dd: " << dd << " ff: " << ff << " -->\n";
 			out << indent 
@@ -254,31 +254,31 @@ output( std::ostream &out, const std::string &indent )
 			windProb = pd->WIND_PROBABILITY();
 		}
 	
-		value = pd->RH2M();
+		value = pd->RH2M( true );
 		if (value != FLT_MAX)
 			out << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
 
-		value = pd->PR();
+		value = pd->PR( true );
 		if( value != FLT_MAX )
 			out << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
 	
-		value = pd->NN();
+		value = pd->NN( true );
 		if( value != FLT_MAX )
 			out << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
 
-		value = pd->fog();
+		value = pd->fog(true);
 		if( value != FLT_MAX )
 			out << indent <<"<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
 	  
-		value = pd->lowCloud();
+		value = pd->lowCloud(true);
 		if( value != FLT_MAX )
 			out << indent << "<lowClouds id=\"LOW\" percent=\"" << value << "\"/>\n";
        
-		value = pd->mediumCloud();
+		value = pd->mediumCloud(true);
 		if( value !=FLT_MAX )
 			out << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value << "\"/>\n";
     
-		value = pd->highCloud();
+		value = pd->highCloud( true );
 		if( value != FLT_MAX )
 			out << indent << "<highClouds id=\"HIGH\" percent=\"" << value << "\"/>\n";
 	
