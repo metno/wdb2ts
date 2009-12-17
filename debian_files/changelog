@@ -1,3 +1,8 @@
+metno-wdb2ts (0.9.5.1-1) unstable; urgency=low
+  * Locationforcast. Try harder to resolve parameters in the xml generator. It may be more than one grid associated with a provider.
+
+ -- Borge Moe <borge.moe@met.no>  Wed, 17 Dec 2009 10:00:00 +0100
+
 metno-wdb2ts (0.9.5.0-1) unstable; urgency=low
   * Compatible with wdb 0.9.5
   * Comment out debug message for precipitation.
