@@ -78,9 +78,9 @@ computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
    symbols.reserve(data.size());
    
    // reorganise data
-   map<string,map<miTime,float> > allParameters;
+   map<string,map<miutil::miTime,float> > allParameters;
    vector<paramet> parameters;
-   vector<miTime>  times;
+   vector<miutil::miTime>  times;
 
    for (titr=data.begin() ;titr!=data.end();++titr) {
       times.push_back(titr->first);
@@ -89,7 +89,7 @@ computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
          allParameters[pitr->first][titr->first] = pitr->second;
    }    
     
-   map<miString,int>::iterator sitr = IDlist.begin();
+   map<miutil::miString,int>::iterator sitr = IDlist.begin();
 
    for( ;sitr != IDlist.end(); ++sitr) {
       if( allParameters.count( sitr->first ) ) {
@@ -121,9 +121,9 @@ computeSymbols( LocationData& data,
 	miutil::miTime  mitime;
 	vector<miSymbol> symbols;
 	vector<miSymbol> tmpSymbols;
-	map< int, map<miTime,float> > allParameters;
+	map< int, map<miutil::miTime,float> > allParameters;
 	vector<paramet>               parameters;
-	vector<miTime>                times;
+	vector<miutil::miTime>                times;
 	float                         val;
 
 	min--;
@@ -146,8 +146,8 @@ computeSymbols( LocationData& data,
 		pTime = elem.time();
 		date = pTime.date();
 		time = pTime.time_of_day();
-		mitime = miTime( date.year(), date.month(), date.day(), 
-            			  time.hours(), time.minutes(), time.seconds() );
+		mitime = miutil::miTime( date.year(), date.month(), date.day(),
+            			         time.hours(), time.minutes(), time.seconds() );
 		
 		//ost << mitime << "(31): " << val;
 		times.push_back( mitime );
@@ -209,7 +209,7 @@ computeSymbols( LocationData& data,
 	
 	
 	
-	for( map< int, map<miTime,float> >::const_iterator it = allParameters.begin();
+	for( map< int, map<miutil::miTime,float> >::const_iterator it = allParameters.begin();
 	     it != allParameters.end(); ++it ) {
 		if( allParameters.count( it->first ) ) {
 			paramet p;

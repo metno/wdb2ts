@@ -57,7 +57,7 @@ fromAndToTime( boost::posix_time::ptime &fromTime, boost::posix_time::ptime &toT
 {
 	using namespace boost::posix_time;
 
-	miTime t = from();
+	miutil::miTime t = from();
 	fromTime = ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
 			          time_duration( t.hour(), t.min(), t.sec() ) );
 
@@ -73,7 +73,7 @@ getTime() const
 {
 	using namespace boost::posix_time;
 
-	miTime t = symbol.getTime();
+	miutil::miTime t = symbol.getTime();
 
 	return ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
 	             time_duration( t.hour(), t.min(), t.sec() ) );
@@ -226,7 +226,7 @@ next( int &symbolid,
    if (index < 0 || static_cast<std::vector<Symbol>::size_type>( index_) >= symbols_.size())
       return false;
    
-   miTime t = symbols_[index_].symbol.getTime(); 
+   miutil::miTime t = symbols_[index_].symbol.getTime();
    time = ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
                  time_duration( t.hour(), t.min(), t.sec() ) );
    
