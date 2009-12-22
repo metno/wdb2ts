@@ -135,25 +135,26 @@ CPPFLAGS="$libxml2_CFLAGS $CPPFLAGS"
 LDFLAGS="$libxml2_LIBS $LDFLAGS"
 
 PULDFLAGS=
+PUCPPFLAGS=
 
 PKG_CHECK_MODULES(pumet, pumet)
-CPPFLAGS="$pumet_CFLAGS $CPPFLAGS"
+#CPPFLAGS="$pumet_CFLAGS $CPPFLAGS"
+PUCPPFLAGS="$pumet_CFLAGS"
 PULDFLAGS="$pumet_LIBS"
 
 PKG_CHECK_MODULES(putools, putools)
-CPPFLAGS="$putools_CFLAGS $CPPFLAGS"
+#CPPFLAGS="$putools_CFLAGS $CPPFLAGS"
+PUCPPFLAGS="$putools_CFLAGS $PUCPPFLAGS"
 PULDFLAGS="$putools_LIBS $PULDFLAGS"
 
 PKG_CHECK_MODULES(milib, milib)
-CPPFLAGS="$milib_CFLAGS $CPPFLAGS"
+#CPPFLAGS="$milib_CFLAGS $CPPFLAGS"
+PUCPPFLAGS="$milib_CFLAGS $PUCPPFLAGS"
 PULDFLAGS="$milib_LIBS $PULDFLAGS"
 
 #PKG_CHECK_MODULES(libmi, libmi)
 #CPPFLAGS="$libmi_CFLAGS $CPPFLAGS"
 #PULDFLAGS="$libmi_LIBS $PULDFLAGS"
-
-
-LDFLAGS="$PULDFLAGS $LDFLAGS"
 
 PKG_CHECK_MODULES([log4cpp], [log4cpp >= 0.3])
 CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
@@ -194,6 +195,10 @@ done
 for testdir_tmp in $test_subdirs; do
 	CPPFLAGS="$CPPFLAGS -I$srcdir/$testdir_tmp"
 done
+
+#Add the metlibs flags at the front
+LDFLAGS="$PULDFLAGS $LDFLAGS"
+CPPFLAGS="$PUCPPFLAGS $CPPFLAGS"
 
 #-----------------------------------------------------------------------------
 # Automake

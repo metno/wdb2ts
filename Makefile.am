@@ -32,6 +32,7 @@ EXTRA_DIST=				etc/metno-wdb2ts.conf.template.in \
 			           	etc/metno-wdb2ts-db.conf.template.in \
 			           	etc/metno-wdb2ts-conf.xml.template.in \
 			           	etc/qbSymbols.def.in \
+			           	metlibs-3.3.0-20091221.tar.gz \
 			           	README.debian
 
 if HAS_WDB2TS_CONFIGDIR
@@ -163,8 +164,8 @@ debian-name:
 
 debian:	dist clean-debian 
 	tar xvzf $(PKG_DIR).tar.gz
+	(test -d $(DEBIAN_DIR) && rm -rf $(DEBIAN_DIR)) || true
 	mkdir -p $(DEBIAN_DIR)
-	rm -rf $(DEBIAN_DIR)/*
 	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
 	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc

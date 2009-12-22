@@ -9,6 +9,9 @@
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
+#Add our local metlibs first on the pkg-config path.
+#export PKG_CONFIG_PATH:=$(CURDIR)/metlibs/lib/pkgconfig:$(PKG_CONFIG_PATH)
+
 DEB_HOST_GNU_TYPE   ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
@@ -23,7 +26,32 @@ endif
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
+	
+	#Compile a local version of metlibs.
+	#We must do it before we configure wdb2ts 
+	
+	tar zxpf metlibs-3.3.0-20091221.tar.gz  
+	( cd metlibs-3.3.0 ;                     \
+	  ./configure --prefix=$(CURDIR)/metlibs \
+	              --sysconfdir=/etc \
+	              --localstatedir=/var \
+	              --datarootdir=/usr/share \
+	              --disable-shared  --disable-diField --disable-diMItiff \
+	              --disable-diSQL  --disable-diWdb --disable-glp --disable-glText \
+	              --disable-GribAPI --disable-parameter --disable-pets2 --disable-pods \
+	              --disable-profet  --disable-proFunctions --disable-propoly \
+	              --disable-puCtools --disable-puDatatypes --disable-puSQL \
+	              --disable-qTimeseries --disable-qUtilities  --disable-robs --disable-tsData \
+	              --disable-wdb  --disable-metnofieldfile  --disable-xfonts ;  \
+	  $(MAKE)   ;           \
+	  $(MAKE) install ; \
+	  \
+	  #cleanup \
+	)
+	#test -d metlibs-3.3.0 && rm -rf metlibs-3.3.0  
+		
 	# Add here commands to configure the package.
+	PKG_CONFIG_PATH=$(CURDIR)/metlibs/lib/pkgconfig:$(PKG_CONFIG_PATH) \
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) \
 	            --with-wdb2ts-configdir=/etc/metno-wdb2ts \
 	            --with-wdb2ts-logdir=/var/log/metno-wdb2ts \
@@ -40,7 +68,6 @@ build: build-stamp
 
 build-stamp: configure-stamp 
 	dh_testdir
-
 	# Add here commands to compile the package.
 	$(MAKE)
 	$(MAKE) html
@@ -52,7 +79,6 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
 
