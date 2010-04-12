@@ -101,29 +101,22 @@ DbManager( const miutil::pgpool::DbDefList     &dbSetup )
     
 {
    ostringstream ost;
-   
+   miutil::pgpool::DbDef dbDef;
    //Create a pool for each of the database definitions.
    for( CIDbDefList it = dbSetup_.begin() ; it != dbSetup_.end(); ++it ) {
-      if( it->second.defaultDbDef() )
+	   dbDef = it->second;
+      if( dbDef.defaultDbDef() )
          defaultDbId_ = it->first;
-      
-      ost << "dbname=" << it->second.dbname();
 
-      if( ! it->second.user().empty() )
-         ost << " user=" << it->second.user();
+      if( dbDef.maxpoolsize() <= 0 )
+    	  dbDef.maxpoolsize( 30 );
 
-      if( ! it->second.password().empty() )
-         ost << " password=" << it->second.password();
-      
-      if( ! it->second.host().empty() )
-         ost << " host=" << it->second.host();
-            
-      if(  it->second.port() > 0 )
-         ost << " port=" << it->second.port();
+      if( dbDef.usecount() <= 0 )
+    	  dbDef.usecount( 100 );
       
       //cerr << " Creating pool: <" << it->first << "> " << ost.str() << endl;  
       pools_[it->first] = miutil::pgpool::DbConnectionPoolPtr( 
-      		              		new miutil::pgpool::DbConnectionPool( 20, ost.str(), 100, new ConExtra( it->second.wciuser() ) ) 
+      		              		new miutil::pgpool::DbConnectionPool( dbDef, new ConExtra( it->second.wciuser() ) )
       		              );
       ost.str("");
    }
@@ -151,6 +144,12 @@ newConnection(const std::string &dbid)
    
    try {
       return it->second->newConnection();
+   }
+   catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
+	   throw;
+   }
+   catch( const miutil::pgpool::DbConnectionPoolCreateEx &ex ) {
+   	   throw;
    }
    catch( const miutil::pgpool::DbConnectionException &ex ) { 
       throw logic_error( ex.what() );

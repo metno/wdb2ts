@@ -37,6 +37,9 @@ namespace wdb2ts {
 
 class SymbolContext 
 {
+	SymbolContext( const SymbolContext &sc );
+	SymbolContext& operator=(const SymbolContext &);
+
 	struct symTmp_ {
 		boost::posix_time::ptime time;
 		int symNumber;
@@ -44,20 +47,24 @@ class SymbolContext
 		float probability;
 	} symTmp;
 	
-	ProviderSymbolHolderList symbols;
+	ProviderSymbolHolderList *symbols;
+	bool                     symbolOwner;
 	std::string              prevProvider;
 	boost::posix_time::ptime prevTime;
 	float                    prevTemperature;
 	bool                     first;
+	bool                     useTempInFromtime;
 	
 	void 	doAddSymbol( int symNumber, float probability, const boost::posix_time::ptime &time, 
-			             const std::string &provider, float latitude, int min );
+			             const std::string &provider, float latitude, int min, bool withOutStateOfAgregate );
 
 	int correctSymbol( float temperature, int symNumber );
 
 public:
-	SymbolContext();
-	SymbolContext( const SymbolContext &sc );
+	SymbolContext( bool useTempInFromtime );
+	~SymbolContext();
+
+	void setSymbols( ProviderSymbolHolderList *symbols );
 
 	void addSymbol( int symNumber, float probability, 
 			          const boost::posix_time::ptime &time,

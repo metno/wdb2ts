@@ -1,8 +1,9 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
-#include <deque>
 #include <string>
+#include <deque>
+
 
 namespace wdb2ts {
 namespace config {

@@ -87,6 +87,143 @@ namespace {
 namespace wdb2ts {
 
 
+void
+PData::
+merge( const PData &other )
+{
+
+	if( other.windV10m != FLT_MAX ) windV10m = other.windV10m;
+    if( other.windU10m != FLT_MAX ) windU10m = other.windU10m;
+    if( other.PP != FLT_MAX ) PP = other.PP;
+    if( other.PR != FLT_MAX ) PR = other.PR;
+    if( other.TA != FLT_MAX ) TA = other.TA;
+    if( other.T2M != FLT_MAX ) T2M = other.T2M;
+    if( other.T2M_LAND  != FLT_MAX ) T2M_LAND = other.T2M_LAND;
+    if( other.T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX )
+		T2M_NO_ADIABATIC_HIGHT_CORRECTION = other.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+    if( other.temperatureCorrected != FLT_MAX ) temperatureCorrected = other.temperatureCorrected;
+    if( other.UU != FLT_MAX ) UU = other.UU;
+    if( other.PRECIP != FLT_MAX ) PRECIP = other.PRECIP;
+    if( other.PRECIP_ACCUMULATED != FLT_MAX ) PRECIP_ACCUMULATED = other.PRECIP_ACCUMULATED;
+    if( other.PRECIP_1T != FLT_MAX ) PRECIP_1T = other.PRECIP_1T;
+    if( other.PRECIP_3T != FLT_MAX ) PRECIP_3T = other.PRECIP_3T;
+    if( other.PRECIP_6T != FLT_MAX ) PRECIP_6T  = other.PRECIP_6T;
+    if( other.PRECIP_12T != FLT_MAX ) PRECIP_12T = other.PRECIP_12T;
+    if( other.PRECIP_24T != FLT_MAX ) PRECIP_24T = other.PRECIP_24T;
+    if( other.seaCurrentVelocityV != FLT_MAX ) seaCurrentVelocityV = other.seaCurrentVelocityV;
+    if( other.seaCurrentVelocityU != FLT_MAX ) seaCurrentVelocityU = other.seaCurrentVelocityU;
+    if( other.seaSalinity != FLT_MAX ) seaSalinity = other.seaSalinity;
+    if( other.seaSurfaceHeight != FLT_MAX ) seaSurfaceHeight = other.seaSurfaceHeight;
+    if( other.seaTemperature != FLT_MAX ) seaTemperature = other.seaTemperature;
+    if( other.meanTotalWaveDirection != FLT_MAX ) meanTotalWaveDirection = other.meanTotalWaveDirection;
+    if( other.significantTotalWaveHeight != FLT_MAX ) significantTotalWaveHeight = other.significantTotalWaveHeight;
+    if( other.seaIcePresence != FLT_MAX ) seaIcePresence = other.seaIcePresence;
+    if( other.iceingIndex != FLT_MAX ) iceingIndex = other.iceingIndex;
+    if( other.seaBottomTopography != FLT_MAX ) seaBottomTopography = other.seaBottomTopography;
+    if( other.NN != FLT_MAX ) NN = other.NN;
+    if( other.visibility != FLT_MAX ) visibility = other.visibility;
+    if( other.fog != FLT_MAX ) fog = other.fog;
+    if( other.highCloud != FLT_MAX ) highCloud = other.highCloud;
+    if( other.mediumCloud != FLT_MAX ) mediumCloud = other.mediumCloud;
+    if( other.lowCloud != FLT_MAX ) lowCloud = other.lowCloud;
+    if( other.RH2M != FLT_MAX ) RH2M = other.RH2M;
+    if( other.thunderProability != FLT_MAX ) thunderProability = other.thunderProability;
+    if( other.fogProability != FLT_MAX ) fogProability = other.fogProability;
+    if( other.WIND_PROBABILITY != FLT_MAX ) WIND_PROBABILITY = other.WIND_PROBABILITY;
+    if( other.T2M_PROBABILITY_1 != FLT_MAX ) T2M_PROBABILITY_1 = other.T2M_PROBABILITY_1;
+    if( other.T2M_PROBABILITY_2 != FLT_MAX ) T2M_PROBABILITY_2 = other.T2M_PROBABILITY_2;
+    if( other.T2M_PROBABILITY_3 != FLT_MAX ) T2M_PROBABILITY_3 = other.T2M_PROBABILITY_3;
+    if( other.T2M_PROBABILITY_4 != FLT_MAX ) T2M_PROBABILITY_4 = other.T2M_PROBABILITY_4;
+    if( other.T2M_PERCENTILE_10 != FLT_MAX ) T2M_PERCENTILE_10 = other.T2M_PERCENTILE_10;
+    if( other.T2M_PERCENTILE_25 != FLT_MAX ) T2M_PERCENTILE_25 = other.T2M_PERCENTILE_25;
+    if( other.T2M_PERCENTILE_50 != FLT_MAX ) T2M_PERCENTILE_50 = other.T2M_PERCENTILE_50;
+    if( other.T2M_PERCENTILE_75 != FLT_MAX ) T2M_PERCENTILE_75 = other.T2M_PERCENTILE_75;
+    if( other.T2M_PERCENTILE_90 != FLT_MAX ) T2M_PERCENTILE_90 = other.T2M_PERCENTILE_90;
+    if( other.PRECIP_PERCENTILE_10 != FLT_MAX ) PRECIP_PERCENTILE_10 = other.PRECIP_PERCENTILE_10;
+    if( other.PRECIP_PERCENTILE_25 != FLT_MAX ) PRECIP_PERCENTILE_25 = other.PRECIP_PERCENTILE_25;
+    if( other.PRECIP_PERCENTILE_50 != FLT_MAX ) PRECIP_PERCENTILE_50 = other.PRECIP_PERCENTILE_50;
+    if( other.PRECIP_PERCENTILE_75 != FLT_MAX ) PRECIP_PERCENTILE_75 = other.PRECIP_PERCENTILE_75;
+    if( other.PRECIP_PERCENTILE_90 != FLT_MAX ) PRECIP_PERCENTILE_90 = other.PRECIP_PERCENTILE_90;
+    if( other.PRECIP_PROBABILITY_0_1MM != FLT_MAX ) PRECIP_PROBABILITY_0_1MM = other.PRECIP_PROBABILITY_0_1MM;
+    if( other.PRECIP_PROBABILITY_0_2MM != FLT_MAX ) PRECIP_PROBABILITY_0_2MM = other.PRECIP_PROBABILITY_0_2MM;
+    if( other.PRECIP_PROBABILITY_0_5MM != FLT_MAX ) PRECIP_PROBABILITY_0_5MM = other.PRECIP_PROBABILITY_0_5MM;
+    if( other.PRECIP_PROBABILITY_1_0MM != FLT_MAX ) PRECIP_PROBABILITY_1_0MM = other.PRECIP_PROBABILITY_1_0MM;
+    if( other.PRECIP_PROBABILITY_2_0MM != FLT_MAX ) PRECIP_PROBABILITY_2_0MM = other.PRECIP_PROBABILITY_2_0MM;
+    if( other.PRECIP_PROBABILITY_5_0MM != FLT_MAX ) PRECIP_PROBABILITY_5_0MM = other.PRECIP_PROBABILITY_5_0MM;
+    if( other.symbol != FLT_MAX ) symbol = other.symbol;
+    if( other.symbol_PROBABILITY != FLT_MAX ) symbol_PROBABILITY = other.symbol_PROBABILITY;
+    if( other.modeltopography != FLT_MAX ) modeltopography = other.modeltopography;
+    if( other.topography != FLT_MAX ) topography = other.topography;
+}
+
+int
+PData::
+count()const
+{
+	int n=0;
+
+	if( windV10m != FLT_MAX ) ++n;
+    if( windU10m != FLT_MAX ) ++n;
+    if( PP != FLT_MAX ) ++n;
+    if( PR != FLT_MAX ) ++n;
+    if( TA != FLT_MAX ) ++n;
+    if( T2M != FLT_MAX ) ++n;
+    if( T2M_LAND  != FLT_MAX ) ++n;
+    if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) ++n;
+    if( temperatureCorrected != FLT_MAX ) ++n;
+    if( UU != FLT_MAX ) ++n;
+    if( PRECIP != FLT_MAX ) ++n;
+    if( PRECIP_ACCUMULATED != FLT_MAX ) ++n;
+    if( PRECIP_1T != FLT_MAX ) ++n;
+    if( PRECIP_3T != FLT_MAX ) ++n;
+    if( PRECIP_6T != FLT_MAX ) ++n;
+    if( PRECIP_12T != FLT_MAX ) ++n;
+    if( PRECIP_24T != FLT_MAX ) ++n;
+    if( seaCurrentVelocityV != FLT_MAX ) ++n;
+    if( seaCurrentVelocityU != FLT_MAX ) ++n;
+    if( seaSalinity != FLT_MAX ) ++n;
+    if( seaSurfaceHeight != FLT_MAX ) ++n;
+    if( seaTemperature != FLT_MAX ) ++n;
+    if( meanTotalWaveDirection != FLT_MAX ) ++n;
+    if( significantTotalWaveHeight != FLT_MAX ) ++n;
+    if( seaIcePresence != FLT_MAX ) ++n;
+    if( iceingIndex != FLT_MAX ) ++n;
+    if( NN != FLT_MAX ) ++n;
+    if( visibility != FLT_MAX ) ++n;
+    if( fog != FLT_MAX ) ++n;
+    if( highCloud != FLT_MAX ) ++n;
+    if( mediumCloud != FLT_MAX ) ++n;
+    if( lowCloud != FLT_MAX ) ++n;
+    if( RH2M != FLT_MAX ) ++n;
+    if( thunderProability != FLT_MAX ) ++n;
+    if( fogProability != FLT_MAX ) ++n;
+    if( WIND_PROBABILITY != FLT_MAX ) ++n;
+    if( T2M_PROBABILITY_1 != FLT_MAX ) ++n;
+    if( T2M_PROBABILITY_2 != FLT_MAX ) ++n;
+    if( T2M_PROBABILITY_3 != FLT_MAX ) ++n;
+    if( T2M_PROBABILITY_4 != FLT_MAX ) ++n;
+    if( T2M_PERCENTILE_10 != FLT_MAX ) ++n;
+    if( T2M_PERCENTILE_25 != FLT_MAX ) ++n;
+    if( T2M_PERCENTILE_50 != FLT_MAX ) ++n;
+    if( T2M_PERCENTILE_75 != FLT_MAX ) ++n;
+    if( T2M_PERCENTILE_90 != FLT_MAX ) ++n;
+    if( PRECIP_PERCENTILE_10 != FLT_MAX ) ++n;
+    if( PRECIP_PERCENTILE_25 != FLT_MAX ) ++n;
+    if( PRECIP_PERCENTILE_50 != FLT_MAX ) ++n;
+    if( PRECIP_PERCENTILE_75 != FLT_MAX ) ++n;
+    if( PRECIP_PERCENTILE_90 != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_0_1MM != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_0_2MM != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_0_5MM != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_1_0MM != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_2_0MM != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY_5_0MM != FLT_MAX ) ++n;
+    if( symbol != FLT_MAX ) ++n;
+    if( symbol_PROBABILITY != FLT_MAX ) ++n;
+
+    return n;
+}
+
 std::string
 toBeaufort(float mps, std::string &description)
 {
@@ -229,11 +366,16 @@ decodePData( const ParamDefList &paramDefs,
 
 			if( itProvider == providers.end() ) {
 				if( paramDef->alias() == "TOPOGRAPHY" ) {
-					providerWithPlacename = it.at("dataprovidername").c_str();
-				} else {
+					if( providerWithPlacename.empty() )
+						providerWithPlacename = it.at("dataprovidername").c_str();
+				}else  if( providerWithPlacename.empty() ){
 					++it;
 					continue;
 				}
+				/*else {
+					++it;
+					continue;
+				}*/
 			}
 
 			dataversion = refTimeList.getDataversion( providerWithPlacename );
@@ -273,7 +415,7 @@ decodePData( const ParamDefList &paramDefs,
 				}
 			}
 
- 			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
+			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
 
  			STOP_MARK_MI_PROFILE("timeSerie");
 	
@@ -369,7 +511,7 @@ decodePData( const ParamDefList &paramDefs,
 				string topo=providerWithPlacename+string("__TOPOGRAPHY__");
 				ptime topoTime( boost::gregorian::date(1970, 1, 1),
 						boost::posix_time::time_duration( 0, 0, 0 ) );
-				WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
+				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
 				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
 			}else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;

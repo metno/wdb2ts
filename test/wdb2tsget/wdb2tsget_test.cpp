@@ -53,6 +53,7 @@ main( int argn, char **argv )
 	boost::thread_group getThreadsGroup;
 	double start, stop;
 	float lat, lon;
+	bool all=false;
 	po::variables_map vm;
 	
 	doOptions( vm, argn, argv );
@@ -64,6 +65,7 @@ main( int argn, char **argv )
 	nThreads = vm["threads"].as<int>();
 	nRuns = vm["runs"].as<int>();
 	url = vm["request"].as<string>();
+	all = vm.count( "all" )>0?true:false;
 	
 	try {
 		lat = vm["lat"].as<float>();
@@ -75,6 +77,7 @@ main( int argn, char **argv )
 	
 	for( int i=0; i<nThreads; ++i ) {
 		wdb2ts::GetThread *th = new wdb2ts::GetThread( url, lat, lon, nRuns, (unsigned int) i, i);
+		th->all( all );
 		getThreads.push_back( th );
 		getThreadsGroup.add_thread( new boost::thread( *th ) );
 	}
@@ -119,6 +122,7 @@ doOptions(po::variables_map &vm, int argn, char **argv )
               ("request,s", po::value<string>()->default_value( "http://localhost:8080/wdb2ts/locationforecast" ), "The wdb2ts request to run")
               ("lat", po::value<float>()->default_value( FLT_MAX ), "Use only this latitude.")
               ("lon", po::value<float>()->default_value( FLT_MAX ), "Use only this longitude.")
+              ("all", "Return the result for all times in the fields.")
 	        ;
 	
 		po::store( po::parse_command_line( argn, argv, desc), vm );

@@ -29,6 +29,9 @@
 #include <unistd.h>
 #include <iostream>
 #include <ApacheStream.h>
+#include <apr_file_io.h>
+#include <apr_file_info.h>
+
 
 #define DEFAULT_CHUNC_SIZE 1024
 
@@ -86,7 +89,7 @@ serviceUnavailable( const char *retryAfter )
 void 
 webfw::
 ApacheStream::
-contentLength( int content_length )
+contentLength( long content_length )
 {
    ap_set_content_length (r, content_length );
 }
@@ -196,6 +199,47 @@ flushStream()
 
       sendToClient( ost.str().c_str() );
    }
+}
+
+long
+webfw::
+ApacheStream::
+sendFile( const std::string &file, bool deleteFile )
+{
+	apr_file_t *fd;
+	apr_finfo_t fInfo;
+	apr_size_t nBytes;
+	apr_int32_t flag = APR_FOPEN_READ | APR_FOPEN_SENDFILE_ENABLED;
+
+	apr_status_t st = apr_stat( &fInfo, file.c_str(), APR_FINFO_MIN, r->pool );
+
+	if( st != APR_SUCCESS || st != APR_INCOMPLETE ) {
+		if( deleteFile )
+			unlink( file.c_str() );
+
+		throw IOError("ERROR: sendFile: Cant get information about the file <" + file + ">.", true );
+	}
+
+	if( (fInfo.valid & APR_FINFO_SIZE) == 0 ) {
+		if( deleteFile )
+			unlink( file.c_str() );
+
+		throw IOError("ERROR: sendFile: Cant get the length of the file <" + file + ">.", true );
+	}
+
+	if( deleteFile )
+		flag |= APR_FOPEN_DELONCLOSE;
+
+	if( apr_file_open( &fd, file.c_str(), flag,	APR_FPROT_OS_DEFAULT, r->pool ) != APR_SUCCESS ) {
+		throw IOError("ERROR: sendFile: Cant open the file <" + file + ">.", true );
+	}
+
+	contentLength( fInfo.size );
+
+	if( ap_send_fd( fd, r, 0, fInfo.size, &nBytes) != APR_SUCCESS )
+		throw IOError("ERROR: sendFile: Failed to send the file <" + file + "> to the client.", true );
+
+	return nBytes;
 }
 
 

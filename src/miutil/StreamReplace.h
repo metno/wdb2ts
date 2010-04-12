@@ -67,6 +67,7 @@ private:
 public:
 
 	StreamReplaceSource();
+	virtual ~StreamReplaceSource();
 	StreamReplaceSource( std::istream &inStream,
 			             const std::string &what, const std::string &with,
 			             int nToReplace=0,

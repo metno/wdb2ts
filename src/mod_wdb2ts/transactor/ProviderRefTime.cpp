@@ -57,7 +57,7 @@ void
 ProviderRefTime::
 operator () ( argument_type &t )
 {
-	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "wdb" );
 
 	ostringstream ost;
 	*refTimesResult=refTimes;

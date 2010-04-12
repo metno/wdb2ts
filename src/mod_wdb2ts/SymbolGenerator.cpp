@@ -33,6 +33,7 @@
 #include <puMet/symbolMaker.h>
 #include <puMet/paramet.h>
 #include <SymbolGenerator.h>
+#include <Logger4cpp.h>
 
 
 using namespace std;
@@ -60,7 +61,61 @@ readConf( const std::string &confile )
 	return true;
 }
 	
-	
+
+
+void
+SymbolGenerator::
+correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data )
+{
+	WEBFW_USE_LOGGER( "encode" );
+	float mediumCloud=data.mediumCloud();
+	float NN=data.NN();
+	float lowCloud=data.lowCloud();
+	float fog=data.fog();
+	float temperature=data.temperatureCorrected();
+//	SymbolHolder::Symbol oldSymbol;
+
+	if( NN != FLT_MAX && symbol.idnumber() == 4 ) {
+		if( mediumCloud < 13  && lowCloud && fog < 13 ) {
+			miSymbol partlyCloud( 3, false );
+			code light;
+			code dark;
+
+			light.AddValues( 3, "delvis skyet", 9 );
+			dark.AddValues( 17, "delvis skyet i mørketid", 9 );
+			partlyCloud.AddCodes( light, dark );
+			partlyCloud.setTime( symbol.symbol.getTime() );
+			partlyCloud.setLightStat( symbol.symbol.getLightStat() );
+
+//			oldSymbol = symbol;
+			symbol.symbol = partlyCloud;
+/*
+			if( oldSymbol.idnumber() != symbol.idnumber() ) {
+				WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct for misleading cloudtype: old: "
+				      		     << oldSymbol.idnumber() << " (" << oldSymbol.idname()
+						         << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
+			}
+*/
+		}
+	}
+
+	if( ! symbol.withOutStateOfAgregate  || temperature==FLT_MAX  )
+		return;
+
+//	oldSymbol = symbol;
+	symbolMaker::stateMaker( symbol.symbol, temperature );
+
+/*
+	if( oldSymbol.idnumber() != symbol.idnumber() ) {
+		WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct agregate: temp: " << temperature
+				         << " old: " << oldSymbol.idnumber() << " (" << oldSymbol.idname()
+			             << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
+	}
+*/
+}
+
+
+/*
 bool
 SymbolGenerator::
 computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
@@ -104,12 +159,12 @@ computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
 
    return true;
 }
-
+*/
 SymbolHolder*
 SymbolGenerator::
 computeSymbols( LocationData& data,
 		        const std::string &provider,
-	            int min, int max, int precipHours, std::string &error )
+	            int min, int max, int precipHours, bool withoutStateOfAgregate, std::string &error )
 {
 	//stringstream ost;
 	symbolMaker sm;
@@ -217,8 +272,13 @@ computeSymbols( LocationData& data,
 			parameters.push_back( p );
 		}
 	}
-	   
-   tmpSymbols = sm.compute( parameters, times, min, max);
+
+	if( withoutStateOfAgregate )
+		tmpSymbols = sm.computeWithoutStateOfAggregate( parameters, times, min, max );
+	else
+		tmpSymbols = sm.compute( parameters, times, min, max );
+
+   //tmpSymbols = sm.compute( parameters, times, min, max);
    
    //Do some cleanup
    
@@ -268,7 +328,7 @@ computeSymbols( LocationData& data,
    symbols.resize(nSymbols);
    
    try {   
-	   return new SymbolHolder(min, max, symbols);
+	   return new SymbolHolder(min, max, symbols, withoutStateOfAgregate );
    }
    catch ( ... ) {
    }
@@ -280,6 +340,7 @@ ProviderSymbolHolderList
 SymbolGenerator::
 computeSymbols( LocationData& data, 
                 const SymbolConfProvider &symbolConf,
+                bool withoutStateOfAgregate,
                 std::string &error )
 {
 	ProviderSymbolHolderList symbols;
@@ -293,6 +354,7 @@ computeSymbols( LocationData& data,
 		      ++ itConf  ) {
 			sh = computeSymbols( data, it->first, 
 					               itConf->min(), itConf->max(), itConf->precipHours(),
+					               withoutStateOfAgregate,
 					               myerror );
 			if( !sh ) {
 				error += myerror;

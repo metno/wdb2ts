@@ -67,8 +67,8 @@ class LocationElem {
 	const std::string topographyPostfix;
 	const boost::posix_time::ptime seaIceTime;
 	const boost::posix_time::ptime seaBottomTopographyTime;
-	const TimeSerie *timeSerie;
-	CITimeSerie itTimeSerie;
+	TimeSerie *timeSerie;
+	ITimeSerie itTimeSerie;
 	ProviderList providerPriority;
 	TopoProviderMap modelTopoProviders;
 	std::list<std::string>  topographyProviders;
@@ -90,7 +90,7 @@ class LocationElem {
 				  const std::list<std::string> &topographyProviders,
 			      float longitude, float latitude, int hight  );
 	
-	void init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie ); 
+	void init( ITimeSerie itTimeSerie, TimeSerie *timeSerie );
 	
 	std::string topoProvider( const std::string &provider_, TopoProviderMap &topoProviders );
 
@@ -276,7 +276,8 @@ public:
    float T2M( bool tryHard=false )const;
    float T2M_LAND( bool tryHard=false )const;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard=false )const;
-   
+   float temperatureCorrected( bool tryHard = false )const;
+   void  temperatureCorrected( float temperature, const std::string &provider = "" );
    float UU( bool tryHard=false )const;
    
    float PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;

@@ -29,6 +29,7 @@ query( const std::string &query ) const
 }
 
 
+
 std::ostream& 
 operator<<( std::ostream& output, const Config& res)
 {

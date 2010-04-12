@@ -45,6 +45,12 @@ class RequestHandler
 {
    int majorVersion_;
    int minorVersion_; 
+
+   std::string logDir;
+   std::string tmpDir;
+   std::string confDir;
+   std::string logprefix;
+   std::string moduleName;
   
    void doGet( Request &req, Response &response, Logger &logger, App *app );
    void doPost( Request &req, Response &response, Logger &logger, App *app );
@@ -69,7 +75,22 @@ class RequestHandler
    
       void version( int &major, int &minor )const;
       bool isVersion( int major, int minor )const;
-                  
+
+      void setPaths( const std::string &confpath,
+          		     const std::string &logpath,
+          		     const std::string &tmppath );
+
+      std::string getLogDir()const  { return logDir;}
+      std::string getConfDir()const { return confDir; }
+      std::string getTmpDir()const  { return tmpDir; }
+
+      void setLogprefix( const std::string &prefix ) { logprefix= prefix; }
+      std::string getLogprefix()const { return logprefix; }
+
+      void setModuleName( const std::string &mname ) { moduleName = mname; }
+      std::string getModuleName()const { return moduleName; }
+
+
       /**
        * register an abort handler to be called if the user abort an 
        * operation. The handlers is automaticaly removed when the put,
@@ -88,7 +109,8 @@ class RequestHandler
       virtual void put( Request &req, Response &response, Logger &logger );
       virtual void del( Request &req, Response &response, Logger &logger );
       
-      static log4cpp::Category& getLogger( const std::string &name );
+      static const RequestHandler *getRequestHandler();
+      static log4cpp::Category& getLogger( const std::string &name, const RequestHandler *reqHandler=0 );
 };
 
 typedef boost::shared_ptr<RequestHandler> RequestHandlerPtr;

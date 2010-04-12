@@ -78,7 +78,7 @@ operator () ( argument_type &t )
 	bool   mustHaveData;
 	bool   stopIfQueryHasData;
 	
-	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "wdb" );
 
 //	timeSerie->clear();
 	

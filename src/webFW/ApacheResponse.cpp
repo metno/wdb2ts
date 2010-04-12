@@ -91,7 +91,7 @@ serviceUnavailable(const boost::posix_time::ptime &retryAfter )
 void 
 webfw::
 ApacheResponse::
-contentLength( int content_length )
+contentLength( long content_length )
 {
    Response::contentLength( content_length );
    (*const_cast<OutStream*>(&out_))->contentLength( content_length );
@@ -166,6 +166,14 @@ sendStream( std::istream &ist )
 		buf[ n ] = '\0';
 		(*const_cast<OutStream*>(&out_))->sendToClient( buf );
 	} else {
-		throw IOError("ERROR: Failed to read the input when sending the response to the clent.!", true );
+		throw IOError("ERROR: Failed to read the input when sending the response to the client.!", true );
 	}
+}
+
+long
+webfw::
+ApacheResponse::
+sendFile( const std::string &file, bool deleteFile )
+{
+	return (*const_cast<OutStream*>(&out_))->sendFile( file, deleteFile );
 }

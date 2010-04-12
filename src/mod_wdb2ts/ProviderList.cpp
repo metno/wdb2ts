@@ -216,6 +216,13 @@ findProvider( const std::string &provider,
    	
    if( itFound != end() )
     	providerWithplacename = itFound->providerWithPlacename();
+   else {
+	   if( ! placename.empty() )
+		   providerWithplacename = provider +" [" + placename +"]";
+	   else
+		   providerWithplacename = provider;
+
+   }
    
    return itFound;
 }

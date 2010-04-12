@@ -173,7 +173,7 @@ getProviderReftime( const std::string &provider,
 	doGetProviderReftime( provider, refTimeFrom, refTimeTo ); 
 		
 	if( refTimeFrom.is_special() ) {
-		WEBFW_LOG_WARN( " --- Return: getProviderReftime: No reftime found. " );;
+		WEBFW_LOG_INFO( " --- No reftime found for provider: " << provider );
 		return false;
 	}
  
@@ -211,7 +211,7 @@ getProviderReftime( const std::list<std::string> &providerList,
 	}
 		
 	if( refTimeFrom.is_special() ) {
-		WEBFW_LOG_WARN( " --- Return: getProviderReftime: No reftime found. [" << log << "]" );;
+		WEBFW_LOG_INFO( " --- No reftime found for providers [" << log << "]" );;
 		return false;
 	}
  
@@ -388,6 +388,7 @@ hasNext( )
 		q = position + itNext->query();
 		queryMustHaveData = itNext->probe();
 		stopIfQueryHasData = itNext->stopIfData();
+		wdbid_ = itNext->wdbdb();
 		
 		webQuery.decode( q );
 	

@@ -41,6 +41,7 @@
 #include <RequestHandlerFactory.h>
 #include <transactor/Version.h>
 #include <splitstr.h>
+#include <replace.h>
 #include <Logger4cpp.h>
 
 using namespace std;
@@ -65,9 +66,9 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	miutil::pgpool::DbDefList dbsetup;
 	string buf;
 	
-	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << ". " ;
-	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << ". " ;
-	log << "WDB2TS_DEFAULT_SYSTMPDIR=" << WDB2TS_DEFAULT_SYSTMPDIR << ". " ;
+	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << "." ;
+	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << "." ;
+	log << "WDB2TS_DEFAULT_SYSTMPDIR=" << WDB2TS_DEFAULT_SYSTMPDIR << "." ;
 	log << "WDB2TS_LOCALSTATEDIR=" << WDB2TS_LOCALSTATEDIR << ". ";
 	
 	notes.setPersistentNotePath( WDB2TS_LOCALSTATEDIR );
@@ -164,6 +165,9 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 				logger.error( log.str() );
 				continue;
 			}
+
+			handler->setPaths( getConfDir(), getLogDir(), getTmpDir() );
+			handler->setModuleName( moduleName() );
 			
 			log << "Configure request handler <" << (*itVer)->action.asString() << "> version: " 
 			    << (*itVer)->version << ".";
@@ -203,6 +207,14 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			
 			toConfigure->doConfigure( (*itVer)->actionParam, query, (*itVer)->wdbDB.asString("") );
 			
+			std::string logprefix = it->second->path.asString();
+			miutil::replace( logprefix, " ", "_");
+			miutil::replace( logprefix, "/", ".");
+
+			if( ! logprefix.empty() && logprefix[0]=='.' )
+				logprefix.erase( 0, 1 );
+
+			handler->setLogprefix( logprefix );
 			reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() );
 		}
 		
@@ -346,10 +358,13 @@ wciProtocol( const std::string &wdbid )
 	if( major == 0 && minor == 9 && patch > 1 && patch <= 4)
 		return 3;
 	
-	if( major == 0 && minor == 9 && patch >= 5 )
+	if( major == 0 && minor == 9 && patch == 5 )
 		return 4;
 
-	return 4;
+	if( major == 0 && minor == 9 && patch >= 6 )
+		return 5;
+
+	return 5;
 }
 
 

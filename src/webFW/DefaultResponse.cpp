@@ -70,7 +70,7 @@ expire( const boost::posix_time::ptime &exp )
 void 
 webfw::
 DefaultResponse::
-contentLength( int content_length )
+contentLength( long content_length )
 {
    Response::contentLength( content_length );
    out_ << "Content-length: " << content_length << std::endl; 
@@ -99,4 +99,12 @@ webfw::
 DefaultResponse::
 sendStream( std::istream &ist )
 {
+}
+
+long
+webfw::
+DefaultResponse::
+sendFile( const std::string &file, bool deleteFile)
+{
+	//CODE: At least delete the file here if deleteFile is true.
 }

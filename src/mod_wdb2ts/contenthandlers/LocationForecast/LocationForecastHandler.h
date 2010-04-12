@@ -103,6 +103,7 @@ private:
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;
+	int                 subversion;
 	std::string         wdbDB;
    //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;

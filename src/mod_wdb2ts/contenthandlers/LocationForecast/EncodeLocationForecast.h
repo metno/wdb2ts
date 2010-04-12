@@ -41,6 +41,7 @@
 #include <ProjectionHelper.h>
 #include <PrecipitationConfig.h>
 #include <SymbolConf.h>
+#include <iterator>
 /**
  * @addtogroup wdb2ts
  * @{
@@ -142,6 +143,11 @@ class EncodeLocationForecast : public Encode
 	
 	void 	updateBreakTimes( const std::string &provider, 
 			                  const boost::posix_time::ptime &time );
+	/**
+	 * comapactBreakTimes scans the breaktimes list to find subsequent
+	 * providers with the same name. This providers is collapsed to one.
+	 */
+	void 	compactBreakTimes();
 	
 	BreakTimeList::const_iterator findBreakTime( const boost::posix_time::ptime &time )const;
 		

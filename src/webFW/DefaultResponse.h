@@ -45,7 +45,7 @@ class DefaultResponse
 
       virtual void contentType(const std::string &content_type );
       virtual void expire( const boost::posix_time::ptime &exp );
-      virtual void contentLength( int content_length );
+      virtual void contentLength( long content_length );
       
       std::string content()const; 
 
@@ -54,6 +54,7 @@ class DefaultResponse
       
       virtual std::ostream& out() ;
       virtual void sendStream( std::istream &ist );
+      virtual long sendFile( const std::string &file, bool deleteFile );
 };
 
 }

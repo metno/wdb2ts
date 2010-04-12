@@ -60,7 +60,7 @@ public:
    
     void contentType( const char *content_type );
     void expire( const char *exp );
-    void contentLength( int content_length );
+    void contentLength( long content_length );
     void serviceUnavailable( const char *retryAfter );
     
     /**
@@ -78,6 +78,7 @@ public:
     int size()const { return size_;}
     void flushStream();
     std::string content(){ return ost.str(); }
+    long sendFile( const std::string &file, bool deleteFile );
 };
 
 }

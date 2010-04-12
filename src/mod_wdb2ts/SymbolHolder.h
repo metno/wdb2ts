@@ -33,6 +33,7 @@
 #include <ostream>
 #include <vector>
 #include <map>
+#include <set>
 #include <list>
 #include <puMet/miSymbol.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -51,15 +52,18 @@ public:
    struct Symbol
    {
       int min, max;
-      miSymbol  symbol;
-      float     probability;
+      miSymbol symbol;
+      float probability;
+      bool withOutStateOfAgregate;
 
-      Symbol() : min(-1), max( -1 ), probability( FLT_MAX ) {}
-      Symbol( int min_, int max_, const miSymbol &symbol_, float probability_=FLT_MAX )
-         : min( min_ ), max( max_ ), symbol ( symbol_ ), probability( probability_ ) {}
+      Symbol() : min(-1), max( -1 ), probability( FLT_MAX ), withOutStateOfAgregate( true ) {}
+      Symbol( int min_, int max_, const miSymbol &symbol_, float probability_=FLT_MAX, bool withOutStateOfAgregate_=true )
+         : min( min_ ), max( max_ ), symbol ( symbol_ ), probability( probability_ ),
+           withOutStateOfAgregate( withOutStateOfAgregate_ ) {}
 
       Symbol( const Symbol &s )
-         : min( s.min ), max( s.max ), symbol( s.symbol ), probability( s.probability ) {}
+         : min( s.min ), max( s.max ), symbol( s.symbol ), probability( s.probability ),
+           withOutStateOfAgregate( s.withOutStateOfAgregate ){}
 
       Symbol& operator=( const Symbol &rhs ) {
                     if ( this != &rhs ) {
@@ -67,6 +71,7 @@ public:
                         max    = rhs.max;
                         symbol = rhs.symbol;
                         probability = rhs.probability;
+                        withOutStateOfAgregate = rhs.withOutStateOfAgregate;
                     }
 
                     return *this;
@@ -105,11 +110,13 @@ private:
          
    public:
       SymbolHolder(): min_( 0 ), max_( 0 ), index_(0) {}
+
+      ///This constructor reserve room for 100 symbols with range min-max.
       SymbolHolder( int min, int max );
-      SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols);
+      SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols, bool withOutStateOfAgregate=true);
       ~SymbolHolder();
       
-      void addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude, float proability=FLT_MAX );
+      void addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude, bool withOutStateOfAgregate, float proability=FLT_MAX);
       
       int size() const { return symbols_.size(); }
       
@@ -173,6 +180,17 @@ public:
 				         const boost::posix_time::ptime &fromtime,
 				         int timespanInHours,
 				         SymbolHolder::Symbol &symbol ) const;
+
+		bool findSymbol( const std::string &provider,
+		                 const boost::posix_time::ptime &fromtime,
+		                 const boost::posix_time::ptime &totime,
+		                 SymbolHolder::Symbol &symbol ) const;
+
+
+		void findAllFromtimes( const boost::posix_time::ptime &toTime,
+				               const std::string &provider,
+				               std::set<boost::posix_time::ptime> &fromtimes )const;
+
 };
 
 

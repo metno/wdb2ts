@@ -93,7 +93,7 @@ operator () ( argument_type &t )
 	if( surround_ )
 		sSurround ="surround ";
 
-	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "wdb" );
 
 	q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
 	  << "ARRAY['" << provider_ << "'], " << endl

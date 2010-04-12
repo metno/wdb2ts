@@ -1,4 +1,5 @@
 #include <sstream>
+#include <deque>
 #include <State.h>
 
 using namespace std;
@@ -58,7 +59,7 @@ path()
 	ostringstream ost;
 	
 	if( path_.empty() ) {
-		for( deque<string>::const_reverse_iterator it = stack.rbegin();
+		for( std::deque<std::string>::reverse_iterator it = stack.rbegin();
 			  it != stack.rend();
 			  ++it ) {
 			ost << "/" << *it; 

@@ -90,10 +90,17 @@ namespace wdb2ts {
       std::string defaultDbId( ) { return defaultDbId_; }
       
       /**
-       * @exception logic_error on failure.
+       * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
+       *            miutill::pgpool::DbConnectionPoolCreateEx
+       *
        */
       miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="");
       
+      /**
+       *
+       * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
+       *            miutill::pgpool::DbConnectionPoolCreateEx
+	   */
       WciConnectionPtr newWciConnection(const std::string &dbid="");
       
    };

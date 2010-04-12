@@ -49,14 +49,15 @@ class Response
                     INVALID_QUERY, 
                     INTERNAL_ERROR,
                     SERVICE_UNAVAILABLE,
-                    NO_DATA
+                    NO_DATA,
+                    CONFIG_ERROR
                   };
    
    protected:
       boost::posix_time::ptime expire_;
       boost::posix_time::ptime retryAfter_;
       std::string contentType_;
-      int         contentLength_;
+      long         contentLength_;
       std::string errorDoc_;     
       Status status_;
       std::string aboutRequestHandler_;
@@ -81,8 +82,8 @@ class Response
       boost::posix_time::ptime serviceUnavailable() const
                    { return retryAfter_; }
       
-      virtual void contentLength( int content_length ) { contentLength_ = content_length; }
-      int contentLength()const { return contentLength_; }
+      virtual void contentLength( long content_length ) { contentLength_ = content_length; }
+      long contentLength()const { return contentLength_; }
       
       void errorDoc( const std::string &doc ){ errorDoc_ = doc; }
       std::string errorDoc()const { return errorDoc_; }
@@ -141,6 +142,22 @@ class Response
        * @exception webFW::IOError.
        */
       virtual void sendStream( std::istream &ist )=0;
+
+      /**
+       * sendFile may throw webFW::IOError when
+       * an error from the protocol is detetected.
+       *
+       * The content length is set to the lenght of the file in the response.
+       *
+       * This may occour in the HTTP protocol.
+       *
+       * @param file The file to send.
+       * @param deleteFile delete the file.
+       * @return The number of bytes actually sendt.
+       * @exception webFW::IOError.
+       */
+      virtual long sendFile( const std::string &file,  bool deleteFile )=0;
+
 };
 
 }

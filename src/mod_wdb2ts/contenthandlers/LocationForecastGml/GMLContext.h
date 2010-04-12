@@ -21,8 +21,8 @@ public:
 	const ProjectionHelper *projectionHelper;
 	std::map<std::string, int > idMap;
 	
-	GMLContext( const ProjectionHelper *projectionHelper_ )
-		: projectionHelper( projectionHelper_ )
+	GMLContext( const ProjectionHelper *projectionHelper_, bool useTempInFromtime )
+		: symbolContext( useTempInFromtime ), projectionHelper( projectionHelper_ )
 	{
 		
 	}

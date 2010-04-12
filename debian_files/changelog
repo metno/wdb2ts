@@ -1,3 +1,58 @@
+metno-wdb2ts (0.9.6.1-0~parallel+5) unstable; urgency=low
+  * Fix several bugs in the updatehandler.
+  
+ -- Borge Moe <borge.moe@met.no>  Wed, 31 Mar 2010 14:02:00 +0200
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+5) unstable; urgency=low
+  * More loging in the location update handler.
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 30 Mar 2010 10:11:00 +0100
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+4) unstable; urgency=low
+  * Change the symbolgeneration to correct the temperature in the totime 
+    and correct for high clouds.
+  * Fix remaining bugs in the metadata.
+  * Locationforecast: Inject comments only when encode loglevel is debug.
+  
+ -- Borge Moe <borge.moe@met.no>  Thu, 04 Feb 2010 16:30:00 +0100
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+3) unstable; urgency=low
+  * Metadata: Collapse providers where subsequet providers has same provider name.
+  * Implement the new periods algorithm.
+  * Redefine the loglevels for some log messages.
+  * Code cleanup.
+  
+ -- Borge Moe <borge.moe@met.no>  Fri, 29 Jan 2010 14:00:00 +0100
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+2) unstable; urgency=low
+  * Fix the log system to handle logging when the thread is not the request thread.
+  * Fix bug in initialize of the log system. This makes the rolling of files work.
+  * Fix bug in lookup of topograpy from the database.
+  * some tweeking of the categorys.
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 26 Jan 2010 23:40:00 +0100
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+1) unstable; urgency=low
+  * Tighten the requirement that data must come from same provider.
+  * Decode data from all dataproviders it is requested data from, not only they in the dataprovider_priority.
+  * Add more logging.
+  * Fix setting of logleves.
+  * Lot of small bugifx.
+  
+ -- Borge Moe <borge.moe@met.no>  Mon, 25 Jan 2010 09:50:00 +0100
+
+
+metno-wdb2ts (0.9.6.0-0~parallel+0) unstable; urgency=low
+  * Test of running db request i parallels.
+  * Added config option for poolsize and usecount to the metno-wdb2ts-db.conf file.
+  
+ -- Borge Moe <borge.moe@met.no>  Fri, 08 Jan 2010 08:50:00 +0100
+
 metno-wdb2ts (0.9.5.1-1) unstable; urgency=low
   * Locationforcast. Try harder to resolve parameters in the xml generator. It may be more than one grid associated with a provider.
 

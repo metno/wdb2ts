@@ -481,7 +481,8 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 bool
 ProjectionHelper::
 loadFromDBWciProtocol_4( pqxx::connection& con,
-		                   const wdb2ts::config::ActionParam &params
+		                 const wdb2ts::config::ActionParam &params,
+		                 int protocol
 		                 )
 {
 	using namespace boost;
@@ -499,8 +500,19 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 	try {
 
 		WEBFW_LOG_DEBUG( "ProjectionHelper::P4: SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
-		pqxx::work work( con, "wci.inforegulargrid");
-		pqxx::result  res = work.exec( "SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
+		string transactionid;
+		string query;
+
+		if( protocol == 4 ) {
+			transactionid = "wci.inforegulargrid";
+			query = "SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )";
+		} else {
+			transactionid = "wci.inforegulargrid";
+			query = "SELECT * FROM wci.getPlaceRegularGrid( NULL )";
+		}
+
+		pqxx::work work( con, transactionid );
+		pqxx::result  res = work.exec( query );
 
 		placenameMap.clear();
 
@@ -531,7 +543,7 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 				pType = MiProjection::spherical_rotated;
 			} else {
 				pType = MiProjection::undefined_projection;
-				WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
+				WEBFW_LOG_INFO( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
 				continue;
 			}
 
@@ -593,7 +605,7 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 			break;
 
 			default:
-				WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
+				//WEBFW_LOG_WARN( "Unsupported projection <"+match[1] +">. placename: " + row["placename"].c_str() );
 				continue;
 
 			}
@@ -636,8 +648,11 @@ loadFromDB( pqxx::connection& con,
 	if( wciProtocol > 1  && wciProtocol <= 3 )
 		return loadFromDBWciProtocol_2( con, params );
 	
-	if( wciProtocol >= 4 )
-		return loadFromDBWciProtocol_4( con, params );
+	if( wciProtocol == 4 )
+		return loadFromDBWciProtocol_4( con, params, 4 );
+
+	if( wciProtocol >= 5 )
+		return loadFromDBWciProtocol_4( con, params, 5 );
 
 
 	return loadFromDBWciProtocol_1( con, params );

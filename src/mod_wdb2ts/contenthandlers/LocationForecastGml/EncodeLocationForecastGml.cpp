@@ -62,6 +62,7 @@
 #include <StreamReplace.h>
 #include <wdb2tsProfiling.h>
 #include <ptimeutil.h>
+#include <copyfile.h>
 #include <probabilityCode.h>
 #include <SymbolGenerator.h>
 #include <Logger4cpp.h>
@@ -128,7 +129,7 @@ operator=(const BreakTimes &rhs )
 
 EncodeLocationForecastGml::
 EncodeLocationForecastGml()
-	:  gmlContext( 0 ), metaConf( dummyMetaConf ),
+	:  gmlContext( 0, true ), metaConf( dummyMetaConf ),
       providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
       topographyProviders( dummyTopoList ),
       symbolConf( dummySymbolConfProvider ), isPolygon( false )
@@ -152,7 +153,7 @@ EncodeLocationForecastGml( Wdb2TsApp *app_,
                            const std::list<std::string>  &topographyProviders_,
                            const SymbolConfProvider &symbolConf_,
                            int expire_rand )
-   : locationPointData( locationPointData_ ), gmlContext( projectionHelper_ ),
+   : locationPointData( locationPointData_ ), gmlContext( projectionHelper_, true ),
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
      refTimes( refTimes_ ), metaConf( metaConf_ ),
@@ -574,7 +575,7 @@ void
 EncodeLocationForecastGml::
 computePrecipitationMulti( const boost::posix_time::ptime &from,
 		                  const std::vector<int> &hours,
-		                  PrecipAggregations &aggregates
+		                  PrecipitationAggregations &aggregates
                          )const
 {
 
@@ -623,7 +624,7 @@ computePrecipitationMulti( const boost::posix_time::ptime &from,
 				if( precip == FLT_MAX )
 					continue;
 
-				aggregates[ hours[ hoursIndex ] ] [ fromTime ] = Precip( itbt->provider, precip );
+				aggregates[ hours[ hoursIndex ] ] [ fromTime ] = Precipitation( itbt->provider, precip );
 			}
 		}
 	}
@@ -638,7 +639,7 @@ encodePeriods( const boost::posix_time::ptime &from,
 {
 	WEBFW_USE_LOGGER( "encode" );
 	PrecipConfigElement precip = precipitationConfig->getDefault();
-	PrecipAggregations precipAggregates;
+	PrecipitationAggregations precipAggregates;
 
 	if( precip.precipType == PrecipMulti ) {
 		computePrecipitationMulti( from, precip.precipHours, precipAggregates );
@@ -656,14 +657,14 @@ encodePeriods( const boost::posix_time::ptime &from,
 	ptime fromTime;
 	SymbolHolder::Symbol symbol;
 	for( vector<int>::size_type hourIndex = 0; hourIndex < precip.precipHours.size(); ++hourIndex ) {
-		PrecipAggregations::const_iterator itHours = precipAggregates.find( precip.precipHours[ hourIndex ] );
+		PrecipitationAggregations::const_iterator itHours = precipAggregates.find( precip.precipHours[ hourIndex ] );
 
 		if( itHours == precipAggregates.end() )
 			continue;
 
 		prevProvider.erase();
 
-		for( map<ptime, Precip>::const_iterator itPrecip = itHours->second.begin();
+		for( map<ptime, Precipitation>::const_iterator itPrecip = itHours->second.begin();
 		     itPrecip != itHours->second.end();
 		     ++itPrecip )
 		{
@@ -993,7 +994,9 @@ encode(  webfw::Response &response )
 			if( altitude != INT_MIN )
 				locationData->height( altitude );
 
-			symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
+			//Compute the symbols witoutStateOfAgreate = false. ie, do the best with the teperatures
+			//as it is.
+			symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, false, error );
 			IndentLevel level2( indent );
 			encodeMoment( from, ost, indent );
 			encodePeriods( from, ost, indent );
@@ -1022,17 +1025,37 @@ encode(  webfw::Response &response )
 	if( contentLength < 0  )
 		contentLength = 0;
 
-	response.contentLength( contentLength );
+
 
 	//response.out() << result;
 
 	if( contentLength > 0 ) {
 		MARK_ID_MI_PROFILE("SendGML");
 		ost.seekg( 0, ios::beg );
+
+		string filename = tempFile.filename();
 		miutil::istreamreplace toSendStream( miutil::StreamReplaceSource(ost, metatemplate, header, 1 ) );
-		response.sendStream(  toSendStream );
+
+		if( filename.empty() ) {
+			response.contentLength( contentLength );
+			response.sendStream(  toSendStream );
+		} else {
+			filename += "_toSend";
+
+			if( ! miutil::file::copyFromStreamToFile( toSendStream, filename ) ) {
+				response.status( webfw::Response::INTERNAL_ERROR );
+				response.contentLength( 0 );
+				return;
+			}
+
+			response.sendFile( filename, true );
+		}
+
 		MARK_ID_MI_PROFILE("SendGML");
+	} else {
+		response.contentLength( 0 );
 	}
+
 }
 
 /**

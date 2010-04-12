@@ -44,16 +44,16 @@ class MomentTags : public IXmlTemplate
 {
 	float ff;
 	float dd;
-	const LocationElem *pd;
+	LocationElem *pd;
 	SymbolContext *symbolContext;
 	const ProjectionHelper *projectionHelper;
 	
 public:
 	MomentTags( ): pd(0), symbolContext( 0 ){}
 	
-	MomentTags( const LocationElem &pointData, 
-			      SymbolContext &context, 
-			      const ProjectionHelper *projectionHelper_ )
+	MomentTags( LocationElem &pointData,
+			    SymbolContext &context,
+			    const ProjectionHelper *projectionHelper_ )
 		: symbolContext( &context ), projectionHelper( projectionHelper_ )
 		{
 			init( pointData );
@@ -62,7 +62,7 @@ public:
 	virtual ~MomentTags(){
 	}
 	
-	void init( const LocationElem &pointData );
+	void init( LocationElem &pointData );
 	void computeWind( float u, float v );
 	
 	/**

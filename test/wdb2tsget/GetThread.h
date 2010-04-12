@@ -52,6 +52,7 @@ class GetThread
 	unsigned int randState;
 	std::string url;
 	float lat, lon;
+	bool all_;
 	
 protected:
 	void nextLatLong( float &lat, float &lon );
@@ -59,7 +60,7 @@ protected:
 public:
 	GetThread(const std::string &url_, float lat_, float lon_, int runs, unsigned int randInitState, int id_ )
 		: results( new Results ), query( new webfw::UrlQuery), nRuns( runs ), id( id_ ), randState( randInitState ),
-		  url( url_ ), lat( lat_ ), lon( lon_ )
+		  url( url_ ), lat( lat_ ), lon( lon_ ), all_( false )
 	{ 
 		results->nSuccess = 0;
 		results->nFailed  = 0;
@@ -68,7 +69,7 @@ public:
 	
 	GetThread( const GetThread &gt )
 			: results( gt.results ), query( gt.query ), nRuns( gt.nRuns ), id( gt.id ), randState( gt.randState ),
-			  url( gt.url ), lat( gt.lat ), lon( gt.lon )
+			  url( gt.url ), lat( gt.lat ), lon( gt.lon ), all_( gt.all_ )
 		{};
 
 	void operator()();
@@ -77,6 +78,8 @@ public:
 	int success() const { return results->nSuccess; }
 	int failed() const { return results->nFailed;}
 	int crcFail() const { return results->nCrcFail; }
+	bool all()const{ return all_;}
+	void all( bool f ) { all_ = f; }
 };
 
 }

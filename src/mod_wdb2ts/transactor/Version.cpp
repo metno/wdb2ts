@@ -56,7 +56,7 @@ operator () ( argument_type &t )
 
 	string q("SELECT * FROM wci.version()");
 
-	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "wdb" );
 
 	WEBFW_LOG_DEBUG( "WCI version (Transactor): query: " << q );
 	

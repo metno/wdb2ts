@@ -3,6 +3,8 @@ noinst_LTLIBRARIES+=		libmiutil.la
 
 libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 					  src/miutil/Dir.h \
+					  src/miutil/copyfile.cpp \
+					  src/miutil/copyfile.h \
 		              src/miutil/gettimeofday.cpp \
 		              src/miutil/gettimeofday.h \
 		              src/miutil/mkdir.cpp \
@@ -35,7 +37,8 @@ libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 		              src/miutil/StreamReplace.h \
 		              src/miutil/StreamReplace.cpp \
 		              src/miutil/TempFileStream.h \
-		              src/miutil/TempFileStream.cpp
+		              src/miutil/TempFileStream.cpp \
+		              src/miutil/queuemt.h 
 
 EXTRA_DIST+= src/miutil/wdb2ts.mk \
 				 src/miutil/Makefile.am \

@@ -96,7 +96,7 @@ public:
 	 * 
 	 * The placename is from the database and is on the form
 	 * 
-	 *  POINT( ... ) placename,
+	 *  interpolationtype POINT( ... ) placename,
 	 * 
 	 * 	we are only intrested in the placename part.
 	 * 
@@ -104,8 +104,12 @@ public:
 	 * part in the list is unset, the first item in the list
 	 * with a provider equal to the searched provider is returned.
 	 * 
+	 * If no provider def is found a providerWithPlacename is set to
+	 * the decoded part of provider and pointPlacename.
+	 * ie. provider [placename]
+	 *
 	 * @param[in] provider from the database.
-	 * @param[in] pointPlacename On input 'POINT(...) placename'.
+	 * @param[in] pointPlacename On input 'intepolationtype POINT(...) placename'.
 	 * @param[out] providerWithPlacename A string on the form 'provider [placename]'.
 	 */
 

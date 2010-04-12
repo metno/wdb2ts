@@ -94,7 +94,7 @@ void
 WciRead::
 operator () ( argument_type &t )
 {
-	WEBFW_USE_LOGGER( "db" );
+	WEBFW_USE_LOGGER( "wdb" );
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("WciRead::" + helper->id());
 	

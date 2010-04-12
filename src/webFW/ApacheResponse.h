@@ -67,7 +67,7 @@ class ApacheResponse
       virtual void expire( const boost::posix_time::ptime &exp );
       
       using Response::contentLength;
-      virtual void contentLength( int content_length );
+      virtual void contentLength( long content_length );
       
       using Response::serviceUnavailable;
       virtual void serviceUnavailable(const boost::posix_time::ptime &retryAfter ); 
@@ -88,6 +88,8 @@ class ApacheResponse
       virtual std::ostream& out() ;
       
       virtual void sendStream( std::istream &ist );
+
+      virtual long sendFile( const std::string &file, bool deleteFile );
 
 };
 

@@ -32,13 +32,14 @@
 #include <MomentTags.h>
 #include <iostream>
 #include <probabilityCode.h>
+#include <Logger4cpp.h>
 
 namespace wdb2ts {
 
 using namespace std;
 void 
 MomentTags::
-init( const LocationElem &pointData ) 
+init( LocationElem &pointData )
 {
 	
 	pd = &pointData;
@@ -158,10 +159,14 @@ void
 MomentTags::
 output( std::ostream &out, const std::string &indent ) 
 {
+	WEBFW_USE_LOGGER( "encode" );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+	ostringstream tmpout;
 	string description;
 	float value;
 	float tempNoAdiabatic;
 	float tempAdiabatic;
+	float tempUsed=FLT_MAX;
 	float dd_, ff_;
 	string provider;
 	string tempNoAdiabaticProvider;
@@ -171,11 +176,15 @@ output( std::ostream &out, const std::string &indent )
 	bool hasTempCorr;
 	int oldPrec = out.precision();
 	int modelTopo;
+	int nForecast=0;
 	int relTopo; //The difference between modelTopo and real topography
+
 	if( ! pd )
 		return;
 	
 	out.precision(1);
+	tmpout.flags( out.flags() );
+	tmpout.precision(1);
 	
 	/*
 	 * Coding of temperature.
@@ -201,30 +210,35 @@ output( std::ostream &out, const std::string &indent )
 		provider = pd->forecastprovider();
 		tempCorrection = pd->computeTempCorrection( provider, relTopo, modelTopo );
 		tempAdiabatic += tempCorrection;
-		out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
-						<< " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
+
+		if( loglevel >= log4cpp::Priority::DEBUG )
+			tmpout << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+			       << " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
 	}
 
 	if( tempNoAdiabatic != FLT_MAX ) {
-		value = tempNoAdiabatic;
+		tempUsed = tempNoAdiabatic;
 	} else 	if( tempAdiabatic != FLT_MAX ) {
-		value = tempAdiabatic;
+		tempUsed = tempAdiabatic;
 		tempProb = getTemperatureProability( value );
 	}
 
-	if( value != FLT_MAX ) {
-		if( tempNoAdiabaticProvider.empty())
-			out << indent << "<!-- Dataprovider: " << provider << " -->\n";
-		else
-			out << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
+	if( tempUsed != FLT_MAX ) {
+		if( loglevel >= log4cpp::Priority::DEBUG ) {
+			if( tempNoAdiabaticProvider.empty())
+				tmpout << indent << "<!-- Dataprovider: " << provider << " -->\n";
+			else
+				tmpout << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
 
-		if( tempNoAdiabatic != FLT_MAX && tempAdiabatic!=FLT_MAX ) {
-			out << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
-				<< " tempNoAdiabatic: " << tempNoAdiabatic << " " <<  tempNoAdiabaticProvider << " -->\n";
+			if( tempNoAdiabatic != FLT_MAX && tempAdiabatic!=FLT_MAX ) {
+				tmpout << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
+					   << " tempNoAdiabatic: " << tempNoAdiabatic << " " <<  tempNoAdiabaticProvider << " -->\n";
+			}
 		}
 
-		doSymbol( value );
-		out << indent << "<temperature id=\"TT\" unit=\"celcius\" value=\""<< value << "\"/>\n";
+		doSymbol( tempUsed );
+		nForecast++;
+		tmpout << indent << "<temperature id=\"TT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
 	}
 
 	//If we only have a temperature for the no "height correction" choice we need
@@ -237,13 +251,16 @@ output( std::ostream &out, const std::string &indent )
 	}
 	
 	if( ! provider.empty() ) {
+		pd->temperatureCorrected( tempUsed, provider );
 		computeWind( pd->windU10m(true), pd->windV10m() );
 		projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
 		   	                                           pd->windU10m(), pd->windV10m(),
 			                                           dd_, ff_ );
 		if( dd!=FLT_MAX && ff != FLT_MAX ) {
-			out << indent << "<!-- dd: " << dd << " ff: " << ff << " -->\n";
-			out << indent 
+			if( loglevel >= log4cpp::Priority::DEBUG )
+				tmpout << indent << "<!-- dd: " << dd << " ff: " << ff << " -->\n";
+
+			tmpout << indent
 			    << "<windDirection id=\"dd\" deg=\""<< dd_ << "\" " 
 			    << "name=\"" << windDirectionName(dd_ ) <<"\"/>\n"
 			    << indent 
@@ -252,45 +269,65 @@ output( std::ostream &out, const std::string &indent )
 			    << "name=\"" << description << "\"/>\n";
 		
 			windProb = pd->WIND_PROBABILITY();
+			nForecast++;
+		}
+
+		pd->temperatureCorrected( tempUsed, provider );
+		value = pd->RH2M( );
+		if (value != FLT_MAX) {
+			tmpout << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
+			nForecast++;
+		}
+
+		value = pd->PR( );
+		if( value != FLT_MAX ) {
+			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
+			nForecast++;
 		}
 	
-		value = pd->RH2M( true );
-		if (value != FLT_MAX)
-			out << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
+		value = pd->NN(  );
+		if( value != FLT_MAX ) {
+			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
+			nForecast++;
+		}
 
-		value = pd->PR( true );
-		if( value != FLT_MAX )
-			out << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
-	
-		value = pd->NN( true );
-		if( value != FLT_MAX )
-			out << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
+		value = pd->fog();
+		if( value != FLT_MAX ) {
+			tmpout << indent <<"<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
+			nForecast++;
+		}
 
-		value = pd->fog(true);
-		if( value != FLT_MAX )
-			out << indent <<"<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
-	  
-		value = pd->lowCloud(true);
-		if( value != FLT_MAX )
-			out << indent << "<lowClouds id=\"LOW\" percent=\"" << value << "\"/>\n";
-       
-		value = pd->mediumCloud(true);
-		if( value !=FLT_MAX )
-			out << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value << "\"/>\n";
-    
-		value = pd->highCloud( true );
-		if( value != FLT_MAX )
-			out << indent << "<highClouds id=\"HIGH\" percent=\"" << value << "\"/>\n";
+		value = pd->lowCloud();
+		if( value != FLT_MAX ){
+			tmpout << indent << "<lowClouds id=\"LOW\" percent=\"" << value << "\"/>\n";
+			nForecast++;
+		}
+
+		value = pd->mediumCloud();
+		if( value !=FLT_MAX ) {
+			tmpout << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value << "\"/>\n";
+			nForecast++;
+		}
+
+		value = pd->highCloud(  );
+		if( value != FLT_MAX ) {
+			tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value << "\"/>\n";
+			nForecast++;
+		}
 	
-		out.precision( 0 );
+		tmpout.precision( 0 );
 	
 		if( tempProb != FLT_MAX )
-			out << indent << "<temperatureProbability unit=\"probabilitycode\" value=\"" << probabilityCode( tempProb )<< "\"/>\n";
+			tmpout << indent << "<temperatureProbability unit=\"probabilitycode\" value=\"" << probabilityCode( tempProb )<< "\"/>\n";
 	
 		if( windProb != FLT_MAX )
-			out << indent << "<windProbability unit=\"probabilitycode\" value=\"" << probabilityCode( windProb ) << "\"/>\n";
+			tmpout << indent << "<windProbability unit=\"probabilitycode\" value=\"" << probabilityCode( windProb ) << "\"/>\n";
 		
 		out.precision( 1 );
+
+		//must have at least 2 elements.
+		if( nForecast > 1 )
+			out << tmpout.str();
 	}
 	
 	hasTempCorr = false;

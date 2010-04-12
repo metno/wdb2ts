@@ -288,7 +288,7 @@ decodePointList( const std::string &toDecode, LocationPointList &points  )
 	 try {
 		 locationPoint.set( lat, lon );
 	 }
-	 catch( const exception &ex ) {
+	 catch( const std::exception &ex ) {
 		 return false;
 	 }
 

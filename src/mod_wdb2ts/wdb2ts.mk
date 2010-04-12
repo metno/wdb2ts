@@ -34,6 +34,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast2.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast2.cpp \
 					  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
 	                  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
                       src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
@@ -56,6 +58,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/ParamDef.cpp \
 	                  src/mod_wdb2ts/PointDataHelper.cpp \
 	                  src/mod_wdb2ts/PointDataHelper.h \
+	                  src/mod_wdb2ts/Precipitation.cpp \
+	                  src/mod_wdb2ts/Precipitation.h \
 	                  src/mod_wdb2ts/WdbQueryHelper.h \
 	                  src/mod_wdb2ts/WdbQueryHelper.cpp \
 	                  src/mod_wdb2ts/preprocessdata.h \
@@ -106,8 +110,13 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/NearestHeight.h \
 					  src/mod_wdb2ts/NearestHeight.cpp \
 					  src/mod_wdb2ts/wciHelper.h \
-					  src/mod_wdb2ts/wciHelper.cpp
-					  
+					  src/mod_wdb2ts/wciHelper.cpp \
+					  src/mod_wdb2ts/WdbDataRequest.h \
+					  src/mod_wdb2ts/WdbDataRequest.cpp \
+					  src/mod_wdb2ts/WdbDataRequestCommand.cpp \
+					  src/mod_wdb2ts/WdbDataRequestCommand.h 
+ 
+
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 
 mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
@@ -120,7 +129,8 @@ mod_metno_wdb2ts_la_LIBADD= libwdb2ts.la \
                     			 -lWciWebQuery	\
                     			 -lwdb2tsconfigparser \
                     			 -lmiutil \
-                    			 -lXML_locationforecast
+                    			 -lXML_locationforecast \
+                    			 -lgfortran
                     			 
 noinst_PROGRAMS+= TestWdb2Ts
 
@@ -132,7 +142,8 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 						  -lwdb2tsconfigparser \
 						  -lmiutil \
 						  -lXML_locationforecast \
-						   $(LIBPQXX_LIBS)
+						   $(LIBPQXX_LIBS) \
+						   -lgfortran
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \

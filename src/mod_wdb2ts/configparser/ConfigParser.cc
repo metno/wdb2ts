@@ -139,6 +139,7 @@ doQuery( const AttributeMap &attributes )
 {
 	string probe;
 	string stopIfData;
+
 	getAttr( attributes, "must_have_data", probe, "false" );
 	
 	if( !probe.empty() && (probe[0]=='t' || probe[0]=='T') )
@@ -153,6 +154,11 @@ doQuery( const AttributeMap &attributes )
 		currentQueryStopIfData = true;
 	else
 		currentQueryStopIfData = false;
+
+	getAttr( attributes, "wdbdb", currentQueryWdbdb, "" );
+
+	if( currentQueryWdbdb.empty() )
+		currentQueryWdbdb = currentQueryDefWdbdb;
 }
 
 bool
@@ -160,7 +166,9 @@ ConfigParser::
 doQueryDef( const AttributeMap &attributes )
 {
 	string id;
+	string sParalell;
 	
+
 	if( ! getAttr( attributes, "id", id) || id.empty() ) {
 		error("Mandatory 'querydef' attribute 'id' missing.");
 		return false;
@@ -175,6 +183,26 @@ doQueryDef( const AttributeMap &attributes )
 	
 	config->querys[id]=Config::Query();
 	itCurrentQueryDef = config->querys.find( id );
+
+	getAttr( attributes, "wdbdb", currentQueryDefWdbdb, "");
+
+	getAttr( attributes, "paralell", sParalell, "1");
+
+	try {
+		miutil::Value val( sParalell );
+		int n = val.asInt();
+
+		if( n < 0 )
+			n = 1;
+
+		itCurrentQueryDef->second.dbRequestsInParalells( n );
+	}
+	catch( std::exception & ex) {
+		error("querydef: The value to 'paralell' must be a number. Was: paralell=\""+ sParalell + "\"");
+		return false;
+	}
+
+
 	return true;
 }
 
@@ -496,6 +524,7 @@ startElement( const std::string &fullname,
 		else 
 			warning("/wdb2ts/requests/request/version/actionparam: No currentRequestVersion!");
 	} else if( xmlState == "/wdb2ts/querydefs/querydef" ) {
+		currentQueryDefWdbdb.erase();
 		doQueryDef( attributes );
 	} else if( xmlState == "/wdb2ts/querydefs/querydef/query" ) {
 		doQuery( attributes );
@@ -552,6 +581,7 @@ endElement( const std::string &name )
 		addRequest( config->requests, currentRequest );
 		currentRequest.reset();
 	} else if(xmlState == "/wdb2ts/querydefs/querydef" ){
+		currentQueryDefWdbdb.erase();
 		itCurrentQueryDef = config->querys.end();
    } else if(xmlState == "/wdb2ts/querydefs/querydef/query" ) {
 		miutil::trimstr( buf );
@@ -562,7 +592,7 @@ endElement( const std::string &name )
 
 		if( !buf.empty() ) {
 			if( itCurrentQueryDef != config->querys.end() ){
-				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe, currentQueryStopIfData ) );
+				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe, currentQueryStopIfData, currentQueryWdbdb ) );
 			}
 		}
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {

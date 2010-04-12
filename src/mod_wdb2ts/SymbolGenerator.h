@@ -33,7 +33,7 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <puTools/miTime>
+#include <puTools/miTime.h>
 #include <puMet/miSymbol.h>
 #include <puMet/symbolMaker.h>
 #include <LocationData.h>
@@ -57,23 +57,27 @@ public:
 
 	bool readConf( const std::string &confile );
 	
-	
+	/*
 	bool 
 	computeSymbols(std::map<miutil::miTime, std::map <std::string,float> >& data,
 	               vector<miSymbol> &symbols,
 	               float latitude, int min, int max, std::string &error);
-
+	 */
 	
 	static
 	SymbolHolder*
 	computeSymbols( LocationData& data,
 			          const std::string &provider,
-		             int min, int max, int precipHours, std::string &error );
+		             int min, int max, int precipHours, bool withoutStateOfAgregate, std::string &error );
 
 	static
 	ProviderSymbolHolderList computeSymbols( LocationData& data, 
 			                                 const SymbolConfProvider &symbolConf,
+			                                 bool withoutStateOfAgregate,
 			                                 std::string &error );
+	static
+	void correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data );
+
 			                           
 };
 

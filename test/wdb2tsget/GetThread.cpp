@@ -3,12 +3,9 @@
 #include <HTTPClient.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <boost/crc.hpp>      // for boost::crc_basic, boost::crc_optimal
 #include <boost/cstdint.hpp>  // for boost::uint16_t
-
-
-
-
 
 
 using namespace std;
@@ -71,6 +68,9 @@ operator()()
 		lon = tmpLon;
 	}
 	
+	if( all_ )
+		query->setValue( "from", "all" );
+
 	/*
 	if( ! query->hasParam( "from") ) 
 		query->setValue( "from", "all" );
@@ -108,9 +108,21 @@ operator()()
 			
 			if( it != crcResults.end() ) {
 				if( it->second != crcValue ) {
+					ostringstream fname;
+					ofstream f;
+
+					fname << "tmp/" << id << "-" << nRuns << ".txt";
+					f.open( fname.str().c_str() );
+
+					if( f ) {
+						f << path << endl << result << endl;
+						f.close();
+					}
+
 					results->nCrcFail++;
 					crcFail = true;
 					cout << "FAILED (CRC): t: " << id << " req: " << request << endl;
+
 				}
 			} else {
 				crcResults[ request ] = crcValue;

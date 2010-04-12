@@ -84,7 +84,7 @@ operator () ( argument_type &t )
 	boost::posix_time::ptime refTime;
 	string validTime;
 
-	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_USE_LOGGER( "wdb" );
 
 	if( to_.is_special() )
 		validTime = "NULL";

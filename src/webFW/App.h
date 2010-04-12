@@ -153,14 +153,14 @@ class App
  * 
  * Loglevel:
  * 	- 0 EMERG, 
- *    - 1 FATAL
- *    - 2 ALERT
- *    - 3 CRIT
- *    - 4 ERROR
- *    - 5 WARN
- *    - 6 NOTICE
- *    - 7 INFO
- *    - 8 DEBUG 
+ *  - 1 FATAL
+ *  - 2 ALERT
+ *  - 3 CRIT
+ *  - 4 ERROR
+ *  - 5 WARN
+ *  - 6 NOTICE
+ *  - 7 INFO
+ *  - 8 DEBUG
  *
  * @param logLevels the string to decode.
  * @return a map witch associate logger with a loglevel.

@@ -243,6 +243,9 @@ Name##_handler(request_rec *r)                     \
          else                                            \
             ost << error;                                \
          return HTTP_SERVICE_UNAVAILABLE;                \
+      case webfw::Response::CONFIG_ERROR:                \
+		  ost << error;                                  \
+         return HTTP_INTERNAL_SERVER_ERROR;              \
       case webfw::Response::NO_ERROR:                    \
          /*Nothing to do here.*/                         \
          break;                                          \

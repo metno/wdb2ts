@@ -70,6 +70,7 @@ class WdbQueryHelper
 	bool        refTimeFrom_IsEqualTo_ReftTimeTo;
 	bool        isPolygon;
 	std::string validTime;
+	std::string wdbid_;
 	
 	std::string getDataversionString( const std::list<std::string> &dataproviderList )const;
 
@@ -130,6 +131,8 @@ public:
 	 */
 	std::string dataprovider()const;
 	
+	std::string wdbid()const { return wdbid_; }
+
 	/**
 	 * Return the next wci read query.
 	 * 

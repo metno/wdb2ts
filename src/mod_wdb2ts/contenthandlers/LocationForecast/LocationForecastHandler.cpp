@@ -28,6 +28,7 @@
 
 #include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/assign/list_inserter.hpp>
 #include <boost/lexical_cast.hpp>
@@ -43,6 +44,7 @@
 #include <exception.h>
 #include <UrlQuery.h>
 #include <contenthandlers/LocationForecast/EncodeLocationForecast.h>
+#include <contenthandlers/LocationForecast/EncodeLocationForecast2.h>
 #include <wdb2TsApp.h>
 #include <PointDataHelper.h>
 #include <preprocessdata.h>
@@ -55,7 +57,7 @@
 #include <WebQuery.h>
 #include <Logger4cpp.h>
 #include <NearestHeight.h>
-
+#include <WdbDataRequest.h>
 
 
 DECLARE_MI_PROFILE;
@@ -66,7 +68,8 @@ namespace wdb2ts {
 
 LocationForecastHandler::
 LocationForecastHandler()
-	: providerPriorityIsInitialized( false ),
+	: subversion( 0 ),
+      providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
 	  precipitationConfig( 0 ),
 	  expireRand( 120 )
@@ -77,12 +80,19 @@ LocationForecastHandler()
 LocationForecastHandler::
 LocationForecastHandler( int major, int minor, const std::string &note_ )
 	: HandlerBase( major, minor), note( note_ ),
+	  subversion( 0 ),
 	  providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
 	  wciProtocolIsInitialized( false ),
 	  expireRand( 120 )
 {
+	if( ! note.empty() ) {
+		int n;
+
+		if( sscanf( note.c_str(), "%d", &n) == 1  )
+			subversion = n;
+	}
 	//NOOP
 }
 
@@ -109,12 +119,19 @@ LocationForecastHandler::
 configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
 	providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app ); 
-	
+
 	providerPriorityIsInitialized = true;
 	
-	if( app && ! updateid.empty() ) 
+	if( app && ! updateid.empty() ) {
 		app->notes.setNote( updateid + ".LocationProviderList", 
 					           new NoteProviderList( providerPriority_, true ) );
+
+		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
+
+		if( it != params.end() )
+			app->notes.setNote( updateid + ".LocationProviderPriority",
+								new NoteString( it->second.asString() ) );
+	}
 }
 
 void
@@ -338,6 +355,10 @@ get( webfw::Request  &req,
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
 
+
+
+
+
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
 	USE_MI_PROFILE;
@@ -345,7 +366,7 @@ get( webfw::Request  &req,
      
 
 	ost << endl << "URL:   " << req.urlPath() << endl 
-	    << "Query: " << req.urlQuery() << endl;
+	    << "Query: " << req.urlQuery() << " subversion: " << subversion << endl;
 	WEBFW_LOG_DEBUG( ost.str() );
 
 	try { 
@@ -407,6 +428,12 @@ get( webfw::Request  &req,
 	
     
 	try{
+		if( altitude == INT_MAX || altitude==INT_MIN ) {
+			WEBFW_LOG_DEBUG( "Altitude: INT_MAX/INT_MIN" );
+		} else {
+ 			WEBFW_LOG_DEBUG( "Altitude: " << altitude );
+		}
+
 		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.to(),
 															 webQuery.isPolygon(),
 				                                             altitude, refTimes, providerPriority );
@@ -415,22 +442,57 @@ get( webfw::Request  &req,
 			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
 						        altitude, refTimes, providerPriority );
 
-		EncodeLocationForecast encode( locationPointData,
-									   &projectionHelper,
-									   webQuery.longitude(), webQuery.latitude(), altitude,
-									   webQuery.from(),
-									   refTimes,
-									   metaModelConf,
-									   precipitationConfig,
-									   providerPriority,
-									   modelTopoProviders,
-									   topographyProviders,
-									   symbolConf,
-									   expireRand );
+		if( subversion == 0 ) {
+			EncodeLocationForecast encode( locationPointData,
+						                   &projectionHelper,
+									       webQuery.longitude(), webQuery.latitude(), altitude,
+									       webQuery.from(),
+									       refTimes,
+									       metaModelConf,
+									       precipitationConfig,
+									       providerPriority,
+									       modelTopoProviders,
+									       topographyProviders,
+									       symbolConf,
+									       expireRand );
 
-		MARK_ID_MI_PROFILE("encodeXML");  
-		encode.encode( response );
-		MARK_ID_MI_PROFILE("encodeXML");
+			MARK_ID_MI_PROFILE("encodeXML");
+			encode.encode( response );
+			MARK_ID_MI_PROFILE("encodeXML");
+		} else if( subversion == 2 ) {
+			EncodeLocationForecast2 encode( locationPointData,
+						                    &projectionHelper,
+									        webQuery.longitude(), webQuery.latitude(), altitude,
+									        webQuery.from(),
+									        refTimes,
+									        metaModelConf,
+									        precipitationConfig,
+									        providerPriority,
+									        modelTopoProviders,
+									        topographyProviders,
+									        symbolConf,
+									        expireRand );
+
+			MARK_ID_MI_PROFILE("encodeXML");
+			encode.encode( response );
+			MARK_ID_MI_PROFILE("encodeXML");
+		} else {
+			WEBFW_LOG_ERROR( "Unknown subversion: " << subversion );
+			response.errorDoc( "Unknown subversion." );
+			response.status( webfw::Response::CONFIG_ERROR );
+		}
+
+	}
+	catch( const WdbDataRequestManager::ResourceLimit &ex )
+	{
+		using namespace boost::posix_time;
+
+		ptime retryAfter( second_clock::universal_time() );
+		retryAfter += seconds( 10 );
+		response.serviceUnavailable( retryAfter );
+		response.status( webfw::Response::SERVICE_UNAVAILABLE );
+		WEBFW_LOG_INFO( "Database not available or heavy loaded." );
+		return;
 	}
 	catch( const webfw::IOError &ex ) {
 		response.errorDoc( ex.what() );
@@ -474,6 +536,23 @@ requestWdb( const LocationPointList &locationPoints,
 		    const ProviderList &providerPriority
           ) const
 {	
+	WdbDataRequestManager requestManager;
+	Wdb2TsApp *app=Wdb2TsApp::app();
+
+	return requestManager.requestData( app, wdbDB, locationPoints, to, isPolygon, altitude,
+									   refTimes, providerPriority, urlQuerys, wciProtocol );
+}
+
+#if 0
+LocationPointDataPtr
+LocationForecastHandler::
+requestWdb( const LocationPointList &locationPoints,
+		    const boost::posix_time::ptime &to,
+	        bool isPolygon, int altitude,
+		    PtrProviderRefTimes refTimes,
+		    const ProviderList &providerPriority
+          ) const
+{
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
@@ -507,6 +586,7 @@ requestWdb( const LocationPointList &locationPoints,
 	}
 	
 }
+#endif
 
 void
 LocationForecastHandler::

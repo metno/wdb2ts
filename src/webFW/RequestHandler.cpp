@@ -68,7 +68,7 @@ struct AbortHandlerHelper {
 				return 0;
 			
 			unsigned long ret = mgr->registerAbortHandler( req, handler );
-			
+
 			if( ret > 0 )
 				idList.push_back( ret );
 			else
@@ -96,36 +96,51 @@ struct AbortHandlerHelper {
 struct ThreadData {
 	AbortHandlerHelper *abortHandlerHelper;
 	std::string        logprefix;
-	webfw::RequestHandler *requestHandler;
+	const webfw::RequestHandler *requestHandler;
 	webfw::App *app;
 
 	ThreadData() 
 		: abortHandlerHelper( 0 ), requestHandler( 0 ), app ( 0 )
-		{}
+		{
+			//cerr << "*** ThreadData: default CTOR." << endl;
+
+		}
 	
-	ThreadData( AbortHandlerHelper *abortHandler, webfw::RequestHandler *reqHandler, webfw::App *app_ )
+	ThreadData( AbortHandlerHelper *abortHandler, const webfw::RequestHandler *reqHandler, webfw::App *app_ )
 		: abortHandlerHelper( abortHandler ), requestHandler( reqHandler ), app( app_ )
 		{
-			logprefix = abortHandler->req->urlPath();
-			miutil::replace( logprefix, " ", "_");
-			miutil::replace( logprefix, "/", ".");
+			logprefix = reqHandler->getLogprefix();
+
+			if( logprefix.empty() ) {
+				logprefix = abortHandler->req->urlPath();
+				miutil::replace( logprefix, " ", "_");
+				miutil::replace( logprefix, "/", ".");
 			
-			//Remove . and _ from the start, if any.
-			while( ! logprefix.empty() && ( logprefix[0] == '.' || logprefix[0] == '_') )
-				logprefix.erase( 0, 1 );
+				//Remove . and _ from the start, if any.
+				while( ! logprefix.empty() && ( logprefix[0] == '.' || logprefix[0] == '_') )
+					logprefix.erase( 0, 1 );
 			
-			//Remove . and _ from the end, if any.
-			while( ! logprefix.empty() && ( logprefix[ logprefix.length()-1 ] == '.' || logprefix[ logprefix.length()-1 ] == '_') )
-				logprefix.erase(  logprefix.length()-1 );
+				//Remove . and _ from the end, if any.
+				while( ! logprefix.empty() && ( logprefix[ logprefix.length()-1 ] == '.' || logprefix[ logprefix.length()-1 ] == '_') )
+					logprefix.erase(  logprefix.length()-1 );
+			}
+
+			//cerr << "*** ThreadData: CTOR. logprefix: " <<  logprefix << endl;
 		}
 
 	~ThreadData() {
+		//cerr << "*** ThreadData: DTOR. logprefix: " <<  logprefix << endl;
+
+		//if( ! abortHandlerHelper && requestHandler && ! app )
+		//	cerr << "*** ThreadData: DTOR. Only requestHandler." <<  endl;
+
 		if( abortHandlerHelper )
 			delete abortHandlerHelper;
 	}
 };
 
 boost::thread_specific_ptr<ThreadData> threadDataTSS;
+boost::mutex     setupLoggerMutex;
 
 void 
 prepareThreadData( webfw::App *app, webfw::RequestHandler *reqHandler, webfw::Request *req, webfw::IAbortHandlerManager *mgr, const std::string &method )
@@ -164,59 +179,106 @@ cleanupThreadData( const std::string &method )
 }
 
 void
-setupLogger( const std::string &logdir, 
-		       const std::string &prefix, 
-		       const std::string &name, 
-		       webfw::RequestHandler *reqHandler )
+setupLogger( const std::string &name,
+		     const webfw::RequestHandler *reqHandler )
 {
-	ostringstream ost;
+
+	boost::mutex::scoped_lock lock( setupLoggerMutex );
 	string filename;
 	string category;
-   
+	std::string logdir;
+	std::string prefix;
+	std::string module;
+
+	if( reqHandler ) {
+		logdir = reqHandler->getLogDir();
+		prefix = reqHandler->getLogprefix();
+		module = reqHandler->getModuleName();
+	}
+
 	if( prefix.empty() )
 		category = name;
 	else
 		category = prefix + "." + name;
 	
-	log4cpp::PatternLayout *layout = new log4cpp::PatternLayout();
-	
-	ost <<"%d{%d-%m-%Y %H:%M:%S,%l} %p %c : %m%n";
-	layout->setConversionPattern( ost.str() );
-	
-	if( prefix.empty() ) {
-		filename = "wdb2ts";
-	} else {
-		filename = prefix;
-		miutil::replace( filename, ".", "_");
-	}
-	
-	filename = logdir + "/" + filename + ".log";
-	
-	log4cpp::Appender *appender;
-	
-	if( reqHandler ) {
-		cerr << "Add logger category: " << category <<". Logging to file: " << filename  << endl;
-		errno = 0;
-		appender = new log4cpp::RollingFileAppender( category, filename, 1024 * 1024, 10, true, 00640 );
-		int savedErr = errno;
-		char buf[256];
-		buf[0]='\0';
+	if( log4cpp::Category::exists( category ) )
+		return;
 
-		if( savedErr != 0 ) {
+	if( ! module.empty() )
+		filename = module +"-";
+
+	std::string tmpprefix = prefix;
+	miutil::replace( tmpprefix, ".", "_");
+
+	if( tmpprefix.empty() )
+		filename.erase();
+	else if( !logdir.empty() )
+		filename = logdir + "/" + filename + tmpprefix+".log";
+	else
+		filename.erase();
+	
+	log4cpp::Appender *appender=0;
+	
+	if( reqHandler  && !filename.empty()) {
+		//We use the category given with prefix as a dummy category to hold an appender.
+		//All subcategories use the same appender as this.
+
+		if( ! log4cpp::Category::exists( prefix ) ) {
+			cerr << "Loggsystem: No appender exist for '" << prefix << "' filename: '" << filename << "'"<< endl;
+			errno = 0;
+			appender = new log4cpp::RollingFileAppender( prefix, filename, 10 * 1024 * 1024, 10, true, 00640 );
+			int savedErr = errno;
+			char buf[256];
+			buf[0]='\0';
+
+			if( savedErr != 0 ) {
 #ifdef _GNU_SOURCE
-			strerror_r( errno, buf, 256 );
-			cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'. uid: " << getuid()
-			     << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
+				strerror_r( errno, buf, 256 );
+				cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'. uid: " << getuid()
+			         << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
 #else
-			strerror_r( errno, buf, 256 );
-			cerr << " **** errno: " << savedErr << " '" << buf << "'. uid: " << getuid()
-			     << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
+				strerror_r( errno, buf, 256 );
+				cerr << " **** errno: " << savedErr << " '" << buf << "'. uid: " << getuid()
+			         << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
+				delete appender;
+				appender=0;
 #endif
-		}
+			} else {
+				ostringstream ost;
+				log4cpp::PatternLayout *layout = new log4cpp::PatternLayout();
 
+				ost <<"%d{%d-%m-%Y %H:%M:%S,%l} %p %c : %m%n";
+				layout->setConversionPattern( ost.str() );
+				appender->setLayout( layout );
+				log4cpp::Category &logger = log4cpp::Category::getInstance( prefix );
+				logger.setAdditivity( false );
+				logger.addAppender( appender );
+				logger.setPriority( log4cpp::Priority::DEBUG );
+			}
+		} else {
+			log4cpp::Category &logger = log4cpp::Category::getInstance( prefix );
+			appender = logger.getAppender();
+
+		}
 	} else {
 		cerr << "Add logger. Logging to default logfile."  << endl;
-		appender = new log4cpp::OstreamAppender( "TheLogger", & std::cout );
+
+		if( ! log4cpp::Category::exists( "__WDB2TS_DEFAULT__" ) ) {
+			ostringstream ost;
+			log4cpp::PatternLayout *layout = new log4cpp::PatternLayout();
+
+			ost <<"%d{%d-%m-%Y %H:%M:%S,%l} %p %c : %m%n";
+			layout->setConversionPattern( ost.str() );
+			appender = new log4cpp::OstreamAppender( "TheLogger", & std::cerr );
+			appender->setLayout( layout );
+			log4cpp::Category &logger = log4cpp::Category::getInstance( prefix );
+			logger.setAdditivity( false );
+			logger.addAppender( appender );
+			logger.setPriority( log4cpp::Priority::DEBUG );
+		} else {
+			log4cpp::Category &logger = log4cpp::Category::getInstance( "__WDB2TS_DEFAULT__" );
+			appender = logger.getAppender();
+		}
 	}
 	
 	log4cpp::Priority::Value logLevel;
@@ -240,10 +302,15 @@ setupLogger( const std::string &logdir,
 		logLevel = log4cpp::Priority::NOTSET;
 	}
 	
-	appender->setLayout( layout );
+	if( ! appender ) {
+		cerr << "webfw::setupLogger: Failed to create log appender for: " << category << endl;
+		return;
+	}
+
+	cerr << "Add logger category: " << category <<"."<< endl;
 	log4cpp::Category &logger = log4cpp::Category::getInstance( category );
 	logger.setAdditivity( false );
-	logger.addAppender( appender );
+	logger.addAppender( *appender );
 	logger.setPriority( logLevel );
 }
 
@@ -293,6 +360,18 @@ isVersion( int major, int minor ) const
 }
 
 void 
+webfw::
+RequestHandler::
+setPaths( const std::string &confpath,
+		  const std::string &logpath,
+		  const std::string &tmppath )
+{
+	confDir = confpath;
+	logDir = logpath;
+	tmpDir = tmppath;
+}
+
+void
 webfw::
 RequestHandler::
 doGet(Request &req, Response &response, Logger &logger, App *app )
@@ -461,23 +540,46 @@ getLogLevel( const std::string &name ) const
 	return it->second;
 }
 
+
+const webfw::RequestHandler*
+webfw::
+RequestHandler::
+getRequestHandler()
+{
+	ThreadData *threadData = threadDataTSS.get();
+
+	if( ! threadData )
+		return 0;
+
+	return threadData->requestHandler;
+}
+
 log4cpp::Category&
 webfw::
 RequestHandler::
-getLogger( const std::string &name )
+getLogger( const std::string &name, const RequestHandler *reqHandler )
 {
-	ThreadData *threadData = threadDataTSS.get();
 	
-	if( threadData ) {
+	ThreadData *threadData = threadDataTSS.get();
+	const RequestHandler *handler = reqHandler;
+
+
+	if( threadData )
+		handler = threadData->requestHandler;
+	else if( handler )	{
+		threadData = new ThreadData( 0, reqHandler, 0 );
+		threadDataTSS.reset( threadData );
+	}
+
+	if( handler ) {
 		std::string name_ = threadData->logprefix + "." + name;
-		
-		if( ! log4cpp::Category::exists( name_ ) ) 
-			setupLogger( threadData->app->getLogDir(), threadData->logprefix, name, threadData->requestHandler );
+		if( ! log4cpp::Category::exists( name_ ) )
+			setupLogger( name, handler );
 			
 		return log4cpp::Category::getInstance( name_ );
 	} else {
 		if( ! log4cpp::Category::exists( name ) ) 
-			setupLogger( "", "", name, 0 );
+			setupLogger( name, 0 );
 
 		return log4cpp::Category::getInstance( name );
 	}

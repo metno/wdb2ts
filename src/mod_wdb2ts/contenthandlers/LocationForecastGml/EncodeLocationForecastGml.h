@@ -43,6 +43,7 @@
 #include <PrecipitationConfig.h>
 #include <SymbolConf.h>
 #include <wdb2TsApp.h>
+#include <Precipitation.h>
 
 /**
  * @addtogroup wdb2ts
@@ -76,29 +77,7 @@ class EncodeLocationForecastGml : public Encode
 		
 		BreakTimes& operator=(const BreakTimes &rhs );
 	};
-	//Used by computePecipitation* to compute the precipitation agregations.
-	struct Precip {
-		string provider;
-		float  precip;
 
-		Precip():precip(FLT_MAX) {}
-		Precip( const Precip &p ) : provider( p.provider ), precip( p.precip ) {}
-		Precip( const string &provider_, float precip_ )
-		    : provider( provider_ ), precip( precip_ ) {}
-
-		Precip& operator=( const Precip &rhs ) {
-			if( this != &rhs ) {
-				provider = rhs.provider;
-				precip = rhs.precip;
-			}
-
-			return *this;
-		}
-
-	};
-
-	///Hold the precip agragations. The first argument is the number of hours the aggregation is for.
-	typedef map< int, map<boost::posix_time::ptime, Precip>  > PrecipAggregations;
 	typedef std::list<BreakTimes> BreakTimeList;
 	
 	static const std::string metatemplate;
@@ -174,7 +153,7 @@ class EncodeLocationForecastGml : public Encode
 	
 	void computePrecipitationMulti( const boost::posix_time::ptime &from,
                                    const std::vector<int> &hours,
-			                       PrecipAggregations &aggregates
+			                       PrecipitationAggregations &aggregates
 	                             )const;
 
 

@@ -57,11 +57,11 @@ class LocationData
 	std::list<std::string>  topographyProviders_;
 	TimeSeriePtr timeSeriePtr;
 	TimeSerie *timeSerie;
-	CITimeSerie itTimeSerie;
+	ITimeSerie itTimeSerie;
 	LocationElem locationElem;
 	
-	CITimeSerie	findProviderData( const std::string &provider, 
-			                        const boost::posix_time::ptime &startAtToTime )const;
+	ITimeSerie	findProviderData( const std::string &provider,
+		                          const boost::posix_time::ptime &startAtToTime )const;
 
 	
 public:
@@ -81,13 +81,17 @@ public:
 
 	/**
 	 *Use the hight to model topografi for the point given with latitude/longitude.
-	 *
-	 *The call of the method destroy the state of the class so a new call to init is needed
-	 *before hasNext and next is called again.
 	 */
 	int hightFromModelTopo();
 	int	hightFromTopography();
 
+	/**
+	 * The cleanup method use the provider priority to removes data from the datasets.
+	 * It start with the data with lowest priority and check it against the data with
+	 * priority above this. Data is removed from the dataset with the lowest priority if
+	 * the lowest totime is greater than the lowest totime in the priority above.
+	 */
+	void cleanup();
 
 	ProviderList providerPriority() const { return providerPriority_; }
 	
@@ -119,6 +123,13 @@ public:
 	 * @return LocationElem The next element with data.
 	 */
 	LocationElem *next();
+
+	/**
+	 * peek just look at the data without advancing the next pointer.
+	 * It return null if hasNext returns false.
+	 */
+	LocationElem* peek();
+
 };
 
 typedef boost::shared_ptr<LocationData> LocationDataPtr;

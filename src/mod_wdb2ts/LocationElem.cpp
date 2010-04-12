@@ -77,7 +77,7 @@ LocationElem( const ProviderList &providerPriority_,
 
 void
 LocationElem::
-init( CITimeSerie itTimeSerie, const TimeSerie *timeSerie )
+init( ITimeSerie itTimeSerie, TimeSerie *timeSerie )
 {
 	this->itTimeSerie = itTimeSerie;
 	this->timeSerie = timeSerie;
@@ -214,6 +214,44 @@ T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard )const
 			         const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
+float
+LocationElem::
+temperatureCorrected( bool tryHard )const
+{
+	return getValue( &PData::temperatureCorrected,
+			         itTimeSerie->second,
+			         const_cast<ptime&>(itTimeSerie->first),
+			         const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+
+}
+
+void
+LocationElem::
+temperatureCorrected( float temperature, const std::string &provider_ )
+{
+	string provider(provider_);
+	//WEBFW_USE_LOGGER( "main" );
+
+	if( provider.empty() ) {
+		if( forecastProvider.empty() )
+			return;
+		else
+			provider = forecastProvider;
+	}
+
+	FromTimeSerie::iterator itFrom = itTimeSerie->second.find( itTimeSerie->first );
+
+	if( itFrom == itTimeSerie->second.end() )
+		return;
+
+	ProviderPDataList::iterator itProvider = itFrom->second.find( provider );
+
+	if( itProvider == itFrom->second.end() )
+		return;
+
+	//WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
+	itProvider->second.temperatureCorrected = temperature;
+}
 
 float
 LocationElem::
@@ -1035,6 +1073,25 @@ modeltopography( const std::string &provider_ )const
 
 	string provider =  const_cast<LocationElem*>( this )->topoProvider( provider_,
 			                                                            const_cast<LocationElem*>( this )->modelTopoProviders );
+
+	//WEBFW_LOG_WARN( "modeltopography: providerin: " << provider_ << " resolved: " << provider );
+
+//	{
+//		ostringstream ost;
+//		ost << "LocationElem::modeltopograpy: '" << provider << "(" << provider_ << ")'" << endl;
+//		for( TopoProviderMap::const_iterator it = modelTopoProviders.begin();
+//		     it != modelTopoProviders.end(); ++it ) {
+//			ost << "  " << it->first << ":";
+//			for( std::list<std::string>::const_iterator sit=it->second.begin();
+//					sit != it->second.end(); ++sit ){
+//				ost << " '" << *sit << "'";
+//			}
+//			ost << endl;
+//		}
+//		WEBFW_LOG_DEBUG( ost.str() );
+//	}
+
+
 	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
 	
 	if( it1 == timeSerie->end() ) {
@@ -1048,6 +1105,17 @@ modeltopography( const std::string &provider_ )const
 		WEBFW_LOG_WARN( "modeltopography: No topography fields loaded." );
 		return INT_MIN;
 	}
+
+//	{
+//		ostringstream ost;
+//
+//		for( ProviderPDataList::const_iterator it=it2->second.begin();
+//			 it != it2->second.end(); ++it	) {
+//			ost << "Model Topograpy: " << it->first << " Value: " << it->second.modeltopography << endl;
+//		}
+//		WEBFW_LOG_DEBUG( ost.str() );
+//	}
+
 	
 	ProviderPDataList::const_iterator it3=it2->second.find( provider + topoPostfix );
 	
@@ -1076,7 +1144,7 @@ modeltopography( const std::string &provider_ )const
 				}
 
 				WEBFW_LOG_INFO( "modeltopography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
-				const_cast<LocationElem*>(this)->modelTopoProviders[provider_].push_back( provider );
+				const_cast<LocationElem*>(this)->modelTopoProviders[provider_].push_front( provider );
 			}
 		} else {
 			if( provider_ != provider ) {
@@ -1108,7 +1176,8 @@ topography( const std::string &provider_ )const
 {
 	WEBFW_USE_LOGGER( "decode" );
 
-	string provider(provider_);
+	string provider;
+	string::size_type ii;
 
 	TimeSerie::const_iterator it1=timeSerie->find( topoTime );
 
@@ -1124,57 +1193,58 @@ topography( const std::string &provider_ )const
 		return INT_MIN;
 	}
 
-	WEBFW_LOG_DEBUG( "topography: lookingup: " << provider << topographyPostfix );
+	WEBFW_LOG_DEBUG( "topography: lookingup: " << provider_ << topographyPostfix );
 
-	ProviderPDataList::const_iterator it3=it2->second.find( provider + topographyPostfix );
+//	{
+//		ostringstream ost;
+//
+//		for( ProviderPDataList::const_iterator it=it2->second.begin();
+//			 it != it2->second.end(); ++it	) {
+//			ost << "Topograpy: " << it->first << " Value: " << it->second.topography << endl;
+//		}
+//		WEBFW_LOG_DEBUG( ost.str() );
+//	}
+
+	ProviderPDataList::const_iterator it3=it2->second.find( provider_ + topographyPostfix );
+
 
 	if( it3 == it2->second.end() ) {
-		ProviderItem item = ProviderList::decodeItem( provider );
+		ProviderItem itemIn = ProviderList::decodeItem( provider_ );
 
-		if( item.placename.empty() ) {
-			ProviderItem itemIn = ProviderList::decodeItem( provider_ );
+		if( itemIn.placename.empty() ) {
+			ProviderItem item;
 
-			if( ! itemIn.placename.empty() ) {
-				item.placename = itemIn.placename;
+			for( it3=it2->second.begin();
+				 it3 != it2->second.end(); ++it3	) {
+				provider = it3->first;
+				ii = provider.find( topographyPostfix );
 
-				provider = item.providerWithPlacename();
-				it3=it2->second.find( provider + topographyPostfix );
+				if( ii == string::npos )
+					continue;
 
-				//WEBFW_LOG_DEBUG( "topography: provider in: " << provider_ << " Use provider: " << provider );
+				provider.erase( ii );
+				item = ProviderList::decodeItem( provider );
 
-				if( it3 == it2->second.end() ) {
-					if( provider_ != provider ) {
-						WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
-					}else {
-						WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
-					}
-
-					return INT_MIN;
-				}
-
-				WEBFW_LOG_INFO( "topography: Adding alias <" << provider << "> for <"<< provider_ << ">." );
+				if( itemIn.provider == item.provider )
+					break;
 			}
 		} else {
-			if( provider_ != provider ) {
-				WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
-			}else {
-				WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
-			}
+			WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
 
 			return INT_MIN;
 		}
 	}
 
+	if( it3 == it2->second.end() )
+		return INT_MIN;
+
 	if( it3->second.topography == FLT_MAX ) {
-		if( provider_ != provider ) {
-			WEBFW_LOG_ERROR( "topography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">, but the field is present." );
-		}else {
-			WEBFW_LOG_ERROR( "topography: No topo data for provider <" << provider_ <<">, but the field is present." );
-		}
+		WEBFW_LOG_ERROR( "topography: No topo data for provider <" << provider_ <<">, but the field is present." );
 
 		return INT_MIN;
 	}
 
+	//WEBFW_LOG_ERROR( "topography: value: " <<  it3->second.topography << " provider: " << it3->first );
 	return static_cast<int>( it3->second.topography );
 
 }

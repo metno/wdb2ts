@@ -32,7 +32,7 @@ EXTRA_DIST=				etc/metno-wdb2ts.conf.template.in \
 			           	etc/metno-wdb2ts-db.conf.template.in \
 			           	etc/metno-wdb2ts-conf.xml.template.in \
 			           	etc/qbSymbols.def.in \
-			           	metlibs-3.3.0-20091221.tar.gz \
+			           	metlibs-3.3.0-20100326.tar.gz \
 			           	README.debian
 
 if HAS_WDB2TS_CONFIGDIR
@@ -120,10 +120,8 @@ uninstall-local:
 
 
 DISTCHECK_CONFIGURE_FLAGS=--with-apache-moduledir=@abs_builddir@/wdb2ts/_distcheck/modules \
-				--with-wdb2ts-configdir=@abs_builddir@/wdb2ts/_distcheck/conf \
-				--with-wdb2ts-logdir=@abs_builddir@/wdb2ts/_distcheck/log \
-				--with-wdb2ts-tmpdir=@abs_builddir@/wdb2ts/_distcheck/tmp
-	
+	--with-wdb2ts-configdir=@abs_builddir@/wdb2ts/_distcheck/conf \
+	--with-wdb2ts-logdir=@abs_builddir@/wdb2ts/_distcheck/log
 
 
 

@@ -54,6 +54,7 @@ struct PData{
    float T2M;
    float T2M_LAND;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+   float temperatureCorrected;
    float UU;
    float PRECIP;
    float PRECIP_ACCUMULATED;
@@ -110,6 +111,7 @@ struct PData{
    PData()
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
    	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ), T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
+   	 temperatureCorrected(FLT_MAX) ,
    	 UU( FLT_MAX ), PRECIP( FLT_MAX ), PRECIP_ACCUMULATED( FLT_MAX ), PRECIP_1T( FLT_MAX ),
    	 PRECIP_3T( FLT_MAX ), PRECIP_6T( FLT_MAX ), PRECIP_12T( FLT_MAX ), 
    	 PRECIP_24T( FLT_MAX ), seaCurrentVelocityU( FLT_MAX ), 
@@ -151,6 +153,7 @@ struct PData{
       :windV10m(pd.windV10m), windU10m(pd.windU10m), 
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
+       temperatureCorrected( pd.temperatureCorrected ),
        UU(pd.UU), PRECIP( pd.PRECIP),
        PRECIP_ACCUMULATED( pd.PRECIP_ACCUMULATED ),
        PRECIP_1T(pd.PRECIP_1T), PRECIP_3T(pd.PRECIP_3T), 
@@ -203,6 +206,7 @@ struct PData{
          T2M      = rhs.T2M;
          T2M_LAND = rhs.T2M_LAND;
          T2M_NO_ADIABATIC_HIGHT_CORRECTION = rhs.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+         temperatureCorrected = rhs.temperatureCorrected;
          UU       = rhs.UU;
          PRECIP     = rhs.PRECIP;
          PRECIP_ACCUMULATED = rhs.PRECIP_ACCUMULATED;
@@ -259,6 +263,9 @@ struct PData{
       
       return *this;
    }
+
+   void merge( const PData &other );
+   int count()const;
 };
 
 typedef std::map<std::string, std::string > RenameTopoProvider;

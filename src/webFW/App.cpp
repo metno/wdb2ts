@@ -25,6 +25,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
+#include <cctype>
 #include <stdio.h>
 #include <readfile.h>
 #include <sstream>
@@ -237,7 +238,7 @@ decodeLogLevels( const std::string &logLevels )
 	vector<std::string> keyVals=miutil::splitstr( logLevels, ';' );
 	
 	for( vector<string>::size_type i=0; i < keyVals.size(); ++i ) {
-		logger = miutil::splitstr( keyVals[i], ';' );
+		logger = miutil::splitstr( keyVals[i], '=' );
 		if( logger.size() != 2 )
 			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'.");
 		
@@ -252,12 +253,38 @@ decodeLogLevels( const std::string &logLevels )
 		
 		if( level.empty() )
 			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. No log level.");
-				
-		if( sscanf( level.c_str(), "%d", &nLevel) != 1 )
-			throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. Log level not a number.");
 		
+		if( isdigit( level[0]) ) {
+			if( sscanf( level.c_str(), "%d", &nLevel) != 1 )
+				throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. Log level must be a number or one of"+
+						"emerg (0), fatal (1), alert (2), crit (3), error (4), warn (5), notice (6), info (7) or debug(8).");
+		} else {
+			if( level== "emerg" )
+				nLevel=0;
+			else if( level== "fatal" )
+				nLevel = 1;
+			else if( level== "alert" )
+				nLevel=2;
+			else if( level== "crit" )
+				nLevel=3;
+			else if( level== "error")
+				nLevel=4;
+			else if( level== "warn" )
+				nLevel=5;
+			else if( level== "notice")
+				nLevel=6;
+			else if( level== "info")
+				nLevel=7;
+			else if( level== "debug")
+				nLevel=8;
+			else {
+				throw logic_error("Invalid format of the loglevel '" + keyVals[i] + "'. Log level must be a number or one of"+
+									"emerg (0), fatal (1), alert (2), crit (3), error (4), warn (5), notice (6), info (7) or debug(8).");
+			}
+		}
+
 		if( nLevel < 0 || nLevel > 8 )
-			throw range_error("Invalid loglevel '" + keyVals[i] + "'. Valid range [0,8]." );
+			throw range_error("Invalid loglevel '" + keyVals[i] + "'. Valid range [0,8]. (emerg (0), fatal (1), alert (2), crit (3), error (4), warn (5), notice (6), info (7) or debug(8))" );
 		
 		loggers[ loggerName ] = nLevel;
 	}

@@ -140,6 +140,7 @@ operator=(const BreakTimes &rhs )
 EncodeLocationForecast::
 EncodeLocationForecast(): 
 	metaConf( dummyMetaConf ),
+	symbolContext( true ),
 	providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
 	topographyProviders( dummyTopoList ),
 	symbolConf( dummySymbolConfProvider )
@@ -166,6 +167,7 @@ EncodeLocationForecast( LocationPointDataPtr locationPointData_,
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
      refTimes( refTimes_ ), metaConf( metaConf_ ),
+     symbolContext( true ),
      precipitationConfig( precipitationConfig_ ),
      providerPriority( providerPriority_ ),
      modelTopoProviders( modelTopoProviders_),
@@ -205,6 +207,44 @@ findBreakTime( const boost::posix_time::ptime &time )const
 	return breakTimes.end();
 }
 
+void
+EncodeLocationForecast::
+compactBreakTimes()
+{
+	BreakTimeList::iterator it=breakTimes.begin();
+	BreakTimeList::iterator itFirst=breakTimes.begin();
+	BreakTimeList::iterator itPrev=it;
+	ProviderItem piFirst;
+	ProviderItem pi;
+
+	if( it == breakTimes.end() )
+		return;
+
+	piFirst = ProviderList::decodeItem( itFirst->provider );
+
+	for( ++it ; it != breakTimes.end(); ++it )
+	{
+		pi = ProviderList::decodeItem( it->provider );
+
+		if(  pi.provider != piFirst.provider ) {
+			if( std::distance( itFirst, itPrev ) > 0 ) {
+				itFirst->to = itPrev->to;
+
+				for( ++itFirst; itFirst != itPrev; ++itFirst )
+					breakTimes.erase( itFirst );
+
+				breakTimes.erase( itPrev );
+			}
+
+			itFirst = it;
+			piFirst = ProviderList::decodeItem( itFirst->provider );
+		}
+
+		itPrev = it;
+	}
+}
+
+
 boost::shared_ptr<SymbolHolder>
 EncodeLocationForecast::
 findSymbolHolder( const std::string &provider, int timespan )
@@ -236,6 +276,9 @@ EncodeLocationForecast::
 encodeSymbols( std::ostream &out, 
  	            miutil::Indent &indent )
 {
+	WEBFW_USE_LOGGER( "encode" );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+
 	ptime from;
 	ptime to;
 	ptime time;
@@ -278,8 +321,9 @@ encodeSymbols( std::ostream &out,
 			SymbolHolder *sh = ptrSh.get();
 			sh->initIndex( startAt );
 
-			out << indent.spaces() << "<!-- Symbols (BreakTimes) timespan: " << (*it)->timespanInHours()
-							 << " (" << itbt->provider << ")  " << startAt << " - " << itbt->to << " -->" << endl;
+			if( loglevel >= log4cpp::Priority::DEBUG )
+				out << indent.spaces() << "<!-- Symbols (BreakTimes) timespan: " << (*it)->timespanInHours()
+				    << " (" << itbt->provider << ")  " << startAt << " - " << itbt->to << " -->" << endl;
 
 			while ( sh->next(symbolid, name, idname, time, from, to, prob) && to <= itbt->to ) {
 				IndentLevel level3( indent );
@@ -312,6 +356,8 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			                       std::ostream &ost, 
 			                       miutil::Indent &indent )
 {
+	WEBFW_USE_LOGGER( "encode" );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 	int hours[] = { 6, 12, 24 };
 	int n=sizeof( hours )/sizeof(hours[0]);
 	ptime fromTime;
@@ -349,13 +395,15 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			IndentLevel level3( indent );
 			provider = location.forecastprovider();
 				
-			if( prevProvider != provider )
+			if( prevProvider != provider &&  loglevel >= log4cpp::Priority::DEBUG )
 				ost << level3.indent() << "<!-- Dataprovider: " << provider << " -->\n";
 				
 			prevProvider = provider;
 				
 			if( first ) {
-				ost << level3.indent() << "<!-- PrecipPercentiles: " << hours[i] << " hours -->\n";
+				if( loglevel >= log4cpp::Priority::DEBUG )
+					ost << level3.indent() << "<!-- PrecipPercentiles: " << hours[i] << " hours -->\n";
+
 				first = false;
 			}
 			
@@ -374,7 +422,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			PrecipitationPercentileTags precipPercentileTag( location, hours[i] );
 			precipPercentileTag.output( percentileOst, level5.indent() );
 			
-			if( ! percentileOst.str().empty() )  
+			if( ! percentileOst.str().empty() )
 				outOst << percentileOst.str();
 				
 		}
@@ -394,6 +442,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 			         miutil::Indent &indent )
 {
 	WEBFW_USE_LOGGER( "encode" );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 //	int hours[] = { 1, 3, 6, 12, 24 };
 	int N = hours.size();
 	int precipCount[N];
@@ -472,7 +521,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 				
 				IndentLevel level3( indent );
 			
-				if( doComment ) {
+				if( doComment && loglevel >= log4cpp::Priority::DEBUG ) {
 					doComment = false;
 					ost << level3.indent() << "<!-- Precip: " << hours[precipIndex] << " hours provider: "
 					    << itbt->provider << " -->\n";
@@ -504,6 +553,7 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 {
 
 	WEBFW_USE_LOGGER( "encode" );
+ 	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 	//int hours[] = { 1, 3, 6 };
 	int N=hours.size();
 	int hoursIndex;
@@ -575,7 +625,9 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 		{
 			IndentLevel level3( indent );
 
-			if( prevProvider != itPrecip->second.provider ) {
+			if( prevProvider != itPrecip->second.provider &&
+				loglevel >= log4cpp::Priority::DEBUG)
+			{
 				ost << level3.indent() << "<!-- Precip: " << hours[ hoursIndex ] << " hours provider: "
 					    << itPrecip->second.provider << " -->\n";
 			}
@@ -681,18 +733,28 @@ void
 EncodeLocationForecast::
 updateBreakTimes( const std::string &provider, const boost::posix_time::ptime &time)
 {
-	if( breakTimeForecastProvider != provider ) {
-		 breakTimeForecastProvider = provider;
-		BreakTimeList::iterator itBreakTimes = curItBreakTimes;
-		curItBreakTimes = breakTimes.insert( breakTimes.end(), 
+	WEBFW_USE_LOGGER( "encode" );
+
+
+
+	if(	breakTimeForecastProvider != provider ) {
+		if( ! provider.empty() ) {
+			WEBFW_LOG_DEBUG( "encode::updateBreakTimes: provider: '" << provider << "' "
+					         << "breakTimeProvider: '" << breakTimeForecastProvider << "'");
+			breakTimeForecastProvider = provider;
+			BreakTimeList::iterator itBreakTimes = curItBreakTimes;
+			curItBreakTimes = breakTimes.insert( breakTimes.end(),
 						                         BreakTimes( breakTimeForecastProvider )
 		                                   ); 
-		curItBreakTimes->from = time;
-		if( ! prevBreakTime.is_special() )
-			curItBreakTimes->prevTo = prevBreakTime;
+			curItBreakTimes->from = time;
+			if( ! prevBreakTime.is_special() )
+				curItBreakTimes->prevTo = prevBreakTime;
 		
-		if( itBreakTimes != breakTimes.end() ) 
-			itBreakTimes->to = prevBreakTime;
+			if( itBreakTimes != breakTimes.end() )
+				itBreakTimes->to = prevBreakTime;
+		} else {
+			WEBFW_LOG_DEBUG( "encode::updateBreakTimes: EMPTY provider.");
+		}
 	}
 	
 	curItBreakTimes->to = time;
@@ -882,21 +944,34 @@ encode(  webfw::Response &response )
 		locationData.reset( new LocationData( locationPointData->begin()->second, longitude, latitude, altitude,
 					                               providerPriority, modelTopoProviders, topographyProviders ) );
 
-		if( altitude == INT_MIN )
+		if( altitude == INT_MIN ) {
+
 			altitude = locationData->hightFromTopography();
+			if( altitude != INT_MIN )  {
+				WEBFW_LOG_DEBUG("encode: Height from topograpy: " << altitude )
+			}
 
-		if( altitude == INT_MIN )
+		}
+
+		if( altitude == INT_MIN ) {
 			altitude = locationData->hightFromModelTopo();
+			if( altitude != INT_MIN )  {
+				WEBFW_LOG_DEBUG("encode: Height from model topograpy: " << altitude )
+			}
+		}
 
-		if( altitude != INT_MIN )
+		if( altitude != INT_MIN ) {
 			locationData->height( altitude );
+		}
 
 	} else {
 		WEBFW_LOG_ERROR( "Polygon not supported.");
 		locationData.reset( new LocationData() );
 	}
 
-	symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, error );
+	//Compute the symbols witoutStateOfAgreate = false. ie, do the best with the teperatures
+	//as it is.
+	symbols = SymbolGenerator::computeSymbols( *locationData, symbolConf, false, error );
 
 	{ //Create a scope for the weatherdatatag and producttag.
 		WeatherdataTag weatherdataTag(second_clock::universal_time(), schemaName() );

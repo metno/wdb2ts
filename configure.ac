@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 0.9.5.1, wdb@met.no)
+AC_INIT(metno-wdb2ts, 0.9.6.1, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])
@@ -137,12 +137,12 @@ LDFLAGS="$libxml2_LIBS $LDFLAGS"
 PULDFLAGS=
 PUCPPFLAGS=
 
-PKG_CHECK_MODULES(pumet, pumet)
+PKG_CHECK_MODULES(pumet, puMet)
 #CPPFLAGS="$pumet_CFLAGS $CPPFLAGS"
 PUCPPFLAGS="$pumet_CFLAGS"
 PULDFLAGS="$pumet_LIBS"
 
-PKG_CHECK_MODULES(putools, putools)
+PKG_CHECK_MODULES(putools, puTools)
 #CPPFLAGS="$putools_CFLAGS $CPPFLAGS"
 PUCPPFLAGS="$putools_CFLAGS $PUCPPFLAGS"
 PULDFLAGS="$putools_LIBS $PULDFLAGS"

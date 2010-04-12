@@ -20,9 +20,11 @@ class ConfigParser : public miutil::SAXParser
 	boost::shared_ptr<Request> currentRequest;
 	boost::shared_ptr<RequestConf> currentRequestVersion;
 	Config::QueryDefs::iterator itCurrentQueryDef;
+	std::string currentQueryDefWdbdb;
 	ParamDef currentParamDef;
 	bool currentQueryProbe;
 	bool currentQueryStopIfData;
+	std::string currentQueryWdbdb;
 	std::list<std::string> currentParamDefProvider;
 	
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );

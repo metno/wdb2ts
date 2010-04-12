@@ -30,24 +30,25 @@ configure-stamp:
 	#Compile a local version of metlibs.
 	#We must do it before we configure wdb2ts 
 	
-	tar zxpf metlibs-3.3.0-20091221.tar.gz  
-	( cd metlibs-3.3.0 ;                     \
-	  ./configure --prefix=$(CURDIR)/metlibs \
-	              --sysconfdir=/etc \
-	              --localstatedir=/var \
-	              --datarootdir=/usr/share \
-	              --disable-shared  --disable-diField --disable-diMItiff \
-	              --disable-diSQL  --disable-diWdb --disable-glp --disable-glText \
-	              --disable-GribAPI --disable-parameter --disable-pets2 --disable-pods \
-	              --disable-profet  --disable-proFunctions --disable-propoly \
-	              --disable-puCtools --disable-puDatatypes --disable-puSQL \
-	              --disable-qTimeseries --disable-qUtilities  --disable-robs --disable-tsData \
-	              --disable-wdb  --disable-metnofieldfile  --disable-xfonts ;  \
-	  $(MAKE)   ;           \
-	  $(MAKE) install ; \
-	  \
-	  #cleanup \
-	)
+#	tar zxpf metlibs-3.3.0-20100326.tar.gz  
+#	( cd metlibs-3.3.0 ;                     \
+#	  ./configure --prefix=$(CURDIR)/metlibs \
+#	              --sysconfdir=/etc \
+#	              --localstatedir=/var \
+#	              --datarootdir=/usr/share \
+#	              --disable-shared \
+#	              --enable-pgconpool \
+#	              --disable-diField --disable-diMItiff \
+#	              --disable-diSQL  --disable-diWdb --disable-glp --disable-glText \
+#	              --disable-GribAPI --disable-parameter --disable-pets2 --disable-pods \
+#	              --disable-profet  --disable-proFunctions --disable-propoly \
+#	              --disable-puCtools --disable-puDatatypes --disable-puSQL \
+#	              --disable-qTimeseries --disable-qUtilities  --disable-robs --disable-tsData \
+#	              --disable-wdb  --disable-metnofieldfile  --disable-xfonts ;  \
+#	  $(MAKE) FFLAGS=-fPIC CXXFLAGS=-fPIC CFLAGS=-fPIC ;           \
+#	  $(MAKE) FFLAGS=-fPIC CXXFLAGS=-fPIC CFLAGS=-fPIC install ; \
+#	  \
+#	)
 	#test -d metlibs-3.3.0 && rm -rf metlibs-3.3.0  
 		
 	# Add here commands to configure the package.
@@ -69,7 +70,7 @@ build: build-stamp
 build-stamp: configure-stamp 
 	dh_testdir
 	# Add here commands to compile the package.
-	$(MAKE)
+	$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC
 	$(MAKE) html
 	#docbook-to-man debian/ts2xml.sgml > wdb2ts.1
 
@@ -91,10 +92,10 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/metno-wdb2ts.
-	$(MAKE) DESTDIR=$(CURDIR)/debian/metno-wdb2ts install
-#        mkdir -p $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
-#        cp -f $(CURDIR)/doc/html/wdb2ts-manual/*.html \
-#           $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
+	$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC DESTDIR=$(CURDIR)/debian/metno-wdb2ts install
+	mkdir -p $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
+	cp -f $(CURDIR)/doc/html/wdb2ts-manual/*.html \
+        $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
 	mv $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts.conf.template \
        $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts.conf	   
 	mv $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts-conf.xml.template\

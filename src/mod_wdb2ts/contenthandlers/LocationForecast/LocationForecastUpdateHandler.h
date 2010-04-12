@@ -76,6 +76,7 @@ private:
 	std::string updateStatus( ProviderRefTimeList &oldRefTime, 
 							  ProviderRefTimeList &newRefTime )const;
 	bool decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const;
+	bool getProviderPriorityList( Wdb2TsApp *app, const std::string &wdbID, ProviderList &providerPriorityList )const;
 	bool getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )const;
 
 	/**
@@ -90,6 +91,7 @@ private:
 			             ProviderRefTimeList &requestedUpdate )const;
 	void checkAgainstExistingProviders( const ProviderRefTimeList &exitingProviders, 
 			                              ProviderRefTimeList &newRefTime ) const;
+	std::string statusDoc( const std::string &status, const std::string &comment );
 };
 
 }

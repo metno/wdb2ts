@@ -26,7 +26,7 @@
     MA  02110-1301, USA
 */
 
-
+#include <stdlib.h>
 #include <iostream>
 #include <algorithm>
 #include "SymbolHolder.h"
@@ -81,12 +81,12 @@ getTime() const
 
 
 SymbolHolder::
-SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols)
+SymbolHolder(int min, int max, const std::vector<miSymbol> &symbols, bool withOutStateOfAgregate )
 :  min_( min ), max_( max ), index_(0)
 {
 	symbols_.reserve( symbols.size() );
    for ( std::vector<miSymbol>::size_type i=0; i<symbols.size(); ++i )
-      symbols_.push_back( Symbol( min, max, symbols[i] ) );
+      symbols_.push_back( Symbol( min, max, symbols[i], FLT_MAX, withOutStateOfAgregate ) );
 }
 
 SymbolHolder::
@@ -105,7 +105,7 @@ SymbolHolder::
 
 void 
 SymbolHolder::
-addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude, float proability )
+addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude, bool withOutStateOfAgregate, float proability )
 {
 	using namespace boost::posix_time;
 	
@@ -127,7 +127,7 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 	sym.setLightStat( miT, latitude );
 	
 	if( symbols_.empty() ) {
-		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability ) ); 
+		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability, withOutStateOfAgregate ) );
 		return;
 	}
 	
@@ -135,7 +135,7 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 	
 	//Should we add at the back
 	if( tmpSymbol.getTime() < miT ) {
-		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability ) ); 
+		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability, withOutStateOfAgregate ) );
 		return;
 	}
 		
@@ -143,9 +143,9 @@ addSymbol( const boost::posix_time::ptime &time, int custNumber, float latitude,
 	for( ; it != symbols_.end() && it->symbol.getTime()<miT; ++it  );
 	
 	if( it != symbols_.end() )
-		symbols_.insert( it, SymbolHolder::Symbol( min_, max_, sym, proability ) );
+		symbols_.insert( it, SymbolHolder::Symbol( min_, max_, sym, proability, withOutStateOfAgregate ) );
 	else
-		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability ) );
+		symbols_.push_back( SymbolHolder::Symbol( min_, max_, sym, proability, withOutStateOfAgregate ) );
 }
 
 bool
@@ -333,7 +333,74 @@ findSymbol( const std::string &provider,
 	return false;
 }
 
+bool
+ProviderSymbolHolderList::
+findSymbol( const std::string &provider,
+            const boost::posix_time::ptime &fromtime,
+            const boost::posix_time::ptime &totime,
+            SymbolHolder::Symbol &symbol ) const
+{
+	if( fromtime.is_special() || totime.is_special() )
+		return false;
 
+	boost::posix_time::time_duration duration= totime - fromtime;
+	int timespanInHours = duration.hours();
+
+	timespanInHours = abs( timespanInHours );
+
+	const_iterator itProv = find( provider );
+
+	if( itProv == end() )
+		return false;
+
+	for( SymbolHolderList::const_iterator itSh = itProv->second.begin();
+		 itSh != itProv->second.end();
+		 ++itSh ) {
+
+		if( (*itSh)->timespanInHours() == timespanInHours ) {
+			if( (*itSh)->findSymbol( fromtime, symbol ) )
+				return true;
+		}
+	}
+
+	return false;
+}
+
+
+void
+ProviderSymbolHolderList::
+findAllFromtimes( const boost::posix_time::ptime &toTime,
+		          const std::string &provider,
+		          std::set<boost::posix_time::ptime> &fromtimes )const
+{
+	boost::posix_time::ptime fromTime;
+	SymbolHolder::Symbol symbol;
+	bool all=provider.empty();
+
+	const_iterator itProv;
+
+	if( ! all )
+		itProv = find( provider );
+	else
+		itProv = begin();
+
+	if( itProv == end() )
+		return;
+
+	for( ; itProv != end(); ++itProv ) {
+		for( SymbolHolderList::const_iterator itSh = itProv->second.begin();
+			 itSh != itProv->second.end();
+			++itSh ) {
+			fromTime = toTime - boost::posix_time::hours( (*itSh)->timespanInHours() );
+
+			if( (*itSh)->findSymbol( fromTime, symbol ) )
+				fromtimes.insert( fromTime );
+		}
+
+		if( ! all )
+			return;
+	}
+}
 
 }
 

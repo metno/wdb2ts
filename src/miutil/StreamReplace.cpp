@@ -74,13 +74,19 @@ StreamReplaceSource( std::istream &inStream,
 		iBuf = new char[ibufsize];
 		ibufend = iBuf + ibufsize;
 		gibufend = iBuf;
-		gibuf = iBuf;;
+		gibuf = iBuf;
 	}
 	catch( ... ) {
 		iBuf = 0;
 	}
 }
 
+StreamReplaceSource::
+~StreamReplaceSource()
+{
+	if( iBuf )
+		delete[] iBuf;
+}
 
 
 std::streamsize

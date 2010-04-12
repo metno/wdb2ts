@@ -30,6 +30,12 @@
 #include <float.h>
 #include <limits.h>
 #include <LocationData.h>
+#include <Logger4cpp.h>
+
+namespace {
+boost::posix_time::ptime topoTimeSpecialTime( boost::gregorian::date(1970, 1, 1),
+											  boost::posix_time::time_duration( 0, 0, 0 ) );
+}
 
 namespace wdb2ts {
 
@@ -49,6 +55,8 @@ LocationData( wdb2ts::TimeSeriePtr timeSerie_,
  	  timeSerie( timeSeriePtr.get() ),
  	  locationElem( providerPriority, modelTopoProviders, topographyProviders, longitude, latitude, hight )
 {
+	cleanup();
+
 	if( timeSerie )
 		itTimeSerie = timeSerie->begin();
 	
@@ -61,6 +69,102 @@ LocationData::
 	//delete timeSerie;
 }
 	
+void
+LocationData::
+cleanup()
+{
+	WEBFW_USE_LOGGER( "encode" );
+
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+
+	boost::posix_time::ptime fromThisTime;
+	string providerWithFromThisTime;
+	ProviderPDataList::iterator itProviderData;
+
+	for( ProviderList::iterator itProvider = providerPriority_.begin();
+		     itProvider != providerPriority_.end();
+		     ++itProvider )
+	{
+		TimeSerie::iterator tit = timeSeriePtr->begin();
+
+		for( TimeSerie::iterator tit = timeSeriePtr->begin();
+			 tit != timeSeriePtr->end() && fromThisTime.is_special();
+			 ++tit )
+		{
+			if( tit->first.is_special() || tit->first == topoTimeSpecialTime )
+				continue;
+
+			for( FromTimeSerie::iterator fit = tit->second.begin();
+				 fit != tit->second.end();
+				 ++fit )
+			{
+
+			    if( fit->first.is_special() || fit->first == topoTimeSpecialTime )
+			    	continue;
+
+				itProviderData = fit->second.find( itProvider->providerWithPlacename() );
+
+				if( itProviderData == fit->second.end() )
+					continue;
+
+				WEBFW_LOG_DEBUG("LocationData::cleanup: '" << itProviderData->first
+						         << "' count: " << itProviderData->second.count() );
+
+				if( itProviderData->second.count() > 1 ) {
+					fromThisTime = tit->first;
+					providerWithFromThisTime = itProviderData->first;
+					break;
+				}
+			}
+		}
+	}
+
+	if( fromThisTime.is_special() ) {
+		WEBFW_LOG_DEBUG("LocationData::cleanup: Found no datasets with a count > 2.");
+		return;
+	}
+
+	WEBFW_LOG_DEBUG("LocationData::cleanup: Use only data after or equal totime: " << fromThisTime << " ("
+			        << providerWithFromThisTime << ")");
+
+
+
+	TimeSerie::iterator titTemp;
+	TimeSerie::iterator tit = timeSeriePtr->begin();
+
+	for( TimeSerie::iterator tit = timeSeriePtr->begin();
+		tit != timeSeriePtr->end(); /*NOOP*/  )
+	{
+		if( tit->first.is_special() || tit->first == topoTimeSpecialTime ) {
+			++tit;
+			continue;
+		}
+
+		if( tit->first < fromThisTime ) {
+			if( loglevel >= log4cpp::Priority::DEBUG ) {
+				for( FromTimeSerie::iterator fit = tit->second.begin();
+					 fit != tit->second.end();
+					 ++fit )
+				{
+					for( ProviderPDataList::iterator pit=fit->second.begin();
+						 pit!=fit->second.end();
+						 ++pit )
+					{
+						WEBFW_LOG_DEBUG("LocationData::cleanup: Removing '" << pit->first <<"' "
+								         << fit->first << " - " << tit->first << " count: " << pit->second.count());
+					}
+				}
+			}
+
+			titTemp = tit;
+			++tit;
+			timeSeriePtr->erase( titTemp );
+		} else {
+			break;
+		}
+	}
+}
+
 
 int
 LocationData::
@@ -69,15 +173,15 @@ hightFromModelTopo()
 	int alt;
 	init( boost::posix_time::ptime() );
 
-	if( ! hasNext() )
-		return INT_MIN;
+	LocationElem *elem= peek();
 
-	LocationElem &elem= *next();
+	if( ! elem )
+		return INT_MIN;
 
 	ProviderList::const_iterator it;
 
 	for( it=providerPriority_.begin(); it != providerPriority_.end(); ++it ){
-		alt = elem.modeltopography( it->providerWithPlacename() );
+		alt = elem->modeltopography( it->providerWithPlacename() );
 
 		if( alt != INT_MIN )
 			return alt;
@@ -91,18 +195,19 @@ int
 LocationData::
 hightFromTopography()
 {
-	int alt;
+	int alt=INT_MIN;
 	init( boost::posix_time::ptime() );
 
-	if( ! hasNext() )
-		return INT_MIN;
 
-	LocationElem &elem= *next();
+	LocationElem *elem= peek();
+
+	if( ! elem )
+		return INT_MIN;
 
 	std::list<std::string>::const_iterator it;
 
 	for( it=topographyProviders_.begin(); it != topographyProviders_.end(); ++it ){
-		alt = elem.topography( *it );
+		alt = elem->topography( *it );
 
 		if( alt != INT_MIN )
 			return alt;
@@ -142,14 +247,14 @@ hasDataForTime( const boost::posix_time::ptime &fromtime,
 }	
 
 
-CITimeSerie
+ITimeSerie
 LocationData::
 findProviderData( const std::string &provider, 
 		            const boost::posix_time::ptime &startAtToTime )const
 {
-	CIFromTimeSerie itFromTimeSerie;
-	CIProviderPDataList itProviderPDataList;
-	CITimeSerie it;
+	IFromTimeSerie itFromTimeSerie;
+	IProviderPDataList itProviderPDataList;
+	ITimeSerie it;
 	
 	it = timeSerie->begin();
 			
@@ -264,13 +369,26 @@ LocationElem*
 LocationData::
 next()
 {
-	CITimeSerie itTmpTimeSerie=itTimeSerie;
+	ITimeSerie itTmpTimeSerie=itTimeSerie;
 	++itTimeSerie;
 	
 	locationElem.init( itTmpTimeSerie, timeSerie );
 	
 	return &locationElem;
 }
+
+LocationElem*
+LocationData::
+peek()
+{
+	if( ! hasNext() )
+		return 0;
+
+	locationElem.init( itTimeSerie, timeSerie );
+
+	return &locationElem;
+}
+
 
 }
 
