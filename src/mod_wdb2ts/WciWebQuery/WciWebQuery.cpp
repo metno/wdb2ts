@@ -27,6 +27,7 @@
 */
 
 
+#include <string.h>
 #include <sstream>
 #include <splitstr.h>
 #include <trimstr.h>
@@ -175,7 +176,7 @@ decode( const std::string &query )
    		
 			decoders[decoderIndex].decoder->decode( val );
 
-			if( decoders[decoderIndex].key == "polygon" )
+			if( strcmp(decoders[decoderIndex].key, "polygon") == 0 )
 				isPolygon = true;
 		}
 		catch( const logic_error &ex ){
