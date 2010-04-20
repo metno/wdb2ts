@@ -32,6 +32,7 @@
 #include <stdexcept>
 #include <list>
 #include <limits.h>
+#include <boost/shared_ptr.hpp>
 
 namespace wdb2ts {
 
@@ -100,6 +101,7 @@ public:
 
 
 typedef std::list<LocationPoint> LocationPointList;
+typedef boost::shared_ptr<LocationPointList> LocationPointListPtr;
 
 LocationPointList::iterator
 insertLocationPoint( LocationPointList &locations, LocationPoint  &locationPoint, bool replace=false );

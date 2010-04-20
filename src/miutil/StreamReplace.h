@@ -31,12 +31,13 @@
 
 #include <iostream> 
 #include <iosfwd>    //streamsize
+#include <boost/utility.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/categories.hpp>  // source_tag
 
 namespace miutil {
 
-class StreamReplaceSource
+class StreamReplaceSource : boost::noncopyable
 {  
 public:
 	typedef char        char_type;
@@ -50,6 +51,7 @@ private:
 	int nToReplace;
 	int nCount;
 	bool eofile;
+	int  iBufRefCount;
 	char *iBuf;            ///ist inputbuffer
 	char *gibuf;           ///get pointer
 	char *ibufend;         ///inputbuffer end pointer
@@ -67,6 +69,7 @@ private:
 public:
 
 	StreamReplaceSource();
+	StreamReplaceSource( const StreamReplaceSource &sr );
 	virtual ~StreamReplaceSource();
 	StreamReplaceSource( std::istream &inStream,
 			             const std::string &what, const std::string &with,

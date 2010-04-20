@@ -53,7 +53,7 @@ namespace miutil {
 
 StreamReplaceSource::
 StreamReplaceSource()
-	: ist( 0 ), eofile( false ), iBuf( 0 ), gibuf( 0 ), ibufend( 0 )
+	: ist( 0 ), eofile( false ), iBufRefCount(0), iBuf( 0 ), gibuf( 0 ), ibufend( 0 )
 {
 }
 
@@ -64,14 +64,15 @@ StreamReplaceSource( std::istream &inStream,
 			         int bufSize )
 	: ist( &inStream ), what( what_ ),
 	  with( with_ ), nToReplace( nToReplace_ ), nCount( nToReplace_ ),
-      eofile( false ), gWhat( 0 ), gWith( 0 ), length( 0 )
+     eofile( false ), iBufRefCount( 0 ), iBuf( 0 ), gWhat( 0 ), gWith( 0 ), length( 0 )
 {
 	int ibufsize=std::max( bufSize, static_cast<int>(what.size()) );
 
-	cerr << "StreamReplaceSource: ibufsize: " << ibufsize << endl;
+	//cerr << "StreamReplaceSource: ibufsize: " << ibufsize << endl;
 
 	try {
 		iBuf = new char[ibufsize];
+		iBufRefCount++;
 		ibufend = iBuf + ibufsize;
 		gibufend = iBuf;
 		gibuf = iBuf;
@@ -80,12 +81,51 @@ StreamReplaceSource( std::istream &inStream,
 		iBuf = 0;
 	}
 }
+StreamReplaceSource::
+StreamReplaceSource( const StreamReplaceSource &sr )
+   : ist( sr.ist ),
+     what( sr.what ),
+     with( sr.with ),
+     nToReplace( sr.nToReplace ),
+     nCount( sr.nCount ),
+     eofile( sr.eofile ),
+     iBufRefCount( sr.iBufRefCount ),
+     iBuf( sr.iBuf ),
+     gibuf( sr.gibuf ),
+     ibufend( sr.ibufend ),
+     gibufend( sr.gibufend ),
+     gWhat( sr.gWhat ),
+     gWith( sr.gWith ),
+     length( sr.length )
+{
+   cerr << "StreamReplaceSource::CTOR:";
+
+   if( iBuf ) {
+      cerr << " refcount before: " << iBufRefCount;
+      iBufRefCount++;
+      cerr << " After: " << iBufRefCount;
+   }
+
+   cerr << endl;
+}
 
 StreamReplaceSource::
 ~StreamReplaceSource()
 {
-	if( iBuf )
-		delete[] iBuf;
+   cerr << "StreamReplaceSource::DTOR:";
+	if( iBuf ) {
+	   cerr << " refcount before: " << iBufRefCount;
+	   iBufRefCount--;
+	   cerr << " After: " << iBufRefCount;
+
+
+	   if( iBufRefCount == 0 ) {
+	      cerr << " Delete iBuf.";
+	      delete[] iBuf;
+	   }
+
+	}
+	cerr << endl;
 }
 
 
@@ -213,7 +253,7 @@ getWith( char_type *buf, std::streamsize N )
 {
 	int n=0;
 
-	cerr << "StreamReplaceSource::getWith: N " << N <<  " gWith: " << gWith << " le: " << with.length() << endl;
+	//cerr << "StreamReplaceSource::getWith: N " << N <<  " gWith: " << gWith << " le: " << with.length() << endl;
 
 	if( gWith < with.length() ) {
 		n = with.length()-gWith;
@@ -223,16 +263,15 @@ getWith( char_type *buf, std::streamsize N )
 	}
 
 	if( gWith >= with.length() ) {
-		cerr << "StreamReplaceSource::getWith: end " << endl;
+		//cerr << "StreamReplaceSource::getWith: end " << endl;
 		gWhat = 0;
 		gWith = 0;
 		nCount--;
 	}
 
-	cerr << "StreamReplaceSource::getWith: n (return): " << n << endl;
+	//cerr << "StreamReplaceSource::getWith: n (return): " << n << endl;
 	return n;
 }
-
 
 std::streamsize
 StreamReplaceSource::
@@ -343,8 +382,8 @@ read( char_type *buf, std::streamsize N)
 		return -1;
 	}
 
-//	cerr << "StreamReplaceSource::read  nToT (return): " << nTot  << endl;
-	//cerr << "StreamReplaceSource::read[" << endl
+	//cerr << "StreamReplaceSource::read  nToT (return): " << nTot  << endl;
+   //cerr << "StreamReplaceSource::read[" << endl
 	//	 << string( buf, nTot ) << "]"<< endl;
 
 	length += nTot;

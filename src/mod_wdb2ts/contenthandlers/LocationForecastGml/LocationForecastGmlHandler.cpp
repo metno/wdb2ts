@@ -37,7 +37,7 @@
 #include <trimstr.h>
 #include <exception.h>
 #include <UrlQuery.h>
-#include <contenthandlers/LocationForecastGml/EncodeLocationForecastGml.h>
+#include <contenthandlers/LocationForecastGml/EncodeLocationForecastGml2.h>
 #include <wdb2TsApp.h>
 #include <PointDataHelper.h>
 #include <preprocessdata.h>
@@ -50,6 +50,7 @@
 #include <transactor/WciReadLocationForecast.h>
 #include <WebQuery.h>
 #include <Logger4cpp.h>
+#include <RequestIterator.h>
 
 DECLARE_MI_PROFILE;
 
@@ -106,9 +107,16 @@ configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp 
 	
 	//WEBFW_LOG_DEBUG( " ------  CheckPoint --------------------" );
 	
-	if( app && ! updateid.empty() ) 
+	if( app && ! updateid.empty() ) {
 		app->notes.setNote( updateid + ".LocationProviderList", 
 					           new NoteProviderList( providerPriority_, false ) );
+
+		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
+
+		if( it != params.end() )
+		   app->notes.setNote( updateid + ".LocationProviderPriority",
+		                       new NoteString( it->second.asString() ) );
+	}
 }
 	
 
@@ -406,30 +414,21 @@ get( webfw::Request  &req,
 	removeDisabledProviders( providerPriority, *refTimes );
     
 	try{
-		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(),
-															 webQuery.to(),
-				                                             webQuery.isPolygon(),
-				                                             altitude,
-											                 refTimes, providerPriority );
 
-		if( ! webQuery.isPolygon() )
-			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
-					            altitude, refTimes, providerPriority );
+	   LocationPointListPtr locationPoints( new LocationPointList( webQuery.locationPoints() ) );
 
-   	
-		EncodeLocationForecastGml encode( app,
-				                          locationPointData,
-   	                                      &projectionHelper,
-   	                                      webQuery.longitude(), webQuery.latitude(), altitude,
-   	                                      webQuery.from(),
-   			                              refTimes,
-   			                              metaModelConf,
-   			                              precipitationConfig,
-   			                              providerPriority,
-   			                              modelTopoProviders,
-   			                              topographyProviders,
-   			                              symbolConf,
-   			                              expireRand );
+	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.to(),
+	                          webQuery.isPolygon(), altitude, refTimes, providerPriority );
+
+		EncodeLocationForecastGml2 encode( reqit,
+		                                   &projectionHelper,
+		                                   webQuery.from(),
+		                                   metaModelConf,
+		                                   precipitationConfig,
+		                                   modelTopoProviders,
+		                                   topographyProviders,
+		                                   symbolConf,
+		                                   expireRand );
 
 		MARK_ID_MI_PROFILE("encodeXML");  
 		encode.encode( response );

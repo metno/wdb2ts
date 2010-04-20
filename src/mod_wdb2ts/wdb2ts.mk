@@ -19,6 +19,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/LocationForecastGmlHandler.cpp \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/EncodeLocationForecastGml.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/EncodeLocationForecastGml.cpp \
+					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/EncodeLocationForecastGml2.h \
+                      src/mod_wdb2ts/contenthandlers/LocationForecastGml/EncodeLocationForecastGml2.cpp \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/XmlBase.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/XmlTag.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbForecastsTag.h \
@@ -114,7 +116,9 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/WdbDataRequest.h \
 					  src/mod_wdb2ts/WdbDataRequest.cpp \
 					  src/mod_wdb2ts/WdbDataRequestCommand.cpp \
-					  src/mod_wdb2ts/WdbDataRequestCommand.h 
+					  src/mod_wdb2ts/WdbDataRequestCommand.h \
+					  src/mod_wdb2ts/RequestIterator.h \
+					  src/mod_wdb2ts/RequestIterator.cpp
  
 
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
