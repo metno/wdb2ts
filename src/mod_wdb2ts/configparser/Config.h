@@ -27,6 +27,8 @@ public:
 	public:
 		QueryElement( const std::string &query, bool probe, bool stopIfData, const std::string &wdbdb )
 			: query_( query ), probe_( probe ), stopIfData_( stopIfData ), wdbdb_( wdbdb ) {}
+		QueryElement( const QueryElement &qe )
+         : query_( qe.query_), probe_( qe.probe_ ), stopIfData_( qe.stopIfData_ ), wdbdb_( qe.wdbdb_ ) {}
 		
 		std::string query()const { return query_;}
 		bool probe()const { return probe_; }
@@ -44,6 +46,9 @@ public:
 		Query():
 			dbRequestsInParalells_(0)
 			{}
+
+		Query( const Query &q )
+         : querys_( q.querys_ ), dbRequestsInParalells_( q.dbRequestsInParalells_ ) {}
 
 		typedef QueryList::iterator iterator;
 		typedef QueryList::const_iterator const_iterator;
