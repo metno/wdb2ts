@@ -38,7 +38,10 @@
 using namespace boost;
 using namespace std;
 
+//If LATLONG_DEG2INT is changed. Then ROUND_BEFORE_DEG2INT must also
+//be changed so the rounding shall be correct
 #define LATLONG_DEG2INT 10000
+#define ROUND_BEFORE_DEG2INT 0.00005
 
 
 namespace {
@@ -153,8 +156,8 @@ set( float latitude, float longitude, int height )
 	if( longitude > 180 || longitude < -180 )
 			throw range_error( "Longitude out of range. Valid range [-180,180]." );
 
-	latitude_  = int(latitude*LATLONG_DEG2INT);
-	longitude_ = int(longitude*LATLONG_DEG2INT);
+	latitude_  = int((latitude+ROUND_BEFORE_DEG2INT)*LATLONG_DEG2INT);
+	longitude_ = int((longitude+ROUND_BEFORE_DEG2INT)*LATLONG_DEG2INT);
 	height_ = height;
 }
 
