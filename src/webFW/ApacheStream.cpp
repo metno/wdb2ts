@@ -213,7 +213,7 @@ sendFile( const std::string &file, bool deleteFile )
 
 	apr_status_t st = apr_stat( &fInfo, file.c_str(), APR_FINFO_MIN, r->pool );
 
-	if( st != APR_SUCCESS || st != APR_INCOMPLETE ) {
+	if( st != APR_SUCCESS && st != APR_INCOMPLETE ) {
 		if( deleteFile )
 			unlink( file.c_str() );
 
