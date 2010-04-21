@@ -358,8 +358,10 @@ read( char_type *buf, std::streamsize N)
 	char_type *tmp=buf;
     bool myEof(false);
 
-	if( !ist  )
+	if( !ist  ) {
+	   cerr << "StreamReplace::read: eof ist" << endl;
 		return -1;
+	}
 
 	try {
 		while( nTot<N ) {
@@ -378,7 +380,7 @@ read( char_type *buf, std::streamsize N)
 		}
 	}
 	catch( const std::exception &ex ) {
-		cerr << "StreamReplaceSource::read : " << ex.what() << endl;
+		cerr << "StreamReplaceSource::read: EXCEPTION: " << ex.what() << endl;
 		return -1;
 	}
 
@@ -389,9 +391,12 @@ read( char_type *buf, std::streamsize N)
 	length += nTot;
 	//cerr << "StreamReplaceSource::read  length: " << length  << endl;
 
-	if( nTot == 0 && myEof )
+	if( nTot == 0 && myEof ) {
+	   //cerr << "StreamReplace::read: eof stream." << endl;
 		return -1;
+	}
 
+	//cerr << "StreamReplace::read: Return: " << nTot << endl;
 	return nTot;
 }
 
