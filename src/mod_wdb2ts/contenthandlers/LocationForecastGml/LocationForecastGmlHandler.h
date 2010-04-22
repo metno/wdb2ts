@@ -44,6 +44,8 @@
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
 #include <NearestHeight.h>
+#include <WebQuery.h>
+#include <ProviderList.h>
 
 namespace wdb2ts {
 
@@ -130,15 +132,6 @@ private:
 									PtrProviderRefTimes refTime,
 									const ProviderList &providerPriority )const;
 
-	void
- 	nearestHeightPoint( const LocationPointList &locationPoints,
-						const boost::posix_time::ptime &to,
- 			            LocationPointDataPtr data,
- 			            int altitude,
- 			            PtrProviderRefTimes refTimes,
- 			            const ProviderList &providerPriority
- 					  ) const;
-
   	
   	/*
   	bool updateProviderReftimes( WciConnectionPtr con );
@@ -149,6 +142,10 @@ private:
   	//Get some mutex protected data.
   	void getProtectedData( SymbolConfProvider &symbolConf, 
   			                 ProviderList &providerList );
+
+  	LocationPointListPtr getPolygonPoints( const WebQuery &webQuery,
+  	                                       const ProviderList &providerPriority,
+  	                                       const ProviderRefTimeList &reftimes );
   	  	
    
 };

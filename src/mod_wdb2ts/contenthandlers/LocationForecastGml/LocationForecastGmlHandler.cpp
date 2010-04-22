@@ -48,6 +48,7 @@
 #include <NoteProviderReftime.h>
 #include <SymbolGenerator.h>
 #include <transactor/WciReadLocationForecast.h>
+#include <transactor/Topography.h>
 #include <WebQuery.h>
 #include <Logger4cpp.h>
 #include <RequestIterator.h>
@@ -359,16 +360,19 @@ get( webfw::Request  &req,
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("LocationForecastGmlHandler");
      
-	ost << endl << "URL:   " << req.urlPath() << endl 
-	    << "Query: " << req.urlQuery() << endl;
+	ost << endl << "\tURL:   " << req.urlPath() << endl
+	    << "\tQuery: " << req.urlQuery();
      
-	logger.debug( ost.str() );
+	WEBFW_LOG_DEBUG( ost.str() );
     
 //	WEBFW_LOG_DEBUG( "LocationForecastGmlHandler: " << ost.str() );
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery() );
 		altitude = webQuery.altitude();
+
+		if( !webQuery.isPolygon() && webQuery.skip()<0 )
+		   WEBFW_LOG_ERROR("Ignoring skip. Only valid for polygon request.");
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {
@@ -415,7 +419,21 @@ get( webfw::Request  &req,
     
 	try{
 
-	   LocationPointListPtr locationPoints( new LocationPointList( webQuery.locationPoints() ) );
+	   LocationPointListPtr locationPoints;
+
+	   if( webQuery.isPolygon() )
+	      locationPoints = getPolygonPoints( webQuery, providerPriority, *refTimes );
+	   else
+	      locationPoints = LocationPointListPtr( new LocationPointList( webQuery.locationPoints() ) );
+
+	   {
+	      ostringstream log;
+	      log << "Requested Locations: ";
+	      for( LocationPointList::iterator it=locationPoints->begin(); it != locationPoints->end(); ++it )
+	         log << endl << "\t" << it->latitude() << " " << it->longitude();
+
+	      WEBFW_LOG_DEBUG( log.str() );
+	   }
 
 	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.to(),
 	                          webQuery.isPolygon(), altitude, refTimes, providerPriority );
@@ -508,28 +526,88 @@ requestWdb( const LocationPointList &locationPoints,
 }
 
 
-void
+LocationPointListPtr
 LocationForecastGmlHandler::
-nearestHeightPoint( const LocationPointList &locationPoints,
-			       const boost::posix_time::ptime &to,
-		            LocationPointDataPtr data,
-		            int altitude,
-		            PtrProviderRefTimes refTimes,
-		            const ProviderList &providerPriority
-				  ) const
+getPolygonPoints( const WebQuery &webQuery,
+                  const ProviderList &providerPriority,
+                  const ProviderRefTimeList &refTimes )
 {
-
-	if( nearestHeights.empty() || locationPoints.empty() )
-		return;
-
+   WEBFW_USE_LOGGER( "handler" );
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	ParamDefList params = app->paramDefs();
+	ParamDefPtr itParam;
+	ParamDef modelTopoParam;
+	LocationPointListPtr modelTopoLocations;
+	boost::posix_time::ptime dataRefTime;
+	boost::posix_time::ptime modelTopoRefTime;
+	boost::posix_time::ptime topoRefTime;
+
+
+	TopoProviderMap::const_iterator itTopoProvider;
+	string provider;
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 
-	NearestHeight::processNearestHeightPoint( locationPoints,to, data, altitude, refTimes,
-			                                  providerPriority, params, nearestHeights,
-			                                  wciProtocol, wciConnection );
+	LocationPointListPtr locations( new LocationPointList( webQuery.locationPoints() ) );
 
+	for( ProviderList::const_iterator it = providerPriority.begin(); it != providerPriority.end(); ++it ) {
+        itTopoProvider = modelTopoProviders.find( it->providerWithPlacename() );
+
+        if( itTopoProvider != modelTopoProviders.end() )
+           provider = ProviderList::decodeItem( *itTopoProvider->second.begin() ).provider;
+
+        if( provider.empty() ) {
+           itTopoProvider = modelTopoProviders.find( it->provider );
+
+           if( itTopoProvider != modelTopoProviders.end() )
+              provider = ProviderList::decodeItem( *itTopoProvider->second.begin() ).provider;
+        }
+
+        if( provider.empty() )
+           provider = it->provider;
+
+        if( provider.empty() )
+           continue;
+
+
+
+        if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", provider ) ) {
+           WEBFW_LOG_WARN( "getPolygonPoints: No parameter definition for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
+           continue;
+        }
+
+        modelTopoParam = *itParam;
+
+        if( ! refTimes.providerReftime( provider, modelTopoRefTime ) ) {
+           WEBFW_LOG_WARN( "getPolygonPoints: No reference times found for provider '" << provider << "'.");
+           continue;
+        }
+
+
+        try{
+           Topography topographyTransactor( locations,
+                                            webQuery.skip(),
+                                            modelTopoParam,
+                                            provider,
+                                            modelTopoRefTime,
+                                            wciProtocol );
+
+           wciConnection->perform( topographyTransactor );
+           modelTopoLocations = topographyTransactor.locations();
+
+           if( modelTopoLocations->size() == 0 ) {
+              WEBFW_LOG_WARN( "getPolygonPoints: No modelTopo location found for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
+              continue;
+           }
+
+           return modelTopoLocations;
+        }
+        catch( const exception &ex ) {
+           WEBFW_LOG_WARN( "getPolygonPoints: EXCEPTION: " << ex.what()  );
+           continue;
+        }
+	}
+
+	return LocationPointListPtr( new LocationPointList( ) );
 }
 
 
