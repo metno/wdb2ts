@@ -324,5 +324,4 @@ decodePointList( const std::string &toDecode, LocationPointList &points  )
  }
 
 
-
 }
