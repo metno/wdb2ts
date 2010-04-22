@@ -33,6 +33,13 @@
 #include <transactor/Topography.h>
 #include <wciHelper.h>
 
+#ifdef DEBUG
+#define DEBUG_STRM( sout ) {\
+   sout; }
+#else
+#define DEBUG_STRM( sout )
+#endif
+
 
 using namespace std;
 
@@ -100,7 +107,10 @@ doPolygon( argument_type &t )
    ParamDefPtr itPar;
    float value;
    int skip = 0;
+
+#ifdef DEBUG
    ofstream of("/home/borgem/wdb2ts-doPloygon.txt");
+#endif
 
    locations_->clear();
 
@@ -132,7 +142,7 @@ doPolygon( argument_type &t )
    WEBFW_USE_LOGGER( "wdb" );
    WEBFW_LOG_DEBUG( "Topography: transactor: polygon: skip: " << skip_ - 1 << "(modulo " << skip_ << ").");
 
-   of << "polygon: skip: " << skip_ - 1 << "(modulo " << skip_ << ")." << endl;
+   DEBUG_STRM( of << "polygon: skip: " << skip_ - 1 << "(modulo " << skip_ << ")." << endl );
    q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
      << "ARRAY['" << provider_ << "'], " << endl
      << selectPolygon << endl
@@ -144,7 +154,7 @@ doPolygon( argument_type &t )
 
    WEBFW_LOG_DEBUG( "Topography: transactor: polygon SQL ["   << q.str() << "]" );
 
-   of << "SQL ["   << q.str() << "]" << endl;
+   DEBUG_STRM( of << "SQL ["   << q.str() << "]" << endl );
 
    pqxx::result  res = t.exec( q.str() );
 
@@ -157,7 +167,7 @@ doPolygon( argument_type &t )
 
       if( skip ) {
          //WEBFW_LOG_DEBUG( "Topography: transactor: skipping: " << it.at("point").c_str() );
-         of << "Skipping: " << it.at("point").c_str() << endl;
+         DEBUG_STRM( of << "Skipping: " << it.at("point").c_str() << endl );
          continue;
       }
 
@@ -171,9 +181,9 @@ doPolygon( argument_type &t )
            // WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
            //     <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
            //     << ")" );
-            of << "POINT("
-                  <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
-                  << ")" << endl;
+            DEBUG_STRM( of << "POINT("
+                        <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+                        << ")" << endl );
          }
       }
    }
