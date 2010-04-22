@@ -1,3 +1,10 @@
+metno-wdb2ts (0.9.6.2-1) unstable; urgency=low
+  * Fix rounding error in decoding of lat and long in the request URL.
+  * Implemented new polygon request engine. Use much less memmory.
+  
+ -- Borge Moe <borge.moe@met.no>  Thu, 22 Apr 2010 15:02:00 +0100
+
+
 metno-wdb2ts (0.9.6.1-0~parallel+5) unstable; urgency=low
   * Fix several bugs in the updatehandler.
   
