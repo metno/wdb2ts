@@ -22,6 +22,7 @@ class WebQuery {
 	boost::posix_time::ptime reftime_;
 	std::string dataprovider_;
 	bool isPolygon_;
+	int skip_;
 
 	static boost::posix_time::ptime
 	decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError );
@@ -34,7 +35,8 @@ public:
 			  const boost::posix_time::ptime &to,
 			  const boost::posix_time::ptime &reftime,
 			  const std::string &dataprovider,
-			  bool isPolygon = false );
+			  bool isPolygon = false,
+			  int skip=0 );
 	WebQuery( );
 
 	/**
@@ -53,6 +55,7 @@ public:
 	boost::posix_time::ptime to() const { return to_; }
 	boost::posix_time::ptime reftime() const { return reftime_; }
 	std::string dataprovider() const { return dataprovider_; }
+	int skip()const{ return skip_; }
 };
 
 

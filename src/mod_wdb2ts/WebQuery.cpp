@@ -30,10 +30,11 @@ WebQuery( const LocationPointList &locationPoints, int altitude,
 		  const boost::posix_time::ptime &to,
 		  const boost::posix_time::ptime &reftime,
 		  const std::string &dataprovider,
-		  bool isPolygon)
+		  bool isPolygon,
+		  int skip)
 	: altitude_( altitude ),
 	  from_( from ), to_( to ), reftime_( reftime ), dataprovider_( dataprovider ),
-	  isPolygon_( isPolygon )
+	  isPolygon_( isPolygon ), skip_( skip )
 {
 	points = locationPoints;
 }
@@ -94,6 +95,7 @@ decodeQuery( const std::string &queryToDecode )
 	boost::posix_time::ptime refTime;
 	string dataprovider;
 	bool isPolygon( false );
+	int skip=0;
 	     
 	try { 
 		urlQuery.decode( queryToDecode );
@@ -148,7 +150,19 @@ decodeQuery( const std::string &queryToDecode )
 			myPoints.push_back( LocationPoint( lat, lon ) );
 		}
 
-		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon );
+      if( urlQuery.hasParam( "skip" ) ) {
+         if( isPolygon ) {
+            skip = urlQuery.asInt("skip", 0 );
+
+            if( skip < 0 )
+               skip=0;
+         } else {
+            skip = -1;
+         }
+      }
+
+
+		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon, skip );
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;
