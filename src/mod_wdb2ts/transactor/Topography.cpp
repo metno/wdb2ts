@@ -26,7 +26,7 @@
     MA  02110-1301, USA
 */
 
-
+#include <fstream>
 #include <sstream>
 #include <ptimeutil.h>
 #include <Logger4cpp.h>
@@ -50,7 +50,23 @@ Topography( float latitude, float longitude,
 	: latitude_( latitude ), longitude_( longitude ),
 	  paramDef_( paramDef), provider_( provider ),
 	  reftimespec_( reftimespec ), surround_( surround ), wciProtocol_( wciProtocol ),
+	  polygon( false ),
 	  locations_( new LocationPointList() )
+{
+}
+
+Topography::
+Topography(  LocationPointListPtr polygonList,
+             int skip,
+             const ParamDef &paramDef,
+             const std::string &provider,
+             const boost::posix_time::ptime &reftimespec,
+             int wciProtocol)
+   : skip_( skip+1 ), paramDef_( paramDef), provider_( provider ),
+     reftimespec_( reftimespec ), surround_( false ), wciProtocol_( wciProtocol ),
+     polygon( true ),
+     polygonList_( polygonList ),
+     locations_( new LocationPointList() )
 {
 }
 
@@ -76,55 +92,154 @@ Topography::
 
 void
 Topography::
+doPolygon( argument_type &t )
+{
+   ostringstream q;
+   string selectPolygon;
+   ParamDefList params;
+   ParamDefPtr itPar;
+   float value;
+   int skip = 0;
+   ofstream of("/home/borgem/wdb2ts-doPloygon.txt");
+
+   locations_->clear();
+
+   if( !polygonList_  || polygonList_->empty() )
+      return;
+
+   LocationPoint locationPoint( *polygonList_->begin() );
+   if( polygonList_->size() == 1 )
+      polygonList_->push_back( locationPoint ); //Must be a closed polygon, this is a point.
+   else if( *polygonList_->rbegin() != locationPoint )
+      polygonList_->push_back( locationPoint ); //Make it a closed polygon.
+
+   ostringstream ost;
+   ost.setf(ios::floatfield, ios::fixed);
+   ost.precision(5);
+
+   LocationPointList::const_iterator it = polygonList_->begin();
+
+   ost <<"'POLYGON((";
+   ost << it->longitude() << " " << it->latitude();
+   for( ++it; it != polygonList_->end(); ++it )
+      ost << "," << it->longitude() << " " << it->latitude();
+   ost << "))', ";
+
+   selectPolygon = ost.str();
+
+   params[provider_].push_back( paramDef_ );
+
+   WEBFW_USE_LOGGER( "wdb" );
+   WEBFW_LOG_DEBUG( "Topography: transactor: polygon: skip: " << skip_ - 1 << "(modulo " << skip_ << ").");
+
+   of << "polygon: skip: " << skip_ - 1 << "(modulo " << skip_ << ")." << endl;
+   q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
+     << "ARRAY['" << provider_ << "'], " << endl
+     << selectPolygon << endl
+     << wciTimeSpec( wciProtocol_, reftimespec_ ) << ", " << endl
+     << "NULL, " << endl
+     << "ARRAY['" << paramDef_.valueparametername() << "'], " << endl
+     << wciLevelSpec( wciProtocol_, paramDef_ ) << ", " << endl
+     << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime";
+
+   WEBFW_LOG_DEBUG( "Topography: transactor: polygon SQL ["   << q.str() << "]" );
+
+   of << "SQL ["   << q.str() << "]" << endl;
+
+   pqxx::result  res = t.exec( q.str() );
+
+   for( pqxx::result::const_iterator it=res.begin(); it != res.end(); ++it ) {
+      if( it.at("value").is_null() )
+         continue;
+
+      //Weare not using every point. It is requested that we skip some points.
+      skip = (skip+1) % skip_;
+
+      if( skip ) {
+         //WEBFW_LOG_DEBUG( "Topography: transactor: skipping: " << it.at("point").c_str() );
+         of << "Skipping: " << it.at("point").c_str() << endl;
+         continue;
+      }
+
+      if( findParam( it, itPar, params ) ) {
+         if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
+            continue;
+
+         value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
+         locationPoint.height( static_cast<int>( value ) );
+         if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
+           // WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
+           //     <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+           //     << ")" );
+            of << "POINT("
+                  <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+                  << ")" << endl;
+         }
+      }
+   }
+}
+
+void
+Topography::
+doLocation( argument_type &t )
+{
+   ostringstream q;
+   string sSurround;
+
+   ParamDefList params;
+   ParamDefPtr itPar;
+   LocationPoint locationPoint;
+   float value;
+
+   locations_->clear();
+
+   params[provider_].push_back( paramDef_ );
+
+   if( surround_ )
+      sSurround ="surround ";
+
+   WEBFW_USE_LOGGER( "wdb" );
+
+   q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
+         << "ARRAY['" << provider_ << "'], " << endl
+         << "'" << sSurround << "POINT(" << longitude_ << " " << latitude_ << ")', " << endl
+         << wciTimeSpec( wciProtocol_, reftimespec_ ) << ", " << endl
+         << "NULL, " << endl
+         << "ARRAY['" << paramDef_.valueparametername() << "'], " << endl
+         << wciLevelSpec( wciProtocol_, paramDef_ ) << ", " << endl
+         << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime";
+
+   WEBFW_LOG_DEBUG( "Topography: transactor: SQL ["   << q.str() << "]" );
+   pqxx::result  res = t.exec( q.str() );
+
+   for( pqxx::result::const_iterator it=res.begin(); it != res.end(); ++it ) {
+      if( it.at("value").is_null() )
+         continue;
+
+      if( findParam( it, itPar, params ) ) {
+         if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
+            continue;
+
+         value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
+         locationPoint.height( static_cast<int>( value ) );
+         if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
+            WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
+                  <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+                  << ")" );
+         }
+      }
+   }
+}
+
+
+void
+Topography::
 operator () ( argument_type &t )
 {
-	ostringstream q;
-	string sSurround;
-
-	ParamDefList params;
-	ParamDefPtr itPar;
-	LocationPoint locationPoint;
-	float value;
-
-	locations_->clear();
-
-	params[provider_].push_back( paramDef_ );
-
-	if( surround_ )
-		sSurround ="surround ";
-
-	WEBFW_USE_LOGGER( "wdb" );
-
-	q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
-	  << "ARRAY['" << provider_ << "'], " << endl
-	  << "'" << sSurround << "POINT(" << longitude_ << " " << latitude_ << ")', " << endl
-	  << wciTimeSpec( wciProtocol_, reftimespec_ ) << ", " << endl
-	  << "NULL, " << endl
-	  << "ARRAY['" << paramDef_.valueparametername() << "'], " << endl
-	  << wciLevelSpec( wciProtocol_, paramDef_ ) << ", " << endl
-	  << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime";
-
-	WEBFW_LOG_DEBUG( "Topography: transactor: SQL ["	<< q.str() << "]" );
-	pqxx::result  res = t.exec( q.str() );
-
-	for( pqxx::result::const_iterator it=res.begin(); it != res.end(); ++it ) {
-		if( it.at("value").is_null() )
-			continue;
-
-		if( findParam( it, itPar, params ) ) {
-			if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
-				continue;
-
-			value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
-			locationPoint.height( static_cast<int>( value ) );
-			if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
-				WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
-			       <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
-			       << ")" );
-			}
-		}
-
-	}
+   if( polygon )
+      doPolygon( t );
+   else
+      doLocation( t );
 }
 
 

@@ -55,21 +55,34 @@ public:
 			    bool surround,
 			    int wciProtocol);
 	
+	Topography(  LocationPointListPtr polygonList,
+	             int skip,
+	             const ParamDef &paramDef,
+	             const std::string &provider,
+	             const boost::posix_time::ptime &reftimespec,
+	             int wciProtocol);
+
 	~Topography();
 
+	void doLocation( argument_type &t );
+	void doPolygon( argument_type &t );
 	void operator () ( argument_type &t );
 
 	LocationPointList result() const { return *locations_; }
+	LocationPointListPtr locations() const { return locations_; }
 
 private:
 	float latitude_;
 	float longitude_;
+	int skip_;
 	const ParamDef paramDef_;
 	const std::string provider_;
 	const boost::posix_time::ptime reftimespec_;
 	bool surround_;
 	int wciProtocol_;
-	boost::shared_ptr<LocationPointList> locations_;
+	bool polygon;
+	LocationPointListPtr polygonList_;
+	LocationPointListPtr locations_;
 };
 
 }
