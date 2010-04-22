@@ -206,12 +206,12 @@ copyFromStreamToFile( std::istream &ist, const std::string &destFile )
 	if( ! ofile.is_open() )
 		return false;
 
-   std::cerr << "copy: to file '" << destFile << "'." << std::endl;
+   //std::cerr << "copy: to file '" << destFile << "'." << std::endl;
 
 	while( ist.read( buf, N ) ) {
 		n = ist.gcount();
 
-		std::cerr << "copy: [" << std::string( buf, n ) << "]" << std::endl;
+		//std::cerr << "copy: [" << std::string( buf, n ) << "]" << std::endl;
 		ofile.write( buf, n );
 
 		if( ! ofile ) {
@@ -225,7 +225,7 @@ copyFromStreamToFile( std::istream &ist, const std::string &destFile )
 	n = ist.gcount();
 
 	if( n > 0 ) {
-	   std::cerr << "copy: n=" << n << " [" << std::string( buf, n ) << "]" << std::endl;
+	   //std::cerr << "copy: n=" << n << " [" << std::string( buf, n ) << "]" << std::endl;
 	   ofile.write( buf, n );
 
 	   if( ! ofile ) {
