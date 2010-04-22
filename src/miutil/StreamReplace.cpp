@@ -359,7 +359,7 @@ read( char_type *buf, std::streamsize N)
     bool myEof(false);
 
 	if( !ist  ) {
-	   cerr << "StreamReplace::read: eof ist" << endl;
+	   //cerr << "StreamReplace::read: eof ist" << endl;
 		return -1;
 	}
 
