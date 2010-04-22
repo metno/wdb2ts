@@ -97,6 +97,7 @@ next()
          pointList = *locationPoints;
          itPoint = locationPoints->end();
       } else {
+         pointList.push_back( *itPoint );
          ++itPoint;
       }
 
