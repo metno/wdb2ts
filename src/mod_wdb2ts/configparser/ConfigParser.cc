@@ -186,7 +186,11 @@ doQueryDef( const AttributeMap &attributes )
 
 	getAttr( attributes, "wdbdb", currentQueryDefWdbdb, "");
 
-	getAttr( attributes, "paralell", sParalell, "1");
+
+	if( hasAttr( attributes, "parallel" ) )
+	   getAttr( attributes, "parallel", sParalell, "1");
+	else
+	   getAttr( attributes, "paralell", sParalell, "1");
 
 	try {
 		miutil::Value val( sParalell );
