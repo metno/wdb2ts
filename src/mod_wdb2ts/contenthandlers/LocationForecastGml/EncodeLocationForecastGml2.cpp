@@ -949,6 +949,8 @@ encode(  webfw::Response &response )
 		//Make room for the meta tag.
 		ost << metatemplate;
 
+		longitude = reqit.longitude();
+		latitude = reqit.latitude();
 		altitude = reqit.height();
 
 		locationPointData = reqit.next();
@@ -1042,6 +1044,7 @@ encode(  webfw::Response &response )
 			}
 
 			response.sendFile( filename, true );
+			//response.sendFile( filename, false );
 		}
 
 		MARK_ID_MI_PROFILE("SendGML");
