@@ -33,7 +33,7 @@
 #include <transactor/Topography.h>
 #include <wciHelper.h>
 
-#ifdef DEBUG
+#ifdef DEBUGSTRM
 #define DEBUG_STRM( sout ) {\
    sout; }
 #else
@@ -108,7 +108,7 @@ doPolygon( argument_type &t )
    float value;
    int skip = 0;
 
-#ifdef DEBUG
+#ifdef DEBUGSTRM
    ofstream of("/home/borgem/wdb2ts-doPloygon.txt");
 #endif
 
