@@ -236,7 +236,7 @@ configure( const wdb2ts::config::ActionParam &params,
 
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
 		
-	extraConfigure( params, app );
+	//extraConfigure( params, app );
 	return true;
 }
 
@@ -355,15 +355,10 @@ get( webfw::Request  &req,
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
 
-
-
-
-
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
 	USE_MI_PROFILE;
 	MARK_ID_MI_PROFILE("LocationForecastHandler");
-     
 
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	    << "Query: " << req.urlQuery() << " subversion: " << subversion << endl;

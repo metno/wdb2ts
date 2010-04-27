@@ -121,6 +121,7 @@ protected:
 			                          webfw::RequestHandlerManager&  reqHandlerMgr,
 				                       webfw::Logger &logger );
 	
+	miutil::pgpool::DbDefList dbsetup;
    DbManagerPtr  dbManager;
  	ParamDefList  paramDefs_;
  	Map           *hightMap;

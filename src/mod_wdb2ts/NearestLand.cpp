@@ -149,7 +149,7 @@ processNearestLandPoint( const LocationPointList &locationPoints,
 	boost::posix_time::ptime modelTopoRefTime;
 	boost::posix_time::ptime topoRefTime;
 
-
+/*
 	if( nearestLands.empty() || locationPoints.empty() )
 		return;
 
@@ -280,6 +280,7 @@ processNearestLandPoint( const LocationPointList &locationPoints,
 			continue;
 		}
 	}
+	*/
 }
 
 

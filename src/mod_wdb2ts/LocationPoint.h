@@ -29,9 +29,12 @@
 #ifndef __LOCATIONPOINT_H__
 #define __LOCATIONPOINT_H__
 
+#include <float.h>
 #include <stdexcept>
 #include <list>
+#include <vector>
 #include <limits.h>
+#include "boost/multi_array.hpp"
 #include <boost/shared_ptr.hpp>
 
 namespace wdb2ts {
@@ -44,18 +47,18 @@ class LocationPoint;
  *  LocationPoint hold a point as two integer. The latitude and longitude
  *  is given in decimal grades.
  *
- *  The coding into integer is done as int(dg*10000), ie a resolution on 5 desimals.
+ *  The coding into integer is done as int((dg+0.00005)*10000), ie a resolution on 5 desimals.
  *  The decoding back to desimal grades is: i/10000.
  */
 class LocationPoint {
 	int latitude_;
 	int longitude_;
-	int height_;
+	float value_;
 
 public:
 	LocationPoint();
 	LocationPoint( const LocationPoint &lp );
-	LocationPoint( float latitude, float longitude, int height=INT_MIN );
+	LocationPoint( float latitude, float longitude, float value=FLT_MIN );
 
 	bool operator<( const LocationPoint &rhs ) const;
 	bool operator==( const LocationPoint &rhs ) const;
@@ -87,21 +90,33 @@ public:
 	static
 	bool decodeGisPoint( const std::string &toDecode, LocationPoint &point );
 
-	void   set( float latitude, float longitude, int height=INT_MIN );
-	void   get( float &latitude, float &longitude, int &height );
+	void   set( float latitude, float longitude, float val=FLT_MIN );
+	void   get( float &latitude, float &longitude, float &val );
 	float  latitude() const;
 	float  longitude() const;
 	int    iLatitude() const;
 	int    iLongitude() const;
 
+	/**
+	 * The height methods is convinent functions
+	 * that return the values as int.
+	 */
 	bool   hasHeight()const;
 	int    height() const;
-	void   height( int height );
+
+
+	float  value()const;
+	void   value( float value );
+	bool   hasValue()const;
+
 };
 
 
 typedef std::list<LocationPoint> LocationPointList;
 typedef boost::shared_ptr<LocationPointList> LocationPointListPtr;
+
+typedef std::vector<LocationPoint> LocationPointVector;
+typedef std::vector<LocationPoint> LocationPointVectorPtr;
 
 LocationPointList::iterator
 insertLocationPoint( LocationPointList &locations, LocationPoint  &locationPoint, bool replace=false );

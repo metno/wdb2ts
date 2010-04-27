@@ -100,7 +100,6 @@ DbManager( const miutil::pgpool::DbDefList     &dbSetup )
    : dbSetup_( dbSetup )
     
 {
-   ostringstream ost;
    miutil::pgpool::DbDef dbDef;
    //Create a pool for each of the database definitions.
    for( CIDbDefList it = dbSetup_.begin() ; it != dbSetup_.end(); ++it ) {
@@ -114,11 +113,14 @@ DbManager( const miutil::pgpool::DbDefList     &dbSetup )
       if( dbDef.usecount() <= 0 )
     	  dbDef.usecount( 100 );
       
-      //cerr << " Creating pool: <" << it->first << "> " << ost.str() << endl;  
+      if( dbDef.minpoolsize() <= 0 )
+        dbDef.minpoolsize( 0 );
+
+      cerr << " Creating pool: <" << it->first << "> " << endl
+            <<"       " << dbDef << endl;
       pools_[it->first] = miutil::pgpool::DbConnectionPoolPtr( 
       		              		new miutil::pgpool::DbConnectionPool( dbDef, new ConExtra( it->second.wciuser() ) )
       		              );
-      ost.str("");
    }
 
 }   

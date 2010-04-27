@@ -98,20 +98,20 @@ namespace wdb2ts {
 
 LocationPoint::
 LocationPoint()
-	: latitude_( INT_MIN ), longitude_( INT_MIN ), height_( INT_MIN )
+	: latitude_( INT_MIN ), longitude_( INT_MIN ), value_( FLT_MIN )
 {
 }
 
 LocationPoint::
 LocationPoint( const LocationPoint &lp )
-	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ ), height_( lp.height_ )
+	: latitude_( lp.latitude_ ), longitude_( lp.longitude_ ), value_( lp.value_ )
 {
 }
 
 LocationPoint::
-LocationPoint( float latitude, float longitude, int height )
+LocationPoint( float latitude, float longitude, float val )
 {
-	set( latitude, longitude, height );
+	set( latitude, longitude, val );
 }
 
 bool
@@ -132,7 +132,7 @@ operator=( const LocationPoint &rhs )
 	if( this != &rhs ) {
 		latitude_ = rhs.latitude_;
 		longitude_ = rhs.longitude_;
-		height_ = rhs.height_;
+		value_ = rhs.value_;
 	}
 
 	return *this;
@@ -148,7 +148,7 @@ operator==( const LocationPoint &rhs ) const
 
 void
 LocationPoint::
-set( float latitude, float longitude, int height )
+set( float latitude, float longitude, float val )
 {
 	if( latitude > 90 || latitude < -90 )
 		throw range_error( "Latitude out of range. Valid range [-90,90]." );
@@ -158,19 +158,19 @@ set( float latitude, float longitude, int height )
 
 	latitude_  = int((latitude+ROUND_BEFORE_DEG2INT)*LATLONG_DEG2INT);
 	longitude_ = int((longitude+ROUND_BEFORE_DEG2INT)*LATLONG_DEG2INT);
-	height_ = height;
+	value_ = val;
 }
 
 void
 LocationPoint::
-get( float &latitude, float &longitude, int &height )
+get( float &latitude, float &longitude, float &val )
 {
 	if( latitude_ == INT_MIN || longitude_ == INT_MIN )
 		throw logic_error( "The locationpoint is not initialized.");
 
 	latitude = latitude_/LATLONG_DEG2INT;
 	longitude = longitude_/LATLONG_DEG2INT;
-	height = height_;
+	val = value_;
 }
 
 float
@@ -217,22 +217,38 @@ bool
 LocationPoint::
 hasHeight()const
 {
-	return height_ != INT_MIN;
+	return value_ != FLT_MIN;
 }
 
 int
 LocationPoint::
 height() const
 {
-	return height_;
+	return static_cast<int>(value_+0.5);
+}
+
+
+bool
+LocationPoint::
+hasValue()const
+{
+   return value_ != FLT_MIN;
+}
+
+float
+LocationPoint::
+value() const
+{
+   return value_;
 }
 
 void
 LocationPoint::
-height( int height )
+value( float val )
 {
-	height_ = height;
+   value_ = val;
 }
+
 
 void
 LocationPoint::

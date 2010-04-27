@@ -63,7 +63,7 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
             webfw::Logger &logger )
 {
 	ostringstream log;
-	miutil::pgpool::DbDefList dbsetup;
+	//miutil::pgpool::DbDefList dbsetup;
 	string buf;
 	
 	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << "." ;
@@ -93,7 +93,7 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
          
          logger.info( log.str() );
          
-         dbManager = DbManagerPtr( new DbManager( dbsetup ) );
+         //dbManager = DbManagerPtr( new DbManager( dbsetup ) );
       }
       catch( logic_error &ex ) {
          logger.warning(" -- initAction (dbsetup): Exception: " + string(ex.what()) +"\n" );
@@ -373,9 +373,26 @@ miutil::pgpool::DbConnectionPtr
 Wdb2TsApp::
 newConnection(const std::string &dbid)
 {
-   if( ! dbManager )
-      throw logic_error("The database setup is missing!");
-   
+   if( ! dbManager ) {
+      boost::mutex::scoped_lock lock( mutex );
+
+      if( ! dbManager ) {
+         WEBFW_USE_LOGGER( "main" );
+         WEBFW_LOG_INFO("Intitializing the database pool.");
+
+         try{
+            dbManager = DbManagerPtr( new DbManager( dbsetup ) );
+         }
+         catch( const std::exception &ex) {
+            throw logic_error( string(string("Cant initialize the database pool. Reason: ") + string(ex.what())).c_str() );
+         }
+      }
+
+      if( ! dbManager )
+         throw logic_error("Cant initialize the database pool." );
+   }
+
+
    return dbManager->newConnection( dbid );
 
 }
@@ -385,8 +402,24 @@ WciConnectionPtr
 Wdb2TsApp::
 newWciConnection(const std::string &dbid)
 {
-   if( ! dbManager )
-   	throw logic_error("The database setup is missing!");
+   if( ! dbManager ) {
+      boost::mutex::scoped_lock lock( mutex );
+
+      if( ! dbManager ) {
+         WEBFW_USE_LOGGER( "main" );
+         WEBFW_LOG_INFO("Intitializing the database pool.");
+
+         try{
+            dbManager = DbManagerPtr( new DbManager( dbsetup ) );
+         }
+         catch( const std::exception &ex) {
+            throw logic_error(string(string("Cant initialize the database pool. Reason: ") + string(ex.what())).c_str() );
+         }
+      }
+
+      if( ! dbManager )
+         throw logic_error("Cant initialize the database pool." );
+   }
    
    return dbManager->newWciConnection( dbid );
 

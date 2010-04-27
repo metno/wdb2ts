@@ -111,6 +111,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/TopoProvider.cpp \
 					  src/mod_wdb2ts/NearestHeight.h \
 					  src/mod_wdb2ts/NearestHeight.cpp \
+					  src/mod_wdb2ts/NearestLand.h \
+					  src/mod_wdb2ts/NearestLand.cpp \
 					  src/mod_wdb2ts/wciHelper.h \
 					  src/mod_wdb2ts/wciHelper.cpp \
 					  src/mod_wdb2ts/WdbDataRequest.h \

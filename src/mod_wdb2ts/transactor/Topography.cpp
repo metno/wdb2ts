@@ -176,7 +176,7 @@ doPolygon( argument_type &t )
             continue;
 
          value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
-         locationPoint.height( static_cast<int>( value ) );
+         locationPoint.value(  value );
          if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
            // WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
            //     <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
@@ -231,7 +231,7 @@ doLocation( argument_type &t )
             continue;
 
          value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
-         locationPoint.height( static_cast<int>( value ) );
+         locationPoint.value( value );
          if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
             WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
                   <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()

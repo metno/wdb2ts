@@ -225,7 +225,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
-	extraConfigure( params, app );
+	//extraConfigure( params, app );
 	
 	return true;
 }
