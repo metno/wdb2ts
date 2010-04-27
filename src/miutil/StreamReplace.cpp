@@ -98,34 +98,20 @@ StreamReplaceSource( const StreamReplaceSource &sr )
      gWith( sr.gWith ),
      length( sr.length )
 {
-   cerr << "StreamReplaceSource::CTOR:";
 
-   if( iBuf ) {
-      cerr << " refcount before: " << iBufRefCount;
+   if( iBuf )
       iBufRefCount++;
-      cerr << " After: " << iBufRefCount;
-   }
-
-   cerr << endl;
 }
 
 StreamReplaceSource::
 ~StreamReplaceSource()
 {
-   cerr << "StreamReplaceSource::DTOR:";
 	if( iBuf ) {
-	   cerr << " refcount before: " << iBufRefCount;
 	   iBufRefCount--;
-	   cerr << " After: " << iBufRefCount;
 
-
-	   if( iBufRefCount == 0 ) {
-	      cerr << " Delete iBuf.";
+	   if( iBufRefCount == 0 )
 	      delete[] iBuf;
-	   }
-
 	}
-	cerr << endl;
 }
 
 
