@@ -100,12 +100,15 @@ write( const std::string &buf_, bool wait, bool &wasLocked )
 	lock.l_len = 0;
 	
 	if( wait ) {
-		ret = fcntl( fd, F_SETLKW, &lock );
+	   do {
+	      ret = fcntl( fd, F_SETLKW, &lock );
+	   } while( ret<0 && errno == EINTR );
+	}else {
+		ret = fcntl( fd, F_SETLK, &lock );
 		
 		if( ret < 0 && ( errno == EACCES || errno == EAGAIN) )
-			wasLocked = true;
-	}else
-		ret = fcntl( fd, F_SETLK, &lock );
+		   wasLocked = true;
+	}
 	
 	if( ret < 0 ) {
 		cerr << "FileLockHelper::write: Cant lock '" << filename_ << "'. Already locked: "  
@@ -126,8 +129,10 @@ write( const std::string &buf_, bool wait, bool &wasLocked )
 	int n; 
 	
 	do{
-		n = ::write( fd, buf.data(), buf.size() );
-		
+	   do {
+	      n = ::write( fd, buf.data(), buf.size() );
+	   } while( n<0 && errno == EINTR );
+
 		if( n < 0 )
 			break;
 		
@@ -185,12 +190,15 @@ read( std::string &buf, bool wait, bool &wasLocked )
 	lock.l_len = 0;
 	
 	if( wait ) {
-		ret = fcntl( fd, F_SETLKW, &lock );
-		
-		if( ret < 0 && ( errno == EACCES || errno == EAGAIN) )
-			wasLocked = true;
-	}else
+	   do{
+	      ret = fcntl( fd, F_SETLKW, &lock );
+	   } while( ret<0 && errno == EINTR );
+	}else {
 		ret = fcntl( fd, F_SETLK, &lock );
+
+      if( ret < 0 && ( errno == EACCES || errno == EAGAIN) )
+         wasLocked = true;
+	}
 	
 	if( ret < 0 ) {
 		cerr << "FileLockHelper::read: Cant lock '" << filename_ << "'. Already locked: "  
@@ -204,10 +212,16 @@ read( std::string &buf, bool wait, bool &wasLocked )
 	char cBuf[512];
 	ostringstream ost;
 	
-	while( (n = ::read( fd, cBuf , 512 )) > 0 ) 
-		ost.write( cBuf, n );
-		
 
+	do {
+	   do {
+	      n = ::read( fd, cBuf , 512 );
+	   } while( n<0 && errno==EINTR );
+
+	   if( n > 0 )
+	      ost.write( cBuf, n );
+
+	}while( n > 0 );
 
 	lock.l_type = F_UNLCK;
 	lock.l_whence = SEEK_SET;
