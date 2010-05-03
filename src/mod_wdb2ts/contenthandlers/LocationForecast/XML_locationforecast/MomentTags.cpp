@@ -238,7 +238,7 @@ output( std::ostream &out, const std::string &indent )
 
 		doSymbol( tempUsed );
 		nForecast++;
-		tmpout << indent << "<temperature id=\"TT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
+		tmpout << indent << "<temperature id=\"TTT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
 	}
 
 	//If we only have a temperature for the no "height correction" choice we need
