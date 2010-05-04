@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 0.9.6.3, wdb@met.no)
+AC_INIT(metno-wdb2ts, 0.9.6.4, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])

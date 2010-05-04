@@ -41,6 +41,24 @@ using namespace std;
 
 namespace wdb2ts {
 
+NearestLand::
+NearestLand(const LocationPointList &locationPoints_,
+            const boost::posix_time::ptime &to_,
+            LocationPointDataPtr data_,
+            int altitude_,
+            PtrProviderRefTimes refTimes_,
+            const ProviderList &providerPriority_,
+            const ParamDefList &params_,
+            const NearestLandConf &nearestLands_,
+            int wciProtocol_,
+            WciConnectionPtr wciConnection_)
+   : locationPoints( locationPoints_ ), to( to_ ), data( data_ ), altitude( altitude_ ),
+     refTimes( refTimes_ ), providerPriority( providerPriority_ ), params( params_ ),
+     nearestLands( nearestLands_ ), wciProtocol( wciProtocol_ ), wciConnection( wciConnection_ )
+{
+
+}
+
 void
 NearestLand::
 decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2ts::NearestLandConf &nearestLands, ostream &msg )
