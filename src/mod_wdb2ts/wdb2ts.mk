@@ -8,6 +8,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/transactor/Topography.cpp \
                       src/mod_wdb2ts/transactor/LocationPointRead.h \
                       src/mod_wdb2ts/transactor/LocationPointRead.cpp \
+                      src/mod_wdb2ts/transactor/LocationPointMatrixData.h \
+                      src/mod_wdb2ts/transactor/LocationPointMatrixData.cpp \
                       src/mod_wdb2ts/transactor/ProviderRefTime.h \
                       src/mod_wdb2ts/transactor/ProviderRefTime.cpp \
                       src/mod_wdb2ts/transactor/Version.h \

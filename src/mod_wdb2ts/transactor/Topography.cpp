@@ -182,7 +182,7 @@ doPolygon( argument_type &t )
            //     <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
            //     << ")" );
             DEBUG_STRM( of << "POINT("
-                        <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+                        <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.asInt()
                         << ")" << endl );
          }
       }
@@ -234,7 +234,7 @@ doLocation( argument_type &t )
          locationPoint.value( value );
          if( insertLocationPoint( *locations_, locationPoint ) != locations_->end() ) {
             WEBFW_LOG_DEBUG( "Topography: transactor: location: POINT("
-                  <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.height()
+                  <<  locationPoint.longitude() << " " << locationPoint.latitude() << " " << locationPoint.asInt()
                   << ")" );
          }
       }

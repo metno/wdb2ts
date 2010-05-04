@@ -47,6 +47,7 @@ class NearestLandConfElement
 {
    std::map< std::string, std::string> paramWithProvider;
    std::string landmaskProvider_;
+   std::string modelTopoProvider_;
    std::string renameTo_;
 
    friend class NearestLand;
@@ -58,29 +59,44 @@ public:
    bool rename() const { return ! renameTo_.empty(); }
    std::string renameTo() const { return renameTo_;}
    std::string landmaskProvider() const { return landmaskProvider_; }
+   std::string modelTopoProvider()const { return modelTopoProvider_; }
 };
 
-typedef std::map< std::string, NearestLandConfElement > NearestLands;
+typedef std::map< std::string, NearestLandConfElement > NearestLandConf;
 
 class NearestLand
 {
+
+   const LocationPointList &locationPoints;
+   const boost::posix_time::ptime &to;
+   LocationPointDataPtr data;
+   int altitude;
+   PtrProviderRefTimes refTimes;
+   const ProviderList &providerPriority;
+   const ParamDefList &params;
+   const NearestLandConf &nearestLands;
+   int wciProtocol;
+   WciConnectionPtr wciConnection;
+
    static void decode( const wdb2ts::config::ActionParam &conf,
                        const std::string &prefix,
-                       wdb2ts::NearestLands &nearestLand,
+                       wdb2ts::NearestLandConf &nearestLand,
                        std::ostream &msg );
 
 public:
-   static NearestLands configureNearestLand( const wdb2ts::config::ActionParam &conf );
-   static void processNearestLandPoint( const LocationPointList &locationPoints,
-                                        const boost::posix_time::ptime &to,
-                                        LocationPointDataPtr data,
-                                        int altitude,
-                                        PtrProviderRefTimes refTimes,
-                                        const ProviderList &providerPriority,
-                                        const ParamDefList &params,
-                                        const NearestLands &nearestLands,
-                                        int wciProtocol,
-                                        WciConnectionPtr wciConnection );
+   NearestLand(const LocationPointList &locationPoints,
+               const boost::posix_time::ptime &to,
+               LocationPointDataPtr data,
+               int altitude,
+               PtrProviderRefTimes refTimes,
+               const ProviderList &providerPriority,
+               const ParamDefList &params,
+               const NearestLandConf &nearestLands,
+               int wciProtocol,
+               WciConnectionPtr wciConnection);
+
+   static NearestLandConf configureNearestLand( const wdb2ts::config::ActionParam &conf );
+   void processNearestLandPoint();
 
 };
 

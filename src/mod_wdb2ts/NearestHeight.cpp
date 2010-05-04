@@ -237,9 +237,9 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 		WEBFW_LOG_DEBUG( "Nearest height: #locations: " << topoLocations.size()
 				         << " lat: " << topoLocations.begin()->latitude()
 				         << " lon: " << topoLocations.begin()->longitude()
-				         << " height: " << topoLocations.begin()->height() );
+				         << " height: " << topoLocations.begin()->asInt() );
 
-		int testHeight = topoLocations.begin()->height();
+		int testHeight = topoLocations.begin()->asInt();
 		LocationPointList::iterator itMinDiff=modelTopoLocations.end();
 		int minDiff=INT_MAX;
 		int diff;
@@ -248,7 +248,7 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 		     itModelTopoLocation != modelTopoLocations.end();
 		     ++itModelTopoLocation )
 		{
-			diff = abs( testHeight - itModelTopoLocation->height() );
+			diff = abs( testHeight - itModelTopoLocation->asInt() );
 
 			if(  diff < minDiff ) {
 				itMinDiff = itModelTopoLocation;
@@ -264,7 +264,7 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 		WEBFW_LOG_DEBUG( "Nearest height: Nearest location: "
 				         << " lat: " << itMinDiff->latitude()
 				         << " lon: " << itMinDiff->longitude()
-				         << " height: " << itMinDiff->height() );
+				         << " height: " << itMinDiff->asInt() );
 
 		ParamDefList dataForThisParams;
 

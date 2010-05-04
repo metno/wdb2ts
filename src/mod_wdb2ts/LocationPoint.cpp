@@ -34,6 +34,7 @@
 #include <compresspace.h>
 #include <boost/regex.hpp>
 #include <boost/assign/list_of.hpp>
+#include <sstream>
 
 using namespace boost;
 using namespace std;
@@ -213,17 +214,14 @@ iLongitude() const
 	return longitude_;
 }
 
-bool
-LocationPoint::
-hasHeight()const
-{
-	return value_ != FLT_MIN;
-}
 
 int
 LocationPoint::
-height() const
+asInt() const
 {
+   if( value_ == FLT_MIN )
+      return INT_MIN;
+
 	return static_cast<int>(value_+0.5);
 }
 
@@ -339,5 +337,171 @@ decodePointList( const std::string &toDecode, LocationPointList &points  )
 	 return retIt;
  }
 
+
+ LocationPointMatrixTimeserie::
+ LocationPointMatrixTimeserie()
+    : invalidFromTimeIndex( true )
+ {
+
+ }
+
+ LocationPointMatrixTimeserie::
+ ~LocationPointMatrixTimeserie()
+ {
+ }
+
+ void
+ LocationPointMatrixTimeserie::
+ clear()
+ {
+    data.clear();
+ }
+ bool
+ LocationPointMatrixTimeserie::
+ insert( const boost::posix_time::ptime &validTo, const boost::posix_time::ptime &validFrom,
+         const LocationPointMatrix &point, bool replace )
+ {
+    Index::iterator it=toTimeIndex.find( validTo );
+
+    if( it == toTimeIndex.end() ) {
+       data.push_back( point );
+       toTimeIndex[validTo]=IndexValue( validFrom, &data.back() );
+       invalidFromTimeIndex=true;
+       return true;
+    }
+
+    if( ! replace )
+       return false;
+
+    if( validFrom != it->second.first ) {
+       ostringstream ost;
+       ost << "Trying to replace an LocationPoint with validTo=" << validTo << " and validFrom=" << validFrom
+           << ". The element to be replaced has validTo=" << it->first
+           << " and validFrom=" << it->second.first << " this inconcistence is prohibited.";
+       throw logic_error( ost.str().c_str() );
+    }
+
+    *it->second.second = point;
+    invalidFromTimeIndex=true;
+
+    return true;
+ }
+
+
+
+ LocationPointMatrixTimeserie::Index::const_iterator
+ LocationPointMatrixTimeserie::
+ beginFromTime( const boost::posix_time::ptime &fromTime, bool exact )const
+ {
+    if( invalidFromTimeIndex ) {
+       const_cast<LocationPointMatrixTimeserie*>(this)->fromTimeIndex.clear();
+
+       for( Index::const_iterator it=toTimeIndex.begin(); it != toTimeIndex.end(); ++it )
+          const_cast<LocationPointMatrixTimeserie*>(this)->fromTimeIndex[it->second.first] =
+                IndexValue( it->first, it->second.second );
+
+       const_cast<LocationPointMatrixTimeserie*>(this)->invalidFromTimeIndex = false;
+    }
+
+    if( fromTime.is_special() )
+       return fromTimeIndex.begin();
+
+    Index::const_iterator it=fromTimeIndex.begin();
+
+    for( ; it != fromTimeIndex.end() && it->first < fromTime; ++it );
+
+    if( it == fromTimeIndex.end() )
+       return fromTimeIndex.end();
+
+    if( exact && it->first != fromTime  )
+       return fromTimeIndex.end();
+
+    return it;
+
+ }
+
+ LocationPointMatrixTimeserie::Index::const_iterator
+ LocationPointMatrixTimeserie::
+ endFromTime()const
+ {
+    return fromTimeIndex.end();
+ }
+
+ LocationPointMatrixTimeserie::Index::const_iterator
+ LocationPointMatrixTimeserie::
+ beginToTime( const boost::posix_time::ptime &fromTime, bool exact )const
+ {
+    if( fromTime.is_special() )
+       return toTimeIndex.begin();
+
+    Index::const_iterator it=toTimeIndex.begin();
+
+    for( ; it != toTimeIndex.end() && it->first < fromTime; ++it );
+
+    if( it == toTimeIndex.end() )
+       return toTimeIndex.end();
+
+    if( exact && it->first != fromTime  )
+       return toTimeIndex.end();
+
+    return it;
+
+ }
+
+ LocationPointMatrixTimeserie::Index::const_iterator
+ LocationPointMatrixTimeserie::
+ endToTime()const
+ {
+    return toTimeIndex.end();
+ }
+
+
+ int
+ LocationPointMatrixTimeserie::
+ valuesGreaterThan( const LocationPointMatrix &values,
+                    int suroundLevel, float checkValue, XYPoints &points )
+ {
+    int nX = values.shape()[0];
+    int nY = values.shape()[1];
+    int level;
+    int N = 2*suroundLevel;
+
+    points.clear();
+
+    if( (nX % 2) != 0  || nX != nY) {
+       ostringstream ost;
+       ost << "LocationPointMatrixTimeserie::valuesGreaterThan: The matrix must be a multiple of 2. The size is "
+           << nX << "x" << nY << ". Expecting at least " << N << "x" << N;
+
+       throw range_error( ost.str().c_str() );
+    }
+
+    if( N > nX ) {
+       ostringstream ost;
+       ost << "LocationPointMatrixTimeserie::valuesGreaterThan: The size is "
+           << nX << "x" << nY << ". Expecting at least " << N << "x" << N;
+
+       throw range_error( ost.str().c_str() );
+    }
+
+    level = nX/2;
+    int l = level - suroundLevel;
+    int r=nX-l;
+    float val;
+    int nGreater=0;
+
+    for( int yy=l; yy<r; ++yy ) {
+       for( int xx=l; xx<r; ++xx ) {
+          val = values[yy][xx].value();
+
+          if( val != FLT_MIN && val > checkValue ) {
+             ++nGreater;
+             points.push_back( XY( xx, yy ) );
+          }
+       }
+    }
+
+    return nGreater;
+ }
 
 }

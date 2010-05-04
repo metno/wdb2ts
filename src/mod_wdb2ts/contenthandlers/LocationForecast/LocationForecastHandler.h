@@ -44,6 +44,7 @@
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
 #include <NearestHeight.h>
+#include <NearestLand.h>
 #include <LocationPoint.h>
 
 namespace wdb2ts {
@@ -113,6 +114,7 @@ private:
    TopoProviderMap     modelTopoProviders;
    std::list<std::string> topographyProviders;
    NearestHeights      nearestHeights;
+   NearestLandConf        nearestLands;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
@@ -148,6 +150,14 @@ private:
   			            const ProviderList &providerPriority
   					  ) const;
 
+  	void
+  	nearestLandPoint( const LocationPointList &locationPoints,
+  	                  const boost::posix_time::ptime &to,
+  	                  LocationPointDataPtr data,
+  	                  int altitude,
+  	                  PtrProviderRefTimes refTimes,
+  	                  const ProviderList &providerPriority
+  	                ) const;
 
    
 };

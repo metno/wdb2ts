@@ -34,9 +34,8 @@
 #include <ProviderList.h>
 #include <ParamDef.h>
 #include <DbManager.h>
-#include <transactor/Topography.h>
-#include <transactor/LocationPointRead.h>
-
+#include <transactor/LocationPointMatrixData.h>
+#include <vector>
 
 using namespace std;
 
@@ -44,7 +43,7 @@ namespace wdb2ts {
 
 void
 NearestLand::
-decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2ts::NearestLands &nearestLands, ostream &msg )
+decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2ts::NearestLandConf &nearestLands, ostream &msg )
 {
    for( wdb2ts::config::ActionParam::const_iterator it = conf.begin(); it!=conf.end(); ++it ) {
       string::size_type i=it->first.find( prefix );
@@ -60,6 +59,10 @@ decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2
          msg << "Nearest land: " << provider << endl;
          //Set the modelTopoProvider to the same as the provider as default.
          nearestLands[provider].landmaskProvider_ = provider;
+
+         //Set the modelTopoProvider to the same as the provider as default.
+         nearestLands[provider].modelTopoProvider_ = provider;
+
 
          vector<string> params = miutil::splitstr( it->second.asString(), ',', '\'');
 
@@ -80,14 +83,17 @@ decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2
 
             if( paramName == "RENAME" )
                nearestLands[provider].renameTo_ = providerName;
-            else if( paramName == "maxconvecprec" && ! providerName.empty()  )
+            else if( paramName == "LANDCOVER" && ! providerName.empty()  )
                nearestLands[provider].landmaskProvider_ = providerName;
+            else if( paramName == "MODEL.TOPOGRAPHY" && ! providerName.empty()  )
+               nearestLands[provider].modelTopoProvider_ = providerName;
             else
                nearestLands[provider].paramWithProvider[paramName] = providerName;
          }
 
          msg << "   landmaskProvider: " << nearestLands[provider].landmaskProvider() << endl
-               << "             rename: ";
+             << "  modelTopoProvider:" << nearestLands[provider].modelTopoProvider() << endl
+             << "             rename: ";
 
          if( nearestLands[provider].rename() )
             msg << "(true) " << nearestLands[provider].renameTo() << endl;
@@ -106,12 +112,12 @@ decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2
    }
 }
 
-NearestLands
+NearestLandConf
 NearestLand::
 configureNearestLand( const wdb2ts::config::ActionParam &conf )
 {
    stringstream msg;
-   NearestLands nearestLands;
+   NearestLandConf nearestLands;
 
    WEBFW_USE_LOGGER( "handler" );
    msg << "Configure nearest land : " << endl;
@@ -127,49 +133,52 @@ configureNearestLand( const wdb2ts::config::ActionParam &conf )
 
 void
 NearestLand::
-processNearestLandPoint( const LocationPointList &locationPoints,
-                         const boost::posix_time::ptime &to,
-                         LocationPointDataPtr data,
-                         int altitude,
-                         PtrProviderRefTimes refTimes,
-                         const ProviderList &providerPriority,
-                         const ParamDefList &params,
-                         const NearestLands &nearestLands,
-                         int wciProtocol,
-                         WciConnectionPtr wciConnection
-)
+processNearestLandPoint( )
 {
-
+/*
+   const int suroundLevels=3;
 	ParamDefPtr itParam;
 	ParamDef landmaskParam;
 	ParamDef modelTopoParam;
-	LocationPointList topoLocations;
-	LocationPointList modelTopoLocations;
+	LocationPointMatrix modelTopoLocations;
+	LocationPointMatrix landMaskLocations;
+	LocationPointMatrixTimeserie paramDataLocations;
 	boost::posix_time::ptime dataRefTime;
 	boost::posix_time::ptime modelTopoRefTime;
-	boost::posix_time::ptime topoRefTime;
+	boost::posix_time::ptime landMaskRefTime;
+	LocationPointMatrixTimeserie::XYPoints landPoints;
+	int ALP;
 
-/*
 	if( nearestLands.empty() || locationPoints.empty() )
 		return;
 
+	landPoints.reserve( 4*suroundLevels*suroundLevels); //(2*suroundLevels)^2
+
+
 	WEBFW_USE_LOGGER( "handler" );
 
-	for( NearestLands::const_iterator it=nearestLands.begin();
+	for( NearestLandConf::const_iterator it=nearestLands.begin();
 		 it != nearestLands.end();
 		++it )
 	{
 		if( it->second.landmaskProvider().empty() ) {
-			WEBFW_LOG_WARN( "Nearest land: No landmask (maxconvecprec) provider defined in 'nearest_land-"<< it->first << "'.");
+			WEBFW_LOG_WARN( "Nearest land: No landmask (LANDCOVER) provider defined in 'nearest_land-"<< it->first << "'.");
 			continue;
 		}
 
-		if( ! findParam( itParam, params, "maxconvecprec", it->second.landmaskProvider() ) ) {
+		if( ! findParam( itParam, params, "LANDCOVER", it->second.landmaskProvider() ) ) {
 			WEBFW_LOG_WARN( "Nearest land: No parameter definition for maxconvecprec, provider '" << it->second.landmaskProvider() << "'.");
 			continue;
 		}
 
 		landmaskParam = *itParam;
+
+		if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
+		   WEBFW_LOG_WARN( "Nearest land: No parameter definition for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
+		   continue;
+		}
+
+		modelTopoParam = *itParam;
 
 		if( ! refTimes->providerReftime( it->first, dataRefTime ) ) {
 			WEBFW_LOG_WARN( "Nearest land: No reference times found for provider '" << it->first << "'. Check that the provider is listed in provider_priority.");
@@ -177,48 +186,95 @@ processNearestLandPoint( const LocationPointList &locationPoints,
 		}
 
 		if( ! refTimes->providerReftime( it->second.modelTopoProvider(), modelTopoRefTime ) ) {
-			WEBFW_LOG_INFO( "Nearest height: No reference times found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
+			WEBFW_LOG_INFO( "Nearest land: No reference times found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
 			modelTopoRefTime = boost::posix_time::ptime();
 		}
 
+		if( ! refTimes->providerReftime( it->second.landmaskProvider(), landMaskRefTime ) ) {
+		   WEBFW_LOG_INFO( "Nearest land: No reference times found for LANDCOVER, provider '" << it->second.landmaskProvider() << "'. This is NOT unususal.");
+		   landMaskRefTime = boost::posix_time::ptime();
+		}
+
 		try{
-			Topography topographyTransactor( locationPoints.begin()->latitude(),
-					                         locationPoints.begin()->longitude(),
-					                         topoParam,
-					                         it->second.topoProvider(),
-					                         topoRefTime,
-					                         false,
-					                         wciProtocol );
+			LocationPointMatrixData modelTopoTransactor( locationPoints.begin()->latitude(),
+			                                             locationPoints.begin()->longitude(),
+			                                             modelTopoParam,
+			                                             it->second.modelTopoProvider(),
+			                                             modelTopoRefTime,
+			                                             suroundLevels,
+			                                             wciProtocol );
 
-			wciConnection->perform( topographyTransactor );
-			topoLocations = topographyTransactor.result();
+			wciConnection->perform( modelTopoTransactor );
 
-			if( topoLocations.size() == 0 ) {
-				WEBFW_LOG_WARN( "Nearest height: No location heights found for TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
-				continue;
+			if( modelTopoTransactor.result()->size() == 0 ) {
+			   WEBFW_LOG_ERROR( "Nearest land: No data  found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
+			   continue;
 			}
 
-			Topography modelTopographyTransactor( locationPoints.begin()->latitude(), locationPoints.begin()->longitude(),
-    											  modelTopoParam,
-												  it->second.modelTopoProvider(),
-												  modelTopoRefTime,
-												  true,
-												  wciProtocol );
+			modelTopoLocations = *modelTopoTransactor.result()->beginToTime()->second.second;  //It should be only one field for topography
 
-			wciConnection->perform( modelTopographyTransactor );
-			modelTopoLocations = modelTopographyTransactor.result();
+			LocationPointMatrixData landMaskTransactor( locationPoints.begin()->latitude(),
+			                                            locationPoints.begin()->longitude(),
+			                                            landmaskParam,
+			                                            it->second.landmaskProvider(),
+			                                            landMaskRefTime,
+			                                            suroundLevels,
+			                                            wciProtocol );
 
-			if( modelTopoLocations.size() == 0 ) {
-				WEBFW_LOG_WARN( "Nearest height: No location heights found for MODEL.TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
-				continue;
+			wciConnection->perform( landMaskTransactor );
+
+			if( landMaskTransactor.result()->size() == 0 ) {
+			   WEBFW_LOG_ERROR( "Nearest land: No data  found for LANDCOVER, provider '" << it->second.landmaskProvider() << "'.");
+			   continue;
 			}
+
+			landMaskLocations = *landMaskTransactor.result()->beginToTime()->second.second;  //It should be only one field for topography
+
 
 		}
 		catch( const exception &ex ) {
-			WEBFW_LOG_WARN( "nearestHeight: EXCEPTION: " << ex.what()  );
+			WEBFW_LOG_WARN( "Nearest land: EXCEPTION: " << ex.what()  );
 			continue;
 		}
 
+		LocationPointMatrix *landMask =
+		ALP = LocationPointMatrixTimeserie::valuesGreaterThan( landMaskLocations, 1, 0.9, landPoints );
+
+		WEBFW_LOG_DEBUG("NearestLand: ALP1: " << ALP );
+
+	     if( ALP >= 4 )
+	        return false;
+
+	     if( ALP > 0 )
+	        return computeNearestLand( locationPoints, altitude, to, 1, landPoints, modelTopoLocations, );
+
+	     if( ! getFildDataSuroundN( landseamask[model], x, y, xpos.vector, ypos.vector,
+	                             landSeaValues.vector, 2, landSeaValues.col, landSeaValues.row ) )
+	        return false;
+
+	#ifdef DEBUGPRINT
+	     cerr << "ipDataCache::getDataFromNearestLand: ALP2: " << ALP << endl;
+	#endif
+
+	     ALP = landSeaValues.countValuesGT( LANDSEA_LIMIT );
+
+	     if( ALP > 0 )
+	        return computeNearestLand( xpos, ypos, landSeaValues, hoh, model, params, data, error );
+
+	     if( ! getFildDataSuroundN( landseamask[model], x, y, xpos.vector, ypos.vector,
+	                              landSeaValues.vector, 3, landSeaValues.col, landSeaValues.row ) )
+	        return false;
+
+	     ALP = landSeaValues.countValuesGT( LANDSEA_LIMIT );
+
+	#ifdef DEBUGPRINT
+	     cerr << "ipDataCache::getDataFromNearestLand: ALP3: " << ALP << endl;
+	#endif
+
+	     if( ALP > 0 )
+	        return computeNearestLand( xpos, ypos, landSeaValues, hoh, model, params, data, error );
+
+	     return false;
 		WEBFW_LOG_DEBUG( "Nearest height: #locations: " << topoLocations.size()
 				         << " lat: " << topoLocations.begin()->latitude()
 				         << " lon: " << topoLocations.begin()->longitude()
@@ -279,12 +335,12 @@ processNearestLandPoint( const LocationPointList &locationPoints,
 			WEBFW_LOG_WARN( "nearestHeight: EXCEPTION: " << ex.what()  );
 			continue;
 		}
+		*/
 	}
-	*/
+
 }
 
 
-}
 
 
 

@@ -607,4 +607,31 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 
 }
 
+void
+LocationForecastHandler::
+nearestLandPoint( const LocationPointList &locationPoints,
+                  const boost::posix_time::ptime &to,
+                  LocationPointDataPtr data,
+                  int altitude,
+                  PtrProviderRefTimes refTimes,
+                  const ProviderList &providerPriority
+) const
+{
+   if( nearestLands.empty() || locationPoints.empty() )
+      return;
+
+   Wdb2TsApp *app=Wdb2TsApp::app();
+   ParamDefList params = app->paramDefs();
+   WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
+
+   NearestLand nearestLandPoint( locationPoints,to, data, altitude, refTimes,
+                                 providerPriority, params, nearestLands,
+                                 wciProtocol, wciConnection );
+
+   nearestLandPoint.processNearestLandPoint();
+
+
+}
+
+
 }
