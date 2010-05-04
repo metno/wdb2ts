@@ -1,3 +1,10 @@
+metno-wdb2ts (0.9.6.4-1) unstable; urgency=low
+  * Fix race in signal handling.
+  * Fix temeperature id incompatibility with ts2xml..
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 04 May 2010 10:00:00 +0100
+
+
 metno-wdb2ts (0.9.6.3-1) unstable; urgency=low
   * Delay some database use to the first request.
   * Fix connection pool bug.
