@@ -126,11 +126,6 @@ configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp 
 		app->notes.setNote( updateid + ".LocationProviderList", 
 					           new NoteProviderList( providerPriority_, true ) );
 
-		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
-
-		if( it != params.end() )
-			app->notes.setNote( updateid + ".LocationProviderPriority",
-								new NoteString( it->second.asString() ) );
 	}
 }
 
@@ -204,6 +199,13 @@ configure( const wdb2ts::config::ActionParam &params,
 		string noteName = updateid+".LocationProviderReftimeList";
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
 		app->notes.registerNoteListener( updateid+".LocationProviderReftimeList", this );
+
+		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
+
+		if( it != params.end() )
+		   app->notes.setNote( updateid + ".LocationProviderPriority",
+		                       new NoteString( it->second.asString() ) );
+
 	}
 	
 	wdbDB = wdbDB_;

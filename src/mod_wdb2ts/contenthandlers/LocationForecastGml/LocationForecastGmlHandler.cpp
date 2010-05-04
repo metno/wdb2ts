@@ -112,11 +112,6 @@ configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp 
 		app->notes.setNote( updateid + ".LocationProviderList", 
 					           new NoteProviderList( providerPriority_, false ) );
 
-		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
-
-		if( it != params.end() )
-		   app->notes.setNote( updateid + ".LocationProviderPriority",
-		                       new NoteString( it->second.asString() ) );
 	}
 }
 	
@@ -191,6 +186,14 @@ configure( const wdb2ts::config::ActionParam &params,
 		WEBFW_LOG_DEBUG( "LocationForecastGmlHandler::configure: updateid: '" << updateid << "' noteName '" << noteName << "'.");
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
 		app->notes.registerNoteListener( noteName, this );
+
+	   wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
+
+	   if( it != params.end() )
+	      app->notes.setNote( updateid + ".LocationProviderPriority",
+	                          new NoteString( it->second.asString() ) );
+
+
 		app->notes.checkForUpdatedPersistentNotes();
 	}
 	
