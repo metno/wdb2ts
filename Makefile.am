@@ -121,7 +121,8 @@ uninstall-local:
 
 DISTCHECK_CONFIGURE_FLAGS=--with-apache-moduledir=@abs_builddir@/wdb2ts/_distcheck/modules \
 	--with-wdb2ts-configdir=@abs_builddir@/wdb2ts/_distcheck/conf \
-	--with-wdb2ts-logdir=@abs_builddir@/wdb2ts/_distcheck/log
+	--with-wdb2ts-logdir=@abs_builddir@/wdb2ts/_distcheck/log \
+	--with-wdb2ts-tmpdir=@abs_builddir@/wdb2ts/_distcheck/tmp
 
 
 
