@@ -29,6 +29,7 @@
 
 #include <sstream>
 #include <Logger4cpp.h>
+#include <iostream>
 #include <splitstr.h>
 #include <NearestLand.h>
 #include <ProviderList.h>
@@ -80,7 +81,7 @@ decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2
 
          //Set the modelTopoProvider to the same as the provider as default.
          nearestLands[provider].modelTopoProvider_ = provider;
-
+         nearestLands[provider].provider_ = provider;
 
          vector<string> params = miutil::splitstr( it->second.asString(), ',', '\'');
 
@@ -147,13 +148,171 @@ configureNearestLand( const wdb2ts::config::ActionParam &conf )
    return nearestLands;
 }
 
+void
+NearestLand::
+setData( const ParamDef &param,
+         const std::string &paramname,
+         const std::string &provider,
+         const LocationPointMatrix &modeltopo,
+         const LocationPointMatrixTimeserie::XYPoints &xyPoints,
+         int suroundLevel,
+         LocationPointMatrixTimeserie &data
+        )
+{
+   WEBFW_USE_LOGGER( "handler" );
+   int n;
+   float sum;
+   float avg;
+   float val;
 
+   SetPDataHelper setval;
+
+   if( !setval.init( paramname ) ) {
+      WEBFW_LOG_WARN("Nearest Land: Cant set new value for param '" << paramname << "', provider '" << provider << "'. This is a bug.");
+      return;
+   }
+
+   if( this->data->size() == 0 ) {
+      WEBFW_LOG_INFO("Nearest Land: Cant set new value for param '" << paramname << "', provider '" << provider << "'. No data.");
+      return;
+   }
+
+   if( this->data->size() > 1 ) {
+      int s = this->data->size();
+      WEBFW_LOG_WARN("Nearest Land: Number of locations in the dataset is '" << s << "' expecting only 1 location.\n set new value for param '" << paramname << "', provider '" << provider << "' only for the first location.");
+   }
+
+   TimeSerie::iterator tit;
+   FromTimeSerie::iterator fit;
+   ProviderPDataList::iterator pit;
+
+
+   TimeSeriePtr myDataPtr = this->data->begin()->second;
+
+   if( ! myDataPtr ) {
+      WEBFW_LOG_WARN("Nearest Land: Cant set new value for param '" << paramname << "', provider '" << provider << "'. This is a bug.");
+      return;
+   }
+
+   for( LocationPointMatrixTimeserie::Index::const_iterator it = data.beginToTime();
+        it != data.endToTime(); ++it )
+   {
+      sum = 0;
+      n=0;
+
+      for(LocationPointMatrixTimeserie::XYPoints::const_iterator itxy=xyPoints.begin();
+          itxy != xyPoints.end(); ++itxy )
+      {
+         val = (*it->second.second)[itxy->x][itxy->y].value();
+
+         if( val != FLT_MIN ) {
+            n++;
+            sum += ( val - (altitude - modeltopo[itxy->x][itxy->y].value())*0.006 );
+         }
+      }
+
+      if( n == 0 )
+         continue;
+
+      avg = sum/n;
+
+      tit = myDataPtr->find( it->first );
+
+      if( tit == myDataPtr->end() )
+         continue;
+
+      fit = tit->second.find( it->second.first  );
+
+      if( fit == tit->second.end() )
+         continue;
+
+      pit = fit->second.find( provider );
+
+      if( pit == fit->second.end() )
+         continue;
+
+      WEBFW_LOG_DEBUG("Nearest Land: [" << tit->first << "," << fit->first << "] new value '" << avg << "' (" << setval.get( pit->second )<< ") for param '" << paramname << "', provider '" << provider << "'. Old value")
+      setval.set( pit->second, avg );
+
+   }
+
+}
+
+
+void
+NearestLand::
+computeNearestLand( const NearestLandConfElement &conf,
+                    const LocationPointMatrix &modeltopo,
+                    const LocationPointMatrixTimeserie::XYPoints &xyPoints,
+                    int suroundLevel )
+{
+   WEBFW_USE_LOGGER( "handler" );
+   ParamDefPtr itParam;
+   string provider;
+   boost::posix_time::ptime dataRefTime;
+   std::map< std::string, std::string> NearestLandParams = conf.params();
+
+   for( std::map< std::string, std::string>::iterator itNearestLandParams=conf.params().begin();
+        itNearestLandParams != conf.params().end();
+        ++itNearestLandParams )
+   {
+      if( ! findParam( itParam, params, itNearestLandParams->first, itNearestLandParams->second ) ) {
+         WEBFW_LOG_WARN( "Nearest Land: No parameter definition for '" << itNearestLandParams->first << ", provider '"
+                         << itNearestLandParams->second << "'.");
+         continue;
+      }
+
+      if( ! refTimes->providerReftime( itNearestLandParams->second, dataRefTime ) ) {
+         WEBFW_LOG_WARN( "Nearest land: No reference times found for provider '" << itNearestLandParams->second << "'. Check that the provider is listed in provider_priority.");
+         continue;
+      }
+
+      try{
+         LocationPointMatrixData dataTransactor( locationPoints.begin()->latitude(),
+                                                 locationPoints.begin()->longitude(),
+                                                 *itParam,
+                                                 itNearestLandParams->second,
+                                                 dataRefTime,
+                                                 suroundLevel,
+                                                 wciProtocol );
+
+         wciConnection->perform( dataTransactor );
+
+         if( dataTransactor.result()->size() == 0 ) {
+            WEBFW_LOG_ERROR( "Nearest land: No data  found for '" << itNearestLandParams->first
+                             << "', provider '" << itNearestLandParams->second << "'.");
+            continue;
+         }
+
+         if( conf.rename() )
+            provider = conf.renameTo();
+         else
+            provider = itNearestLandParams->second;
+
+         setData( *itParam,
+                  itNearestLandParams->first,
+                  provider,
+                  modeltopo,
+                  xyPoints,
+                  suroundLevel,
+                  *dataTransactor.result() );
+      }
+      catch ( const std::exception &ex ) {
+         ostringstream msg;
+         msg << "EXCEPTION: Nearest land: DB trouble for '" << itNearestLandParams->first
+             << "', provider '" << itNearestLandParams->second << "'.";
+         WEBFW_LOG_WARN( msg.str() );
+         continue;
+      }
+   }
+
+}
 
 void
 NearestLand::
 processNearestLandPoint( )
 {
-/*
+
    const int suroundLevels=3;
 	ParamDefPtr itParam;
 	ParamDef landmaskParam;
@@ -161,7 +320,6 @@ processNearestLandPoint( )
 	LocationPointMatrix modelTopoLocations;
 	LocationPointMatrix landMaskLocations;
 	LocationPointMatrixTimeserie paramDataLocations;
-	boost::posix_time::ptime dataRefTime;
 	boost::posix_time::ptime modelTopoRefTime;
 	boost::posix_time::ptime landMaskRefTime;
 	LocationPointMatrixTimeserie::XYPoints landPoints;
@@ -197,11 +355,6 @@ processNearestLandPoint( )
 		}
 
 		modelTopoParam = *itParam;
-
-		if( ! refTimes->providerReftime( it->first, dataRefTime ) ) {
-			WEBFW_LOG_WARN( "Nearest land: No reference times found for provider '" << it->first << "'. Check that the provider is listed in provider_priority.");
-			continue;
-		}
 
 		if( ! refTimes->providerReftime( it->second.modelTopoProvider(), modelTopoRefTime ) ) {
 			WEBFW_LOG_INFO( "Nearest land: No reference times found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
@@ -255,111 +408,33 @@ processNearestLandPoint( )
 			continue;
 		}
 
-		LocationPointMatrix *landMask =
 		ALP = LocationPointMatrixTimeserie::valuesGreaterThan( landMaskLocations, 1, 0.9, landPoints );
 
 		WEBFW_LOG_DEBUG("NearestLand: ALP1: " << ALP );
 
-	     if( ALP >= 4 )
-	        return false;
-
-	     if( ALP > 0 )
-	        return computeNearestLand( locationPoints, altitude, to, 1, landPoints, modelTopoLocations, );
-
-	     if( ! getFildDataSuroundN( landseamask[model], x, y, xpos.vector, ypos.vector,
-	                             landSeaValues.vector, 2, landSeaValues.col, landSeaValues.row ) )
-	        return false;
-
-	#ifdef DEBUGPRINT
-	     cerr << "ipDataCache::getDataFromNearestLand: ALP2: " << ALP << endl;
-	#endif
-
-	     ALP = landSeaValues.countValuesGT( LANDSEA_LIMIT );
-
-	     if( ALP > 0 )
-	        return computeNearestLand( xpos, ypos, landSeaValues, hoh, model, params, data, error );
-
-	     if( ! getFildDataSuroundN( landseamask[model], x, y, xpos.vector, ypos.vector,
-	                              landSeaValues.vector, 3, landSeaValues.col, landSeaValues.row ) )
-	        return false;
-
-	     ALP = landSeaValues.countValuesGT( LANDSEA_LIMIT );
-
-	#ifdef DEBUGPRINT
-	     cerr << "ipDataCache::getDataFromNearestLand: ALP3: " << ALP << endl;
-	#endif
-
-	     if( ALP > 0 )
-	        return computeNearestLand( xpos, ypos, landSeaValues, hoh, model, params, data, error );
-
-	     return false;
-		WEBFW_LOG_DEBUG( "Nearest height: #locations: " << topoLocations.size()
-				         << " lat: " << topoLocations.begin()->latitude()
-				         << " lon: " << topoLocations.begin()->longitude()
-				         << " height: " << topoLocations.begin()->height() );
-
-		int testHeight = topoLocations.begin()->height();
-		LocationPointList::iterator itMinDiff=modelTopoLocations.end();
-		int minDiff=INT_MAX;
-		int diff;
-
-		for( LocationPointList::iterator itModelTopoLocation=modelTopoLocations.begin();
-		     itModelTopoLocation != modelTopoLocations.end();
-		     ++itModelTopoLocation )
-		{
-			diff = abs( testHeight - itModelTopoLocation->height() );
-
-			if(  diff < minDiff ) {
-				itMinDiff = itModelTopoLocation;
-				minDiff = diff;
-			}
+		if( ALP >= 4 ) {
+		   continue;
 		}
 
-		if( itMinDiff == modelTopoLocations.end() ) {
-			WEBFW_LOG_ERROR( "Nearest height: Cant find a Neareast height. This is a bug." );
-			continue;
+		if( ALP > 0 ) {
+		   computeNearestLand( it->second, modelTopoLocations, landPoints, 1 );
+		   continue;
 		}
 
-		WEBFW_LOG_DEBUG( "Nearest height: Nearest location: "
-				         << " lat: " << itMinDiff->latitude()
-				         << " lon: " << itMinDiff->longitude()
-				         << " height: " << itMinDiff->height() );
+		ALP = LocationPointMatrixTimeserie::valuesGreaterThan( landMaskLocations, 2, 0.9, landPoints );
 
-		ParamDefList dataForThisParams;
+      if( ALP > 0 ) {
+         computeNearestLand( it->second, modelTopoLocations, landPoints, 2 );
+         continue;
+      }
 
-		std::map< std::string, std::string> nearestHeightParams = it->second.params();
+      ALP = LocationPointMatrixTimeserie::valuesGreaterThan( landMaskLocations, 3, 0.9, landPoints );
 
-		for( std::map< std::string, std::string>::iterator itNearestHeightParams=nearestHeightParams.begin();
-			 itNearestHeightParams != nearestHeightParams.end();
-			 ++itNearestHeightParams )
-		{
-			if( ! findParam( itParam, params, itNearestHeightParams->first, itNearestHeightParams->second ) ) {
-				WEBFW_LOG_WARN( "Nearest height: No parameter definition for '" << itNearestHeightParams->first << ", provider '"
-						         << itNearestHeightParams->second << "'.");
-				continue;
-			}
-
-			dataForThisParams[itNearestHeightParams->second].push_back( *itParam );
-		}
-
-		try{
-			LocationPointRead locationReadTransactor( itMinDiff->latitude(), itMinDiff->longitude(),
-					                                  dataForThisParams, providerPriority,
-    *refTimes, to, data, wciProtocol );
-			wciConnection->perform( locationReadTransactor );
-
-		}
-		catch( const exception &ex ) {
-			WEBFW_LOG_WARN( "nearestHeight: EXCEPTION: " << ex.what()  );
-			continue;
-		}
-		*/
+      if( ALP > 0 ) {
+         computeNearestLand( it->second, modelTopoLocations, landPoints, 2 );
+         continue;
+      }
 	}
-
 }
 
-
-
-
-
-
+}

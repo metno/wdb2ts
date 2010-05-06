@@ -598,6 +598,163 @@ decodePData( const ParamDefList &paramDefs,
 	}
 }
 
+SetPDataHelper::
+SetPDataHelper()
+   : pPM( 0 )
+{
+}
+
+bool
+SetPDataHelper::
+init( const std::string &param )
+{
+   if ( param == "WIND.U10M" )
+      pPM = &PData::windU10m;
+   else if( param == "WIND.V10M")
+      pPM = &PData::windV10m;
+   else if( param == "PP" )
+      pPM = &PData::PP;
+   else if( param == "MSLP" )
+      pPM = &PData::PR;
+   else if( param == "T.2M" ) {
+      pPM = &PData::T2M;
+   } else if( param == "T.2M.LAND" )
+      pPM = &PData::T2M_LAND;
+   else if( param == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
+      pPM = &PData::T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+   else if( param == "UU" )
+      pPM = &PData::UU;
+   else if( param == "PRECIP.ACCUMULATED" )
+      pPM = &PData::PRECIP_ACCUMULATED;
+   else if( param == "PRECIP" )
+      pPM = &PData::PRECIP;
+   else if( param == "PRECIP.1H" )
+      pPM = &PData::PRECIP_1T;
+   else if( param == "PRECIP.3H" )
+      pPM = &PData::PRECIP_3T;
+   else if( param == "PRECIP.6H")
+      pPM = &PData::PRECIP_6T;
+   else if( param == "PRECIP.12H")
+      pPM = &PData::PRECIP_12T;
+   else if( param == "PRECIP.24H" )
+      pPM = &PData::PRECIP_24T;
+   else if( param == "seaCurrentVelocityV" )
+      pPM = &PData::seaCurrentVelocityV;
+   else if( param == "seaCurrentVelocityU" )
+      pPM = &PData::seaCurrentVelocityU;
+   else if( param == "seaSalinity" )
+      pPM = &PData::seaSalinity;
+   else if( param == "seaSurfaceHeight" )
+      pPM = &PData::seaSurfaceHeight;
+   else if( param == "seaTemperature" )
+      pPM = &PData::seaTemperature;
+   else if( param == "meanTotalWaveDirection" )
+      pPM = &PData::meanTotalWaveDirection;
+   else if( param == "significantTotalWaveHeight" )
+      pPM = &PData::significantTotalWaveHeight;
+   else if( param == "seaBottomTopography" )
+      pPM = &PData::seaBottomTopography;
+   else if( param == "seaIcePresence" )
+      pPM = &PData::seaIcePresence;
+   else if( param == "iceingIndex" )
+      pPM = &PData::iceingIndex;
+   else if( param == "MODEL.TOPOGRAPHY" )
+      pPM = &PData::modeltopography;
+   else if( param == "TOPOGRAPHY" )
+      pPM = &PData::topography;
+   else if( param == "TOTAL.CLOUD" )
+      pPM = &PData::NN;
+   else if( param == "visibility" )
+      pPM = &PData::visibility;
+   else if( param == "FOG" )
+      pPM = &PData::fog;
+   else if( param == "LOW.CLOUD" )
+      pPM = &PData::lowCloud;
+   else if( param == "MEDIUM.CLOUD" )
+      pPM = &PData::mediumCloud;
+   else if( param == "HIGH.CLOUD" )
+      pPM = &PData::highCloud;
+   else if( param == "RH.2M" )
+      pPM = &PData::RH2M;
+   else if( param == "SYMBOL")
+      pPM = &PData::symbol;
+   else if( param == "SYMBOL.PROBABILITY")
+      pPM = &PData::symbol_PROBABILITY;
+   else if( param == "THUNDER.PROBABILITY" )
+      pPM = &PData::thunderProability;
+   else if( param == "FOG.PROBABILITY" )
+      pPM = &PData::fogProability;
+   else if( param == "WIND.PROBABILITY")
+      pPM = &PData::WIND_PROBABILITY;
+   else if( param == "T.2M.PROBABILITY.1")
+      pPM = &PData::T2M_PROBABILITY_1;
+   else if( param == "T.2M.PROBABILITY.2")
+      pPM = &PData::T2M_PROBABILITY_2;
+   else if( param == "T.2M.PROBABILITY.3")
+      pPM = &PData::T2M_PROBABILITY_3;
+   else if( param == "T.2M.PROBABILITY.4")
+      pPM = &PData::T2M_PROBABILITY_4;
+   else if( param == "T.2M.PERCENTILE.10")
+      pPM = &PData::T2M_PERCENTILE_10;
+   else if( param == "T.2M.PERCENTILE.25")
+      pPM = &PData::T2M_PERCENTILE_25;
+   else if( param == "T.2M.PERCENTILE.50")
+      pPM = &PData::T2M_PERCENTILE_50;
+   else if( param == "T.2M.PERCENTILE.75")
+      pPM = &PData::T2M_PERCENTILE_75;
+   else if( param == "T.2M.PERCENTILE.90")
+      pPM = &PData::T2M_PERCENTILE_90;
+   else if( param == "PRECIP.PERCENTILE.10")
+      pPM = &PData::PRECIP_PERCENTILE_10;
+   else if( param == "PRECIP.PERCENTILE.25")
+      pPM = &PData::PRECIP_PERCENTILE_25;
+   else if( param == "PRECIP.PERCENTILE.50")
+      pPM = &PData::PRECIP_PERCENTILE_50;
+   else if( param == "PRECIP.PERCENTILE.75")
+      pPM = &PData::PRECIP_PERCENTILE_75;
+   else if( param == "PRECIP.PERCENTILE.90")
+      pPM = &PData::PRECIP_PERCENTILE_90;
+   else if( param == "PRECIP.PROBABILITY.0,1MM")
+      pPM = &PData::PRECIP_PROBABILITY_0_1MM;
+   else if( param == "PRECIP.PROBABILITY.0,2MM")
+      pPM = &PData::PRECIP_PROBABILITY_0_2MM;
+   else if( param == "PRECIP.PROBABILITY.0,5MM")
+      pPM = &PData::PRECIP_PROBABILITY_0_5MM;
+   else if( param == "PRECIP.PROBABILITY.1,0MM")
+      pPM = &PData::PRECIP_PROBABILITY_1_0MM;
+   else if( param == "PRECIP.PROBABILITY.2,0MM")
+      pPM = &PData::PRECIP_PROBABILITY_2_0MM;
+   else if( param == "PRECIP.PROBABILITY.5,0MM")
+      pPM = &PData::PRECIP_PROBABILITY_5_0MM;
+   else
+      pPM = 0;
+
+   if( pPM )
+      return true;
+
+   return false;
+
+}
+
+void
+SetPDataHelper::
+set( PData &data, float value )
+{
+   if( pPM) {
+      (&data)->*pPM = value;
+   }
+}
+
+float
+SetPDataHelper::
+get( const PData &data ) const
+{
+   if( pPM )
+      return (&data)->*pPM;
+
+   return FLT_MIN;
+}
+
 
 std::string 
 symbolidToName(int id) {

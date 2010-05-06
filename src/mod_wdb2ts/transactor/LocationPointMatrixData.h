@@ -26,8 +26,8 @@
     MA  02110-1301, USA
 */
 
-#ifndef ___H__
-#define __TOPOGRAPHY_H__
+#ifndef __LOCATIONPOINTMATRIXDATA_H__
+#define __LOCATIONPOINTMATRIXDATA_H__
 
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>

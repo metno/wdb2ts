@@ -49,6 +49,7 @@ class NearestLandConfElement
    std::string landmaskProvider_;
    std::string modelTopoProvider_;
    std::string renameTo_;
+   std::string provider_;
 
    friend class NearestLand;
 
@@ -60,6 +61,7 @@ public:
    std::string renameTo() const { return renameTo_;}
    std::string landmaskProvider() const { return landmaskProvider_; }
    std::string modelTopoProvider()const { return modelTopoProvider_; }
+   std::string provider()const { return provider_; }
 };
 
 typedef std::map< std::string, NearestLandConfElement > NearestLandConf;
@@ -82,6 +84,20 @@ class NearestLand
                        const std::string &prefix,
                        wdb2ts::NearestLandConf &nearestLand,
                        std::ostream &msg );
+
+   void computeNearestLand( const NearestLandConfElement &conf,
+                            const LocationPointMatrix &modeltopo,
+                            const LocationPointMatrixTimeserie::XYPoints &xyPoints,
+                            int suroundLevel );
+
+   void setData( const ParamDef &param,
+                 const std::string &paramname,
+                 const std::string &provider,
+                 const LocationPointMatrix &modeltopo,
+                 const LocationPointMatrixTimeserie::XYPoints &xyPoints,
+                 int suroundLevel,
+                 LocationPointMatrixTimeserie &data
+               );
 
 public:
    NearestLand(const LocationPointList &locationPoints,

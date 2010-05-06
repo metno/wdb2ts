@@ -268,6 +268,18 @@ struct PData{
    int count()const;
 };
 
+class SetPDataHelper {
+   float PData::* pPM;
+
+public:
+   SetPDataHelper();
+
+   bool init( const std::string &param );
+   void set( PData &data, float value );
+   float get(const PData &data ) const;
+};
+
+
 typedef std::map<std::string, std::string > RenameTopoProvider;
 
 typedef std::map<std::string, PData>                   ProviderPDataList;
