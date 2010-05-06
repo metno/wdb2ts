@@ -263,6 +263,89 @@ UU(bool tryHard)const
 			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
+bool
+LocationElem::
+PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
+                     std::vector<float> &min, std::vector<float> &max, std::vector<float> &mean,
+                     bool tryHard )const
+{
+   float precipMin;
+   float precipMax;
+   float precipMean;
+   bool myTryHard = tryHard;
+   boost::posix_time::ptime fromTime;
+   boost::posix_time::ptime stopTime;
+   boost::posix_time::ptime startTime;
+   boost::posix_time::ptime savedFromTime;
+
+   WEBFW_USE_LOGGER( "main" );
+
+   min.clear();
+   max.clear();
+   mean.clear();
+
+   backTime_=boost::posix_time::ptime(); //Set it to undefined.
+
+   stopTime=itTimeSerie->first;
+
+   //Find the start of the accumulation period.
+   fromTime = itTimeSerie->first - hours( hoursBack );
+   savedFromTime = fromTime;
+
+   //We must adjust the startime with one hour because
+   //the one hour precipitation is for the hour preceeding
+   //the totime.
+   startTime = fromTime + hours( 1 );
+
+   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
+   for( CITimeSerie it = timeSerie->find( startTime );
+        it != timeSerie->end() && it->first <= stopTime;
+        ++it )
+   {
+
+      precipMin = getValue( &PData::PRECIP_MIN,
+                            it->second,
+                            fromTime ,
+                            const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+
+      if( precipMin == FLT_MAX )
+         return false;
+
+      myTryHard = false;
+      precipMax = getValue( &PData::PRECIP_MAX,
+                            it->second,
+                            fromTime ,
+                            const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+
+      if( precipMax == FLT_MAX )
+         return false;
+
+      precipMean = getValue( &PData::PRECIP_MEAN,
+                             it->second,
+                             fromTime ,
+                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+
+      if( precipMean == FLT_MAX )
+         return false;
+
+      //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
+      fromTime = it->first;
+
+      min.push_back( precipMin );
+      max.push_back( precipMax );
+      mean.push_back( precipMean );
+   }
+
+   backTime_ = savedFromTime;
+
+   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
+   return false;
+
+
+
+}
+
+
 
 float
 LocationElem::

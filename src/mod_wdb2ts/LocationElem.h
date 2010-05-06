@@ -280,6 +280,10 @@ public:
    void  temperatureCorrected( float temperature, const std::string &provider = "" );
    float UU( bool tryHard=false )const;
    
+   bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
+                             std::vector<float> &min, std::vector<float> &max, std::vector<float> &mean,
+                             bool tryHard=false )const;
+
    float PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
    
    /**

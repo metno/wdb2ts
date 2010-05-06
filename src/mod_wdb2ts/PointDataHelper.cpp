@@ -103,6 +103,10 @@ merge( const PData &other )
 		T2M_NO_ADIABATIC_HIGHT_CORRECTION = other.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
     if( other.temperatureCorrected != FLT_MAX ) temperatureCorrected = other.temperatureCorrected;
     if( other.UU != FLT_MAX ) UU = other.UU;
+    if( other.PRECIP_PROBABILITY != FLT_MAX ) PRECIP_PROBABILITY = other.PRECIP_PROBABILITY;
+    if( other.PRECIP_MIN != FLT_MAX ) PRECIP_MIN = other.PRECIP_MIN;
+    if( other.PRECIP_MAX != FLT_MAX ) PRECIP_MAX = other.PRECIP_MAX;
+    if( other.PRECIP_MEAN != FLT_MAX ) PRECIP_MEAN = other.PRECIP_MEAN;
     if( other.PRECIP != FLT_MAX ) PRECIP = other.PRECIP;
     if( other.PRECIP_ACCUMULATED != FLT_MAX ) PRECIP_ACCUMULATED = other.PRECIP_ACCUMULATED;
     if( other.PRECIP_1T != FLT_MAX ) PRECIP_1T = other.PRECIP_1T;
@@ -172,6 +176,10 @@ count()const
     if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) ++n;
     if( temperatureCorrected != FLT_MAX ) ++n;
     if( UU != FLT_MAX ) ++n;
+    if( PRECIP_PROBABILITY != FLT_MAX ) ++n;
+    if( PRECIP_MIN != FLT_MAX ) ++n;
+    if( PRECIP_MAX != FLT_MAX ) ++n;
+    if( PRECIP_MEAN != FLT_MAX ) ++n;
     if( PRECIP != FLT_MAX ) ++n;
     if( PRECIP_ACCUMULATED != FLT_MAX ) ++n;
     if( PRECIP_1T != FLT_MAX ) ++n;
@@ -461,6 +469,14 @@ decodePData( const ParamDefList &paramDefs,
 				pd.UU = value;
 			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
 				pd.PRECIP_ACCUMULATED = value;
+			else if( paramDef->alias() == "PRECIP.PROBABILITY" )
+			   pd.PRECIP_PROBABILITY = value;
+			else if( paramDef->alias() == "PRECIP.MIN" )
+			   pd.PRECIP_MIN = value;
+			else if( paramDef->alias() == "PRECIP.MAX" )
+			   pd.PRECIP_MAX = value;
+			else if( paramDef->alias() == "PRECIP.MEAN" )
+			   pd.PRECIP_MEAN = value;
 			else if( paramDef->alias() == "PRECIP" )
 				pd.PRECIP = value;	
 			else if( paramDef->alias() == "PRECIP.1H" )

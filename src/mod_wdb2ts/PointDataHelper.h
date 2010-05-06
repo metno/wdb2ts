@@ -56,6 +56,10 @@ struct PData{
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION;
    float temperatureCorrected;
    float UU;
+   float PRECIP_PROBABILITY;
+   float PRECIP_MIN;
+   float PRECIP_MAX;
+   float PRECIP_MEAN;
    float PRECIP;
    float PRECIP_ACCUMULATED;
    float PRECIP_1T;
@@ -112,7 +116,10 @@ struct PData{
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
    	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ), T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
    	 temperatureCorrected(FLT_MAX) ,
-   	 UU( FLT_MAX ), PRECIP( FLT_MAX ), PRECIP_ACCUMULATED( FLT_MAX ), PRECIP_1T( FLT_MAX ),
+   	 UU( FLT_MAX ), PRECIP_PROBABILITY( FLT_MAX ),
+   	 PRECIP_MIN( FLT_MAX ), PRECIP_MAX( FLT_MAX ), PRECIP_MEAN( FLT_MAX ),
+   	 PRECIP( FLT_MAX ),
+   	 PRECIP_ACCUMULATED( FLT_MAX ), PRECIP_1T( FLT_MAX ),
    	 PRECIP_3T( FLT_MAX ), PRECIP_6T( FLT_MAX ), PRECIP_12T( FLT_MAX ), 
    	 PRECIP_24T( FLT_MAX ), seaCurrentVelocityU( FLT_MAX ), 
    	 seaCurrentVelocityV( FLT_MAX ), seaSalinity( FLT_MAX ),
@@ -154,7 +161,9 @@ struct PData{
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
        temperatureCorrected( pd.temperatureCorrected ),
-       UU(pd.UU), PRECIP( pd.PRECIP),
+       UU(pd.UU), PRECIP_PROBABILITY( pd.PRECIP_PROBABILITY ),
+       PRECIP_MIN( pd.PRECIP_MIN ), PRECIP_MAX( pd.PRECIP_MAX ), PRECIP_MEAN( pd.PRECIP_MEAN ),
+       PRECIP( pd.PRECIP ),
        PRECIP_ACCUMULATED( pd.PRECIP_ACCUMULATED ),
        PRECIP_1T(pd.PRECIP_1T), PRECIP_3T(pd.PRECIP_3T), 
        PRECIP_6T(pd.PRECIP_6T), PRECIP_12T(pd.PRECIP_12T), 
@@ -208,6 +217,11 @@ struct PData{
          T2M_NO_ADIABATIC_HIGHT_CORRECTION = rhs.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
          temperatureCorrected = rhs.temperatureCorrected;
          UU       = rhs.UU;
+
+         PRECIP_PROBABILITY = rhs.PRECIP_PROBABILITY;
+         PRECIP_MIN = rhs.PRECIP_MIN;
+         PRECIP_MAX = rhs.PRECIP_MAX;
+         PRECIP_MEAN = rhs.PRECIP_MEAN;
          PRECIP     = rhs.PRECIP;
          PRECIP_ACCUMULATED = rhs.PRECIP_ACCUMULATED;
          PRECIP_1T  = rhs.PRECIP_1T;
