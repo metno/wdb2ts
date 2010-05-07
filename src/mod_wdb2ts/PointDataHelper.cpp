@@ -640,6 +640,14 @@ init( const std::string &param )
       pPM = &PData::T2M_NO_ADIABATIC_HIGHT_CORRECTION;
    else if( param == "UU" )
       pPM = &PData::UU;
+   else if( param == "PRECIP.PROBABILITY" )
+      pPM = &PData::PRECIP_PROBABILITY;
+   else if( param == "PRECIP.MIN" )
+      pPM = &PData::PRECIP_MIN;
+   else if( param == "PRECIP.MAX" )
+      pPM = &PData::PRECIP_MAX;
+   else if( param == "PRECIP.MEAN" )
+      pPM = &PData::PRECIP_MEAN;
    else if( param == "PRECIP.ACCUMULATED" )
       pPM = &PData::PRECIP_ACCUMULATED;
    else if( param == "PRECIP" )

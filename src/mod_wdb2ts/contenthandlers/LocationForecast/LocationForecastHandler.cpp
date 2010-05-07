@@ -45,6 +45,7 @@
 #include <UrlQuery.h>
 #include <contenthandlers/LocationForecast/EncodeLocationForecast.h>
 #include <contenthandlers/LocationForecast/EncodeLocationForecast2.h>
+#include <contenthandlers/LocationForecast/EncodeLocationForecast3.h>
 #include <wdb2TsApp.h>
 #include <PointDataHelper.h>
 #include <preprocessdata.h>
@@ -469,6 +470,19 @@ get( webfw::Request  &req,
 									        topographyProviders,
 									        symbolConf,
 									        expireRand );
+		} else if( subversion == 3 ) {
+		   EncodeLocationForecast3 encode( locationPointData,
+                                         &projectionHelper,
+                                         webQuery.longitude(), webQuery.latitude(), altitude,
+                                         webQuery.from(),
+                                         refTimes,
+                                         metaModelConf,
+                                         precipitationConfig,
+                                         providerPriority,
+                                         modelTopoProviders,
+                                         topographyProviders,
+                                         symbolConf,
+                                         expireRand );
 
 			MARK_ID_MI_PROFILE("encodeXML");
 			encode.encode( response );

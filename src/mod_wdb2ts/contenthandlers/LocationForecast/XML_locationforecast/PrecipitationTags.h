@@ -40,11 +40,14 @@ namespace wdb2ts {
 class PrecipitationTags : public IXmlTemplate 
 {
 	float value;
+	float min;
+	float max;
+	float prob;
 public:
 	PrecipitationTags( ): value( FLT_MAX ){}
 	
-	PrecipitationTags( float value )
-		: value( value )
+	PrecipitationTags( float value, float min=FLT_MIN, float max=FLT_MIN, float prob=FLT_MIN )
+		: value( value ), min( min ), max( max ), prob( prob )
 		{
 		}
 	

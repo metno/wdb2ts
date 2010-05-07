@@ -281,9 +281,10 @@ public:
    float UU( bool tryHard=false )const;
    
    bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
-                             std::vector<float> &min, std::vector<float> &max, std::vector<float> &mean,
+                             float &minOut, float &maxOut, float &meanOut, float probOut,
                              bool tryHard=false )const;
 
+   float PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
    float PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
    
    /**

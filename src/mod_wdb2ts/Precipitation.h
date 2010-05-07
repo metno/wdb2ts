@@ -40,16 +40,24 @@ namespace wdb2ts {
 struct Precipitation {
 	std::string provider;
 	float  precip;
+	float  min;
+	float  max;
+	float  prob;
 
-	Precipitation():precip(FLT_MAX) {}
-	Precipitation( const Precipitation &p ) : provider( p.provider ), precip( p.precip ) {}
-	Precipitation( const std::string &provider_, float precip_ )
-	    : provider( provider_ ), precip( precip_ ) {}
+	Precipitation():precip(FLT_MAX), min( FLT_MAX ), max( FLT_MAX ), prob( FLT_MAX ) {}
+	Precipitation( const Precipitation &p )
+      : provider( p.provider ), precip( p.precip ), min( p.min ), max( p.max ), prob( p.prob )
+        {}
+	Precipitation( const std::string &provider_, float precip_, float min=FLT_MAX, float max = FLT_MAX, float prob = FLT_MAX )
+	    : provider( provider_ ), precip( precip_ ), min( min ), max( max ), prob( prob ) {}
 
 	Precipitation& operator=( const Precipitation &rhs ) {
 		if( this != &rhs ) {
 			provider = rhs.provider;
 			precip = rhs.precip;
+			min = rhs.min;
+			max = rhs.max;
+			prob = rhs.prob;
 		}
 
 		return *this;
