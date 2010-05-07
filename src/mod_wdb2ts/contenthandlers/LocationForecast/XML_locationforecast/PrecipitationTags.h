@@ -46,7 +46,7 @@ class PrecipitationTags : public IXmlTemplate
 public:
 	PrecipitationTags( ): value( FLT_MAX ){}
 	
-	PrecipitationTags( float value, float min=FLT_MIN, float max=FLT_MIN, float prob=FLT_MIN )
+	PrecipitationTags( float value, float min=FLT_MAX, float max=FLT_MAX, float prob=FLT_MAX )
 		: value( value ), min( min ), max( max ), prob( prob )
 		{
 		}
