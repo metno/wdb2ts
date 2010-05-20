@@ -75,29 +75,32 @@ AppClass::app()->init( Logger, IAbortManager )
 #define MISP_IMPL_APACHE_HANDLER( Name, AppClass ) \
                                                    \
 struct Name##_conf {                               \
-	const char *confpath;                          \
-	const char *logpath;                           \
-	const char *tmppath;                           \
+	const char *confpath;                           \
+	const char *logpath;                            \
+	const char *tmppath;                            \
 };                                                 \
                                                    \
-static const char*                                        \
+struct Name##_app_conf {                           \
+   apr_pool_t *pool; /*Holds only a pointer to the App instance.*/  \
+};                                                 \
+                                                   \
+static const char*                                 \
 Name##_set_confpath( cmd_parms *cmd, void *dummy, const char *arg );  \
-	                                                                  \
+	                                                                   \
 static const char*                                                    \
 Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg );   \
-                                                                      \
-	                                                                  \
+	                                                                   \
 static const char*                                                    \
 Name##_set_tmppath( cmd_parms *cmd, void *dummy, const char *arg );   \
                                                                       \
 static int                                         \
 Name##_handler( request_rec *r );                  \
-	                                               \
+	                                                \
 static void                                        \
 Name##_register_hooks( apr_pool_t *p );            \
                                                    \
 static const command_rec Name##_cmds[] = {         \
-	AP_INIT_TAKE1( #Name "_confpath",              \
+	AP_INIT_TAKE1( #Name "_confpath",               \
 	               (const char* (*)())Name##_set_confpath, \
 	               NULL,                                   \
 	               RSRC_CONF,                              \
@@ -273,7 +276,34 @@ Name##_handler(request_rec *r)                     \
    return OK;                                                    \
 }                                                                \
                                                                  \
-                                                                 \
+apr_status_t                                                     \
+Name##_app_onshutdown( void *p )                                 \
+{                                                                \
+   AppClass *app = static_cast<AppClass*>( p );                  \
+   app->onShutdown();                                            \
+   return  APR_SUCCESS;                                          \
+}                                                                \
+/**                                                                \
+ * This function register our module with the Apache core. It also \
+ * initialize the ProgApp to be used as a singleton.               \
+ */                                                                \
+void                                                               \
+Name##_child_init( apr_pool_t *pchild, server_rec *s )             \
+{                                                                  \
+   std::cerr << "++ AppInit: child_init: " << AppClass::app()->moduleName()    \
+             << "_register_hooks: called!\n";         \
+   /* Initialize as a singleton before it is used in any threads.  \
+    * Also call the apps initAction.                               \
+    */                                                             \
+   webfw::ApacheLogger logger( pchild );                           \
+   MISP_CREATE_AND_INIT_APP( AppClass,                             \
+                             logger,                               \
+                             new webfw::ApacheAbortHandlerManager() );      \
+  apr_pool_cleanup_register( pchild, static_cast<void*>(AppClass::app()),   \
+                             Name##_app_onshutdown, apr_pool_cleanup_null ); \
+}                                                                  \
+                                                                   \
+                                                                   \
 /**                                                                \
  * This function register our module with the Apache core. It also \
  * initialize the ProgApp to be used as a singleton.               \
@@ -284,16 +314,14 @@ Name##_register_hooks(apr_pool_t *p)                               \
    /* Initialize as a singleton before it is used in any threads.  \
     * Also call the apps initAction.                               \
     */                                                             \
-   webfw::ApacheLogger logger( p );                                \
+    std::cerr << "-- AppInit: register_hooks: " << AppClass::app()->moduleName() << std::endl;    \
+/*   webfw::ApacheLogger logger( p );                                \
    MISP_CREATE_AND_INIT_APP( AppClass,                             \
                              logger,                               \
                              new webfw::ApacheAbortHandlerManager() );\
-   std::cerr << "-- AppInit: " << AppClass::app()->moduleName()    \
-                          << "_register_hooks: called!\n";         \
-   /*ap_log_perror(APLOG_MARK, APLOG_DEBUG, 0,p,                    \
-         std::string( std::string(AppClass::app()->moduleName()) + \
-                      "_register_hooks: called").c_str() );   */     \
-                                                                   \
+                             << "_register_hooks: called!\n";         \
+*/                                                                   \
+   ap_hook_child_init(Name ## _child_init, NULL, NULL, APR_HOOK_MIDDLE); \
    ap_hook_handler(Name ## _handler, NULL, NULL, APR_HOOK_MIDDLE); \
 }                                                                  \
                                                                    \

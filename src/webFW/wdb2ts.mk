@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES+=		libwebFW.la
 
-libwebFW_la_SOURCES=	src/webFW/App.cpp \
-							src/webFW/App.h \
+libwebFW_la_SOURCES=   src/webFW/App.cpp \
+					   src/webFW/App.h \
 		               src/webFW/Response.cpp \
 		               src/webFW/Response.h \
 		               src/webFW/CErrLogger.cpp \

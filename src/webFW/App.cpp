@@ -69,6 +69,13 @@ initAction( RequestHandlerManager&  reqHandlerMgr, Logger &logger )
 void 
 webfw::
 App::
+onShutdown()
+{
+}
+
+void
+webfw::
+App::
 init( Logger &logger, IAbortHandlerManager *abortHandlerMgr )
 {
 	if( ! abortHandlerManager_ ) 

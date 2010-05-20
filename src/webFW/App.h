@@ -137,7 +137,7 @@ class App
        */
       virtual const char *moduleName()const =0;
       
-      
+      virtual void onShutdown();
       void dispatch( Request &req, Response &res, Logger &logger );
 };
 
