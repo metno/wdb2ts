@@ -48,8 +48,9 @@ class Wdb2TsApp : public webfw::App
 {
 	MISP_DECLARE_APP( Wdb2TsApp );
 
-	void initHightMapImpl();
-	
+	friend class MapLoader;
+
+	void setHeightMap( Map *map, bool itIsTryedToLoadTheMap );
 public:
 	/// Default Constructor
 	Wdb2TsApp();
@@ -59,6 +60,7 @@ public:
 	 * @return 	Name of the module
 	 */
 	virtual const char *moduleName()const { return "metno-wdb2ts"; }
+	virtual void onShutdown();
 	
 	NoteManager notes;
       
@@ -76,9 +78,10 @@ public:
 
 	
 	ParamDefList &paramDefs() { return paramDefs_; }
-    
-    
-    
+
+	std::string getMapFilePath()const;
+
+	void initHightMap();
 	/**
 	 * Return the hight for a given position.
 	 * 
@@ -90,8 +93,6 @@ public:
 	 */
 	int getHight( float latitude, float longitude );
     
-	void initHightMap();
-	
 	/**
 	 * Return WCI protocol version.
 	 * 
@@ -125,6 +126,7 @@ protected:
    DbManagerPtr  dbManager;
  	ParamDefList  paramDefs_;
  	Map           *hightMap;
+ 	boost::thread *loadMapThread;
  	bool          initHightMapTryed;
  	bool          inInitHightMap;
  	

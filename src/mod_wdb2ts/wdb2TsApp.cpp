@@ -36,6 +36,7 @@
 #include <ParamDef.h>
 #include <UpdateProviderReftimes.h>
 #include <Map.h>
+#include <MapLoader.h>
 #include <ReadMapFile.h>
 #include <ConfigParser.h>
 #include <RequestHandlerFactory.h>
@@ -52,10 +53,16 @@ MISP_IMPL_APP( Wdb2TsApp );
    
 Wdb2TsApp::
 Wdb2TsApp()
-   : webfw::App(), hightMap( 0 ), initHightMapTryed( false ), inInitHightMap( false )
+   : webfw::App(), hightMap( 0 ), loadMapThread( 0 ), initHightMapTryed( false ), inInitHightMap( false )
 {
 }
 
+void
+Wdb2TsApp::
+onShutdown()
+{
+   cerr << "----  Wdb2ts::onShutdown: called." << endl;
+}
 
 void   
 Wdb2TsApp::
@@ -233,24 +240,22 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 	}
 }
 
+std::string
+Wdb2TsApp::
+getMapFilePath()const
+{
+   return WDB2TS_MAP_FILE;
+}
+
 int 
 Wdb2TsApp::
 getHight( float latitude, float longitude )
 {
-	if( ! hightMap ) {
-		if( initHightMapTryed ) 
-			return INT_MIN;
-		
-		if( inInitHightMap )
-			throw InInit("The HightMap file is loading!");
-			
-		//Try to load the mapfile.
-		initHightMap();
-		
-		if( ! hightMap )
-			return INT_MIN;
-	}
-	
+   initHightMap();
+
+   if( ! hightMap )
+      return INT_MIN;
+
 	int alt;
 	bool error; //Dummy for now.
 	
@@ -267,36 +272,39 @@ void
 Wdb2TsApp::
 initHightMap()
 {
-	boost::mutex::scoped_lock lock( mapMutex );
-	initHightMapImpl();
+   if( ! hightMap ) {
+      if( initHightMapTryed )
+         return;
+
+      boost::mutex::scoped_lock lock( mapMutex );
+
+      if( inInitHightMap )
+         throw InInit("The HightMap file is loading!");
+
+      if( hightMap || initHightMapTryed )
+         return;
+
+      inInitHightMap = true;
+
+      //Start a detached tread to load the topography data
+      //into memory. The thread calls back on setHeightMap
+      //when finished to set the hightMap and initHightMapTryed
+      //status.
+
+      boost::thread mapLoader( MapLoader( this ) );
+      throw InInit("Loading of HightMap file is started!");
+   }
 }
+
 
 void 
 Wdb2TsApp::
-initHightMapImpl()
+setHeightMap( Map *map, bool itIsTryedToLoadTheMap )
 {
-	if( hightMap )
-		return;
-	
-	if( initHightMapTryed )
-		return;
+	boost::mutex::scoped_lock lock( mapMutex );
 
-	WEBFW_USE_LOGGER( "main" );
-	
-	string error;
-	inInitHightMap = true;
-
-	WEBFW_LOG_DEBUG( "Loading map File: '" << 	WDB2TS_MAP_FILE << "'." );
-	hightMap = readMapFile( WDB2TS_MAP_FILE, error );
-	
-	if( hightMap ) {
-		WEBFW_LOG_INFO( "Map File: '" << 	WDB2TS_MAP_FILE << "' loaded." );
-	}
-	else {
-		WEBFW_LOG_WARN( "No Map File: '" << 	WDB2TS_MAP_FILE << "'." );
-	}
-	inInitHightMap = false;
-	initHightMapTryed = true;
+	hightMap = map;
+	initHightMapTryed = itIsTryedToLoadTheMap;
 }
 
 int
