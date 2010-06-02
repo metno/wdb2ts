@@ -62,6 +62,13 @@ Wdb2TsApp::
 onShutdown()
 {
    cerr << "----  Wdb2ts::onShutdown: called." << endl;
+   boost::mutex::scoped_lock lock( mutex );
+   if( dbManager ) {
+      cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Started." << endl;
+      dbManager->disable();
+      cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Completed." << endl;
+   }
+
 }
 
 void   
@@ -73,10 +80,10 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	//miutil::pgpool::DbDefList dbsetup;
 	string buf;
 	
-	log << "WDB2TS_DEFAULT_SYSCONFDIR=" << WDB2TS_DEFAULT_SYSCONFDIR << "." ;
-	log << "WDB2TS_DEFAULT_SYSLOGDIR=" << WDB2TS_DEFAULT_SYSLOGDIR << "." ;
-	log << "WDB2TS_DEFAULT_SYSTMPDIR=" << WDB2TS_DEFAULT_SYSTMPDIR << "." ;
-	log << "WDB2TS_LOCALSTATEDIR=" << WDB2TS_LOCALSTATEDIR << ". ";
+	logger.info( string("WDB2TS_DEFAULT_SYSCONFDIR=") + WDB2TS_DEFAULT_SYSCONFDIR + ".");
+	logger.info( string("WDB2TS_DEFAULT_SYSLOGDIR=") + WDB2TS_DEFAULT_SYSLOGDIR + "." );
+	logger.info( string("WDB2TS_DEFAULT_SYSTMPDIR=") + WDB2TS_DEFAULT_SYSTMPDIR + "." );
+	logger.info( string("WDB2TS_LOCALSTATEDIR=") +  WDB2TS_LOCALSTATEDIR + ".");
 	
 	notes.setPersistentNotePath( WDB2TS_LOCALSTATEDIR );
 	
@@ -84,8 +91,8 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	setLogDir( WDB2TS_DEFAULT_SYSLOGDIR );
 	setTmpDir( WDB2TS_DEFAULT_SYSTMPDIR );
 	
-	logger.info( log.str() );
-	log.str("");
+	//Start loading of the topography file.
+	initHightMap();
 
 	if( readConfFile("metno-wdb2ts-db.conf", buf) ) {
 		try{
@@ -253,8 +260,12 @@ getHight( float latitude, float longitude )
 {
    initHightMap();
 
-   if( ! hightMap )
+   if( ! hightMap ) {
+      if( inInitHightMap )
+         throw InInit("The HightMap file is loading!");
+
       return INT_MIN;
+   }
 
 	int alt;
 	bool error; //Dummy for now.
@@ -273,13 +284,10 @@ Wdb2TsApp::
 initHightMap()
 {
    if( ! hightMap ) {
-      if( initHightMapTryed )
-         return;
-
       boost::mutex::scoped_lock lock( mapMutex );
 
       if( inInitHightMap )
-         throw InInit("The HightMap file is loading!");
+         return;
 
       if( hightMap || initHightMapTryed )
          return;
@@ -292,7 +300,6 @@ initHightMap()
       //status.
 
       boost::thread mapLoader( MapLoader( this ) );
-      throw InInit("Loading of HightMap file is started!");
    }
 }
 
