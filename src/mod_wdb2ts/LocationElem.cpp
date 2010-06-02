@@ -333,6 +333,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    float precipMean;
    float precipProb;
    bool myTryHard = tryHard;
+   bool isEqual=false;
    boost::posix_time::ptime fromTime;
    boost::posix_time::ptime stopTime;
    boost::posix_time::ptime startTime;
@@ -359,18 +360,42 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    //the totime.
    startTime = fromTime + hours( 1 );
 
-   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
-   for( CITimeSerie it = timeSerie->find( startTime );
+   WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
+   CITimeSerie it = timeSerie->find( startTime );
+
+   if( it == timeSerie->end() ) {
+      WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: No data. (Cant find a dataset for startTime '" << startTime << "').");
+      return false;
+   }
+
+   for( ;
         it != timeSerie->end() && it->first <= stopTime;
         ++it )
    {
+
+      if( isEqual )
+         fromTime = it->first;
+
       precipMean = getValue( &PData::PRECIP_MEAN,
                              it->second,
                              fromTime ,
                              const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
-      if( precipMean == FLT_MAX )
+      if( precipMean == FLT_MAX && !isEqual ) {
+         isEqual = true;
+         //Is fromtime and totime equal.
+         fromTime = it->first;
+         precipMean = getValue( &PData::PRECIP_MEAN,
+                                it->second,
+                                fromTime ,
+                                const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+
+      }
+
+      if( precipMean == FLT_MAX ) {
+         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MEAN provider: " << forecastProvider  << " fromtime: " << fromTime << " to: " << it->first );
          return false;
+      }
 
       myTryHard = false;
 
@@ -380,23 +405,28 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
 
-      if( precipMin == FLT_MAX )
+      if( precipMin == FLT_MAX ) {
+         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MIN" );
          return false;
+      }
 
       precipMax = getValue( &PData::PRECIP_MAX,
                             it->second,
                             fromTime ,
                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
-      if( precipMax == FLT_MAX )
+      if( precipMax == FLT_MAX ) {
+         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MAX" );
          return false;
+      }
 
       precipProb = getValue( &PData::PRECIP_PROBABILITY,
                             it->second,
                             fromTime ,
                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
-           //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
+      WEBFW_LOG_DEBUG("LocationElem::PRECIP_MIN_MAX_MEAN: " << fromTime << " mean: " << precipMean << " min: " << precipMin << " max: " << precipMax );
+
       fromTime = it->first;
 
       min.push_back( precipMin );
@@ -412,6 +442,10 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       maxOut = max[0];
       meanOut = mean[0];
       probOut = prob[0];
+
+      minOut = minOut<0?0:minOut;
+      maxOut = maxOut<0?0:maxOut;
+
       return true;
    }
 
@@ -420,6 +454,10 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       maxOut = FLT_MAX;
       probOut = FLT_MAX;
       meanOut = sumVector( mean );
+
+      minOut = minOut<0?0:minOut;
+      maxOut = maxOut<0?0:maxOut;
+
       return true;
    }
 
@@ -427,7 +465,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
 
    for( std::vector<float>::size_type i=0; i<min.size(); ++i ) {
       v = max[i] - min[i];
-      minMaxDif[i] = v<0?0:v;
+      minMaxDif.push_back( v<0?0:v );
    }
 
    if( ! sortVector( minMaxDif ) )
@@ -446,7 +484,8 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    minOut = minOut<0?0:minOut;
    maxOut = maxOut<0?0:maxOut;
    probOut = maxInVector( prob );
-   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
+
+   WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " (" << backTime_ << " - " << itTimeSerie->first << ") mean: " << meanOut << " min: " << minOut << " max: " << maxOut  );
    return true;
 }
 
@@ -510,7 +549,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    //the totime.
    startTime = fromTime + hours( 1 );
 
-   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
+   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
    for( CITimeSerie it = timeSerie->find( startTime );
         it != timeSerie->end() && it->first <= stopTime;
         ++it )
@@ -521,7 +560,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
                             fromTime ,
                             const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 
-      //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
+      //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
       fromTime = it->first;
 
 
@@ -533,7 +572,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    }
 
    if( count == 0 ) {
-      //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip: FLT_MAX" );
+      //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: return sumPrecip: FLT_MAX" );
       return FLT_MAX;
    }
 
@@ -542,7 +581,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    if( sumPrecip < 0 )
       sumPrecip = 0;
 
-   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
+   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: return sumPrecip:" << sumPrecip );
    return sumPrecip;
 }
 

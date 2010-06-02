@@ -389,7 +389,7 @@ updatePrecipAggregates( LocationElem &location,
 	   precipMax = FLT_MAX;
 	   precipProb = FLT_MAX;
 
-	   if( ! location.PRECIP_MIN_MAX_MEAN( precipConfig.precipHours[precipIndex], fromTime, precipMin, precipMax, precip, precipProb) )
+	   if( ! location.PRECIP_MIN_MAX_MEAN( precipConfig.precipHours[precipIndex], fromTime, precipMin, precipMax, precip, precipProb ) )
 	      precip = location.PRECIP( precipConfig.precipHours[precipIndex], fromTime);
 
 		if( precip != FLT_MAX ) {

@@ -469,15 +469,19 @@ decodePData( const ParamDefList &paramDefs,
 				pd.UU = value;
 			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
 				pd.PRECIP_ACCUMULATED = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY" )
+			else if( paramDef->alias() == "PRECIP.PROBABILITY" )  {
+            WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to << ")");
 			   pd.PRECIP_PROBABILITY = value;
-			else if( paramDef->alias() == "PRECIP.MIN" )
+			} else if( paramDef->alias() == "PRECIP.MIN" ) {
+			   WEBFW_LOG_DEBUG( "decodePData: PRECIP.MIN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MIN = value;
-			else if( paramDef->alias() == "PRECIP.MAX" )
+			} else if( paramDef->alias() == "PRECIP.MAX" ) {
+            WEBFW_LOG_DEBUG( "decodePData: PRECIP.MAX: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MAX = value;
-			else if( paramDef->alias() == "PRECIP.MEAN" )
+			} else if( paramDef->alias() == "PRECIP.MEAN" )  {
+            WEBFW_LOG_DEBUG( "decodePData: PRECIP.MEAN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MEAN = value;
-			else if( paramDef->alias() == "PRECIP" )
+			} else if( paramDef->alias() == "PRECIP" )
 				pd.PRECIP = value;	
 			else if( paramDef->alias() == "PRECIP.1H" )
 				pd.PRECIP_1T = value;

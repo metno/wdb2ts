@@ -58,21 +58,20 @@ output( std::ostream &out, const std::string &indent )
 	if( value == FLT_MAX )
 		return;
 
-	if( min >= 0 && max >= 0 ) {
+	if( min != FLT_MAX && max != FLT_MAX ) {
 	   std::ostringstream o;
 	   o.precision( out.precision() );
-	   o.setf( out.flags( ios::floatfield ) );
+	   o.flags( out.flags() );
 	   o << " minvalue=\"" << min << "\" maxvalue=\"" << max << "\"";
 
-	   /*TODO: Not used at the moment.
 	   if( prob >= 0 )
 	      o << " probability=\"" << prob << "\"";
-	    */
+
 	   minMaxProb = o.str();
 	}
 
 	out << indent 
-	    << "<precipitation unit=\"mm\" value=\"" << value << "\"" << minMaxProb << ">\n";
+	    << "<precipitation unit=\"mm\" value=\"" << value << "\"" << minMaxProb << "/>\n";
 }
 
 }
