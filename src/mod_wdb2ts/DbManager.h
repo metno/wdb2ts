@@ -85,7 +85,11 @@ namespace wdb2ts {
       
    public:
       DbManager( const miutil::pgpool::DbDefList     &dbSetup );
-   
+
+      ///Shutdown all connections that is not in use.
+      ///The rest of the connections is shutdown when they are released.
+      void disable();
+
       void defaultDbId( const std::string &id ) { defaultDbId_ = id; }
       std::string defaultDbId( ) { return defaultDbId_; }
       

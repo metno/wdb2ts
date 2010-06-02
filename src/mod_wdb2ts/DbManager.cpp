@@ -93,7 +93,14 @@ public:
 
 namespace wdb2ts {
 
-
+void
+DbManager::
+disable()
+{
+   for( std::map<std::string, miutil::pgpool::DbConnectionPoolPtr>::iterator it = pools_.begin();
+        it != pools_.end(); ++it )
+      it->second->disable();
+}
 
 DbManager::
 DbManager( const miutil::pgpool::DbDefList     &dbSetup )
