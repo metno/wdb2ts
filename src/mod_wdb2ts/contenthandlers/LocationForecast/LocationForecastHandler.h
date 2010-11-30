@@ -45,6 +45,7 @@
 #include <TopoProvider.h>
 #include <NearestHeight.h>
 #include <NearestLand.h>
+#include <NoteProviderList.h>
 #include <LocationPoint.h>
 
 namespace wdb2ts {
@@ -75,7 +76,8 @@ public:
 	virtual const char *name()const { return "LocationForecastHandler"; };
 
 	void configureWdbProjection( const wdb2ts::config::ActionParam &params, wdb2ts::Wdb2TsApp *app );
-	void configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
+	NoteProviderList* configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
+	NoteProviderList* doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
 
 	/**
 	 * extraConfigure does some late configuration that is not posible at 

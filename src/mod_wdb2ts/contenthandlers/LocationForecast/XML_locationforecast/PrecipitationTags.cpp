@@ -64,7 +64,7 @@ output( std::ostream &out, const std::string &indent )
 	   o.flags( out.flags() );
 	   o << " minvalue=\"" << min << "\" maxvalue=\"" << max << "\"";
 
-	   if( prob >= 0 )
+	   if( prob != FLT_MAX )
 	      o << " probability=\"" << prob << "\"";
 
 	   minMaxProb = o.str();

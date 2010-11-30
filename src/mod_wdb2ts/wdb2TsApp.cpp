@@ -258,13 +258,17 @@ int
 Wdb2TsApp::
 getHight( float latitude, float longitude )
 {
-   initHightMap();
 
-   if( ! hightMap ) {
-      if( inInitHightMap )
-         throw InInit("The HightMap file is loading!");
+   //initHightMap();
 
-      return INT_MIN;
+   { //Create a scope for the lock
+      boost::mutex::scoped_lock lock( mapMutex );
+      if( ! hightMap ) {
+         if( inInitHightMap )
+            throw InInit("The HightMap file is loading!");
+
+         return INT_MIN;
+      }
    }
 
 	int alt;
@@ -279,6 +283,10 @@ getHight( float latitude, float longitude )
 	return alt;
 }
 
+/**
+ * This function shoul ONLY be called by initAction.
+ * It starts a background thread that load the MapFile.
+ */
 void 
 Wdb2TsApp::
 initHightMap()
@@ -304,6 +312,11 @@ initHightMap()
 }
 
 
+/**
+ * This method is only called from the MapLoader thread.
+ * @param map A pointer to the map.
+ * @param itIsTryedToLoadTheMap True if the MapLoader thread has tryed to load the file. It my have failed.
+ */
 void 
 Wdb2TsApp::
 setHeightMap( Map *map, bool itIsTryedToLoadTheMap )
@@ -311,6 +324,7 @@ setHeightMap( Map *map, bool itIsTryedToLoadTheMap )
 	boost::mutex::scoped_lock lock( mapMutex );
 
 	hightMap = map;
+	inInitHightMap = false;
 	initHightMapTryed = itIsTryedToLoadTheMap;
 }
 

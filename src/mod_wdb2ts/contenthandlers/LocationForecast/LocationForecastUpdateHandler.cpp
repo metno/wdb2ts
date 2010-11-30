@@ -578,7 +578,7 @@ get( webfw::Request  &req,
 			return;
 		}
 #endif
-		app->initHightMap();
+		//app->initHightMap();
 		
 		
 		WEBFW_LOG_DEBUG( "LocationForecastUpdateHandler: myWdbID: " << myWdbID );;

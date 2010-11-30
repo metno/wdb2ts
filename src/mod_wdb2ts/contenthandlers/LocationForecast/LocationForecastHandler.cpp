@@ -114,51 +114,63 @@ configureWdbProjection( const wdb2ts::config::ActionParam &params, Wdb2TsApp *ap
 			                                                          app );
 }
 
-
-void
+NoteProviderList*
 LocationForecastHandler::
 configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
-	providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app ); 
+   providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app );
 
-	providerPriorityIsInitialized = true;
-	
-	if( app && ! updateid.empty() ) {
-		app->notes.setNote( updateid + ".LocationProviderList", 
-					           new NoteProviderList( providerPriority_, true ) );
+   providerPriorityIsInitialized = true;
 
-	}
+   if( app && ! updateid.empty() )
+      return new NoteProviderList( providerPriority_, true );
+   else
+      return 0;
 }
+
+
+NoteProviderList*
+LocationForecastHandler::
+doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
+{
+   NoteProviderList *noteProviderList=0;
+   boost::mutex::scoped_lock lock( mutex );
+
+   if( ! wciProtocolIsInitialized ) {
+      WEBFW_USE_LOGGER( "handler" );
+
+      wciProtocol = app->wciProtocol( wdbDB );
+
+      WEBFW_LOG_DEBUG("WCI protocol: " << wciProtocol);
+
+      if( wciProtocol > 0 )
+         wciProtocolIsInitialized = true;
+      else
+         wciProtocol = 1;
+   }
+
+   if( ! projectionHelperIsInitialized ) {
+      configureWdbProjection( params, app );
+   }
+
+   if( ! providerPriorityIsInitialized ) {
+      noteProviderList = configureProviderPriority( params, app );
+      symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
+   }
+
+   return noteProviderList;
+}
+
 
 void
 LocationForecastHandler::
-extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app ) 
+extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
-	boost::mutex::scoped_lock lock( mutex );
-			
-	if( ! wciProtocolIsInitialized ) {
-	     WEBFW_USE_LOGGER( "handler" );
+   NoteProviderList *noteProviderList = doExtraConfigure( params, app );
 
-		wciProtocol = app->wciProtocol( wdbDB );
-		
-		WEBFW_LOG_DEBUG("WCI protocol: " << wciProtocol);
-		
-		if( wciProtocol > 0 )
-			wciProtocolIsInitialized = true;
-		else
-			wciProtocol = 1;
-	}
-	
-	if( ! projectionHelperIsInitialized ) {
-		configureWdbProjection( params, app );
-	}
-
-	
-	if( ! providerPriorityIsInitialized ) {
-		configureProviderPriority( params, app );
-		symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
-
-	}
+   if( noteProviderList )
+      app->notes.setNote( updateid + ".LocationProviderList",
+                          noteProviderList );
 }
 
 	
@@ -298,7 +310,7 @@ getProviderReftimes()
 	
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	
-	{
+	{ //Create lock scope for mutex.
 		boost::mutex::scoped_lock lock( mutex );
 
 		WEBFW_USE_LOGGER( "handler" );
@@ -441,6 +453,7 @@ get( webfw::Request  &req,
 						        altitude, refTimes, providerPriority );
 
 		if( subversion == 0 ) {
+		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast'.");
 			EncodeLocationForecast encode( locationPointData,
 						                   &projectionHelper,
 									       webQuery.longitude(), webQuery.latitude(), altitude,
@@ -458,6 +471,7 @@ get( webfw::Request  &req,
 			encode.encode( response );
 			MARK_ID_MI_PROFILE("encodeXML");
 		} else if( subversion == 2 ) {
+		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast2'.");
 			EncodeLocationForecast2 encode( locationPointData,
 						                    &projectionHelper,
 									        webQuery.longitude(), webQuery.latitude(), altitude,
@@ -470,7 +484,11 @@ get( webfw::Request  &req,
 									        topographyProviders,
 									        symbolConf,
 									        expireRand );
+         MARK_ID_MI_PROFILE("encodeXML");
+         encode.encode( response );
+         MARK_ID_MI_PROFILE("encodeXML");
 		} else if( subversion == 3 ) {
+		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast3'.");
 		   EncodeLocationForecast3 encode( locationPointData,
                                          &projectionHelper,
                                          webQuery.longitude(), webQuery.latitude(), altitude,

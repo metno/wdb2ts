@@ -135,7 +135,11 @@ doGetProviderReftime( const std::string &provider,
 	
 	for( ProviderRefTimeList::const_iterator it = reftimes.begin();
 			it != reftimes.end(); ++it ) {
-		WEBFW_LOG_DEBUG( "    " << it->first << " -> " << it->second.refTime );
+		WEBFW_LOG_DEBUG( "    " << it->first << " -> " << it->second.refTime << " disabled: " << (it->second.disabled?"true":"false"));
+
+		if( it->second.disabled )
+		   continue;
+
 		pvItem = ProviderList::decodeItem( it->first );
 		
 		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
@@ -173,7 +177,7 @@ getProviderReftime( const std::string &provider,
 	doGetProviderReftime( provider, refTimeFrom, refTimeTo ); 
 		
 	if( refTimeFrom.is_special() ) {
-		WEBFW_LOG_INFO( " --- No reftime found for provider: " << provider );
+		WEBFW_LOG_INFO( " --- No reftime found or provider disabled: " << provider );
 		return false;
 	}
  
@@ -344,6 +348,8 @@ hasNext( )
 
 	ptime refTimeFrom;
 	ptime refTimeTo;
+	bool disabled;
+
 	dataProviders.erase();
 	
 	if( first ) {
@@ -407,6 +413,10 @@ hasNext( )
 				for( UrlParamDataProvider::ValueList::const_iterator itValueList = webQuery.dataprovider.valueList.begin();
 				     itValueList != webQuery.dataprovider.valueList.end();
 				     ++itValueList ) {
+				   if( reftimes.disabled( *itValueList, disabled) )
+				      if( disabled )
+				         continue;
+
 					curProviderPriority.push_back( ProviderItem( *itValueList ) );
 				}
 				/*
@@ -450,7 +460,23 @@ hasNext( )
 				}
 				
 				webQuery.dataprovider.setValueList( providerPriority.providerWithoutPlacename() );
-			} 
+			} else { //We must remove disablede providers from the query list.
+			   ProviderList tmpList;
+			   for( UrlParamDataProvider::ValueList::const_iterator itValueList = webQuery.dataprovider.valueList.begin();
+			         itValueList != webQuery.dataprovider.valueList.end();
+			         ++itValueList ) {
+			      if( reftimes.disabled( *itValueList, disabled) )
+			         if( disabled )
+			            continue;
+
+			      tmpList.push_back( ProviderItem( *itValueList ) );
+			   }
+
+			   if( tmpList.empty() )
+			      continue;
+
+			   webQuery.dataprovider.setValueList( tmpList.providerWithoutPlacename() );
+			}
 			
 			if( webQuery.reftime.sameTimespecAs( reftimeProvider ) ) {
 				if( ! getProviderReftime( reftimeProvider, refTimeFrom, refTimeTo ) ) 

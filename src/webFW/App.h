@@ -28,7 +28,7 @@
 #ifndef __APP_H__
 #define __APP_H__
 
-
+#include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <stdexcept>
 #include <macros.h>
@@ -58,8 +58,10 @@ class App
    std::string confdir_;
    std::string logdir_;
    std::string tmpdir_;
+   bool isInitialized_;
+   bool isShutdown_;
    
-   mutable boost::mutex mutex;
+   mutable boost::recursive_mutex mutex__;
 
    friend class RequestHandler;
    
@@ -74,6 +76,11 @@ class App
       App( RequestHandlerManager *regHandlerMgr );
       App( RequestHandlerManager *regHandlerMgr, IAbortHandlerManager *abortHandlerMgr );
       App();
+
+      /**
+       * DO NOT CALL THIS METHOD. IT IS ONLY TO BE USED BY THE FRAMEWORK.
+       */
+      void doShutdown();
 
       /**
        * Set the path from the modulename_set_confpath variable in the configuration file.

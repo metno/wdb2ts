@@ -291,7 +291,7 @@ void                                                               \
 Name##_child_init( apr_pool_t *pchild, server_rec *s )             \
 {                                                                  \
    std::cerr << "++ AppInit: child_init: " << AppClass::app()->moduleName()    \
-             << "_register_hooks: called!\n";         \
+             << " hook: called!\n";         \
    /* Initialize as a singleton before it is used in any threads.  \
     * Also call the apps initAction.                               \
     */                                                             \
@@ -347,13 +347,13 @@ Name##_set_logpath( cmd_parms *cmd, void *dummy, const char *arg) \
    	Name##_conf *conf = (Name##_conf*) ap_get_module_config ( s->module_config,   \
                                                               &Name##_module    );\
                                                                        \
-   	std::string buf( arg );                                            \
-   	miutil::trimstr( buf );                                            \
-   	conf->logpath = apr_pstrdup (cmd->pool, buf.c_str() );                  \
-   	                                                                   \
-   	return NULL;                                                       \
+   	std::string buf( arg );                                          \
+   	miutil::trimstr( buf );                                          \
+   	conf->logpath = apr_pstrdup ( cmd->pool, buf.c_str() );          \
+   	                                                                 \
+   	return NULL;                                                     \
 }                                                                      \
-	                                                                   \
+	                                                                    \
 const char*                                                            \
 Name##_set_tmppath( cmd_parms *cmd, void *dummy, const char *arg) \
 {                                                                      \

@@ -307,7 +307,7 @@ setupLogger( const std::string &name,
 		return;
 	}
 
-	cerr << "Add logger category: " << category <<"."<< endl;
+	cerr << "Add logger category: " << category <<". Pid: " << getpid() << endl;
 	log4cpp::Category &logger = log4cpp::Category::getInstance( category );
 	logger.setAdditivity( false );
 	logger.addAppender( *appender );

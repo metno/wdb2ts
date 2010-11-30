@@ -39,14 +39,16 @@ using namespace std;
 webfw::   
 App::
 App( RequestHandlerManager *reqHandlerMgr )
-   :requestHandlerManager_( reqHandlerMgr ), abortHandlerManager_( 0 )
+   :requestHandlerManager_( reqHandlerMgr ), abortHandlerManager_( 0 ),
+    isInitialized_( false ), isShutdown_( false )
 {
 }
 
 webfw::   
 App::
 App( RequestHandlerManager *reqHandlerMgr, IAbortHandlerManager *abortHandlerMgr )
-	:requestHandlerManager_( reqHandlerMgr ), abortHandlerManager_( abortHandlerMgr )
+	:requestHandlerManager_( reqHandlerMgr ), abortHandlerManager_( abortHandlerMgr ),
+	 isInitialized_( false ), isShutdown_( false )
 {
 }
 
@@ -54,7 +56,7 @@ webfw::
 App::
 App()
    : requestHandlerManager_( new DefaultRequestHandlerManager() ),
-     abortHandlerManager_( 0 )
+     abortHandlerManager_( 0 ), isInitialized_( false ), isShutdown_( false )
    
 {
 }
@@ -62,8 +64,25 @@ App()
 void 
 webfw::
 App::
+doShutdown()
+{
+   boost::recursive_mutex::scoped_lock locl( mutex__ );
+
+   if( isShutdown_ ) {
+      cerr << " **** WARNING WARNING WARNING shutdown allready called WARNING WARNING WARNING **** " << endl;
+      return;
+   }
+
+   onShutdown();
+
+}
+
+void
+webfw::
+App::
 initAction( RequestHandlerManager&  reqHandlerMgr, Logger &logger )
 {
+
 }
 
 void 
@@ -78,6 +97,15 @@ webfw::
 App::
 init( Logger &logger, IAbortHandlerManager *abortHandlerMgr )
 {
+   boost::recursive_mutex::scoped_lock locl( mutex__ );
+
+   if( isInitialized_ ) {
+      cerr << " **** WARNING WARNING WARNING App is allready initialized WARNING WARNING WARNING **** " << endl;
+      return;
+   }
+
+   isInitialized_ = true;
+
 	if( ! abortHandlerManager_ ) 
 		abortHandlerManager_ = abortHandlerMgr;
 	
@@ -91,7 +119,7 @@ webfw::
 App::
 setPathsFromConffile( const char *confpath, const char *logpath, const char *tmppath )
 {
-	boost::mutex::scoped_lock locl( mutex );
+	boost::recursive_mutex::scoped_lock locl( mutex__ );
 
 	if( confpathFromConffile_.empty() )
 		confpathFromConffile_ = confpath;
@@ -108,7 +136,7 @@ webfw::
 App::
 setConfDir( const std::string &confdir )
 {
-	boost::mutex::scoped_lock locl( mutex );
+	boost::recursive_mutex::scoped_lock locl( mutex__ );
 	confdir_ = confdir;
 }
 
@@ -117,7 +145,7 @@ webfw::
 App::
 getConfDir()const
 {
-	 boost::mutex::scoped_lock locl( mutex );
+	 boost::recursive_mutex::scoped_lock locl( mutex__ );
 
 	return confpathFromConffile_.empty() ? confdir_ : confpathFromConffile_;
 }
@@ -128,6 +156,7 @@ webfw::
 App::
 setLogDir( const std::string &logdir )
 {
+   boost::recursive_mutex::scoped_lock locl( mutex__ );
 	logdir_ = logdir;
 }
 
@@ -136,7 +165,7 @@ webfw::
 App::
 getLogDir()const
 {
-	boost::mutex::scoped_lock locl( mutex );
+	boost::recursive_mutex::scoped_lock locl( mutex__ );
 
 	return logpathFromConffile_.empty() ? logdir_ : logpathFromConffile_;
 }
@@ -146,7 +175,7 @@ webfw::
 App::
 setTmpDir( const std::string &tmpdir )
 {
-	boost::mutex::scoped_lock locK( mutex );
+	boost::recursive_mutex::scoped_lock locK( mutex__ );
 
 	tmpdir_ = tmpdir;
 }
@@ -156,7 +185,7 @@ webfw::
 App::
 getTmpDir()const
 {
-	boost::mutex::scoped_lock locK( mutex );
+	boost::recursive_mutex::scoped_lock locK( mutex__ );
 
 	return tmppathFromConffile_.empty() ? tmpdir_ : tmppathFromConffile_;
 }

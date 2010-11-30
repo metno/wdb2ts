@@ -123,7 +123,7 @@ readMapFile(const std::string &filename, std::string &error)
    }
    
    if ( !readHeader(inst, hpar, line, error) ) 
-      return false;
+      return 0;
     
    //cerr << hpar;
     
@@ -140,7 +140,7 @@ readMapFile(const std::string &filename, std::string &error)
    }
    catch(...){
       error="ERROR: NOMEM\n";
-      return false;
+      return 0;
    }    
     
     

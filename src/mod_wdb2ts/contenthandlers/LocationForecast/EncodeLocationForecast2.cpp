@@ -646,7 +646,6 @@ encode(  webfw::Response &response )
 	if( expireRand > 0)
 		expire = expire + seconds( rand_r( &seed ) % expireRand );
 	
-	
 	WEBFW_LOG_DEBUG( "encode: Number of locations: " << locationPointData->size() );
 
 	if( locationPointData->empty() ) {

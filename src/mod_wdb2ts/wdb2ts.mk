@@ -46,6 +46,7 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
                       src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
 					  src/mod_wdb2ts/contenthandlers/Location/LocationHandler.h\
+					  src/mod_wdb2ts/Mutex.h \
 					  src/mod_wdb2ts/Map.cpp \
 					  src/mod_wdb2ts/Map.h \
 					  src/mod_wdb2ts/MapLoader.h \

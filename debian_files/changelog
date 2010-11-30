@@ -1,3 +1,17 @@
+metno-wdb2ts (0.9.6.7-1) unstable; urgency=low
+  * Ticket #24. Fix deadlock in initializing wdb2ts.
+  * Fix bug in initializing of Maps when read from file.
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 30 Nov 2010 11:15:00 +0100
+
+
+metno-wdb2ts (0.9.6.5-1) unstable; urgency=low
+  * Fix stop_if_data works with disabling of providers.
+  * Fix missing call to encode for EncodeLocationForecast2.
+  * Implemented new algorithm for precipitation in EncodeLocationForecast3.
+  
+ -- Borge Moe <borge.moe@met.no>  Fri, 30 Jul 2010 08:00:00 +0100
+
 metno-wdb2ts (0.9.6.4-1) unstable; urgency=low
   * Fix race in signal handling.
   * Fix temeperature id incompatibility with ts2xml.
