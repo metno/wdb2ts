@@ -97,53 +97,66 @@ configureWdbProjection( const wdb2ts::config::ActionParam &params, Wdb2TsApp *ap
 			                                                          app );
 }
 
-
-
-void
+NoteProviderList*
 LocationForecastGmlHandler::
 configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
-	providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app ); 
-	providerPriorityIsInitialized = true;
-	
-	//WEBFW_LOG_DEBUG( " ------  CheckPoint --------------------" );
-	
-	if( app && ! updateid.empty() ) {
-		app->notes.setNote( updateid + ".LocationProviderList", 
-					           new NoteProviderList( providerPriority_, false ) );
+   providerPriority_ = wdb2ts::configureProviderList( params, wdbDB, app );
 
-	}
+   providerPriorityIsInitialized = true;
+
+   if( app && ! updateid.empty() )
+      return new NoteProviderList( providerPriority_, true );
+   else
+      return 0;
 }
-	
+
+
+NoteProviderList*
+LocationForecastGmlHandler::
+doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
+{
+   NoteProviderList *noteProviderList=0;
+   boost::mutex::scoped_lock lock( mutex );
+
+   if( ! wciProtocolIsInitialized ) {
+      WEBFW_USE_LOGGER( "handler" );
+
+      wciProtocol = app->wciProtocol( wdbDB );
+
+      WEBFW_LOG_DEBUG("WCI protocol: " << wciProtocol);
+
+      if( wciProtocol > 0 )
+         wciProtocolIsInitialized = true;
+      else
+         wciProtocol = 1;
+   }
+
+   if( ! projectionHelperIsInitialized ) {
+      configureWdbProjection( params, app );
+   }
+
+   if( ! providerPriorityIsInitialized ) {
+      noteProviderList = configureProviderPriority( params, app );
+      paramDefsPtr_->resolveProviderGroups( *app, wdbDB );
+      symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
+   }
+
+   return noteProviderList;
+}
 
 
 void
 LocationForecastGmlHandler::
-extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app ) 
+extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
-	boost::mutex::scoped_lock lock( mutex );
+   NoteProviderList *noteProviderList = doExtraConfigure( params, app );
 
-	if( ! wciProtocolIsInitialized ) {
-		wciProtocol = app->wciProtocol( wdbDB );
-		
-		WEBFW_USE_LOGGER( "handler" );
-		WEBFW_LOG_DEBUG( "WCI protocol: " << wciProtocol );
-		
-		if( wciProtocol > 0 )
-			wciProtocolIsInitialized = true;
-		else
-			wciProtocol = 1;
-	}
-
-	if( ! projectionHelperIsInitialized ) {
-		configureWdbProjection( params, app );
-	}
-	
-	if( ! providerPriorityIsInitialized ) {
-		configureProviderPriority( params, app );
-		symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
-	}
+   if( noteProviderList )
+      app->notes.setNote( updateid + ".LocationProviderList",
+                          noteProviderList );
 }
+
 
 
 
@@ -228,6 +241,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
+	paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
 	//extraConfigure( params, app );
 	
 	return true;
@@ -265,6 +279,8 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 		
+		paramDefsPtr_.reset( new ParamDefList( Wdb2TsApp::app()->getParamDefs() ) );
+
 		std::ostringstream logMsg;
 		logMsg << "noteUpdated: ProviderReftimes:\n";
 		for( ProviderRefTimeList::iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it ) {
@@ -278,10 +294,12 @@ noteUpdated( const std::string &noteName,
 void 
 LocationForecastGmlHandler::
 getProtectedData( SymbolConfProvider &symbolConf, 
-		            ProviderList &providerList )
+		            ProviderList &providerList ,
+		            ParamDefListPtr &paramDefsPtr)
 {
 	boost::mutex::scoped_lock lock( mutex );
 	
+	paramDefsPtr = paramDefsPtr_;
 	providerList = providerPriority_;
 	symbolConf = symbolConf_;
 }
@@ -352,6 +370,7 @@ get( webfw::Request  &req,
 	ostringstream ost;
 	int   altitude;
 	PtrProviderRefTimes refTimes;
+	ParamDefListPtr     paramDefPtr;
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
@@ -417,7 +436,7 @@ get( webfw::Request  &req,
 	}
 	
 	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority );
+	getProtectedData( symbolConf, providerPriority, paramDefPtr );
 	removeDisabledProviders( providerPriority, *refTimes );
     
 	try{
@@ -425,7 +444,7 @@ get( webfw::Request  &req,
 	   LocationPointListPtr locationPoints;
 
 	   if( webQuery.isPolygon() )
-	      locationPoints = getPolygonPoints( webQuery, providerPriority, *refTimes );
+	      locationPoints = getPolygonPoints( webQuery, providerPriority, *refTimes, paramDefPtr );
 	   else
 	      locationPoints = LocationPointListPtr( new LocationPointList( webQuery.locationPoints() ) );
 
@@ -439,7 +458,7 @@ get( webfw::Request  &req,
 	   }
 
 	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.to(),
-	                          webQuery.isPolygon(), altitude, refTimes, providerPriority );
+	                          webQuery.isPolygon(), altitude, refTimes, paramDefPtr, providerPriority );
 
 		EncodeLocationForecastGml2 encode( reqit,
 		                                   &projectionHelper,
@@ -494,6 +513,7 @@ requestWdb( const LocationPointList &locationPoints,
 		    const boost::posix_time::ptime &to,
 		    bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
+		    ParamDefListPtr paramDefs,
 		    const ProviderList &providerPriority
           ) const
 {	
@@ -502,7 +522,7 @@ requestWdb( const LocationPointList &locationPoints,
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 	WciReadLocationForecast readLocationForecastTransactor(
 			                               locationPoints, to, isPolygon, altitude,
-			                               app->paramDefs(), refTimes, providerPriority, urlQuerys,
+			                               *paramDefs, refTimes, providerPriority, urlQuerys,
 			                               wciProtocol
 			                           );
 	try { 
@@ -533,11 +553,11 @@ LocationPointListPtr
 LocationForecastGmlHandler::
 getPolygonPoints( const WebQuery &webQuery,
                   const ProviderList &providerPriority,
-                  const ProviderRefTimeList &refTimes )
+                  const ProviderRefTimeList &refTimes,
+                  ParamDefListPtr params)
 {
    WEBFW_USE_LOGGER( "handler" );
 	Wdb2TsApp *app=Wdb2TsApp::app();
-	ParamDefList params = app->paramDefs();
 	ParamDefPtr itParam;
 	ParamDef modelTopoParam;
 	LocationPointListPtr modelTopoLocations;
@@ -573,7 +593,7 @@ getPolygonPoints( const WebQuery &webQuery,
 
 
 
-        if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", provider ) ) {
+        if( ! params->findParam( itParam,  "MODEL.TOPOGRAPHY", provider ) ) {
            WEBFW_LOG_WARN( "getPolygonPoints: No parameter definition for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
            continue;
         }

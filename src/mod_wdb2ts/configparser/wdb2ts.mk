@@ -13,15 +13,24 @@ libwdb2tsconfigparser_la_SOURCES= \
 							src/mod_wdb2ts/configparser/State.cc
 
 EXTRA_DIST+= src/mod_wdb2ts/configparser/wdb2ts.mk \
-				 src/mod_wdb2ts/configparser/Makefile.am \
-				 src/mod_wdb2ts/configparser/Makefile.in
+			 src/mod_wdb2ts/configparser/Makefile.am \
+			 src/mod_wdb2ts/configparser/Makefile.in
 
-DISTCLEANFILES +=	src/mod_wdb2ts/configparser/Makefile
+DISTCLEANFILES += src/mod_wdb2ts/configparser/Makefile
 
-wdb2ts_check_config_SOURCES = src/mod_wdb2ts/configparser/wdb2ts_check_config.cc
+wdb2ts_check_config_SOURCES= src/mod_wdb2ts/configparser/wdb2ts_check_config.cc
+wdb2ts_check_config_LDFLAGS= -rpath $(libexecdir) 
 wdb2ts_check_config_LDADD=-lwdb2tsconfigparser \
-                          -lmiutil \
-                          -lwdb2ts
+                           libwdb2ts.la \
+                           -lwebFW  \
+                    	   -lWciWebQuery	\
+                    	   -lwdb2tsconfigparser \
+                    	   -lmiutil \
+                    	   -lXML_locationforecast \
+                    	   -lgfortran \
+                    	   $(LDFLAGS) \
+                    	   $(LIBPQXX_LIBS) 
+
 
 # Local Makefile Targets
 #-----------------------------------------------------------------------------

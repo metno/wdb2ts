@@ -144,6 +144,7 @@ public:
                                      bool isPloygon,
                                      int altitude,
                                      PtrProviderRefTimes refTimes,
+                                     ParamDefListPtr  paramDefs,
                                      const ProviderList  &providerPriority,
                                      const wdb2ts::config::Config::Query &urlQuerys,
                                      int wciProtocol );

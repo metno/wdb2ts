@@ -105,6 +105,7 @@ doPolygon( argument_type &t )
    string selectPolygon;
    ParamDefList params;
    ParamDefPtr itPar;
+   string dummyGroupProvider; //Is not used.
    float value;
    int skip = 0;
 
@@ -162,7 +163,7 @@ doPolygon( argument_type &t )
       if( it.at("value").is_null() )
          continue;
 
-      //Weare not using every point. It is requested that we skip some points.
+      //We are not using every point. It is requested that we skip some points.
       skip = (skip+1) % skip_;
 
       if( skip ) {
@@ -171,7 +172,7 @@ doPolygon( argument_type &t )
          continue;
       }
 
-      if( findParam( it, itPar, params ) ) {
+      if( params.findParam( it, itPar, dummyGroupProvider ) ) {
          if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
             continue;
 
@@ -199,6 +200,7 @@ doLocation( argument_type &t )
    ParamDefList params;
    ParamDefPtr itPar;
    LocationPoint locationPoint;
+   string dummyGProviderGroup; //Is not used.
    float value;
 
    locations_->clear();
@@ -226,7 +228,7 @@ doLocation( argument_type &t )
       if( it.at("value").is_null() )
          continue;
 
-      if( findParam( it, itPar, params ) ) {
+      if( params.findParam( it, itPar, dummyGProviderGroup ) ) {
          if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
             continue;
 

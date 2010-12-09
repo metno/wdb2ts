@@ -23,7 +23,7 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-    MA  02110-1301, USA
+    MA  02110-1301, USA.h
 */
 
 #ifndef __WDB2TSAPP_H__
@@ -40,6 +40,7 @@
 #include <Map.h>
 #include <Config.h>
 #include <NoteManager.h>
+#include <ParamDef.h>
 
 namespace wdb2ts {
 
@@ -77,7 +78,7 @@ public:
 	WciConnectionPtr newWciConnection(const std::string &dbid="");
 
 	
-	ParamDefList &paramDefs() { return paramDefs_; }
+	ParamDefList &getParamDefs() { return paramDefs_; }
 
 	std::string getMapFilePath()const;
 

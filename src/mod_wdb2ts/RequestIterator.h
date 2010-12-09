@@ -37,6 +37,7 @@
 #include <exception.h>
 #include <wdb2TsApp.h>
 #include <NearestHeight.h>
+#include <ParamDef.h>
 
 
 #ifndef __REQUESTITERATOR_H__
@@ -56,6 +57,7 @@ namespace wdb2ts {
       bool isPolygon;
       int altitude;
       const PtrProviderRefTimes refTimes_;
+      ParamDefListPtr  paramDefs;
       ProviderList providerPriority_;
       LocationPointList::const_iterator itPoint;
 
@@ -72,6 +74,7 @@ namespace wdb2ts {
                        const boost::posix_time::ptime &to,
                        bool isPolygon, int altitude,
                        const PtrProviderRefTimes refTimes,
+                       ParamDefListPtr  paramDefs,
                        const ProviderList &providerPriority );
 
 

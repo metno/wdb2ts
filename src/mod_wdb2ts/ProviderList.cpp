@@ -331,53 +331,64 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 	return resList;			
 }
 
+ProviderList
+providerListFromConfig( const wdb2ts::config::ActionParam &params )
+{
+   string provider;
+   ProviderList providerPriority;
+   wdb2ts::config::ActionParam::const_iterator it;
+
+   WEBFW_USE_LOGGER( "handler" );
+
+   it=params.find("provider_priority");
+
+   if( it != params.end() ) {
+      vector<string> pp = miutil::splitstr( it->second.asString(), ';' );
+
+      WEBFW_LOG_DEBUG( "configureProviderPriority: provider_priority: <" << it->second.asString() << "> Size: " << pp.size() );
+
+      for( vector<string>::size_type i=0; i<pp.size(); ++i ) {
+         ProviderList pList = ProviderList::decode( pp[i], provider );
+
+         for( ProviderList::iterator pit=pList.begin(); pit != pList.end(); ++pit )
+            providerPriority.push_back( *pit );
+      }
+
+      std::ostringstream logMsg;
+      logMsg << "configureProviderPriority: ProviderPriority: defined.\n";
+      for( ProviderList::size_type i=0; i < providerPriority.size(); ++i )
+         logMsg << "  " << providerPriority[i].providerWithPlacename() << '\n';
+      WEBFW_LOG_DEBUG(logMsg.str());
+   }
+
+   return providerPriority;
+}
+
 
 ProviderList
 configureProviderList( const wdb2ts::config::ActionParam &params, 
 		                 const std::string &wdbDB,
 		                 Wdb2TsApp *app )
 {
-	string provider;
-	ProviderList providerPriority;
+	ProviderList providerPriority = providerListFromConfig( params );
 	ProviderList retProviderPriority;
-	wdb2ts::config::ActionParam::const_iterator it;
 
 	WEBFW_USE_LOGGER( "handler" );
 	
-	it=params.find("provider_priority");
-	
-	if( it != params.end() ) {
-		vector<string> pp = miutil::splitstr( it->second.asString(), ';' );
-		
-		WEBFW_LOG_DEBUG( "configureProviderPriority: provider_priority: <" << it->second.asString() << "> Size: " << pp.size() );
-		
-		for( vector<string>::size_type i=0; i<pp.size(); ++i ) {
-			ProviderList pList = ProviderList::decode( pp[i], provider );
-			
-			for( ProviderList::iterator pit=pList.begin(); pit != pList.end(); ++pit ) 
-				providerPriority.push_back( *pit );
-		}	
-		
-		std::ostringstream logMsg;
-		logMsg << "configureProviderPriority: ProviderPriority: defined.\n";
-		for( ProviderList::size_type i=0; i < providerPriority.size(); ++i )
-			logMsg << "  " << providerPriority[i].providerWithPlacename() << '\n';
-		WEBFW_LOG_DEBUG(logMsg.str());
-
+	if( ! providerPriority.empty() ) {
 		retProviderPriority = providerPrioritySetPlacename( providerPriority, wdbDB, app );
 		
-		logMsg.clear();
+      std::ostringstream logMsg;
 		logMsg << "configureProviderPriority: ProviderPriority: defined (resolved).\n";
 
 		for( ProviderList::size_type i=0; i < retProviderPriority.size(); ++i )
 			logMsg << "  " << retProviderPriority[i].providerWithPlacename() << endl;
 		WEBFW_LOG_DEBUG(logMsg.str());
 	}
-	
 
-	cerr << "configureProviderList: #" << retProviderPriority.size() << endl;
-	for( ProviderList::iterator it = retProviderPriority.begin(); it!= retProviderPriority.end(); ++it )
-		cerr << "configureProviderList: '" << it->providerWithPlacename() << "'" << endl;
+//	cerr << "configureProviderList: #" << retProviderPriority.size() << endl;
+//	for( ProviderList::iterator it = retProviderPriority.begin(); it!= retProviderPriority.end(); ++it )
+//		cerr << "configureProviderList: '" << it->providerWithPlacename() << "'" << endl;
 
 	return retProviderPriority;
 }

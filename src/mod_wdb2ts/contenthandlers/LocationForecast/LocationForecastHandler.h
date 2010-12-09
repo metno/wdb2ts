@@ -47,6 +47,7 @@
 #include <NearestLand.h>
 #include <NoteProviderList.h>
 #include <LocationPoint.h>
+#include <ProviderGroups.h>
 
 namespace wdb2ts {
 
@@ -116,11 +117,12 @@ private:
    TopoProviderMap     modelTopoProviders;
    std::list<std::string> topographyProviders;
    NearestHeights      nearestHeights;
-   NearestLandConf        nearestLands;
+   NearestLandConf     nearestLands;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
+   ParamDefListPtr     paramDefsPtr_;
    bool                projectionHelperIsInitialized;
    ProviderPrecipitationConfig *precipitationConfig;
    bool                wciProtocolIsInitialized;
@@ -129,9 +131,10 @@ private:
    boost::mutex        mutex; 
       
   	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
-									 const boost::posix_time::ptime &to,
-									 bool isPolygon, int altitude,
-  		                             PtrProviderRefTimes refTime,
+  	                                 const boost::posix_time::ptime &to,
+  	                                 bool isPolygon, int altitude,
+  	                                 PtrProviderRefTimes refTime,
+  	                                 ParamDefListPtr  paramDefs,
   		                             const ProviderList &providerPriority )const;
   	
   	/*
@@ -141,7 +144,7 @@ private:
   	PtrProviderRefTimes getProviderReftimes();
   	
   	//Get some mutex protected data.
-  	void getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList );
+  	void getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList, ParamDefListPtr &paramDefsPtr );
   	
   	void
   	nearestHeightPoint( const LocationPointList &locationPoints,
@@ -149,6 +152,7 @@ private:
   			            LocationPointDataPtr data,
   			            int altitude,
   			            PtrProviderRefTimes refTimes,
+  			            ParamDefListPtr paramDefs,
   			            const ProviderList &providerPriority
   					  ) const;
 
@@ -158,6 +162,7 @@ private:
   	                  LocationPointDataPtr data,
   	                  int altitude,
   	                  PtrProviderRefTimes refTimes,
+  	                  ParamDefListPtr params,
   	                  const ProviderList &providerPriority
   	                ) const;
 

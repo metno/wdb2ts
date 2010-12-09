@@ -256,7 +256,7 @@ computeNearestLand( const NearestLandConfElement &conf,
         itNearestLandParams != conf.params().end();
         ++itNearestLandParams )
    {
-      if( ! findParam( itParam, params, itNearestLandParams->first, itNearestLandParams->second ) ) {
+      if( ! params.findParam( itParam, itNearestLandParams->first, itNearestLandParams->second ) ) {
          WEBFW_LOG_WARN( "Nearest Land: No parameter definition for '" << itNearestLandParams->first << ", provider '"
                          << itNearestLandParams->second << "'.");
          continue;
@@ -342,14 +342,14 @@ processNearestLandPoint( )
 			continue;
 		}
 
-		if( ! findParam( itParam, params, "LANDCOVER", it->second.landmaskProvider() ) ) {
+		if( ! params.findParam( itParam, "LANDCOVER", it->second.landmaskProvider() ) ) {
 			WEBFW_LOG_WARN( "Nearest land: No parameter definition for maxconvecprec, provider '" << it->second.landmaskProvider() << "'.");
 			continue;
 		}
 
 		landmaskParam = *itParam;
 
-		if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
+		if( ! params.findParam( itParam,  "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
 		   WEBFW_LOG_WARN( "Nearest land: No parameter definition for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
 		   continue;
 		}

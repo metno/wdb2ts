@@ -32,11 +32,13 @@
 
 #include <map>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 #include <RequestConf.h>
 
 namespace wdb2ts {
 
 class Wdb2TsApp;
+class ProviderGroups;
 
 struct ProviderItem {
 	std::string provider;
@@ -89,7 +91,7 @@ struct ProviderItem {
 class ProviderList : public std::vector<ProviderItem> 
 {
 public:
-	ProviderList(){};
+   ProviderList(){};
 	
 	/**
 	 * Find a provider/placename definition.
@@ -146,6 +148,9 @@ ProviderList
 providerPrioritySetPlacename( const ProviderList &pvList, 
 										const std::string &wdbDB,
 										Wdb2TsApp *app );
+
+ProviderList
+providerListFromConfig( const wdb2ts::config::ActionParam &params );
 
 ProviderList
 configureProviderList( const wdb2ts::config::ActionParam &params, 

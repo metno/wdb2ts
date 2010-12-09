@@ -165,15 +165,42 @@ operator<<(std::ostream& output, const ParamDef &pd)
 	return output;
 }
 
+ParamDefList::
+ParamDefList()
+{
+}
+
+ParamDefList::
+ParamDefList( const ParamDefList &pdl )
+{
+   providerGroups_ = pdl.providerGroups_;
+   insert( pdl.begin(), pdl.end() );
+}
+
+ParamDefList::
+~ParamDefList()
+{
+}
+
+ParamDefList
+ParamDefList::
+operator=(const ParamDefList &rhs )
+{
+   if( this != &rhs ) {
+      providerGroups_ = rhs.providerGroups_;
+
+      clear();
+      insert( rhs.begin(), rhs.end() );
+   }
+   return *this;
+}
 
 bool
+ParamDefList::
 findParam( pqxx::result::const_iterator it,
 		     ParamDefPtr &paramDef,
-		     const ParamDefList &paramsDefs_ )
+		     std::string &providerGroup )const
 {
-	ParamDefList &paramsDefs=const_cast<ParamDefList&>( paramsDefs_ );
-	
-	string dataprovider( it.at("dataprovidername").c_str() );
 	string valueparametername( it.at("valueparametername").c_str() );
 	string valueparameterunit;
 	string levelparametername( it.at("levelparametername").c_str() );
@@ -181,18 +208,20 @@ findParam( pqxx::result::const_iterator it,
 	int    levelto( it.at("levelto").as<int>() );
 	string levelunitname;
 	
+	providerGroup = providerGroups_.lookUpGroupName( it.at("dataprovidername").c_str() );
+
 	if( ! it.at("valueparameterunit").is_null() )
 		valueparameterunit = it.at("valueparameterunit").c_str();
 	
 	if( ! it.at("levelunitname").is_null() )
 		levelunitname = it.at("levelunitname").c_str();
 	
-	ParamDefList::iterator pit = paramsDefs.find( dataprovider );
+	ParamDefList::iterator pit = const_cast<ParamDefList*>(this)->find( providerGroup );
 	
-	if( pit == paramsDefs.end() )
-		pit = paramsDefs.find( defaultProvider );
+	if( pit == const_cast<ParamDefList*>(this)->end() )
+		pit = const_cast<ParamDefList*>(this)->find( defaultProvider );
 	
-	if( pit == paramsDefs.end() )
+	if( pit == const_cast<ParamDefList*>(this)->end() )
 		return false;
 	
 	do {
@@ -208,26 +237,28 @@ findParam( pqxx::result::const_iterator it,
 				return true;
 		}
 		if( pit->first != defaultProvider )
-			pit = paramsDefs.find( defaultProvider );
+			pit = const_cast<ParamDefList*>(this)->find( defaultProvider );
 		else
-			pit = paramsDefs.end();
-	}while( pit !=  paramsDefs.end() );
+			pit = const_cast<ParamDefList*>(this)->end();
+	}while( pit !=  const_cast<ParamDefList*>(this)->end() );
 	return false;
 }
 
 bool
-hasParam(  const ParamDefList &paramsDefs, 
-		     const std::string &alias,
-		     const std::string &provider_ )
+ParamDefList::
+hasParam(  const std::string &alias,
+		     const std::string &provider_ )const
 {
 	std::string provider( provider_ );
 	
 	if( provider.empty() )
 		provider = defaultProvider;
 	
-	ParamDefList::const_iterator it = paramsDefs.find( provider );
-	
- 	if( it == paramsDefs.end() )
+	provider = providerGroups_.lookUpGroupName( provider );
+
+	ParamDefList::const_iterator it = find( provider );
+
+ 	if( it == end() )
 		return false;
 
 	for( std::list<ParamDef>::const_iterator paramDef = it->second.begin();
@@ -243,19 +274,19 @@ hasParam(  const ParamDefList &paramsDefs,
 
 
 bool
+ParamDefList::
 findParam( ParamDefPtr &paramDef,
-		     const ParamDefList &paramsDefs_, 
 		     const std::string &alias,
-		     const std::string &provider )
+		     const std::string &provider_ )const
 {
-	
-	ParamDefList &paramsDefs=const_cast<ParamDefList&>( paramsDefs_ );
-	ParamDefList::iterator it = paramsDefs.find( provider );
-	
- 	if( it == paramsDefs.end() )
-		it = paramsDefs.find( defaultProvider );
+   string provider = providerGroups_.lookUpGroupName( provider_ );
 
-	if( it == paramsDefs.end() )
+	ParamDefList::iterator it = const_cast<ParamDefList*>(this)->find( provider );
+	
+ 	if( it == const_cast<ParamDefList*>(this)->end() )
+		it = const_cast<ParamDefList*>(this)->find( defaultProvider );
+
+	if( it == end() )
 			return false;
 	do {
 		for( paramDef = it->second.begin();
@@ -266,33 +297,57 @@ findParam( ParamDefPtr &paramDef,
 		}
 
 		if( it->first != defaultProvider )
-			it = paramsDefs.find( defaultProvider );
+			it = const_cast<ParamDefList*>(this)->find( defaultProvider );
 		else
-			it = paramsDefs.end();
-	}while( it !=  paramsDefs.end() );
+			it = const_cast<ParamDefList*>(this)->end();
+	}while( it !=  const_cast<ParamDefList*>(this)->end() );
 
 	return false;
 }
 
 
 bool 
-addParamDef( ParamDefList &paramsDefs, 
-		       const ParamDef  &pd,
+ParamDefList::
+addParamDef( const ParamDef  &pd,
 		       const std::string &provider ) 
 {
 	
-	if( hasParam( paramsDefs, pd.alias(), provider ) )
+	if( hasParam( pd.alias(), provider ) )
 		return false;
 
 	if( provider.empty() )
-		paramsDefs[defaultProvider].push_back( pd );
+		(*this)[defaultProvider].push_back( pd );
 	else
-		paramsDefs[provider].push_back( pd );
+		(*this)[provider].push_back( pd );
 	
 	return true;
 }
 
+std::string
+ParamDefList::
+lookupGroupName( const std::string &providerName )const
+{
+   return providerGroups_.lookUpGroupName( providerName );
+}
 
+void
+ParamDefList::
+resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid )
+{
+   providerGroups_.clear();
+
+   providerGroups_.resolve( app, wdbid );
+}
+
+void
+renameProvider( std::string &providerWithPlacename, const std::string &newProvider ) {
+   string::size_type i = providerWithPlacename.find( " [" );
+
+   if( i == string::npos )
+      providerWithPlacename = newProvider;
+   else
+      providerWithPlacename.replace( 0, i, newProvider );
+}
 
 
 } // namespace wdb2ts

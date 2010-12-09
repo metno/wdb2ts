@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES += libwdb2ts.la \
-							 mod_metno_wdb2ts.la
+					  mod_metno_wdb2ts.la
 
 libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/transactor/WciReadLocationForecast.h \
@@ -12,6 +12,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/transactor/LocationPointMatrixData.cpp \
                       src/mod_wdb2ts/transactor/ProviderRefTime.h \
                       src/mod_wdb2ts/transactor/ProviderRefTime.cpp \
+                      src/mod_wdb2ts/transactor/ResolveProviderGroups.h \
+                      src/mod_wdb2ts/transactor/ResolveProviderGroups.cpp \
                       src/mod_wdb2ts/transactor/Version.h \
                       src/mod_wdb2ts/transactor/Version.cpp \
                       src/mod_wdb2ts/transactor/WciRead.cpp \
@@ -63,6 +65,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/LocationData.cpp \
 	                  src/mod_wdb2ts/Encode.cpp \
 	                  src/mod_wdb2ts/Encode.h \
+	                  src/mod_wdb2ts/ProviderGroups.h \
+	                  src/mod_wdb2ts/ProviderGroups.cpp \
 	                  src/mod_wdb2ts/ParamDef.h \
 	                  src/mod_wdb2ts/ParamDef.cpp \
 	                  src/mod_wdb2ts/PointDataHelper.cpp \
@@ -133,26 +137,26 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 
 mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
-								     -export-dynamic      \
-								     -module              \
-								     -avoid-version
+						     -export-dynamic      \
+							 -module              \
+							 -avoid-version
 								
-mod_metno_wdb2ts_la_LIBADD= libwdb2ts.la \
-                    			 -lwebFW  \
-                    			 -lWciWebQuery	\
-                    			 -lwdb2tsconfigparser \
-                    			 -lmiutil \
-                    			 -lXML_locationforecast \
-                    			 -lgfortran
-                    			 
+mod_metno_wdb2ts_la_LIBADD=libwdb2ts.la \
+                           -lwebFW  \
+                    	   -lWciWebQuery	\
+                    	   -lwdb2tsconfigparser \
+                    	   -lmiutil \
+                    	   -lXML_locationforecast \
+                    	   -lgfortran
+
 noinst_PROGRAMS+= TestWdb2Ts
 
 TestWdb2Ts_SOURCES = src/mod_wdb2ts/testWdb2Ts.cpp
 
 TestWdb2Ts_LDFLAGS= -lwdb2ts \
-						  -lwebFW  \
-						  -lWciWebQuery	\
-						  -lwdb2tsconfigparser \
+					-lwebFW  \
+					-lWciWebQuery	\
+					-lwdb2tsconfigparser \
 						  -lmiutil \
 						  -lXML_locationforecast \
 						   $(LIBPQXX_LIBS) \

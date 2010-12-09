@@ -240,7 +240,7 @@ doParamDef( const AttributeMap &attributes )
 		if( it->empty() )
 			continue;
 		
-		if(  wdb2ts::hasParam( config->paramDefs, id, *it ) ) {
+		if(  config->paramDefs.hasParam( id, *it ) ) {
 			currentParamDefProvider.clear();
 			error("doParamDef id: '" + id + "' provider: '" + *it + "' allready defined.");
 			return false;
@@ -472,7 +472,7 @@ addParamDef()
 	currentParamDefProvider.clear();
 	
 	if( provider.empty() ) {
-		if( ! wdb2ts::addParamDef( config->paramDefs, pd, "" ) ) {
+		if( ! config->paramDefs.addParamDef( pd, "" ) ) {
 			error( "addParam: ParamDef '"+alias+"' provider: 'default' allready defined.");
 			return false;
 		}
@@ -481,7 +481,7 @@ addParamDef()
 		     it != provider.end();
 		     ++it )
 		{
-			if( ! wdb2ts::addParamDef( config->paramDefs, pd, *it ) ) {
+			if( ! config->paramDefs.addParamDef( pd, *it ) ) {
 				error( "addParam: ParamDef '"+alias+"' provider: '" + *it +"' allready defined.");
 				return false;
 			}

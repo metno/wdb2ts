@@ -167,14 +167,14 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 			continue;
 		}
 
-		if( ! findParam( itParam, params, "TOPOGRAPHY", it->second.topoProvider() ) ) {
+		if( ! params.findParam( itParam, "TOPOGRAPHY", it->second.topoProvider() ) ) {
 			WEBFW_LOG_WARN( "Nearest height: No parameter definition for TOPOGRAPHY, provider '" << it->second.topoProvider() << "'.");
 			continue;
 		}
 
 		topoParam = *itParam;
 
-		if( ! findParam( itParam, params, "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
+		if( ! params.findParam( itParam, "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
 			WEBFW_LOG_WARN( "Nearest height: No parameter definition for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
 			continue;
 		}
@@ -274,7 +274,7 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 			 itNearestHeightParams != nearestHeightParams.end();
 			 ++itNearestHeightParams )
 		{
-			if( ! findParam( itParam, params, itNearestHeightParams->first, itNearestHeightParams->second ) ) {
+			if( ! params.findParam( itParam, itNearestHeightParams->first, itNearestHeightParams->second ) ) {
 				WEBFW_LOG_WARN( "Nearest height: No parameter definition for '" << itNearestHeightParams->first << ", provider '"
 						         << itNearestHeightParams->second << "'.");
 				continue;

@@ -95,6 +95,7 @@ operator () ( argument_type &t )
    ParamDefList params;
    ParamDefPtr itPar;
    LocationPoint locationPoint;
+   string dummyGroupProvider;
    int expextNValues=1;
    int nValues=0;
    int n=1;
@@ -146,7 +147,7 @@ operator () ( argument_type &t )
       if( it.at("value").is_null() )
          continue;
 
-      if( findParam( it, itPar, params ) ) {
+      if( params.findParam( it, itPar, dummyGroupProvider ) ) {
          if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
             continue;
 

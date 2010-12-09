@@ -1,3 +1,9 @@
+metno-wdb2ts (0.9.6.8-1) unstable; urgency=low
+  * Ticket #40. Add support for dataprovider groups.
+    
+ -- Borge Moe <borge.moe@met.no>  Wed, 08 Dec 2010 08:25:00 +0100
+
+
 metno-wdb2ts (0.9.6.7-1) unstable; urgency=low
   * Ticket #24. Fix deadlock in initializing wdb2ts.
   * Fix bug in initializing of Maps when read from file.

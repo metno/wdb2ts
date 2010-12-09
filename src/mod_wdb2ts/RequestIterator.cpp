@@ -42,6 +42,7 @@ RequestIterator( Wdb2TsApp *app__,
                  const boost::posix_time::ptime &to_,
                  bool isPolygon_, int altitude_,
                  PtrProviderRefTimes refTimes__,
+                 ParamDefListPtr  paramDefs_,
                  const ProviderList &providerPriority__)
    : app_( app__ ),
      wdbDB( wdbDB_ ),
@@ -53,6 +54,7 @@ RequestIterator( Wdb2TsApp *app__,
      isPolygon( isPolygon_ ),
      altitude( altitude_ ),
      refTimes_( refTimes__ ),
+     paramDefs( paramDefs_ ),
      providerPriority_( providerPriority__ )
 {
    itPoint = locationPoints->begin();
@@ -66,11 +68,10 @@ nearestHeightPoint( LocationPointDataPtr data )
    if( nearestHeights.empty() || locationPoints->empty() )
       return;
 
-   ParamDefList params = app_->paramDefs();
    WciConnectionPtr wciConnection = app_->newWciConnection( wdbDB );
 
    NearestHeight::processNearestHeightPoint( *locationPoints, to, data, altitude, refTimes_,
-                                             providerPriority_, params, nearestHeights,
+                                             providerPriority_, *paramDefs, nearestHeights,
                                              wciProtocol, wciConnection );
 
 }
@@ -102,7 +103,7 @@ next()
       }
 
       data = requestManager.requestData( app_, wdbDB, pointList, to, false, altitude,
-                                         refTimes_, providerPriority_, urlQuerys, wciProtocol );
+                                         refTimes_, paramDefs, providerPriority_, urlQuerys, wciProtocol );
 
       if( !isPolygon ) {
          nearestHeightPoint( data );

@@ -155,6 +155,7 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 
    if( ! providerPriorityIsInitialized ) {
       noteProviderList = configureProviderPriority( params, app );
+      paramDefsPtr_->resolveProviderGroups( *app, wdbDB );
       symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
    }
 
@@ -187,6 +188,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	actionParams = params;
 	WEBFW_USE_LOGGER( "handler" );
 	
+	cerr << "LocationForecastHandler::configure: enter.\n";
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
 	
 	if( it != params.end() )  {
@@ -250,8 +252,10 @@ configure( const wdb2ts::config::ActionParam &params,
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
+	paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
 		
 	//extraConfigure( params, app );
+	cerr << "LocationForecastHandler::configure: leave.\n";
 	return true;
 }
 
@@ -281,6 +285,7 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 
+		paramDefsPtr_.reset( new ParamDefList( Wdb2TsApp::app()->getParamDefs() ) );
 
 		WEBFW_USE_LOGGER( "handler" );
 		std::ostringstream logMsg;
@@ -293,10 +298,10 @@ noteUpdated( const std::string &noteName,
 
 void 
 LocationForecastHandler::
-getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList )
+getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList, ParamDefListPtr &paramDefsPtr )
 {
 	boost::mutex::scoped_lock lock( mutex );
-	
+	paramDefsPtr = paramDefsPtr_;
 	providerList = providerPriority_;
 	symbolConf = symbolConf_;
 }
@@ -369,6 +374,7 @@ get( webfw::Request  &req,
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
+	ParamDefListPtr     paramDefsPtr
 
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
@@ -425,7 +431,7 @@ get( webfw::Request  &req,
 	}
 	
 	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority );
+	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
 	
 	removeDisabledProviders( providerPriority, *refTimes );
 
@@ -446,11 +452,11 @@ get( webfw::Request  &req,
 
 		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.to(),
 															 webQuery.isPolygon(),
-				                                             altitude, refTimes, providerPriority );
+				                                             altitude, refTimes, paramDefsPtr, providerPriority );
 
 		if( ! webQuery.isPolygon() )
 			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
-						        altitude, refTimes, providerPriority );
+						        altitude, refTimes, paramDefsPtr, providerPriority );
 
 		if( subversion == 0 ) {
 		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast'.");
@@ -562,6 +568,7 @@ requestWdb( const LocationPointList &locationPoints,
 		    const boost::posix_time::ptime &to,
 	        bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
+		    ParamDefListPtr  paramDefs,
 		    const ProviderList &providerPriority
           ) const
 {	
@@ -569,7 +576,7 @@ requestWdb( const LocationPointList &locationPoints,
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	return requestManager.requestData( app, wdbDB, locationPoints, to, isPolygon, altitude,
-									   refTimes, providerPriority, urlQuerys, wciProtocol );
+									   refTimes, paramDefs, providerPriority, urlQuerys, wciProtocol );
 }
 
 #if 0
@@ -624,6 +631,7 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 		            LocationPointDataPtr data,
 		            int altitude,
 		            PtrProviderRefTimes refTimes,
+		            ParamDefListPtr params,
 		            const ProviderList &providerPriority
 				  ) const
 {
@@ -632,11 +640,11 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 		return;
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
-	ParamDefList params = app->paramDefs();
+	//ParamDefList params = app->paramDefs();
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 
 	NearestHeight::processNearestHeightPoint( locationPoints,to, data, altitude, refTimes,
-			                                  providerPriority, params, nearestHeights,
+			                                  providerPriority, *params, nearestHeights,
 			                                  wciProtocol, wciConnection );
 
 }
@@ -648,6 +656,7 @@ nearestLandPoint( const LocationPointList &locationPoints,
                   LocationPointDataPtr data,
                   int altitude,
                   PtrProviderRefTimes refTimes,
+                  ParamDefListPtr params,
                   const ProviderList &providerPriority
 ) const
 {
@@ -655,11 +664,10 @@ nearestLandPoint( const LocationPointList &locationPoints,
       return;
 
    Wdb2TsApp *app=Wdb2TsApp::app();
-   ParamDefList params = app->paramDefs();
    WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 
    NearestLand nearestLandPoint( locationPoints,to, data, altitude, refTimes,
-                                 providerPriority, params, nearestLands,
+                                 providerPriority, *params, nearestLands,
                                  wciProtocol, wciConnection );
 
    nearestLandPoint.processNearestLandPoint();

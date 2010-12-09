@@ -392,13 +392,14 @@ requestData( Wdb2TsApp *app,
              bool isPolygon,
              int altitude,
              PtrProviderRefTimes refTimes,
+             ParamDefListPtr  paramDefs,
              const ProviderList  &providerPriority,
              const wdb2ts::config::Config::Query &urlQuerys,
              int wciProtocol )
 {
    nParalell = urlQuerys.dbRequestsInParalells();
 
-   populateThreadInfos( wdbid, app->paramDefs(), locationPoints, toTime,
+   populateThreadInfos( wdbid, *paramDefs, locationPoints, toTime,
                         isPolygon, refTimes, providerPriority, urlQuerys,
                         wciProtocol );
 

@@ -81,6 +81,7 @@ namespace {
 
 		 return true;
 	 }
+
 }
 
 
@@ -321,6 +322,8 @@ decodePData( const ParamDefList &paramDefs,
 	ProviderList::const_iterator itProvider;
 	string provider;
 	string providerWithPlacename;
+	string newProviderWithPlacename;
+	string providerGroup;
 	float value;
 	int dataversion;
 	LocationPoint locationPoint;
@@ -338,9 +341,11 @@ decodePData( const ParamDefList &paramDefs,
 			START_MARK_MI_PROFILE("db::decode");
 			
 			START_MARK_MI_PROFILE("findParam");
+
 			
-			if( ! findParam( it, paramDef, paramDefs ) ) {
+			if( ! paramDefs.findParam( it, paramDef, providerGroup ) ) {
 				++it;
+
 				STOP_MARK_MI_PROFILE("findParam");
 				STOP_MARK_MI_PROFILE("db::decode");
 				continue;
@@ -350,7 +355,7 @@ decodePData( const ParamDefList &paramDefs,
 			
 			if( alias !=  paramDef->alias() ) {
 				alias = paramDef->alias();
-				//WEBFW_LOG_DEBUG( "Decoding: " << paramDef->alias() << "  (" << it.at("dataprovidername").c_str() <<")" );
+
 			}
 			
 			START_MARK_MI_PROFILE("db::it");
@@ -380,17 +385,11 @@ decodePData( const ParamDefList &paramDefs,
 					++it;
 					continue;
 				}
-				/*else {
-					++it;
-					continue;
-				}*/
 			}
 
 			dataversion = refTimeList.getDataversion( providerWithPlacename );
 			
 			if( dataversion > -1 ) {
-				//cerr << "Decoding: " << paramDef->alias() << "  (" << providerWithPlacename <<") dv: " << it.at("dataversion").as<int>() 
-				//     << "  dataversion: " << dataversion << endl;
 				if( it.at("dataversion").as<int>() != dataversion  ) {
 					++it;
 					continue;
@@ -402,8 +401,6 @@ decodePData( const ParamDefList &paramDefs,
 				continue;
 			}
 			
-			//WEBFW_LOG_DEBUG( "decode: pdRef: timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
-
 			itLpd = locationPointData.find( locationPoint );
 
 			if( itLpd == locationPointData.end() ) {
@@ -423,6 +420,13 @@ decodePData( const ParamDefList &paramDefs,
 				}
 			}
 
+//			//DBUG
+//			string oldProviderWithPlacename = providerWithPlacename;
+//			if( !dataprovider_dbg.empty() )
+//			   cerr << "Decode: provider: " << dataprovider_dbg << " withPlacename: " << providerWithPlacename << endl;
+//			//DBUGEND
+
+			renameProvider( providerWithPlacename, providerGroup  );
 			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
 
  			STOP_MARK_MI_PROFILE("timeSerie");
@@ -450,6 +454,14 @@ decodePData( const ParamDefList &paramDefs,
 			
 			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 			
+
+//			//DBUG
+//			if( !dataprovider_dbg.empty() )
+//			   cerr << "Decode: provider: " << dataprovider_dbg << " Group: " << providerGroup
+//                 << " nwPlacename: '" << providerWithPlacename << "' (" << oldProviderWithPlacename << ") Param: "
+//                 << paramDef->alias() << " value: " << value << endl;
+//			//DBUGEND
+
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;
 			else if( paramDef->alias() == "WIND.V10M")

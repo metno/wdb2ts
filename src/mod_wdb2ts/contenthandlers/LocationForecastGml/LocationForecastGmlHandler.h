@@ -36,6 +36,7 @@
 #include <HandlerBase.h>
 #include <UpdateProviderReftimes.h>
 #include <INoteUpdateListener.h>
+#include <NoteProviderList.h>
 #include <LocationData.h>
 #include <SymbolConf.h>
 #include <SymbolGenerator.h>
@@ -75,9 +76,10 @@ public:
 	virtual const char *name()const { return "LocationForecastGmlHandler"; };
 	
 	void configureWdbProjection( const wdb2ts::config::ActionParam &params, wdb2ts::Wdb2TsApp *app );
-	void configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
 
-	
+	NoteProviderList* configureProviderPriority( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
+	NoteProviderList* doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app );
+
 	/**
 	 * extraConfigure does some late configuration that is not posible at 
 	 * startup since the database subsystem is not ready.
@@ -118,6 +120,7 @@ private:
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
+   ParamDefListPtr     paramDefsPtr_;
    bool                projectionHelperIsInitialized;
    ProviderPrecipitationConfig *precipitationConfig;
    bool                wciProtocolIsInitialized;
@@ -130,6 +133,7 @@ private:
 									const boost::posix_time::ptime &to,
 									bool isPolygon, int altitude,
 									PtrProviderRefTimes refTime,
+									ParamDefListPtr paramDefs,
 									const ProviderList &providerPriority )const;
 
   	
@@ -141,11 +145,12 @@ private:
   	
   	//Get some mutex protected data.
   	void getProtectedData( SymbolConfProvider &symbolConf, 
-  			                 ProviderList &providerList );
+  			                 ProviderList &providerList, ParamDefListPtr &paramDefsPtr );
 
   	LocationPointListPtr getPolygonPoints( const WebQuery &webQuery,
   	                                       const ProviderList &providerPriority,
-  	                                       const ProviderRefTimeList &reftimes );
+  	                                       const ProviderRefTimeList &reftimes,
+  	                                       ParamDefListPtr paramDefs );
   	  	
    
 };

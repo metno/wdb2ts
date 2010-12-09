@@ -33,9 +33,11 @@
 
 #include <limits.h>
 #include <iostream>
+#include <boost/shared_ptr.hpp>
 #include <pqxx/pqxx>
 #include <string>
 #include <list>
+#include <ProviderGroups.h>
 
 namespace wdb2ts {
 
@@ -106,32 +108,45 @@ std::ostream& operator<<(std::ostream& output, const ParamDef &pd);
 
 typedef std::list<ParamDef>::iterator ParamDefPtr;
 
-typedef std::map<std::string, std::list<ParamDef> > ParamDefList;
+//typedef std::map<std::string, std::list<ParamDef> > ParamDefList;
+class ParamDefList : public std::map<std::string, std::list<ParamDef> >
+{
+   ProviderGroups providerGroups_;
+public:
 
-bool
-findParam( pqxx::result::const_iterator it, 
-		     ParamDefPtr &paramDef,
-		     const ParamDefList &paramsDefs );
+   ParamDefList();
+   ParamDefList( const ParamDefList &pdl );
+   ~ParamDefList();
 
+   ParamDefList operator=(const ParamDefList &rhs );
 
-bool
-hasParam(  const ParamDefList &paramsDefs, 
-		     const std::string &alias,
-		     const std::string &provider );
+   bool
+   findParam( pqxx::result::const_iterator it,
+              ParamDefPtr &paramDef,
+              std::string &providerGroup ) const;
 
-bool
-findParam( ParamDefPtr &paramDef,
-		     const ParamDefList &paramsDefs,
-		     const std::string &alias, const std::string &provider="" );
+   bool
+   hasParam(  const std::string &alias,
+              const std::string &provider )const;
+   bool
+   findParam( ParamDefPtr &paramDef,
+              const std::string &alias, const std::string &provider="" )const;
 
 /**
  * Return false if a paramdef with the same alias allready exist.
  * Return true if the paramdef was added to the paramsDefs.
  */
-bool 
-addParamDef( ParamDefList &paramsDefs, const ParamDef  &pd,
-		       const std::string &provider="" );
+   bool
+   addParamDef( const ParamDef  &pd,
+                const std::string &provider="" );
 
+   std::string lookupGroupName( const std::string &providerName )const;
+   void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
+};
+void
+renameProvider( std::string &providerWithPlacename, const std::string &newProvider );
+
+typedef boost::shared_ptr<ParamDefList> ParamDefListPtr;
 }
 
 

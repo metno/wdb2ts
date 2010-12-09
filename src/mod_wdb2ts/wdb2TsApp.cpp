@@ -139,8 +139,9 @@ readConfiguration( webfw::RequestHandlerManager&  reqHandlerMgr,
 		logger.fatal( log.str() );
 		return;
 	}
-	
+	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 1.\n";
 	paramDefs_ = config->paramDefs;
+	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 2.\n";
 	configureRequestsHandlers( config, reqHandlerMgr, logger );
 }
 
@@ -246,6 +247,8 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 		}
 	}
 }
+
+
 
 std::string
 Wdb2TsApp::
