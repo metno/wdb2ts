@@ -44,6 +44,7 @@
 // PROJECT INCLUDES
 //
 // SYSTEM INCLUDES
+#include <stdio.h>
 #include <sstream>
 
 using namespace std;
