@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <list>
 #include <sstream>
 #include <boost/assign/list_inserter.hpp>
