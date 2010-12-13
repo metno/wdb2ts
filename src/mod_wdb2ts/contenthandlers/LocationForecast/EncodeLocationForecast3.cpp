@@ -374,7 +374,7 @@ updatePrecipAggregates( LocationElem &location,
 		                const PrecipConfigElement &precipConfig,
 		                PrecipitationAggregations &aggregates )
 {
-//	WEBFW_USE_LOGGER( "encode" );
+	//WEBFW_USE_LOGGER( "encode" );
 	int N = precipConfig.precipHours.size();
 	float precip;
 	float precipMin;
@@ -393,8 +393,9 @@ updatePrecipAggregates( LocationElem &location,
 	      precip = location.PRECIP( precipConfig.precipHours[precipIndex], fromTime);
 
 		if( precip != FLT_MAX ) {
-//			WEBFW_LOG_DEBUG( "updatePrecipAggregates: " <<  precipConfig.precipHours[precipIndex] << " "
-//					        << fromTime <<  "  " << provider << " " << precip);
+//		   WEBFW_LOG_DEBUG( "updatePrecipAggregates: " <<  precipConfig.precipHours[precipIndex] << " "
+//					        << fromTime <<  "  " << provider << " " << precip
+//					        << " type: " << (precipConfig.precipType == PrecipSequence?"sequence":"multi"));
 			aggregates[ precipConfig.precipHours[precipIndex] ] [ fromTime ] = Precipitation( provider, precip, precipMin, precipMax, precipProb );
 
 			if( precipConfig.precipType == PrecipSequence )

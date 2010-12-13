@@ -37,7 +37,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
 #include <ParamDef.h>
-#include <ProviderList.h>
+//#include <ProviderList.h>
 #include <UpdateProviderReftimes.h>
 #include <LocationPoint.h>
 

@@ -342,9 +342,19 @@ decodePData( const ParamDefList &paramDefs,
 			
 			START_MARK_MI_PROFILE("findParam");
 
-			
+			//DEBUG
+			string provider_dbg = it.at("dataprovidername").c_str();
+//			if( provider_dbg.find("ecmwf atmo") != string::npos )
+//			      provider_dbg.clear();
+
+			//DEBUGEND
 			if( ! paramDefs.findParam( it, paramDef, providerGroup ) ) {
 				++it;
+
+				//DEBUG
+				if( ! provider_dbg.empty() )
+				   cerr << "Cant find param: " << provider_dbg << "\n";
+				//DEBUGEND
 
 				STOP_MARK_MI_PROFILE("findParam");
 				STOP_MARK_MI_PROFILE("db::decode");
@@ -421,7 +431,7 @@ decodePData( const ParamDefList &paramDefs,
 			}
 
 //			//DBUG
-//			string oldProviderWithPlacename = providerWithPlacename;
+   		string oldProviderWithPlacename = providerWithPlacename;
 //			if( !dataprovider_dbg.empty() )
 //			   cerr << "Decode: provider: " << dataprovider_dbg << " withPlacename: " << providerWithPlacename << endl;
 //			//DBUGEND
@@ -455,12 +465,12 @@ decodePData( const ParamDefList &paramDefs,
 			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 			
 
-//			//DBUG
-//			if( !dataprovider_dbg.empty() )
-//			   cerr << "Decode: provider: " << dataprovider_dbg << " Group: " << providerGroup
-//                 << " nwPlacename: '" << providerWithPlacename << "' (" << oldProviderWithPlacename << ") Param: "
-//                 << paramDef->alias() << " value: " << value << endl;
-//			//DBUGEND
+			//DBUG
+			if( ! provider_dbg.empty()  )
+			   cerr << "Decode: provider: " << provider_dbg << " Group: " << providerGroup
+                 << " nwPlacename: '" << providerWithPlacename << "' (" << oldProviderWithPlacename << ") Param: "
+                 << paramDef->alias() << " value: " << value << endl;
+			//DBUGEND
 
 			if ( paramDef->alias() == "WIND.U10M" )
 				pd.windU10m = value;

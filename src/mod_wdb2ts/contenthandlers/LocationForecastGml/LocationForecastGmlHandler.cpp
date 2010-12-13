@@ -216,24 +216,6 @@ configure( const wdb2ts::config::ActionParam &params,
 	if( app && ! updateid.empty() ) 
 		app->notes.setNote( updateid+".LocationForecastWdbId", new NoteString( wdbDB ) );
 	
-	
-	//configureProviderPriority( params, app );
-
-	/*
-	for( it = params.begin(); it!=params.end(); ++it ) {
-		string::size_type i=it->first.find( MODEL_TOPO_PROVIDER_KEY );
-		
-		if( i != string::npos && i==0 ) {
-			ProviderItem item = ProviderList::decodeItem( it->first );
-			string provider = item.providerWithPlacename();
-			provider.erase(0, MODEL_TOPO_PROVIDER_KEY.size() );
-			item = ProviderList::decodeItem( it->second.asString() );
-			WEBFW_LOG_INFO( "Configure modeltopo provider alias: " << provider << " --> " << item.providerWithPlacename() );
-			modelTopoProviders[provider]= item.providerWithPlacename();
-		}
-	}
-	*/
-
 	modelTopoProviders = configureModelTopographyProvider( params );
 	topographyProviders = configureTopographyProvider( params );
 	nearestHeights = NearestHeight::configureNearestHeight( params );
@@ -242,7 +224,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
 	paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
-	//extraConfigure( params, app );
+	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
 	
 	return true;
 }
@@ -279,7 +261,7 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 		
-		paramDefsPtr_.reset( new ParamDefList( Wdb2TsApp::app()->getParamDefs() ) );
+		paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
 
 		std::ostringstream logMsg;
 		logMsg << "noteUpdated: ProviderReftimes:\n";

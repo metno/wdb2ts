@@ -31,9 +31,11 @@
 
 #include <string>
 #include <map>
+#include <list>
 
 namespace wdb2ts {
 
+class ProviderList;
 
 class Wdb2TsApp;
 /**
@@ -75,7 +77,7 @@ public:
     * @param app The wdb2ts Application class. We need this to get a db connection.
     * @param wdbid The database to use.
     */
-   void resolve( Wdb2TsApp &app, const std::string &wdbid );
+   void resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
 };
 
 

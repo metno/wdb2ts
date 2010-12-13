@@ -38,7 +38,6 @@
 namespace wdb2ts {
 
 class Wdb2TsApp;
-class ProviderGroups;
 
 struct ProviderItem {
 	std::string provider;

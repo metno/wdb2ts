@@ -27,10 +27,13 @@
 */
 
 
+#include <list>
 #include <ProviderGroups.h>
+#include <ProviderList.h>
 #include <transactor/ResolveProviderGroups.h>
 #include <wdb2TsApp.h>
 #include <Logger4cpp.h>
+
 
 namespace wdb2ts {
 
@@ -62,7 +65,7 @@ lookUpGroupName( const std::string &providerName )const
 {
    std::map<std::string, std::string>::const_iterator it=reverseLookupTable.find( providerName );
 
-   if( it!=reverseLookupTable.end() )
+   if( it != reverseLookupTable.end() )
       return it->second;
    else
       return providerName;
@@ -70,7 +73,7 @@ lookUpGroupName( const std::string &providerName )const
 
 void
 ProviderGroups::
-resolve( Wdb2TsApp &app, const std::string &wdbid )
+resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList )
 {
    WciConnectionPtr wciConnection;
 
@@ -105,6 +108,24 @@ resolve( Wdb2TsApp &app, const std::string &wdbid )
    catch( ... ) {
       WEBFW_LOG_ERROR( "EXCEPTION: unknown: ResolveProviderGroups." );
    }
+
+   /*
+    * Filter the providers so that provider names that is not a groupname
+    * resolves to the specific provider in the config file, even if the provider is
+    * part of a group.
+    */
+   std::map<std::string, std::string>::iterator itrl;
+
+   for( std::list<std::string>::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
+      itrl = reverseLookupTable.find( *it );
+
+      if( itrl == reverseLookupTable.end() )
+         continue;
+
+      itrl->second = *it;
+   }
+
+
 }
 
 }

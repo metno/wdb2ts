@@ -174,6 +174,7 @@ ParamDefList::
 ParamDefList( const ParamDefList &pdl )
 {
    providerGroups_ = pdl.providerGroups_;
+   providerListFromConfig = pdl.providerListFromConfig;
    insert( pdl.begin(), pdl.end() );
 }
 
@@ -188,6 +189,7 @@ operator=(const ParamDefList &rhs )
 {
    if( this != &rhs ) {
       providerGroups_ = rhs.providerGroups_;
+      providerListFromConfig = rhs.providerListFromConfig;
 
       clear();
       insert( rhs.begin(), rhs.end() );
@@ -254,7 +256,7 @@ hasParam(  const std::string &alias,
 	if( provider.empty() )
 		provider = defaultProvider;
 	
-	provider = providerGroups_.lookUpGroupName( provider );
+	//provider = providerGroups_.lookUpGroupName( provider );
 
 	ParamDefList::const_iterator it = find( provider );
 
@@ -277,9 +279,9 @@ bool
 ParamDefList::
 findParam( ParamDefPtr &paramDef,
 		     const std::string &alias,
-		     const std::string &provider_ )const
+		     const std::string &provider )const
 {
-   string provider = providerGroups_.lookUpGroupName( provider_ );
+   //string provider = providerGroups_.lookUpGroupName( provider_ );
 
 	ParamDefList::iterator it = const_cast<ParamDefList*>(this)->find( provider );
 	
@@ -336,7 +338,7 @@ resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid )
 {
    providerGroups_.clear();
 
-   providerGroups_.resolve( app, wdbid );
+   providerGroups_.resolve( app, wdbid, providerListFromConfig );
 }
 
 void

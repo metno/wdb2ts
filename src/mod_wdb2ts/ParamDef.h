@@ -39,6 +39,7 @@
 #include <list>
 #include <ProviderGroups.h>
 
+
 namespace wdb2ts {
 
 /**
@@ -111,6 +112,7 @@ typedef std::list<ParamDef>::iterator ParamDefPtr;
 //typedef std::map<std::string, std::list<ParamDef> > ParamDefList;
 class ParamDefList : public std::map<std::string, std::list<ParamDef> >
 {
+   std::list<std::string>   providerListFromConfig;
    ProviderGroups providerGroups_;
 public:
 
@@ -119,6 +121,9 @@ public:
    ~ParamDefList();
 
    ParamDefList operator=(const ParamDefList &rhs );
+
+   void setProviderList( const std::list<std::string> &providerList ){ providerListFromConfig = providerList; }
+
 
    bool
    findParam( pqxx::result::const_iterator it,
