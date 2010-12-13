@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <TempFileStream.h>
