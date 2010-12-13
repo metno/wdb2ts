@@ -44,6 +44,7 @@
 // PROJECT INCLUDES
 //
 // SYSTEM INCLUDES
+#include <stdio.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
