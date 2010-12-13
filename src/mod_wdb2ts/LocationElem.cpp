@@ -339,7 +339,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    boost::posix_time::ptime startTime;
    boost::posix_time::ptime savedFromTime;
 
-   WEBFW_USE_LOGGER( "main" );
+   //WEBFW_USE_LOGGER( "main" );
 
    min.reserve( hoursBack );
    max.reserve( hoursBack );
@@ -360,11 +360,11 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    //the totime.
    startTime = fromTime + hours( 1 );
 
-   WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
+   //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " startTime: " << startTime << " stopTime: " << stopTime );
    CITimeSerie it = timeSerie->find( startTime );
 
    if( it == timeSerie->end() ) {
-      WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: No data. (Cant find a dataset for startTime '" << startTime << "').");
+      //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: No data. (Cant find a dataset for startTime '" << startTime << "').");
       return false;
    }
 
@@ -393,7 +393,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       }
 
       if( precipMean == FLT_MAX ) {
-         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MEAN provider: " << forecastProvider  << " fromtime: " << fromTime << " to: " << it->first );
+         //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MEAN provider: " << forecastProvider  << " fromtime: " << fromTime << " to: " << it->first );
          return false;
       }
 
@@ -406,7 +406,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
 
 
       if( precipMin == FLT_MAX ) {
-         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MIN" );
+         //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MIN" );
          return false;
       }
 
@@ -416,7 +416,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
       if( precipMax == FLT_MAX ) {
-         WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MAX" );
+         //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: no PRECIP.MAX" );
          return false;
       }
 
@@ -425,7 +425,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                             fromTime ,
                             const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
 
-      WEBFW_LOG_DEBUG("LocationElem::PRECIP_MIN_MAX_MEAN: " << fromTime << " mean: " << precipMean << " min: " << precipMin << " max: " << precipMax );
+      //WEBFW_LOG_DEBUG("LocationElem::PRECIP_MIN_MAX_MEAN: " << fromTime << " mean: " << precipMean << " min: " << precipMin << " max: " << precipMax );
 
       fromTime = it->first;
 
@@ -485,7 +485,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    maxOut = maxOut<0?0:maxOut;
    probOut = maxInVector( prob );
 
-   WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " (" << backTime_ << " - " << itTimeSerie->first << ") mean: " << meanOut << " min: " << minOut << " max: " << maxOut  );
+   //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " (" << backTime_ << " - " << itTimeSerie->first << ") mean: " << meanOut << " min: " << minOut << " max: " << maxOut  );
    return true;
 }
 
