@@ -26,7 +26,9 @@
     MA  02110-1301, USA
 */
 
+
 #include <stdlib.h>
+#include <vector>
 #include <iostream>
 #include <algorithm>
 #include "SymbolHolder.h"
@@ -223,7 +225,7 @@ next( int &symbolid,
 {
 	using namespace boost::posix_time;
 	
-   if (index < 0 || static_cast<std::vector<Symbol>::size_type>( index_) >= symbols_.size())
+   if (index_ < 0 || static_cast< std::vector<Symbol>::size_type >( index_) >= symbols_.size())
       return false;
    
    miutil::miTime t = symbols_[index_].symbol.getTime();
