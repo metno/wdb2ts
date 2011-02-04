@@ -1,3 +1,9 @@
+metno-wdb2ts (0.9.6.9~pre1-1) unstable; urgency=low
+  * Be less restrective when selecting providers for temperature- and windProbality.
+    
+ -- Borge Moe <borge.moe@met.no>  Fri, 04 Feb 2011 08:25:00 +0100
+
+
 metno-wdb2ts (0.9.6.8-1) unstable; urgency=low
   * Ticket #40. Add support for dataprovider groups.
     
