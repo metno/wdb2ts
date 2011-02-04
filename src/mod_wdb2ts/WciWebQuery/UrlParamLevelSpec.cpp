@@ -96,7 +96,7 @@ validIndCode( const std::string &indCode )
 {
 	if( indCode == "exact" ) 
     	return true;
-	else if( indCode == "any" && protocol == 1) 
+	else if( indCode == "any" /*&& protocol == 1*/)
 		return true;
 	else if( indCode == "inside" ) 
 		return true;
