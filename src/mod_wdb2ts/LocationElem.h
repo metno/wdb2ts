@@ -262,6 +262,8 @@ public:
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
 	
+	void forecastprovider( const std::string &provider ) { forecastProvider=provider; }
+
 	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;
 	
 	boost::posix_time::ptime time()const { return itTimeSerie->first; }

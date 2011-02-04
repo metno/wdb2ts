@@ -73,7 +73,7 @@ public:
 	 */
 	void doSymbol( float temperature );
 	
-	float getTemperatureProability( float temp )const;
+	float getTemperatureProability( float temp, bool tryHard )const;
 		
 	virtual void output( std::ostream &out, const std::string &indent );
 };

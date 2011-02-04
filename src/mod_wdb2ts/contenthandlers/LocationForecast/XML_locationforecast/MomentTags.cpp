@@ -79,17 +79,20 @@ computeWind( float u, float v )
 
 float 
 MomentTags::
-getTemperatureProability( float temp )const
+getTemperatureProability( float temp, bool tryHard )const
 {
 	float prob;
+	std::string provider = pd->forecastprovider();
 
 	if( temp > -99.0 && temp < -10.0 )
-		prob = pd->T2M_PROBABILITY_2();
+		prob = pd->T2M_PROBABILITY_2( tryHard );
 	else if( temp >= -10.0 && temp < 100.0 ) 
-		prob = pd->T2M_PROBABILITY_1();
+		prob = pd->T2M_PROBABILITY_1( tryHard );
 	else
 		prob = FLT_MAX;
 	
+	pd->forecastprovider( provider );
+
 	/*
 	if( temp > -99.0 && temp < -20.0 )
 		prob = pd->T2M_PROBABILITY_4();
@@ -220,8 +223,10 @@ output( std::ostream &out, const std::string &indent )
 		tempUsed = tempNoAdiabatic;
 	} else 	if( tempAdiabatic != FLT_MAX ) {
 		tempUsed = tempAdiabatic;
-		tempProb = getTemperatureProability( value );
 	}
+
+	if( tempUsed != FLT_MAX )
+	   tempProb = getTemperatureProability( tempUsed, true );
 
 	if( tempUsed != FLT_MAX ) {
 		if( loglevel >= log4cpp::Priority::DEBUG ) {
@@ -268,7 +273,8 @@ output( std::ostream &out, const std::string &indent )
 			    << "beaufort=\"" << toBeaufort( ff_, description) << "\" "
 			    << "name=\"" << description << "\"/>\n";
 		
-			windProb = pd->WIND_PROBABILITY();
+			windProb = pd->WIND_PROBABILITY( true );
+			pd->forecastprovider( provider ); //Reset the forecastprovider back to provider.
 			nForecast++;
 		}
 
