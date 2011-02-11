@@ -11,9 +11,11 @@ bool
 HandlerBase::
 doConfigure( const wdb2ts::config::ActionParam &params,
 		       const wdb2ts::config::Config::Query &query,
-		       const std::string &wdbDB )
+		       const std::string &wdbDB,
+		       const std::string &schema_
+		       )
 {
-	
+	schema = schema_;
 	wdb2ts::config::ActionParam::const_iterator it=params.find("loglevels");
 			
 	if( it != params.end() )  {

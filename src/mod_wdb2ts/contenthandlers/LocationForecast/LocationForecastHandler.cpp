@@ -456,6 +456,7 @@ get( webfw::Request  &req,
 									       symbolConf,
 									       expireRand );
 
+         encode.schema( schema );
 			MARK_ID_MI_PROFILE("encodeXML");
 			encode.encode( response );
 			MARK_ID_MI_PROFILE("encodeXML");
@@ -473,6 +474,7 @@ get( webfw::Request  &req,
 									        topographyProviders,
 									        symbolConf,
 									        expireRand );
+			encode.schema( schema );
          MARK_ID_MI_PROFILE("encodeXML");
          encode.encode( response );
          MARK_ID_MI_PROFILE("encodeXML");
@@ -490,7 +492,7 @@ get( webfw::Request  &req,
                                          topographyProviders,
                                          symbolConf,
                                          expireRand );
-
+		   encode.schema( schema );
 			MARK_ID_MI_PROFILE("encodeXML");
 			encode.encode( response );
 			MARK_ID_MI_PROFILE("encodeXML");

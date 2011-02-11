@@ -50,12 +50,17 @@ namespace wdb2ts {
  */
 class Encode
 {
+   protected:
+      std::string schema_;
+
 	public:
 		Encode();
 		virtual ~Encode();
 		
+		void schema( const std::string &s ) { schema_ = s; }
       std::string codetime( const boost::posix_time::ptime &time ) const;
       
+      virtual std::string schemaName()const ;
       /**
        * @exception logic_error ios_base::failure webFW::IOError 
        */

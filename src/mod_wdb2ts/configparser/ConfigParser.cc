@@ -53,6 +53,8 @@ doRequestConf( const AttributeMap &attributes, RequestConf &conf, const std::str
 			conf.version = Version(it->second);
 		else if( it->first == "path" )
 			continue;
+		else if( it->first == "schema")
+		   conf.schema = it->second;
 		else
 			warning( "Unknown attribute '" + it->first +"' value='" + it->second + "'.");
 	}

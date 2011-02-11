@@ -123,6 +123,7 @@ public:
 	miutil::Value queryid;
 	miutil::Value action;
 	miutil::Value wdbDB;
+	miutil::Value schema;
 	Version       version;
 	
 };

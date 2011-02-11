@@ -11,6 +11,7 @@ class HandlerBase
 {
 protected:
 	std::string wdbdb;
+	std::string schema;
 	
 public:
 	HandlerBase() {}
@@ -22,7 +23,8 @@ public:
 
 	bool doConfigure( const wdb2ts::config::ActionParam &params,
 			            const wdb2ts::config::Config::Query &query,
-	         			const std::string &wdbDB );
+	         			const std::string &wdbDB,
+	         			const std::string &schema="");
 		
 	
 	virtual bool configure( const wdb2ts::config::ActionParam &params,

@@ -49,7 +49,13 @@ codetime( const boost::posix_time::ptime &time ) const
    std::string iso=miutil::isotimeString( time, true );
    return (iso.empty()?iso:(iso+"Z"));   
 }
-      
+
+std::string
+Encode::
+schemaName()const
+{
+   return schema_;
+}
 void 
 Encode::
 encode( webfw::Response &response )

@@ -197,8 +197,10 @@ public:
 	/**
 	 * Which xml schema that is used.
 	 */
-	const char* schemaName()const { 
+	std::string schemaName()const {
+         if( schema_.empty() )
 	         return "http://api.met.no/weatherapi/locationforecast/1.5/schema";
+         return schema_;
 	      }
 	/**
 	 * Encode the Result Set as XML.
