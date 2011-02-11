@@ -1,3 +1,8 @@
+metno-wdb2ts (0.9.6.9~pre2-1) unstable; urgency=low
+  * Do the shema-def an config option.
+    
+ -- Borge Moe <borge.moe@met.no>  Fri, 11 Feb 2011 09:47:00 +0100
+
 metno-wdb2ts (0.9.6.9~pre1-1) unstable; urgency=low
   * Be less restrective when selecting providers for temperature- and windProbality.
     
