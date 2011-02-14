@@ -1,3 +1,8 @@
+metno-wdb2ts (0.9.6.9~pre3-1) unstable; urgency=low
+  * Allow the schema spec in versions inherit from the schema spec in the request.
+    
+ -- Borge Moe <borge.moe@met.no>  Mon, 14 Feb 2011 10:40:00 +0100
+
 metno-wdb2ts (0.9.6.9~pre2-1) unstable; urgency=low
   * Do the shema-def an config option.
     
