@@ -580,6 +580,10 @@ endElement( const std::string &name )
 				 !	currentRequestVersion->version.defaultVersionHighest() ) 
 				if( ! currentRequest->addRequestVersion( currentRequestVersion, error ) )
 					warning( error );
+
+			if( ! currentRequestVersion->schema.defined() &&
+			      currentRequest->requestDefault.schema.defined() )
+			   currentRequestVersion->schema = currentRequest->requestDefault.schema;
 		}
 		currentRequestVersion.reset();
 	} else if( xmlState == "/wdb2ts/requests/request" ) {
