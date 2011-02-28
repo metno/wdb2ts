@@ -135,27 +135,17 @@ doSymbol( float temperature )
 	
 	if( symNumber == INT_MAX ) 
 		return;
-	/*
-	// LIGHTRAINSUN (5)  || LIGHTRAIN (9)  ||  RAIN (10)
-	if( symNumber == 5 || symNumber == 9 || symNumber == 10 ) {
-		if( temperature < 0.5 ) {
-			if( symNumber == 5 ) //LIGHTRAINSUN
-				symNumber = 8;  //SNOWSUN
-			else
-				symNumber = 13; //SNOW
-		} else if( temperature >= 0.5 && temperature < 1.5 ) {
-			if( symNumber == 5 ) //LIGHTRAINSUN
-				symNumber = 7;   //SLEETSUN
-			else
-				symNumber = 12;  //SLEET
-		}
-	}
-	*/
+
 	//cerr << "doSymbol: AddSymbol: " << symNumber << " (" << pd->symbol_PROBABILITY() << ") t: "
 	//     << pd->time() << " p: " << pd->forecastprovider() << " lat: "  << pd->latitude()
 	//     << endl;
-	symbolContext->addSymbol( symNumber, pd->symbol_PROBABILITY( fromTime ), 
+
+	//Allow the symbol probability to came from another provider than the symbol.
+	string savedProvider = pd->forecastprovider();
+	float prob = pd->symbol_PROBABILITY( fromTime, true );
+	symbolContext->addSymbol( symNumber, prob,
 			                    pd->time(), temperature, fromTime, pd->forecastprovider(), pd->latitude() );
+	pd->forecastprovider( savedProvider );
 }
 
 void 
