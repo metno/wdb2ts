@@ -145,6 +145,12 @@ doSymbol( float temperature )
 	float prob = pd->symbol_PROBABILITY( fromTime, true );
 	symbolContext->addSymbol( symNumber, prob,
 			                    pd->time(), temperature, fromTime, pd->forecastprovider(), pd->latitude() );
+
+	//Add the symbol probability to the saved forecast provider in addition to
+	//the provider for probability.
+	if( savedProvider !=  pd->forecastprovider() )
+	   symbolContext->addSymbol( symNumber, prob,
+	                             pd->time(), temperature, fromTime, savedProvider, pd->latitude() );
 	pd->forecastprovider( savedProvider );
 }
 
