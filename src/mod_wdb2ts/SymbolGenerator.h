@@ -63,6 +63,22 @@ public:
 	               vector<miSymbol> &symbols,
 	               float latitude, int min, int max, std::string &error);
 	 */
+	static
+	SymbolHolder*
+	computeSymbolsWithPuMet( LocationData& data,
+	                         const SymbolConf &symbolConf,
+	                         const std::string &provider,
+	                         bool withoutStateOfAgregate,
+	                         std::string &error );
+
+	static
+	SymbolHolder*
+	getSymbolsFromData( LocationData& data,
+	                    const SymbolConf &symbolConf,
+	                    const std::string &provider,
+	                    std::string &error );
+
+
 	
 	static
 	SymbolHolder*

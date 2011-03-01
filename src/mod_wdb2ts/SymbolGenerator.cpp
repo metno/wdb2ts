@@ -82,7 +82,7 @@ correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data )
 			code dark;
 
 			light.AddValues( 3, "delvis skyet", 9 );
-			dark.AddValues( 17, "delvis skyet i mørketid", 9 );
+			dark.AddValues( 17, "delvis skyet i mï¿½rketid", 9 );
 			partlyCloud.AddCodes( light, dark );
 			partlyCloud.setTime( symbol.symbol.getTime() );
 			partlyCloud.setLightStat( symbol.symbol.getLightStat() );
@@ -115,51 +115,6 @@ correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data )
 }
 
 
-/*
-bool
-SymbolGenerator::
-computeSymbols( std::map<miutil::miTime, std::map <std::string,float> >& data,
-	             vector<miSymbol> &symbols,
-	             float latitude, int min, int max, std::string &error)
-{
-   
-   symbolMaker sm;
-    
-   std::map<miutil::miTime, std::map <std::string,float> >::iterator titr=data.begin();
-   std::map<std::string,float>::iterator                             pitr;
-    
-   symbols.clear();
- 
-   symbols.reserve(data.size());
-   
-   // reorganise data
-   map<string,map<miutil::miTime,float> > allParameters;
-   vector<paramet> parameters;
-   vector<miutil::miTime>  times;
-
-   for (titr=data.begin() ;titr!=data.end();++titr) {
-      times.push_back(titr->first);
-     
-      for( pitr=titr->second.begin();pitr!=titr->second.end();++pitr) 
-         allParameters[pitr->first][titr->first] = pitr->second;
-   }    
-    
-   map<miutil::miString,int>::iterator sitr = IDlist.begin();
-
-   for( ;sitr != IDlist.end(); ++sitr) {
-      if( allParameters.count( sitr->first ) ) {
-         paramet p;
-         p.AddPara( sitr->second, allParameters[sitr->first], latitude );
-         parameters.push_back( p );
-      }
-   }
-    
-   //vector<miSymbol> symbols= sm.compute(parameters,times,2,3);
-   symbols= sm.compute( parameters, times, min, max);
-
-   return true;
-}
-*/
 SymbolHolder*
 SymbolGenerator::
 computeSymbols( LocationData& data,
@@ -336,6 +291,86 @@ computeSymbols( LocationData& data,
    return 0;
 }
 
+SymbolHolder*
+SymbolGenerator::
+computeSymbolsWithPuMet( LocationData& data,
+                         const SymbolConf &symbolConf,
+                         const std::string &provider,
+                         bool withoutStateOfAgregate,
+                         std::string &error )
+{
+   std::string myerror;
+
+   SymbolHolder *sh = computeSymbols( data, provider,
+                                      symbolConf.min(), symbolConf.max(), symbolConf.precipHours(),
+                                      withoutStateOfAgregate,
+                                      myerror );
+   if( !sh ) {
+      error += myerror;
+      return 0;
+   }
+
+   return sh;
+}
+
+SymbolHolder*
+SymbolGenerator::
+getSymbolsFromData( LocationData& data,
+                    const SymbolConf &symbolConf,
+                    const std::string &provider,
+                    std::string &error )
+{
+   boost::posix_time::ptime startAt;
+   boost::posix_time::ptime fromTime;
+   int symNumber;
+   float prob;
+   boost::posix_time::time_duration h;
+   SymbolHolder *sh = new SymbolHolder( symbolConf.precipHours() );
+
+   if( !sh ) {
+      error += "NO MEM";
+      return 0;
+   }
+
+   data.init( startAt, provider );
+
+   while( data.hasNext() ) {
+      LocationElem &elem = *data.next();
+      symNumber = elem.symbol( fromTime );
+
+      if( symNumber == INT_MAX ) {
+         //WEBFW_LOG_DEBUG("doSymbol: NO SYMBOL for fromtime: " << fromTime );
+         cerr << "getSymbolsFromData: NO SYMBOL for Provider: '" << elem.forecastprovider() << "' "
+               << " timespan: " << symbolConf.precipHours() << " time: " << elem.time() << endl;
+         continue;
+      }
+
+      h = elem.time() - fromTime;
+
+      if( h.is_negative() )
+         h.invert_sign();
+
+      if( h.hours() != sh->timespanInHours() ) {
+         cerr << "getSymbolsFromData: provider: '" << elem.forecastprovider() << "' "
+                        << " timespan: " << sh->timespanInHours() << " data ts: " << h <<endl;
+         continue;
+      }
+
+
+
+      prob = elem.symbol_PROBABILITY( fromTime );
+
+      cerr << "getSymbolsFromData: Add:  provider: '" << elem.forecastprovider() << "' "
+           << " timespan: " << sh->timespanInHours() << " time: " << elem.time() << " sym: "
+           << symNumber << " prob: " << prob << endl;
+
+      sh->addSymbol( elem.time(), symNumber, elem.latitude(), true, prob );
+   }
+
+   return sh;
+}
+
+
 ProviderSymbolHolderList 
 SymbolGenerator::
 computeSymbols( LocationData& data, 
@@ -349,42 +384,41 @@ computeSymbols( LocationData& data,
 	
 	for( SymbolConfProvider::const_iterator it=symbolConf.begin();
 	     it != symbolConf.end(); ++it  ) {
-		for ( SymbolConfList::const_iterator itConf=it->second.begin();
-		      itConf != it->second.end();
-		      ++ itConf  ) {
-			sh = computeSymbols( data, it->first, 
-					               itConf->min(), itConf->max(), itConf->precipHours(),
-					               withoutStateOfAgregate,
-					               myerror );
-			if( !sh ) {
-				error += myerror;
-			} else {
-				//If we allready have symbols for this provider and the timespan is equal we must merge the symbols.
+	   for ( SymbolConfList::const_iterator itConf=it->second.begin();
+	         itConf != it->second.end();
+	         ++ itConf  ) {
+	      if( itConf->min() != INT_MIN && itConf->max() != INT_MAX ) {
+	         sh = computeSymbolsWithPuMet( data, *itConf, it->first, withoutStateOfAgregate, error );
+	      } else {
+	         sh = getSymbolsFromData( data, *itConf, it->first, error );
+	      }
 
-				ProviderSymbolHolderList::iterator itProvider = symbols.find( it->first );
+	      if( sh ) {
+	         //If we allready have symbols for this provider and the timespan is equal we must merge the symbols.
 
-				if( itProvider != symbols.end() ) {
-					for( SymbolHolderList::iterator itSym = itProvider->second.begin();
-					     itSym != itProvider->second.end();
-					     ++itSym )
-					{
-						if( (*itSym)->timespanInHours() == sh->timespanInHours() ) {
-							SymbolHolder *mergedSymbols = (*itSym)->merge( *sh );
+	         ProviderSymbolHolderList::iterator itProvider = symbols.find( it->first );
 
-							if( mergedSymbols ) {
-								delete sh;
-								sh = 0;
-								itSym->reset( mergedSymbols );
-								break;
-							}
-						}
-					}
-				}
+	         if( itProvider != symbols.end() ) {
+	            for( SymbolHolderList::iterator itSym = itProvider->second.begin();
+	                  itSym != itProvider->second.end();
+	                  ++itSym ) {
+	               if( (*itSym)->timespanInHours() == sh->timespanInHours() ) {
+	                  SymbolHolder *mergedSymbols = (*itSym)->merge( *sh );
 
-				if( sh )
-					symbols[it->first].push_back( boost::shared_ptr<SymbolHolder>( sh ) );
-			}
-		}
+	                  if( mergedSymbols ) {
+	                     delete sh;
+	                     sh = 0;
+	                     itSym->reset( mergedSymbols );
+	                     break;
+	                  }
+	               }
+	            }
+	         }
+
+	         if( sh )
+	            symbols[it->first].push_back( boost::shared_ptr<SymbolHolder>( sh ) );
+	      }
+	   }
 	}
 	
 	return symbols;

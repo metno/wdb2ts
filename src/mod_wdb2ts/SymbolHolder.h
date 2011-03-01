@@ -110,6 +110,7 @@ private:
          
    public:
       SymbolHolder(): min_( 0 ), max_( 0 ), index_(0) {}
+      SymbolHolder( int timespan );
 
       ///This constructor reserve room for 100 symbols with range min-max.
       SymbolHolder( int min, int max );
@@ -173,6 +174,9 @@ typedef std::list<boost::shared_ptr<SymbolHolder> > SymbolHolderList;
 class  ProviderSymbolHolderList :
 	public std::map<std::string, SymbolHolderList >
 {
+	   void setSymbolProbability( SymbolHolder::Symbol &symbol ) const;
+
+
 public:
 		ProviderSymbolHolderList(){};
 

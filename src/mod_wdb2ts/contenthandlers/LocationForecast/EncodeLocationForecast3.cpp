@@ -525,11 +525,11 @@ encodePeriods( LocationElem &elem,
 			hasData = true;
 			SymbolGenerator::correctSymbol( symbol, elem );
 			ost << "<symbol id=\"" << symbol.idname() <<"\" number=\"" << symbol.idnumber() << "\"/>\n";
-		}
 
-		if( symbol.probability != FLT_MAX ){
-			hasData = true;
-			ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbol.probability ) << "\"/>\n";
+			if( symbol.probability != FLT_MAX ){
+			   hasData = true;
+			   ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbol.probability ) << "\"/>\n";
+			}
 		}
 	}
 

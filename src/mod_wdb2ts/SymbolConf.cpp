@@ -111,29 +111,39 @@ parse( const std::string &buf_, SymbolConfList &conf )
       
       vector<string> vals=miutil::splitstr(buf, ',');
    
-      if ( vals.size() != 3 ) 
-         return false;
+      if ( vals.size() == 3 ) {
+         miutil::trimstr(vals[0]);
+         miutil::trimstr(vals[1]);
+         miutil::trimstr(vals[2]);
       
-      miutil::trimstr(vals[0]);
-      miutil::trimstr(vals[1]);
-      miutil::trimstr(vals[2]);
+         if ( vals[0].empty() || vals[1].empty() || vals[2].empty() )
+            return false;
       
-      if ( vals[0].empty() || vals[1].empty() || vals[2].empty() )
-         return false;
-      
-      for ( vector<string>::size_type ii=0; ii < vals.size(); ++ii )
-         for ( vector<string>::size_type k=0; k < vals[ii].size(); ++k )
-            if ( ! isdigit( vals[ii][k] ) )
-               return false;   
+         for ( vector<string>::size_type ii=0; ii < vals.size(); ++ii )
+            for ( vector<string>::size_type k=0; k < vals[ii].size(); ++k )
+               if ( ! isdigit( vals[ii][k] ) )
+                  return false;
    
-      if ( sscanf( vals[0].c_str(), "%d", &min ) == 0 )
-         return false;
+         if ( sscanf( vals[0].c_str(), "%d", &min ) == 0 )
+            return false;
    
-      if ( sscanf( vals[1].c_str(), "%d", &max ) == 0 )
+         if ( sscanf( vals[1].c_str(), "%d", &max ) == 0 )
+            return false;
+
+         if ( sscanf( vals[2].c_str(), "%d", &precipHours ) == 0 )
+            return false;
+      } else if ( vals.size() == 1 ) {
+         for ( vector<string>::size_type k=0; k < vals[0].size(); ++k )
+            if ( ! isdigit( vals[0][k] ) )
+               return false;
+
+         if ( sscanf( vals[0].c_str(), "%d", &precipHours ) == 0 )
+            return false;
+         min = INT_MIN;
+         max = INT_MAX;
+      } else {
          return false;
-         
-      if ( sscanf( vals[2].c_str(), "%d", &precipHours ) == 0 )
-         return false;            
+      }
       
       conf.push_back( SymbolConf( min, max, precipHours ) );
 

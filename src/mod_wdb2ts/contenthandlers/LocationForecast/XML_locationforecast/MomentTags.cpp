@@ -29,8 +29,9 @@
 
 #include <float.h>
 #include <math.h>
-#include <MomentTags.h>
 #include <iostream>
+#include <sstream>
+#include <MomentTags.h>
 #include <probabilityCode.h>
 #include <Logger4cpp.h>
 
@@ -127,22 +128,34 @@ void
 MomentTags::
 doSymbol( float temperature )
 {
+   WEBFW_USE_LOGGER( "encode" );
 	boost::posix_time::ptime fromTime; 
 	
 	int symNumber = pd->symbol( fromTime );
 	
 	//cerr << "doSymbol: "  << symNumber << endl;
 	
-	if( symNumber == INT_MAX ) 
+	if( symNumber == INT_MAX ) {
+	   WEBFW_LOG_DEBUG("doSymbol: NO SYMBOL for fromtime: " << fromTime );
+	   cerr << "doSymbol: NO SYMBOL for fromtime: " << fromTime << " Provider: " << pd->forecastprovider()
+	        <<endl;
 		return;
+	}
 
 	//cerr << "doSymbol: AddSymbol: " << symNumber << " (" << pd->symbol_PROBABILITY() << ") t: "
 	//     << pd->time() << " p: " << pd->forecastprovider() << " lat: "  << pd->latitude()
 	//     << endl;
 
 	//Allow the symbol probability to came from another provider than the symbol.
+	ostringstream o;
+
 	string savedProvider = pd->forecastprovider();
+
+	o << "doSymbol: savedProvider: '" << savedProvider << "' fromTime: " << fromTime;
 	float prob = pd->symbol_PROBABILITY( fromTime, true );
+
+	o << " symbol: " << symNumber << " prob: " << prob << " provider: '" << pd->forecastprovider()
+	  << "' time: " << pd->time() << " temperature: " << temperature;
 	symbolContext->addSymbol( symNumber, prob,
 			                    pd->time(), temperature, fromTime, pd->forecastprovider(), pd->latitude() );
 
@@ -152,6 +165,8 @@ doSymbol( float temperature )
 	   symbolContext->addSymbol( symNumber, prob,
 	                             pd->time(), temperature, fromTime, savedProvider, pd->latitude() );
 	pd->forecastprovider( savedProvider );
+	cerr << o.str() << endl;
+	WEBFW_LOG_DEBUG( o.str() );
 }
 
 void 
@@ -237,7 +252,7 @@ output( std::ostream &out, const std::string &indent )
 			}
 		}
 
-		doSymbol( tempUsed );
+		//doSymbol( tempUsed );
 		nForecast++;
 		tmpout << indent << "<temperature id=\"TTT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
 	}

@@ -96,8 +96,15 @@ SymbolHolder( int min, int max )
 : min_( min ), max_( max ), index_(-1)
 {
 	symbols_.reserve( 100 );
-	
 }
+
+SymbolHolder::
+SymbolHolder( int timespan )
+: min_( timespan-1 ), max_( 0 ), index_(-1)
+{
+   symbols_.reserve( 100 );
+}
+
 
 SymbolHolder::      
 ~SymbolHolder()
@@ -310,6 +317,39 @@ operator<<(std::ostream &o, SymbolHolder &sh )
    return o;    
 }
 
+
+void
+ProviderSymbolHolderList::
+setSymbolProbability( SymbolHolder::Symbol &symbol ) const
+{
+   using namespace boost::posix_time;
+
+   cerr << "setSymbolProbability: ts: " << symbol.timespanInHours()
+        << " " << symbol.from() << " - " << symbol.to() << endl;
+   SymbolHolder::Symbol tmpSymbol;
+   int timespanInHours = symbol.timespanInHours();
+   miutil::miTime t = symbol.from();
+   boost::posix_time::ptime fromtime( ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+                                             time_duration( t.hour(), t.min(), t.sec() ) ) );
+
+   for( const_iterator itProv = begin(); itProv != end(); ++itProv ) {
+      for( SymbolHolderList::const_iterator itSh = itProv->second.begin();
+           itSh != itProv->second.end();
+           ++itSh ) {
+         if( (*itSh)->timespanInHours() == timespanInHours ) {
+            if( (*itSh)->findSymbol( fromtime, tmpSymbol ) ) {
+               if( tmpSymbol.probability != FLT_MAX ) {
+                  symbol.probability = tmpSymbol.probability;
+                  cerr << "Symbolprobability from: '" << itProv->first << "' prob: " << symbol.probability
+                       << " " << symbol.from() << " - " << symbol.to() << endl;
+                  return;
+               }
+            }
+         }
+      }
+   }
+}
+
 bool
 ProviderSymbolHolderList::
 findSymbol( const std::string &provider,
@@ -327,8 +367,11 @@ findSymbol( const std::string &provider,
 		 ++itSh ) {
 
 		if( (*itSh)->timespanInHours() == timespanInHours ) {
-			if( (*itSh)->findSymbol( fromtime, symbol ) )
+			if( (*itSh)->findSymbol( fromtime, symbol ) ) {
+			   if( symbol.probability == FLT_MAX )
+			      setSymbolProbability( symbol );
 				return true;
+			}
 		}
 	}
 
@@ -360,8 +403,11 @@ findSymbol( const std::string &provider,
 		 ++itSh ) {
 
 		if( (*itSh)->timespanInHours() == timespanInHours ) {
-			if( (*itSh)->findSymbol( fromtime, symbol ) )
+			if( (*itSh)->findSymbol( fromtime, symbol ) ) {
+			   if( symbol.probability == FLT_MAX )
+			      setSymbolProbability( symbol );
 				return true;
+			}
 		}
 	}
 
