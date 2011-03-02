@@ -161,6 +161,76 @@ merge( const PData &other )
     if( other.topography != FLT_MAX ) topography = other.topography;
 }
 
+void
+PData::
+print( std::ostream &o )const
+{
+   if( windV10m != FLT_MAX ) o << "windV10m: " << windV10m << endl;
+   if( windU10m != FLT_MAX ) o << "windU10m: " << windU10m << endl;
+   if( PP != FLT_MAX ) o << "PP: " << PP << endl;;
+   if( PR != FLT_MAX ) o << "PR: " << PR << endl;;
+   if( TA != FLT_MAX ) o << "TA: " << TA << endl;;
+   if( T2M != FLT_MAX ) o << "T2M: " << T2M << endl;;
+   if( T2M_LAND  != FLT_MAX ) o << "T2M_LAND: " << T2M_LAND << endl;;
+   if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) o << "T2M_NO_ADIABATIC_HIGHT_CORRECTION: " << T2M_NO_ADIABATIC_HIGHT_CORRECTION << endl;
+   if( temperatureCorrected != FLT_MAX ) o << "temperatureCorrected: " << temperatureCorrected << endl;;
+   if( UU != FLT_MAX ) o << "UU: " << UU << endl;
+   if( PRECIP_PROBABILITY != FLT_MAX ) o << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;;
+   if( PRECIP_MIN != FLT_MAX ) o << "PRECIP_MIN: " << PRECIP_MIN << endl;;
+   if( PRECIP_MAX != FLT_MAX ) o << "PRECIP_MAX: " << PRECIP_MAX << endl;;
+   if( PRECIP_MEAN != FLT_MAX ) o << "PRECIP_MEAN: " << PRECIP_MEAN << endl;;
+   if( PRECIP != FLT_MAX ) o << "PRECIP: " << PRECIP << endl;;
+   if( PRECIP_ACCUMULATED != FLT_MAX ) o << "PRECIP_ACCUMULATED: " << PRECIP_ACCUMULATED << endl;;
+   if( PRECIP_1T != FLT_MAX ) o << "PRECIP_1T: " << PRECIP_1T << endl;
+   if( PRECIP_3T != FLT_MAX ) o << "PRECIP_3T: " << PRECIP_3T << endl;
+   if( PRECIP_6T != FLT_MAX ) o << "PRECIP_6T: " << PRECIP_6T << endl;
+   if( PRECIP_12T != FLT_MAX ) o << "PRECIP_12T: " << PRECIP_12T << endl;
+   if( PRECIP_24T != FLT_MAX ) o << "PRECIP_24T: " << PRECIP_24T << endl;
+   if( seaCurrentVelocityV != FLT_MAX ) o << "seaCurrentVelocityV: " << seaCurrentVelocityV << endl;
+   if( seaCurrentVelocityU != FLT_MAX ) o << "seaCurrentVelocityU: " << seaCurrentVelocityU << endl;
+   if( seaSalinity != FLT_MAX ) o << "seaSalinity: " << seaSalinity << endl;
+   if( seaSurfaceHeight != FLT_MAX ) o << "seaSurfaceHeight: " << seaSurfaceHeight << endl;
+   if( seaTemperature != FLT_MAX ) o << "seaTemperature: " << seaTemperature << endl;
+   if( meanTotalWaveDirection != FLT_MAX ) o << "meanTotalWaveDirection: " << meanTotalWaveDirection << endl;
+   if( significantTotalWaveHeight != FLT_MAX ) o << "significantTotalWaveHeight: " << significantTotalWaveHeight << endl;
+   if( seaIcePresence != FLT_MAX )o << "seaIcePresence: " << seaIcePresence << endl;
+   if( iceingIndex != FLT_MAX ) o << "iceingIndex: " << iceingIndex << endl;
+   if( NN != FLT_MAX ) o << "NN: " << NN << endl;
+   if( visibility != FLT_MAX ) o << "visibility: " << visibility << endl;
+   if( fog != FLT_MAX ) o << "fog: " << fog << endl;
+   if( highCloud != FLT_MAX )o << "highCloud: " << highCloud << endl;
+   if( mediumCloud != FLT_MAX ) o << "mediumCloud: " << mediumCloud << endl;
+   if( lowCloud != FLT_MAX ) o << "lowCloud: " << lowCloud << endl;
+   if( RH2M != FLT_MAX ) o << "RH2M: " << RH2M << endl;
+   if( thunderProability != FLT_MAX ) o << "thunderProability: " << thunderProability << endl;
+   if( fogProability != FLT_MAX ) o << "fogProability: " << fogProability << endl;
+   if( WIND_PROBABILITY != FLT_MAX ) o << "WIND_PROBABILITY: " << WIND_PROBABILITY << endl;
+   if( T2M_PROBABILITY_1 != FLT_MAX ) o << "T2M_PROBABILITY_1: " << T2M_PROBABILITY_1 << endl;
+   if( T2M_PROBABILITY_2 != FLT_MAX ) o << "T2M_PROBABILITY_2: " << T2M_PROBABILITY_2 << endl;
+   if( T2M_PROBABILITY_3 != FLT_MAX ) o << "T2M_PROBABILITY_3: " << T2M_PROBABILITY_3 << endl;
+   if( T2M_PROBABILITY_4 != FLT_MAX ) o << "T2M_PROBABILITY_4: " << T2M_PROBABILITY_4 << endl;
+   if( T2M_PERCENTILE_10 != FLT_MAX ) o << "T2M_PERCENTILE_10: " << T2M_PERCENTILE_10 << endl;
+   if( T2M_PERCENTILE_25 != FLT_MAX ) o << "T2M_PERCENTILE_25: " << T2M_PERCENTILE_25 << endl;
+   if( T2M_PERCENTILE_50 != FLT_MAX ) o << "T2M_PERCENTILE_50: " << T2M_PERCENTILE_50 << endl;
+   if( T2M_PERCENTILE_75 != FLT_MAX ) o << "T2M_PERCENTILE_75: " << T2M_PERCENTILE_75 << endl;
+   if( T2M_PERCENTILE_90 != FLT_MAX ) o << "T2M_PERCENTILE_90: " << T2M_PERCENTILE_90 << endl;
+   if( PRECIP_PERCENTILE_10 != FLT_MAX ) o << "PRECIP_PERCENTILE_10: " << PRECIP_PERCENTILE_10 << endl;
+   if( PRECIP_PERCENTILE_25 != FLT_MAX )  o << "PRECIP_PERCENTILE_25: " << PRECIP_PERCENTILE_25 << endl;
+   if( PRECIP_PERCENTILE_50 != FLT_MAX )  o << "PRECIP_PERCENTILE_50: " << PRECIP_PERCENTILE_50 << endl;
+   if( PRECIP_PERCENTILE_75 != FLT_MAX )  o << "PRECIP_PERCENTILE_75: " << PRECIP_PERCENTILE_75 << endl;
+   if( PRECIP_PERCENTILE_90 != FLT_MAX )  o << "PRECIP_PERCENTILE_90: " << PRECIP_PERCENTILE_90 << endl;
+   if( PRECIP_PROBABILITY_0_1MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_1MM: " << PRECIP_PROBABILITY_0_1MM << endl;
+   if( PRECIP_PROBABILITY_0_2MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_2MM: " << PRECIP_PROBABILITY_0_2MM << endl;
+   if( PRECIP_PROBABILITY_0_5MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_5MM: " << PRECIP_PROBABILITY_0_5MM << endl;
+   if( PRECIP_PROBABILITY_1_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_1_0MM: " << PRECIP_PROBABILITY_1_0MM << endl;
+   if( PRECIP_PROBABILITY_2_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_2_0MM: " << PRECIP_PROBABILITY_2_0MM << endl;
+   if( PRECIP_PROBABILITY_5_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_5_0MM: " << PRECIP_PROBABILITY_5_0MM << endl;
+   if( symbol != FLT_MAX )  o << "symbol: " << symbol << endl;
+   if( symbol_PROBABILITY != FLT_MAX ) o << "symbol_PROBABILITY: " << symbol_PROBABILITY << endl;
+}
+
+
+
 int
 PData::
 count()const

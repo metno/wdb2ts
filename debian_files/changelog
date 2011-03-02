@@ -1,3 +1,9 @@
+metno-wdb2ts (0.9.6.9~pre5-1) unstable; urgency=low
+  * Fix symbolprobability.
+  * Add some temporary debug output to the apache logfile.
+    
+ -- Borge Moe <borge.moe@met.no>  Wed, 02 Mar 2011 17:51:00 +0100
+
 metno-wdb2ts (0.9.6.9~pre4-1) unstable; urgency=low
   * Recompile.
     

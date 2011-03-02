@@ -33,6 +33,7 @@
 #include <float.h>
 #include <string>
 #include <string>
+#include <ostream>
 #include <pqxx/pqxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
@@ -278,6 +279,7 @@ struct PData{
       return *this;
    }
 
+   void print( std::ostream &o )const;
    void merge( const PData &other );
    int count()const;
 };

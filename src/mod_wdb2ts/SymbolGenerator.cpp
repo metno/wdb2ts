@@ -335,36 +335,40 @@ getSymbolsFromData( LocationData& data,
    data.init( startAt, provider );
 
    while( data.hasNext() ) {
-      LocationElem &elem = *data.next();
-      symNumber = elem.symbol( fromTime );
+      LocationElem *elem = data.next();
+
+      if( ! elem )
+         continue;
+
+      symNumber = elem->symbol( fromTime );
 
       if( symNumber == INT_MAX ) {
          //WEBFW_LOG_DEBUG("doSymbol: NO SYMBOL for fromtime: " << fromTime );
-         cerr << "getSymbolsFromData: NO SYMBOL for Provider: '" << elem.forecastprovider() << "' "
-               << " timespan: " << symbolConf.precipHours() << " time: " << elem.time() << endl;
+         cerr << "getSymbolsFromData: NO SYMBOL for Provider: '" << elem->forecastprovider() << "' "
+               << " timespan: " << symbolConf.precipHours() << " time: " << elem->time() << endl;
          continue;
       }
 
-      h = elem.time() - fromTime;
+      h = elem->time() - fromTime;
 
       if( h.is_negative() )
          h.invert_sign();
 
       if( h.hours() != sh->timespanInHours() ) {
-         cerr << "getSymbolsFromData: provider: '" << elem.forecastprovider() << "' "
+         cerr << "getSymbolsFromData: provider: '" << elem->forecastprovider() << "' "
                         << " timespan: " << sh->timespanInHours() << " data ts: " << h <<endl;
          continue;
       }
 
 
 
-      prob = elem.symbol_PROBABILITY( fromTime );
+      prob = elem->symbol_PROBABILITY( fromTime );
 
-      cerr << "getSymbolsFromData: Add:  provider: '" << elem.forecastprovider() << "' "
-           << " timespan: " << sh->timespanInHours() << " time: " << elem.time() << " sym: "
+      cerr << "getSymbolsFromData: Add:  provider: '" << elem->forecastprovider() << "' "
+           << " timespan: " << sh->timespanInHours() << " time: " << elem->time() << " sym: "
            << symNumber << " prob: " << prob << endl;
 
-      sh->addSymbol( elem.time(), symNumber, elem.latitude(), true, prob );
+      sh->addSymbol( elem->time(), symNumber, elem->latitude(), true, prob );
    }
 
    return sh;

@@ -262,6 +262,7 @@ public:
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
 	
+	void symbolprovider(const std::string &provider ){ symbolProvider = provider; }
 	void forecastprovider( const std::string &provider ) { forecastProvider=provider; }
 
 	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;

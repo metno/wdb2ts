@@ -321,6 +321,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                      float &minOut, float &maxOut, float &meanOut, float probOut,
                      bool tryHard )const
 {
+   const float MIN_PRECIP=0.0;
    static float a[]={ 1.0, 0.3370, 0.6121, 0.9307, 0.4207, 1.4325 };
    std::vector<float> min;
    std::vector<float> max;
@@ -443,9 +444,8 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       meanOut = mean[0];
       probOut = prob[0];
 
-      minOut = minOut<0?0:minOut;
-      maxOut = maxOut<0?0:maxOut;
-
+      minOut = minOut<=MIN_PRECIP?0:minOut;
+      maxOut = maxOut<=MIN_PRECIP?0:maxOut;
       return true;
    }
 
@@ -455,8 +455,8 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       probOut = FLT_MAX;
       meanOut = sumVector( mean );
 
-      minOut = minOut<0?0:minOut;
-      maxOut = maxOut<0?0:maxOut;
+      minOut = minOut<=MIN_PRECIP?0:minOut;
+      maxOut = maxOut<=MIN_PRECIP?0:maxOut;
 
       return true;
    }
@@ -481,8 +481,8 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    minOut = meanOut - v;
    maxOut = meanOut + v;
 
-   minOut = minOut<0?0:minOut;
-   maxOut = maxOut<0?0:maxOut;
+   minOut = minOut<=MIN_PRECIP?0:minOut;
+   maxOut = maxOut<=MIN_PRECIP?0:maxOut;
    probOut = maxInVector( prob );
 
    //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " (" << backTime_ << " - " << itTimeSerie->first << ") mean: " << meanOut << " min: " << minOut << " max: " << maxOut  );
