@@ -94,6 +94,9 @@ public:
 	static
 	void correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data );
 
+	static
+   void correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd );
+
 			                           
 };
 

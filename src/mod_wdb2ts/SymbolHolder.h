@@ -37,6 +37,7 @@
 #include <list>
 #include <puMet/miSymbol.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "LocationElem.h"
 
 namespace wdb2ts {
 
@@ -90,6 +91,8 @@ public:
       std::string idname()const;
       int         idnumber()const { return const_cast<Symbol*>(this)->symbol.customNumber(); }
       int timespanInHours() const { return max + min + 1; }
+      boost::posix_time::ptime toAsPtime()const;
+      boost::posix_time::ptime fromAsPtime()const;
       miutil::miTime to()const { miutil::miTime t(symbol.getTime()); t.addHour( max ); return t; }
       miutil::miTime from()const { miutil::miTime t(symbol.getTime()); t.addHour( -1*min-1 ); return t; }
 
@@ -135,7 +138,8 @@ private:
        * @return true if such a period is found and false otherwise. 
        */
       bool initIndex(const boost::posix_time::ptime &from);
-      
+      bool next( SymbolHolder::Symbol &symbol );
+
       bool next( int &symbolid, 
       			  std::string &name, 
       			  std::string &idname,
@@ -175,7 +179,7 @@ class  ProviderSymbolHolderList :
 	public std::map<std::string, SymbolHolderList >
 {
 	   void setSymbolProbability( SymbolHolder::Symbol &symbol ) const;
-
+	   std::map<boost::posix_time::ptime, PartialData> partialData;
 
 public:
 		ProviderSymbolHolderList(){};
@@ -195,6 +199,8 @@ public:
 				               const std::string &provider,
 				               std::set<boost::posix_time::ptime> &fromtimes )const;
 
+		void addPartialData( const LocationElem &elem ) ;
+		bool getPartialData( const boost::posix_time::ptime &time, PartialData &pd )const;
 };
 
 

@@ -33,6 +33,7 @@
 #include <puMet/symbolMaker.h>
 #include <puMet/paramet.h>
 #include <SymbolGenerator.h>
+#include "LocationElem.h"
 #include <Logger4cpp.h>
 
 
@@ -62,58 +63,68 @@ readConf( const std::string &confile )
 }
 	
 
+void
+SymbolGenerator::
+correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd )
+{
+   WEBFW_USE_LOGGER( "encode" );
+// SymbolHolder::Symbol oldSymbol;
+
+   if( pd.totalCloud != FLT_MAX && symbol.idnumber() == 4 ) {
+      if( pd.mediumCloud < 13  && pd.lowCloud < 13 && pd.fog < 13 ) {
+         miSymbol partlyCloud( 3, false );
+         code light;
+         code dark;
+
+         light.AddValues( 3, "delvis skyet", 9 );
+         dark.AddValues( 17, "delvis skyet i m�rketid", 9 );
+         partlyCloud.AddCodes( light, dark );
+         partlyCloud.setTime( symbol.symbol.getTime() );
+         partlyCloud.setLightStat( symbol.symbol.getLightStat() );
+
+//       oldSymbol = symbol;
+         symbol.symbol = partlyCloud;
+/*
+         if( oldSymbol.idnumber() != symbol.idnumber() ) {
+            WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct for misleading cloudtype: old: "
+                             << oldSymbol.idnumber() << " (" << oldSymbol.idname()
+                           << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
+         }
+*/
+      }
+   }
+
+   cerr << "SSSSS: correctSymbol: stateOfAg: " << (symbol.withOutStateOfAgregate?"T":"F") <<
+        " Temperature: " << pd.temperatureCorrected << endl;
+   if( ! symbol.withOutStateOfAgregate  || pd.temperatureCorrected==FLT_MAX  ) {
+      cerr << "SSSSS: correctSymbol: For noe dritt!!!!" << endl;
+      return;
+   }
+   cerr << "SSSSSSS: correctSymbol: " << symbol.idname() << " T: " << pd.temperatureCorrected
+         << " " <<symbol.from() << " - " << symbol.to();
+// oldSymbol = symbol;
+   symbolMaker::stateMaker( symbol.symbol, pd.temperatureCorrected );
+
+   cerr << " NEW: " << symbol.idname() << endl;
+
+/*
+   if( oldSymbol.idnumber() != symbol.idnumber() ) {
+      WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct agregate: temp: " << temperature
+                     << " old: " << oldSymbol.idnumber() << " (" << oldSymbol.idname()
+                      << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
+   }
+*/
+
+
+}
+
 
 void
 SymbolGenerator::
 correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data )
 {
-	WEBFW_USE_LOGGER( "encode" );
-	float mediumCloud=data.mediumCloud();
-	float NN=data.NN();
-	float lowCloud=data.lowCloud();
-	float fog=data.fog();
-	float temperature=data.temperatureCorrected();
-//	SymbolHolder::Symbol oldSymbol;
-
-	if( NN != FLT_MAX && symbol.idnumber() == 4 ) {
-		if( mediumCloud < 13  && lowCloud && fog < 13 ) {
-			miSymbol partlyCloud( 3, false );
-			code light;
-			code dark;
-
-			light.AddValues( 3, "delvis skyet", 9 );
-			dark.AddValues( 17, "delvis skyet i m�rketid", 9 );
-			partlyCloud.AddCodes( light, dark );
-			partlyCloud.setTime( symbol.symbol.getTime() );
-			partlyCloud.setLightStat( symbol.symbol.getLightStat() );
-
-//			oldSymbol = symbol;
-			symbol.symbol = partlyCloud;
-/*
-			if( oldSymbol.idnumber() != symbol.idnumber() ) {
-				WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct for misleading cloudtype: old: "
-				      		     << oldSymbol.idnumber() << " (" << oldSymbol.idname()
-						         << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
-			}
-*/
-		}
-	}
-
-	if( ! symbol.withOutStateOfAgregate  || temperature==FLT_MAX  )
-		return;
-
-//	oldSymbol = symbol;
-	symbolMaker::stateMaker( symbol.symbol, temperature );
-
-/*
-	if( oldSymbol.idnumber() != symbol.idnumber() ) {
-		WEBFW_LOG_DEBUG( "SymbolGenerator::correctSymbol: Correct agregate: temp: " << temperature
-				         << " old: " << oldSymbol.idnumber() << " (" << oldSymbol.idname()
-			             << ") new: " << symbol.idnumber() << " (" << symbol.idname() << ")");
-	}
-*/
+   correctSymbol( symbol, PartialData( data ) );
 }
-
 
 SymbolHolder*
 SymbolGenerator::
@@ -351,8 +362,10 @@ getSymbolsFromData( LocationData& data,
 
       h = elem->time() - fromTime;
 
-      if( h.is_negative() )
+      if( h.is_negative() ) {
+         cerr << " @@@@@@@@@@@@ h: " << h << " er negativ.\n";
          h.invert_sign();
+      }
 
       if( h.hours() != sh->timespanInHours() ) {
          cerr << "getSymbolsFromData: provider: '" << elem->forecastprovider() << "' "

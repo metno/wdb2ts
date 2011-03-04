@@ -249,12 +249,14 @@ hasDataForTime( const boost::posix_time::ptime &fromtime,
 
 ITimeSerie
 LocationData::
-findProviderData( const std::string &provider, 
+findFirstDataSet( const std::string &provider, 
 		            const boost::posix_time::ptime &startAtToTime )const
 {
 	IFromTimeSerie itFromTimeSerie;
 	IProviderPDataList itProviderPDataList;
 	ITimeSerie it;
+	boost::posix_time::time_duration h;
+	boost::posix_time::ptime fromTime;
 	
 	it = timeSerie->begin();
 			
@@ -264,11 +266,13 @@ findProviderData( const std::string &provider,
 	if( startAtToTime.is_special() ) {
 		for( ; it != timeSerie->end(); ++it ) {
 			
-			itFromTimeSerie = it->second.find( it->first );
+		   fromTime = it->first - boost::posix_time::hours( timespan_ );
+
+			itFromTimeSerie = it->second.find( fromTime );
 			
 			if( itFromTimeSerie == it->second.end() )
 				continue;
-			
+
 			itProviderPDataList = itFromTimeSerie->second.find( provider );
 			
 			if( itProviderPDataList == itFromTimeSerie->second.end() )
@@ -284,7 +288,9 @@ findProviderData( const std::string &provider,
 		if( it->first < startAtToTime )
 			continue;
 		
-		itFromTimeSerie = it->second.find( it->first );
+      fromTime = it->first - boost::posix_time::hours( timespan_ );
+
+		itFromTimeSerie = it->second.find( fromTime );
 		
 		if( itFromTimeSerie == it->second.end() )
 			continue;
@@ -303,10 +309,14 @@ findProviderData( const std::string &provider,
 
 bool 
 LocationData::
-init( const boost::posix_time::ptime &startAtToTime,  const std::string &provider_  )
+init( const boost::posix_time::ptime &startAtToTime,  const std::string &provider,
+      int timespan)
 {
 	if( ! timeSerie )
 		return false;
+
+	provider_ = provider;
+	timespan_ = timespan;
 	/*
 	if( startAtToTime.is_special() ) {
 		itTimeSerie = timeSerie->begin();
@@ -328,13 +338,13 @@ init( const boost::posix_time::ptime &startAtToTime,  const std::string &provide
 		for( ProviderList::iterator it = providerPriority_.begin();
 		     it != providerPriority_.end();
 		     ++it ) {
-			itTimeSerie = findProviderData( it->providerWithPlacename(), startAtToTime );
+			itTimeSerie = findFirstDataSet( it->providerWithPlacename(), startAtToTime );
 			
 			if( itTimeSerie == timeSerie->end() )
 				continue;
 			
 			locationElem.forecastProvider = it->providerWithPlacename();
-			
+			provider_ = it->providerWithPlacename();
 			return true;
 		}	
 			
@@ -342,7 +352,7 @@ init( const boost::posix_time::ptime &startAtToTime,  const std::string &provide
 	}
 	
 	
-	itTimeSerie = findProviderData( provider_, startAtToTime );
+	itTimeSerie = findFirstDataSet( provider_, startAtToTime );
 		
 	if( itTimeSerie == timeSerie->end() )
 		return false;

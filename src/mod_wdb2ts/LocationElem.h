@@ -379,6 +379,49 @@ public:
 	
 };
 
+/**
+ * PartialData holds data that is needed to correct symbols.
+ */
+struct PartialData {
+   float totalCloud;
+   float lowCloud;
+   float mediumCloud;
+   float highCloud;
+   float fog;
+   float temperatureCorrected;
+   boost::posix_time::ptime time;
+
+   PartialData()
+      : totalCloud( FLT_MAX ),
+        lowCloud( FLT_MAX ),
+        mediumCloud( FLT_MAX ),
+        highCloud( FLT_MAX ),
+        fog( FLT_MAX ),
+        temperatureCorrected( FLT_MAX )
+   {}
+
+   PartialData( const LocationElem &elem ) {
+      totalCloud = elem.NN();
+      lowCloud = elem.lowCloud();
+      highCloud = elem.highCloud();
+      fog = elem.fog();
+      temperatureCorrected = elem.temperatureCorrected();
+      time = elem.time();
+   }
+   PartialData( const PartialData &pd )
+      : totalCloud( pd.totalCloud ),
+        lowCloud( pd.lowCloud ),
+        mediumCloud( pd.mediumCloud ),
+        highCloud( pd.highCloud ),
+        fog( pd.fog ),
+        temperatureCorrected( pd.temperatureCorrected ),
+        time( pd.time )
+   {}
+
+};
+
+
+
 }
 
 #endif /*LOCATIONELEM_H_*/

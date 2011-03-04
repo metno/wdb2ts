@@ -53,6 +53,29 @@ idname() const
 	return symbolidToName(  const_cast<SymbolHolder::Symbol*>(this)->symbol.customNumber() );
 }
 
+boost::posix_time::ptime
+SymbolHolder::Symbol::
+toAsPtime()const
+{
+   using namespace boost::posix_time;
+
+   miutil::miTime t = to();
+
+   return ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+                 time_duration( t.hour(), t.min(), t.sec() ) );
+}
+
+boost::posix_time::ptime
+SymbolHolder::Symbol::
+fromAsPtime()const
+{
+   using namespace boost::posix_time;
+
+   miutil::miTime t = from();
+   return ptime( boost::gregorian::date( t.year(), t.month(), t.day() ),
+                 time_duration( t.hour(), t.min(), t.sec() ) );
+}
+
 void
 SymbolHolder::Symbol::
 fromAndToTime( boost::posix_time::ptime &fromTime, boost::posix_time::ptime &toTime) const
@@ -223,15 +246,15 @@ initIndex( const boost::posix_time::ptime &fromtime_ )
 bool 
 SymbolHolder::
 next( int &symbolid, 
-	   std::string &name,
-	   std::string &idname,
-	   boost::posix_time::ptime &time, 
-	   boost::posix_time::ptime &from, 
-	   boost::posix_time::ptime &to,
-	   float &probability )
+      std::string &name,
+      std::string &idname,
+      boost::posix_time::ptime &time,
+      boost::posix_time::ptime &from,
+      boost::posix_time::ptime &to,
+      float &probability )
 {
-	using namespace boost::posix_time;
-	
+   using namespace boost::posix_time;
+
    if (index_ < 0 || static_cast< std::vector<Symbol>::size_type >( index_) >= symbols_.size())
       return false;
    
@@ -255,10 +278,22 @@ next( int &symbolid,
    
    return true;
 }
-      
 
-   
 
+bool
+SymbolHolder::
+next( SymbolHolder::Symbol &symbol )
+{
+	using namespace boost::posix_time;
+
+   if (index_ < 0 || static_cast< std::vector<Symbol>::size_type >( index_) >= symbols_.size())
+      return false;
+
+   symbol = symbols_[index_];
+   index_++;
+
+   return true;
+}
 
 SymbolHolder* 
 SymbolHolder::
@@ -448,6 +483,28 @@ findAllFromtimes( const boost::posix_time::ptime &toTime,
 		if( ! all )
 			return;
 	}
+}
+
+
+void
+ProviderSymbolHolderList::
+addPartialData( const LocationElem &elem )
+{
+   partialData[elem.time()] = PartialData( elem );
+}
+
+bool
+ProviderSymbolHolderList::
+getPartialData( const boost::posix_time::ptime &time, PartialData &pd ) const
+{
+   std::map<boost::posix_time::ptime, PartialData>::const_iterator it;
+   it=partialData.find( time );
+
+   if( it == partialData.end() )
+      return false;
+
+   pd = it->second;
+   return true;
 }
 
 }

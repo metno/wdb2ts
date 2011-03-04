@@ -59,11 +59,11 @@ class LocationData
 	TimeSerie *timeSerie;
 	ITimeSerie itTimeSerie;
 	LocationElem locationElem;
+	int timespan_;
+	std::string provider_;
 	
-	ITimeSerie	findProviderData( const std::string &provider,
-		                          const boost::posix_time::ptime &startAtToTime )const;
-
-	
+	ITimeSerie	findFirstDataSet( const std::string &provider,
+		                           const boost::posix_time::ptime &startAtToTime )const;
 public:
 	LocationData():timeSerie(0){}
 	LocationData( wdb2ts::TimeSeriePtr timeSerie,
@@ -103,14 +103,18 @@ public:
 	 * Initialize the iterator. Start at 'validtotime' equal
 	 * or greater than 'startAtToTime'.
 	 * 
-	 * A invalid value of startAtToTime set initialize to the first element.
-	 * So this can be uses to scan trough all times for a given reference time.
+	 * A invalid value of startAtToTime initialize the search to start at the
+	 * first element. This can be uses to scan trough all times for a given
+	 * reference time.
 	 *  
 	 * @param startAtToTime Initialize the iterator to start at 'validtotime'
 	 *   equal or greater than 'startAtToTime'. 
 	 * @param provider set the forecastprovider to provider. 
+	 * @param Set the differens (totime-fromtime) for the data to retrive to timespan hours.
+	 * default value is 0, ie fromtime=totime.
 	 */
-	bool init( const boost::posix_time::ptime &startAtToTime, const std::string &provider="" );
+	bool init( const boost::posix_time::ptime &startAtToTime, const std::string &provider="",
+	           int timespan=0);
 
 	/**
 	 * Returns true if there is more 'validtotime' values.

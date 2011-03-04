@@ -279,13 +279,8 @@ encodeSymbols( std::ostream &out,
 	WEBFW_USE_LOGGER( "encode" );
 	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 
-	ptime from;
-	ptime to;
-	ptime time;
-	int symbolid;
-	string name;
-	string idname;
-	float prob;
+	SymbolHolder::Symbol symbol;
+	PartialData partialData;
 	int oldPrec = out.precision();
 	
 	if( breakTimes.empty() )
@@ -325,9 +320,13 @@ encodeSymbols( std::ostream &out,
 				out << indent.spaces() << "<!-- Symbols (BreakTimes) timespan: " << (*it)->timespanInHours()
 				    << " (" << itbt->provider << ")  " << startAt << " - " << itbt->to << " -->" << endl;
 
-			while ( sh->next(symbolid, name, idname, time, from, to, prob) && to <= itbt->to ) {
-				IndentLevel level3( indent );
-				TimeTag timeTag( 	from, to );
+			//while ( sh->next(symbolid, name, idname, time, from, to, prob) && to <= itbt->to ) {
+			while ( sh->next( symbol ) && symbol.toAsPtime() <= itbt->to ) {
+			   if( symbols.getPartialData( symbol.fromAsPtime(), partialData ) )
+			      SymbolGenerator::correctSymbol( symbol, partialData );
+
+			   IndentLevel level3( indent );
+				TimeTag timeTag( 	symbol.fromAsPtime(), symbol.toAsPtime() );
 				timeTag.output( out, level3.indent() );
 												
 				IndentLevel level4( indent );
@@ -336,11 +335,11 @@ encodeSymbols( std::ostream &out,
 										
 				IndentLevel level5( indent );
 				out << level5.indent() 
-				    << "<symbol id=\"" << idname <<"\" number=\"" << symbolid << "\"/>\n";
+				    << "<symbol id=\"" << symbol.idname() <<"\" number=\"" << symbol.idnumber() << "\"/>\n";
 				
-				if( prob != FLT_MAX )
+				if( symbol.probability != FLT_MAX )
 					out << level5.indent() 
-					    << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( prob ) << "\"/>\n";
+					    << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbol.probability ) << "\"/>\n";
 				
 			}
 		}
@@ -651,84 +650,6 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 
 
 
-
-#if 0
-void
-EncodeLocationForecast::
-encodePrecipitation( const boost::posix_time::ptime &from, 
-			            std::ostream &ost, 
-			            miutil::Indent &indent )
-{
-	int hours[] = { 1, 3, 6, 12, 24 };
-	int n=sizeof( hours )/sizeof(hours[0]);
-	float precip;
-	ptime fromTime;
-	ptime firstFromTime;
-	bool first;
-	bool doComment;
-	string prevProvider;
-	string provider;
-	LocationElem *location=0;
-	
-	for( int i=0; i<n; ++i ) {
-	   first = true;
-	   BreakTimeList::const_iterator itbt = findBreakTime( from );
-	   
-	   if( itbt == breakTimes.end() )
-	   	continue;
-	   
-	   firstFromTime = itbt->from;
-	   //WEBFW_LOG_DEBUG( "Precip: pr: " << itbt->provider << " from: " << itbt->from <<" to: " << itbt->to );
-	   
-	   for( ; 
-	        itbt != breakTimes.end();
-	   	  ++itbt ) 
-	   {
-	   	if( first ) {
-	   		first = false;
-	   	   
-	   		if( ! locationData.init( from, itbt->provider ) )
-	   			continue;
-	   	} else if( ! locationData.init(itbt->from, itbt->provider ) )
-	   		continue;
-	   		
-	   	doComment = true;
-	   	
-	   	while( locationData.hasNext() ) {
-   			location = locationData.next();
-			
-	   		if(  location->time() > itbt->to )  
-	   			break;
-	   			
-	   		precip = location->PRECIP( hours[i], fromTime );
-	   		
-	   		if( fromTime<firstFromTime || precip == FLT_MAX ) 
-	   			continue;
-			
-	   		IndentLevel level3( indent );
-			
-	   		if( doComment ) {
-	   			doComment = false;
-	   			ost << level3.indent() << "<!-- Precip: " << hours[i] << " hours provider: "
-	   			    << itbt->provider << " -->\n";
-	   		}
-				
-	   		TimeTag timeTag( fromTime, location->time() );
-	   		timeTag.output( ost, level3.indent() );
-							
-	   		IndentLevel level4( indent );
-	   		LocationTag locationTag( latitude, longitude, altitude );
-	   		locationTag.output( ost, level4.indent() );
-					
-	   		IndentLevel level5( indent );
-	   		PrecipitationTags precipitationTag( precip );
-	   		precipitationTag.output( ost, level5.indent() );
-	   	}
-	   }
-	}
-}
-#endif
-
 void 
 EncodeLocationForecast::
 updateBreakTimes( const std::string &provider, const boost::posix_time::ptime &time)
@@ -807,6 +728,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 		momentTags.output( momentOst, level5.indent() );
 		
 		if( ! momentOst.str().empty() ) {
+		   symbols.addPartialData( location );
 			updateBreakTimes( location.forecastprovider(), location.time() );
 			tmpOst << momentOst.str();
 		}
