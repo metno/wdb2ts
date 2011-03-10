@@ -1,3 +1,11 @@
+metno-wdb2ts (1.0.0~rc1-1) unstable; urgency=low
+  * Fix precipitation from PRECIP.ACUMULATED where validtimefrom=validtimeto.
+  * Automatic change the provider when only the placename differ. It use the resolved provider priority.
+  * Remove the temporary log in the apache error_log. 
+  * Bump the version number to 1.0.0~rc1
+    
+ -- Borge Moe <borge.moe@met.no>  Thu, 10 Mar 2011 10:00:00 +0100
+
 metno-wdb2ts (0.9.6.9~pre6-1) unstable; urgency=low
   * Fix temp and cloud correction for symbols for all encoders.
     
