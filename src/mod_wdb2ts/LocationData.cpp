@@ -384,19 +384,6 @@ next()
 	
 	locationElem.init( itTmpTimeSerie, timeSerie );
 
-	if( locationElem.symbolprovider() == "pgen_probability [norway 025]" ) {
-	   cerr << "LocationData::next: first: " << itTmpTimeSerie->first;
-	   FromTimeSerie::iterator fit = itTmpTimeSerie->second.begin();
-	   if( fit != itTmpTimeSerie->second.end() ) {
-	      cerr << " - " << fit->first;
-	      ProviderPDataList::iterator pid = fit->second.begin() ;
-	      if( pid != fit->second.end() ) {
-	         cerr << " '" << pid->first << "' # " << pid->second.count() << endl << "   ";
-	         pid->second.print( cerr );
-	      }
-	   }
-	   cerr << endl;
-	}
 	return &locationElem;
 }
 

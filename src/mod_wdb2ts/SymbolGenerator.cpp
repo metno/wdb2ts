@@ -349,31 +349,20 @@ getSymbolsFromData( LocationData& data,
 
       if( symNumber == INT_MAX ) {
          //WEBFW_LOG_DEBUG("doSymbol: NO SYMBOL for fromtime: " << fromTime );
-         cerr << "getSymbolsFromData: NO SYMBOL for Provider: '" << elem->forecastprovider() << "' "
-               << " timespan: " << symbolConf.precipHours() << " time: " << elem->time() << endl;
          continue;
       }
 
       h = elem->time() - fromTime;
 
       if( h.is_negative() ) {
-         cerr << " @@@@@@@@@@@@ h: " << h << " er negativ.\n";
          h.invert_sign();
       }
 
       if( h.hours() != sh->timespanInHours() ) {
-         cerr << "getSymbolsFromData: provider: '" << elem->forecastprovider() << "' "
-                        << " timespan: " << sh->timespanInHours() << " data ts: " << h <<endl;
          continue;
       }
 
-
-
       prob = elem->symbol_PROBABILITY( fromTime );
-
-      cerr << "getSymbolsFromData: Add:  provider: '" << elem->forecastprovider() << "' "
-           << " timespan: " << sh->timespanInHours() << " time: " << elem->time() << " sym: "
-           << symNumber << " prob: " << prob << endl;
 
       sh->addSymbol( elem->time(), symNumber, elem->latitude(), true, prob );
    }
