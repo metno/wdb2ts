@@ -1,3 +1,9 @@
+metno-wdb2ts (1.0.0~rc3-1) unstable; urgency=low
+  * Fix the resolution on latitude and longitude inth the xml output. 
+    
+ -- Borge Moe <borge.moe@met.no>  Thu, 10 Mar 2011 15:10:00 +0100
+
+
 metno-wdb2ts (1.0.0~rc2-1) unstable; urgency=low
   * Remove the temporary log in the apache error_log. 
     
