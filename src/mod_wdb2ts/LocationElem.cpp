@@ -693,11 +693,12 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 		
 		CITimeSerie itTmp = itTimeSerie;
 		
+		while( itTmp != timeSerie->begin() && itTmp->first > backTime )
+		   --itTmp;
+
 		if( itTmp == timeSerie->begin() )
-			return FLT_MAX;
-		
-		--itTmp;
-		
+		   return FLT_MAX;
+
 		//cerr << "PRECIP_N: itTmp. totime: " << itTmp->first << endl;
 		
 		if( itTmp->first != backTime )
