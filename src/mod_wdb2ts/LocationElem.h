@@ -34,6 +34,7 @@
 #include <list>
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <trimstr.h>
 #include <PointDataHelper.h>
 #include <UpdateProviderReftimes.h>
 #include <TopoProvider.h>
@@ -230,6 +231,34 @@ class LocationElem {
    {
 		T value = getValueImpl( pPM, fromTimeSerie, fromTime, provider, notValidValue );
 		
+		//Try to find a valid value from from the provider_priority list
+		//with the same provider name as the requested provider, but where
+		//we allow the placename to be different. This search is only activated
+		//if we can't clean the provider. The provider on the entry on the
+		//method is not set.
+		if( value == notValidValue && ! provider.empty() && ! myCleanProvider) {
+		   std::string::size_type i = provider.find_first_of( "[" );
+		   std::string prefix;
+		   std::string tmpProvider;
+		   if( i != std::string::npos ) {
+		      prefix = provider.substr( 0, i );
+		      miutil::trimstr( prefix ); //The provider name without the gridname
+		   } else {
+		      prefix = provider;
+		   }
+
+		   for( ProviderList::const_iterator pit=providerPriority.begin();
+		        pit != providerPriority.end(); ++pit ) {
+		      if( pit->provider != prefix )
+		         continue;
+		      tmpProvider = pit->providerWithPlacename();
+		      value = getValueImpl( pPM, fromTimeSerie, fromTime, tmpProvider, notValidValue );
+
+		      if( value != notValidValue )
+		         break;
+		   }
+		}
+
 		if( value == notValidValue ) {
 			bool retry=false;
 		
