@@ -41,8 +41,8 @@ using namespace std;
 
 //If LATLONG_DEG2INT is changed. Then ROUND_BEFORE_DEG2INT must also
 //be changed so the rounding shall be correct
-#define LATLONG_DEG2INT 10000
-#define ROUND_BEFORE_DEG2INT 0.00005
+#define LATLONG_DEG2INT 10000000
+#define ROUND_BEFORE_DEG2INT 0.00000005
 
 
 namespace {
