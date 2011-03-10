@@ -359,8 +359,8 @@ setSymbolProbability( SymbolHolder::Symbol &symbol ) const
 {
    using namespace boost::posix_time;
 
-   cerr << "setSymbolProbability: ts: " << symbol.timespanInHours()
-        << " " << symbol.from() << " - " << symbol.to() << endl;
+//   cerr << "setSymbolProbability: ts: " << symbol.timespanInHours()
+//        << " " << symbol.from() << " - " << symbol.to() << endl;
    SymbolHolder::Symbol tmpSymbol;
    int timespanInHours = symbol.timespanInHours();
    miutil::miTime t = symbol.from();
@@ -375,8 +375,8 @@ setSymbolProbability( SymbolHolder::Symbol &symbol ) const
             if( (*itSh)->findSymbol( fromtime, tmpSymbol ) ) {
                if( tmpSymbol.probability != FLT_MAX ) {
                   symbol.probability = tmpSymbol.probability;
-                  cerr << "Symbolprobability from: '" << itProv->first << "' prob: " << symbol.probability
-                       << " " << symbol.from() << " - " << symbol.to() << endl;
+//                  cerr << "Symbolprobability from: '" << itProv->first << "' prob: " << symbol.probability
+//                       << " " << symbol.from() << " - " << symbol.to() << endl;
                   return;
                }
             }

@@ -94,18 +94,12 @@ correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd )
       }
    }
 
-   cerr << "SSSSS: correctSymbol: stateOfAg: " << (symbol.withOutStateOfAgregate?"T":"F") <<
-        " Temperature: " << pd.temperatureCorrected << endl;
    if( ! symbol.withOutStateOfAgregate  || pd.temperatureCorrected==FLT_MAX  ) {
-      cerr << "SSSSS: correctSymbol: For noe dritt!!!!" << endl;
       return;
    }
-   cerr << "SSSSSSS: correctSymbol: " << symbol.idname() << " T: " << pd.temperatureCorrected
-         << " " <<symbol.from() << " - " << symbol.to();
 // oldSymbol = symbol;
    symbolMaker::stateMaker( symbol.symbol, pd.temperatureCorrected );
 
-   cerr << " NEW: " << symbol.idname() << endl;
 
 /*
    if( oldSymbol.idnumber() != symbol.idnumber() ) {
