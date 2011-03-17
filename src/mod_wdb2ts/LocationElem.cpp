@@ -818,9 +818,19 @@ LocationElem::
 RH2M(bool tryHard)const
 {
 	return getValue( &PData::RH2M,
-			           itTimeSerie->second,
-			           const_cast<ptime&>(itTimeSerie->first), 
-			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	                 itTimeSerie->second,
+	                 const_cast<ptime&>(itTimeSerie->first),
+	                 const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+dewPointTemperature( bool tryHard )const
+{
+   return getValue( &PData::dewPointTemperature,
+                       itTimeSerie->second,
+                       const_cast<ptime&>(itTimeSerie->first),
+                       const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
 float 

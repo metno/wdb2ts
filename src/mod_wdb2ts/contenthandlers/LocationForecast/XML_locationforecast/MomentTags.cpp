@@ -34,6 +34,7 @@
 #include <MomentTags.h>
 #include <probabilityCode.h>
 #include <Logger4cpp.h>
+#include <metfunctions.h>
 
 namespace wdb2ts {
 
@@ -290,7 +291,16 @@ output( std::ostream &out, const std::string &indent )
 		}
 
 		pd->temperatureCorrected( tempUsed, provider );
+
 		value = pd->RH2M( );
+
+		if( value == FLT_MAX ) {
+		   float dewpoint = pd->dewPointTemperature();
+
+		   if( dewpoint != FLT_MAX )
+		      value = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
+		}
+
 		if (value != FLT_MAX) {
 			tmpout << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
 			nForecast++;

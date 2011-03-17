@@ -1,3 +1,9 @@
+metno-wdb2ts (1.0.0~rc4-1) unstable; urgency=low
+  * Added support to compute the relative humidity from temperature and dewpoint temperature. 
+    
+ -- Borge Moe <borge.moe@met.no>  Thu, 17 Mar 2011 13:11:00 +0100
+
+
 metno-wdb2ts (1.0.0~rc3-1) unstable; urgency=low
   * Fix the resolution on latitude and longitude inth the xml output. 
     

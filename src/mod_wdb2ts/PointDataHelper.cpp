@@ -103,6 +103,7 @@ merge( const PData &other )
     if( other.T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX )
 		T2M_NO_ADIABATIC_HIGHT_CORRECTION = other.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
     if( other.temperatureCorrected != FLT_MAX ) temperatureCorrected = other.temperatureCorrected;
+    if( other.dewPointTemperature != FLT_MAX ) dewPointTemperature = other.dewPointTemperature;
     if( other.UU != FLT_MAX ) UU = other.UU;
     if( other.PRECIP_PROBABILITY != FLT_MAX ) PRECIP_PROBABILITY = other.PRECIP_PROBABILITY;
     if( other.PRECIP_MIN != FLT_MAX ) PRECIP_MIN = other.PRECIP_MIN;
@@ -173,7 +174,8 @@ print( std::ostream &o )const
    if( T2M != FLT_MAX ) o << "T2M: " << T2M << endl;;
    if( T2M_LAND  != FLT_MAX ) o << "T2M_LAND: " << T2M_LAND << endl;;
    if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) o << "T2M_NO_ADIABATIC_HIGHT_CORRECTION: " << T2M_NO_ADIABATIC_HIGHT_CORRECTION << endl;
-   if( temperatureCorrected != FLT_MAX ) o << "temperatureCorrected: " << temperatureCorrected << endl;;
+   if( temperatureCorrected != FLT_MAX ) o << "temperatureCorrected: " << temperatureCorrected << endl;
+   if( dewPointTemperature != FLT_MAX ) o << "dewPointTemperature: " << dewPointTemperature << endl;
    if( UU != FLT_MAX ) o << "UU: " << UU << endl;
    if( PRECIP_PROBABILITY != FLT_MAX ) o << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;;
    if( PRECIP_MIN != FLT_MAX ) o << "PRECIP_MIN: " << PRECIP_MIN << endl;;
@@ -246,6 +248,7 @@ count()const
     if( T2M_LAND  != FLT_MAX ) ++n;
     if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) ++n;
     if( temperatureCorrected != FLT_MAX ) ++n;
+    if( dewPointTemperature != FLT_MAX ) ++n;
     if( UU != FLT_MAX ) ++n;
     if( PRECIP_PROBABILITY != FLT_MAX ) ++n;
     if( PRECIP_MIN != FLT_MAX ) ++n;
@@ -639,6 +642,8 @@ decodePData( const ParamDefList &paramDefs,
 				pd.highCloud = value;
 			else if( paramDef->alias() == "RH.2M" )
 				pd.RH2M = value;
+			else if( paramDef->alias() == "T.DEWPOINT" )
+			   pd.dewPointTemperature = value;
 			else if( paramDef->alias() == "SYMBOL") 
 				pd.symbol = value;
 			else if( paramDef->alias() == "SYMBOL.PROBABILITY")

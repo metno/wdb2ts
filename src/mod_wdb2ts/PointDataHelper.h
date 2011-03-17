@@ -56,6 +56,7 @@ struct PData{
    float T2M_LAND;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION;
    float temperatureCorrected;
+   float dewPointTemperature;
    float UU;
    float PRECIP_PROBABILITY;
    float PRECIP_MIN;
@@ -116,7 +117,7 @@ struct PData{
    PData()
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
    	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ), T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
-   	 temperatureCorrected(FLT_MAX) ,
+   	 temperatureCorrected(FLT_MAX) , dewPointTemperature( FLT_MAX ),
    	 UU( FLT_MAX ), PRECIP_PROBABILITY( FLT_MAX ),
    	 PRECIP_MIN( FLT_MAX ), PRECIP_MAX( FLT_MAX ), PRECIP_MEAN( FLT_MAX ),
    	 PRECIP( FLT_MAX ),
@@ -162,7 +163,8 @@ struct PData{
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
        temperatureCorrected( pd.temperatureCorrected ),
-       UU(pd.UU), PRECIP_PROBABILITY( pd.PRECIP_PROBABILITY ),
+       dewPointTemperature( pd.dewPointTemperature ), UU( pd.UU ),
+       PRECIP_PROBABILITY( pd.PRECIP_PROBABILITY ),
        PRECIP_MIN( pd.PRECIP_MIN ), PRECIP_MAX( pd.PRECIP_MAX ), PRECIP_MEAN( pd.PRECIP_MEAN ),
        PRECIP( pd.PRECIP ),
        PRECIP_ACCUMULATED( pd.PRECIP_ACCUMULATED ),
@@ -218,7 +220,7 @@ struct PData{
          T2M_NO_ADIABATIC_HIGHT_CORRECTION = rhs.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
          temperatureCorrected = rhs.temperatureCorrected;
          UU       = rhs.UU;
-
+         dewPointTemperature = rhs.dewPointTemperature;
          PRECIP_PROBABILITY = rhs.PRECIP_PROBABILITY;
          PRECIP_MIN = rhs.PRECIP_MIN;
          PRECIP_MAX = rhs.PRECIP_MAX;

@@ -40,7 +40,9 @@ libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 		              src/miutil/TempFileStream.cpp \
 		              src/miutil/queuemt.h \
 		              src/miutil/msleep.h \
-		              src/miutil/msleep.cpp
+		              src/miutil/msleep.cpp \
+		              src/miutil/metfunctions.h \
+		              src/miutil/metfunctions.cpp
 
 EXTRA_DIST+= src/miutil/wdb2ts.mk \
 				 src/miutil/Makefile.am \

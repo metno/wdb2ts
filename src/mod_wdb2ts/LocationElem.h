@@ -336,6 +336,7 @@ public:
    float mediumCloud( bool tryHard=false )const;
    float lowCloud( bool tryHard=false )const;
    float RH2M( bool tryHard=false )const;
+   float dewPointTemperature( bool tryHard=false )const;
    float thunderProbability( bool tryHard=false )const;
    float fogProbability( bool tryHard=false )const;
    float WIND_PROBABILITY( bool tryHard=false )const;
