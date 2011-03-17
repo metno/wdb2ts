@@ -145,8 +145,8 @@ mod_metno_wdb2ts_la_LIBADD=libwdb2ts.la \
                            -lwebFW  \
                     	   -lWciWebQuery	\
                     	   -lwdb2tsconfigparser \
-                    	   -lmiutil \
                     	   -lXML_locationforecast \
+                    	   -lmiutil \
                     	   -lgfortran
 
 noinst_PROGRAMS+= TestWdb2Ts
