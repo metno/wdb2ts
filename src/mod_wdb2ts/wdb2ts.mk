@@ -157,15 +157,15 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 					-lwebFW  \
 					-lWciWebQuery	\
 					-lwdb2tsconfigparser \
-						  -lmiutil \
-						  -lXML_locationforecast \
-						   $(LIBPQXX_LIBS) \
-						   -lgfortran
+					-lXML_locationforecast \
+					-lmiutil \
+					$(LIBPQXX_LIBS) \
+					-lgfortran
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \
-				 src/mod_wdb2ts/Makefile.am \
-				 src/mod_wdb2ts/Makefile.in
+			 src/mod_wdb2ts/Makefile.am \
+			 src/mod_wdb2ts/Makefile.in
 
 DISTCLEANFILES +=	src/mod_wdb2ts/Makefile
 
@@ -176,4 +176,3 @@ DISTCLEANFILES +=	src/mod_wdb2ts/Makefile
 src/mod_wdb2ts/all: 
 
 src/mod_wdb2ts/clean: clean
-	
