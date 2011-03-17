@@ -25,8 +25,8 @@ wdb2ts_check_config_LDADD=-lwdb2tsconfigparser \
                            -lwebFW  \
                     	   -lWciWebQuery	\
                     	   -lwdb2tsconfigparser \
-                    	   -lmiutil \
                     	   -lXML_locationforecast \
+                    	   -lmiutil \
                     	   -lgfortran \
                     	   $(LDFLAGS) \
                     	   $(LIBPQXX_LIBS) 
