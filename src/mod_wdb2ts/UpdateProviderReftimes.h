@@ -49,20 +49,44 @@ namespace wdb2ts {
 struct ProviderTimes {
 	boost::posix_time::ptime refTime;
 	boost::posix_time::ptime updatedTime;
+	/**
+	 * disableEnableRequest and dataversionRequest.
+	 * This is only used when the class is used to pass information from the
+	 * url request query to the decoding logic. It is not saved to file.
+	 */
+	bool disableEnableRequest;
+	bool dataversionRequest;
+	bool reftimeUpdateRequest;
 	bool disabled;
 	int dataversion;
 
-	ProviderTimes( ) : disabled( false), dataversion( -1 ) {}
+	ProviderTimes( ) :
+	   disableEnableRequest( false ),
+	   dataversionRequest( false ),
+	   reftimeUpdateRequest( false ),
+	   disabled( false),
+	   dataversion( -1 ) {}
 	
 	ProviderTimes( const boost::posix_time::ptime &refTime_,
 	               const boost::posix_time::ptime &updatedTime_,
 	               bool disabled_ = false,
-	               int dataversion_ = -1 )
-		: refTime( refTime_), updatedTime( updatedTime_), disabled( disabled_ ),
+	               int dataversion_ = -1,
+	               bool disableEnableRequest_ = false,
+	               bool dataversionRequest_ = false,
+	               bool reftimeUpdateRequest_ = false )
+		: refTime( refTime_),
+		  updatedTime( updatedTime_),
+		  disableEnableRequest( disableEnableRequest_ ),
+		  dataversionRequest( dataversionRequest_ ),
+		  reftimeUpdateRequest( reftimeUpdateRequest_ ),
+		  disabled( disabled_ ),
 		  dataversion( dataversion_ ) {}
 	
 	ProviderTimes( const ProviderTimes &pt) 
 		: refTime( pt.refTime ), updatedTime( pt.updatedTime ),
+		  disableEnableRequest( pt.disableEnableRequest ),
+		  dataversionRequest( pt.dataversionRequest ),
+		  reftimeUpdateRequest( pt.reftimeUpdateRequest ),
 		  disabled( pt.disabled ),
 		  dataversion( pt.dataversion ){}
 	
@@ -71,6 +95,9 @@ struct ProviderTimes {
 		if( this != &rhs ) {
 			refTime = rhs.refTime;
 			updatedTime = rhs.updatedTime;
+			disableEnableRequest = rhs.disableEnableRequest;
+			dataversionRequest = rhs.dataversionRequest;
+			reftimeUpdateRequest = rhs.reftimeUpdateRequest;
 			disabled = rhs.disabled;
 			dataversion = rhs.dataversion;
 		}
@@ -107,7 +134,30 @@ public:
 	bool providerReftime( const std::string &provider,
 			              boost::posix_time::ptime &refTime ) const;
 
+	/**
+	 * updateDisableStatus updates the disable status for the requested provider.
+	 * If the requested provider do not have a placename all providers with
+	 * provider name is updated.
+	 *
+	 * @param provider The provider to update, possibly with a nameplace.
+	 * @param disable The disable status to set.
+	 * @return The number of providers updated.
+	 */
+	int updateDisableStatus( const std::string &provider, bool disable );
+
+	/**
+    * updateDataversion updates the dataversion for the requested provider.
+ 	 * If the requested provider do not have a placename all providers with
+	 * provider name is updated.
+	 *
+	 * @param provider The provider to update, possibly with a nameplace.
+	 * @param dataversion The dataversion to set.
+	 * @return The number of providers updated.
+	 */
+	int updateDataversion( const std::string &provider, int dataversion );
+
 	bool disabled( const std::string &provider, bool &disabled ) const;
+	bool dataversion( const std::string &provider, int &dataversion ) const;
 
 };
 

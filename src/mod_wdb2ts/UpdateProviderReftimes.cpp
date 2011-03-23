@@ -9,7 +9,7 @@
     0313 OSLO
     NORWAY
     E-mail: wdb@met.no
-  
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -24,7 +24,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
-*/
+ */
 
 
 #include <iostream>
@@ -43,9 +43,9 @@ using namespace miutil; //isotimeString, ptimeFromIsoString
 
 namespace {
 bool getProviderReftimes( wdb2ts::WciConnectionPtr wciConnection,
-		                    wdb2ts::ProviderRefTimeList &refTimes, 
-		                    const string &provider,
-		                    const string &reftimespec );
+                          wdb2ts::ProviderRefTimeList &refTimes,
+                          const string &provider,
+                          const string &reftimespec );
 
 }
 
@@ -56,242 +56,346 @@ int
 ProviderRefTimeList::
 getDataversion( const std::string &providerWithPlacename ) const
 {
-	const_iterator it = find( providerWithPlacename );
-	
-	if( it == end() )
-		return -1;
-	
-	return it->second.dataversion;
+   const_iterator it = find( providerWithPlacename );
+
+   if( it == end() )
+      return -1;
+
+   return it->second.dataversion;
 }
 
 bool
 ProviderRefTimeList::
 providerReftime( const std::string &provider,
-		         boost::posix_time::ptime &refTime ) const
+                 boost::posix_time::ptime &refTime ) const
 {
-	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
-	ProviderItem pvItem;
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
 
-	for( ProviderRefTimeList::const_iterator it = begin();
-			it != end(); ++it ) {
+   for( ProviderRefTimeList::const_iterator it = begin();
+         it != end(); ++it ) {
 
-		pvItem = ProviderList::decodeItem( it->first );
+      pvItem = ProviderList::decodeItem( it->first );
 
-		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
-			 ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
-		{
-			refTime = it->second.refTime;
-			return true;
-		}
-	}
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+            ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
+         {
+         refTime = it->second.refTime;
+         return true;
+         }
+   }
 
-	return false;
+   return false;
 }
 
 bool
 ProviderRefTimeList::
 disabled( const std::string &provider, bool &disabled_ ) const
 {
-	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
-	ProviderItem pvItem;
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
 
-	for( ProviderRefTimeList::const_iterator it = begin();
-		it != end(); ++it ) {
+   for( ProviderRefTimeList::const_iterator it = begin();
+         it != end(); ++it ) {
 
-		pvItem = ProviderList::decodeItem( it->first );
+      pvItem = ProviderList::decodeItem( it->first );
 
-		if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
-			( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
-		{
-					disabled_ = it->second.disabled;
-					return true;
-		}
-	}
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+            ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
+         {
+         disabled_ = it->second.disabled;
+         return true;
+         }
+   }
 
-	return false;
+   return false;
 }
 
+bool
+ProviderRefTimeList::
+dataversion( const std::string &provider, int &dataversion_ ) const
+{
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
+
+   for( ProviderRefTimeList::const_iterator it = begin();
+         it != end(); ++it ) {
+
+      pvItem = ProviderList::decodeItem( it->first );
+
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+            ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) )
+         {
+         dataversion_ = it->second.dataversion;
+         return true;
+         }
+   }
+
+   return false;
+}
+
+
+int
+ProviderRefTimeList::
+updateDisableStatus( const std::string &provider, bool disable )
+{
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
+   int count=0;
+
+   for( ProviderRefTimeList::iterator it = begin();
+         it != end(); ++it ) {
+
+      pvItem = ProviderList::decodeItem( it->first );
+
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+          ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) ) {
+         if( it->second.disabled != disable ) {
+            it->second.disabled = disable;
+            ++count;
+         }
+      }
+   }
+
+   return count;
+}
+
+int
+ProviderRefTimeList::
+updateDataversion( const std::string &provider, int dataversion )
+{
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
+   int count=0;
+
+   for( ProviderRefTimeList::iterator it = begin();
+         it != end(); ++it ) {
+
+      pvItem = ProviderList::decodeItem( it->first );
+
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+          ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) ) {
+         if( it->second.dataversion != dataversion ) {
+            it->second.dataversion = dataversion;
+            ++count;
+         }
+      }
+   }
+
+   return count;
+}
 
 
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-						const ProviderRefTimeList &requestedUpdates,
-		                ProviderRefTimeList &refTimes,
-		                int wciProtocol  )
+                        const ProviderRefTimeList &requestedUpdates,
+                        ProviderRefTimeList &refTimes,
+                        int wciProtocol  )
 {
-	ProviderRefTimeList resRefTimes;
-	ptime now( second_clock::universal_time() );
-	ptime back(now);
-	ptime endTime( now );
-	string reftime;
-	ostringstream ost;
-	string provider;
-	bool changed=false;
-	ProviderRefTimeList::const_iterator itReftime;
-	
-	back -= hours( 8640 ); //8640 hours back from now
-	endTime += hours( 24 ); //1 day in the future.
-	
-	for( ProviderRefTimeList::const_iterator it = requestedUpdates.begin();
-	     it != requestedUpdates.end();
-	     ++it )
-	{
-		ost.str("");
-		
-		//ost <<  "ARRAY['" << it->first << "']";
-		provider = it->first;
-		
-		ost.str("");
-		
-		if( it->second.refTime.is_special() ) {
-			if( wciProtocol == 1 )
-				ost << "('" << isotimeString( back, false, true ) << "','" << isotimeString( endTime, false, true ) << "','inside')";
-			else
-				ost << "'inside " << isotimeString( back, false, true ) << " TO " << isotimeString( endTime, false, true ) << "'";
-		} else { 
-			if( wciProtocol == 1 )
-				ost << "('" << isotimeString( it->second.refTime, false, true ) << "','" << isotimeString( it->second.refTime, false, true ) << "','exact')";
-			else
-				ost << "'exact " << isotimeString( it->second.refTime, false, true ) << "'";
-		}		
+   ProviderRefTimeList resRefTimes;
+   ptime now( second_clock::universal_time() );
+   ptime back(now);
+   ptime endTime( now );
+   string reftime;
+   ostringstream ost;
+   string provider;
+   bool proccessed;
+   bool changed=false;
+   ProviderRefTimeList::const_iterator itReftime;
 
-		reftime = ost.str();
-		resRefTimes.clear();
-		
-		if( getProviderReftimes( wciConnection, resRefTimes, provider, reftime ) ) {
-			
-			ProviderItem pi=ProviderList::decodeItem( provider );
+   back -= hours( 8640 ); //8640 hours back from now
+   endTime += hours( 24 ); //1 day in the future.
 
-			//It should be only one result.
-			for( ProviderRefTimeList::iterator rit = resRefTimes.begin();
-			     rit != resRefTimes.end();
-			     ++rit ) 
-			{
-				ProviderRefTimeList::iterator refTimeIt = refTimes.find( rit->first );
+   for( ProviderRefTimeList::const_iterator it = requestedUpdates.begin();
+         it != requestedUpdates.end();
+         ++it ) {
+      ost.str("");
 
-				//Do not update the reftime if we allready have a record for 
-				//this reftime. This is neccesary since the updatedTime is used
-				//in the meta data returned, runEnded or something other that tells
-				//when we started to serve data from this provider/reftime combination.
-				if( refTimeIt != refTimes.end() && refTimeIt->second.refTime == rit->second.refTime ) {
-					if( ! pi.placename.empty() ) { 
-						if( refTimeIt->first == pi.providerWithPlacename() ) {
-							if( refTimeIt->second.dataversion != it->second.dataversion ||
-								refTimeIt->second.disabled != it->second.disabled)
-								changed = true;
+      provider = it->first;
 
-							refTimeIt->second.dataversion = it->second.dataversion;
-							refTimeIt->second.disabled = it->second.disabled;
-						}
-					} else {
-						if( refTimeIt->second.dataversion != it->second.dataversion ||
-							refTimeIt->second.disabled != it->second.disabled)
-							changed = true;
-						refTimeIt->second.dataversion = it->second.dataversion;
-						refTimeIt->second.disabled = it->second.disabled;
-					}
-					continue;
-				}
-				
-				if( ! pi.placename.empty() ) {
-					if( rit->first == pi.providerWithPlacename() ) {
-						rit->second.dataversion = it->second.dataversion;
-						rit->second.disabled = it->second.disabled;
-						refTimes[rit->first] = rit->second;
-						changed = true;
-					}
-				} else {
-					rit->second.dataversion = it->second.dataversion;
-					rit->second.disabled = it->second.disabled;
-					refTimes[rit->first] = rit->second;
-					changed = true;
-				}
-			}
-		} 
-	}
-	
-	return changed;
+      if( ! it->second.reftimeUpdateRequest ) {
+         //It is not requested to update the reference time.
+         //Only dataversion and/or disable status should be updated.
+
+         if( it->second.disableEnableRequest )
+            if( refTimes.updateDisableStatus( it->first, it->second.disabled)>0 )
+               changed = true;
+
+         if( it->second.dataversionRequest )
+            if( refTimes.updateDataversion( it->first, it->second.dataversion )>0 )
+               changed = true;
+
+         continue;
+      }
+
+      ost.str("");
+
+      if( it->second.refTime.is_special() ) {
+         if( wciProtocol == 1 )
+            ost << "('" << isotimeString( back, false, true ) << "','" << isotimeString( endTime, false, true ) << "','inside')";
+         else
+            ost << "'inside " << isotimeString( back, false, true ) << " TO " << isotimeString( endTime, false, true ) << "'";
+      } else {
+         if( wciProtocol == 1 )
+            ost << "('" << isotimeString( it->second.refTime, false, true ) << "','" << isotimeString( it->second.refTime, false, true ) << "','exact')";
+         else
+            ost << "'exact " << isotimeString( it->second.refTime, false, true ) << "'";
+      }
+
+      reftime = ost.str();
+      resRefTimes.clear();
+
+      if( getProviderReftimes( wciConnection, resRefTimes, provider, reftime ) ) {
+
+         ProviderItem pi=ProviderList::decodeItem( provider );
+
+         //It should be only one result.
+         for( ProviderRefTimeList::iterator rit = resRefTimes.begin();
+               rit != resRefTimes.end();
+               ++rit ) {
+            proccessed = false;
+            ProviderRefTimeList::iterator refTimeIt = refTimes.find( rit->first );
+
+            //Do not update the reftime if we allready have a record for
+            //this reftime. This is neccesary since the updatedTime is used
+            //in the meta data returned, runEnded or something other that tells
+            //when we started to serve data from this provider/reftime combination.
+            if( refTimeIt != refTimes.end() ) {
+               if( refTimeIt->second.refTime == rit->second.refTime ) {
+                  if( pi.placename.empty() ||
+                      refTimeIt->first == pi.providerWithPlacename() ) {
+
+                     proccessed = true;
+
+                     if( it->second.dataversionRequest &&
+                           refTimeIt->second.dataversion != it->second.dataversion ) {
+                        refTimeIt->second.dataversion = it->second.dataversion;
+                        changed = true;
+                     }
+
+                     if( it->second.disableEnableRequest &&
+                           refTimeIt->second.disabled != it->second.disabled) {
+                        refTimeIt->second.disabled = it->second.disabled;
+                        changed = true;
+                     }
+                  }
+               } else {
+                  if( pi.placename.empty() ||
+                      rit->first == pi.providerWithPlacename() ) {
+
+                     changed = true;
+                     proccessed = true;
+
+                     ProviderTimes old = refTimeIt->second;
+                     refTimeIt->second = rit->second;
+                     refTimeIt->second.dataversion = old.dataversion;
+                     refTimeIt->second.disabled = old.disabled;
+
+                     if( it->second.dataversionRequest )
+                        refTimeIt->second.dataversion = it->second.dataversion;
+
+                     if( it->second.disableEnableRequest )
+                        refTimeIt->second.disabled = it->second.disabled;
+                  }
+               }
+            }
+
+            if( ! proccessed ) {
+               //There is no entry defined in the incoming refTimes for this provider.
+               //We just add it to the refTimes.
+               if( it->second.dataversionRequest )
+                   rit->second.dataversion = it->second.dataversion;
+
+               if( it->second.disableEnableRequest )
+                  rit->second.disabled = it->second.disabled;
+
+               refTimes[rit->first] = rit->second;
+               changed = true;
+            }
+         }
+      }
+   }
+
+   return changed;
 }
 
 
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
-		                ProviderRefTimeList &refTimes,
-		                const ProviderList &providers,
-		                int wciProtocol  )
+                        ProviderRefTimeList &refTimes,
+                        const ProviderList &providers,
+                        int wciProtocol  )
 {
-	ostringstream ost;
-	ProviderRefTimeList tmpRefTimes;
-	ptime now( second_clock::universal_time() );
-	ptime back(now);
-	ptime  endTime( now );
-	string reftimeSpec;
-	list<string> providerListWithoutplacename=providers.providerWithoutPlacename();
-	
-	back -= hours( 8640 ); //48 hours back from now
-	endTime += hours( 24 ); //1 day in the future.
-	
-	if( providers.empty() )
-		return true;
-	
-	refTimes.clear();
-	
-	if( wciProtocol == 1 )
-		ost << "('" << isotimeString( back, false, true ) << "','" << isotimeString( endTime, false, true ) << "','inside')";
-	else
-		ost << "'inside " << isotimeString( back, false, true ) << " TO " << isotimeString( endTime, false, true ) << "'";
-	
-	reftimeSpec = ost.str();
-	
-	for( list<string>::iterator it = providerListWithoutplacename.begin() ; 
-		  it != providerListWithoutplacename.end(); 
-		  ++ it )
-	{
-		tmpRefTimes.clear();
-		
-		//Search in the period [back, endTime]
-		if( getProviderReftimes( wciConnection, tmpRefTimes, *it, reftimeSpec ) ) {
-			for( ProviderRefTimeList::iterator pit =tmpRefTimes.begin();
-			     pit != tmpRefTimes.end();
-			     ++pit ) 
-			{
-				refTimes[pit->first] = pit->second;
-			}
-			continue;
-		}
-	
-		//Try to serach the entire database.
-		if( getProviderReftimes( wciConnection, tmpRefTimes, *it, "NULL" ) ) {
-			for( ProviderRefTimeList::iterator pit =tmpRefTimes.begin();
-				  pit != tmpRefTimes.end();
-				  ++pit ) 
-				refTimes[pit->first] = pit->second;
-		}
-	}
+   ostringstream ost;
+   ProviderRefTimeList tmpRefTimes;
+   ptime now( second_clock::universal_time() );
+   ptime back(now);
+   ptime  endTime( now );
+   string reftimeSpec;
+   list<string> providerListWithoutplacename=providers.providerWithoutPlacename();
 
-	return ! refTimes.empty();
+   back -= hours( 8640 ); //48 hours back from now
+   endTime += hours( 24 ); //1 day in the future.
+
+   if( providers.empty() )
+      return true;
+
+   refTimes.clear();
+
+   if( wciProtocol == 1 )
+      ost << "('" << isotimeString( back, false, true ) << "','" << isotimeString( endTime, false, true ) << "','inside')";
+   else
+      ost << "'inside " << isotimeString( back, false, true ) << " TO " << isotimeString( endTime, false, true ) << "'";
+
+   reftimeSpec = ost.str();
+
+   for( list<string>::iterator it = providerListWithoutplacename.begin() ;
+         it != providerListWithoutplacename.end();
+         ++ it ){
+      tmpRefTimes.clear();
+
+      //Search in the period [back, endTime]
+      if( getProviderReftimes( wciConnection, tmpRefTimes, *it, reftimeSpec ) ) {
+         for( ProviderRefTimeList::iterator pit =tmpRefTimes.begin();
+              pit != tmpRefTimes.end();
+              ++pit ) {
+            refTimes[pit->first] = pit->second;
+         }
+         continue;
+      }
+
+      //Try to serach the entire database.
+      if( getProviderReftimes( wciConnection, tmpRefTimes, *it, "NULL" ) ) {
+         for( ProviderRefTimeList::iterator pit =tmpRefTimes.begin();
+               pit != tmpRefTimes.end();
+               ++pit )
+            refTimes[pit->first] = pit->second;
+      }
+   }
+
+   return ! refTimes.empty();
 }
 
 
 void
 removeDisabledProviders( ProviderList &providers, const ProviderRefTimeList &reftimes )
 {
-	ProviderRefTimeList::const_iterator rit;
-	ProviderList::iterator it = providers.begin();
+   ProviderRefTimeList::const_iterator rit;
+   ProviderList::iterator it = providers.begin();
 
-	WEBFW_USE_LOGGER( "handler" );
+   WEBFW_USE_LOGGER( "handler" );
 
-	while( it != providers.end() ) {
-		rit = reftimes.find( it->providerWithPlacename() );
+   while( it != providers.end() ) {
+      rit = reftimes.find( it->providerWithPlacename() );
 
-		if( rit != reftimes.end() && rit->second.disabled ) {
-			WEBFW_LOG_DEBUG("removeDisabledProviders: removing provider: " << it->providerWithPlacename() );
-			it = providers.erase( it );
-		} else {
-			++ it;
-		}
-	}
+      if( rit != reftimes.end() && rit->second.disabled ) {
+         WEBFW_LOG_DEBUG("removeDisabledProviders: removing provider: " << it->providerWithPlacename() );
+         it = providers.erase( it );
+      } else {
+         ++ it;
+      }
+   }
 }
 
 }
@@ -300,36 +404,36 @@ removeDisabledProviders( ProviderList &providers, const ProviderRefTimeList &ref
 namespace {
 bool 
 getProviderReftimes( wdb2ts::WciConnectionPtr wciConnection,
-		               wdb2ts::ProviderRefTimeList &refTimes, 
+                     wdb2ts::ProviderRefTimeList &refTimes,
                      const string &provider,
-	                  const string &reftimespec )
+                     const string &reftimespec )
 {
 
-	wdb2ts::ProviderItem pi=wdb2ts::ProviderList::decodeItem( provider );
-	wdb2ts::ProviderRefTime providerReftimeTransactor( refTimes, pi.provider, reftimespec );
-	wdb2ts::PtrProviderRefTimes result;
-	
-	
-	try {
-		wciConnection->perform( providerReftimeTransactor, 3 );
-		result = providerReftimeTransactor.result();
-		
-		refTimes = *result;
-	}
-	catch( const std::ios_base::failure &ex ) {
-		throw logic_error( ex.what() );
-	}
-	catch( const std::runtime_error &ex ) {
-		throw logic_error( ex.what() );
-	}
-	catch( const std::logic_error &ex ) {
-		throw;
-	}
-	catch( ... ) {
-		throw logic_error( "Unknown error while checking for reference times." );
-	}
+   wdb2ts::ProviderItem pi=wdb2ts::ProviderList::decodeItem( provider );
+   wdb2ts::ProviderRefTime providerReftimeTransactor( refTimes, pi.provider, reftimespec );
+   wdb2ts::PtrProviderRefTimes result;
 
-	return ! refTimes.empty();
+
+   try {
+      wciConnection->perform( providerReftimeTransactor, 3 );
+      result = providerReftimeTransactor.result();
+
+      refTimes = *result;
+   }
+   catch( const std::ios_base::failure &ex ) {
+      throw logic_error( ex.what() );
+   }
+   catch( const std::runtime_error &ex ) {
+      throw logic_error( ex.what() );
+   }
+   catch( const std::logic_error &ex ) {
+      throw;
+   }
+   catch( ... ) {
+      throw logic_error( "Unknown error while checking for reference times." );
+   }
+
+   return ! refTimes.empty();
 }
 
 

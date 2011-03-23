@@ -88,6 +88,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	int                 dataversion;
 	bool                disable;
 	bool 	            doDisableEnable=false;
+	bool              doDataversion=false;
 	webfw::UrlQuery     urlQuery;
 	
 	newRefTime.clear();
@@ -122,7 +123,7 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 			return false;
 		}
 
-		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Key: '" << key << "' vcalue: '" << val );
+		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Key: '" << key << "' value: '" << val );
 		ProviderItem pi=ProviderList::decodeItem( key );
 		
 
@@ -132,17 +133,25 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 		keyvals = splitstr( val, ',' );
 		dataversion = -1;
 		disable = false;
-			
+		doDataversion = false;
+		doDisableEnable = false;
+
 		if( keyvals.size() > 1 ) {
 			val = keyvals[0];
 			buf = keyvals[1];
 				
 			if( sscanf( buf.c_str(), "%d", &dataversion ) != 1 )
 				dataversion = -1;
+			else
+			   doDataversion = true;
 		}
 		
 		if( val.empty() ) {
 			newRefTime[pi.providerWithPlacename()] = ProviderTimes();
+			if( doDataversion ) {
+			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
+			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
+			}
 			continue;
 		}
 		
@@ -164,21 +173,34 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 			}
 				
 			newRefTime[pi.providerWithPlacename()] = ProviderTimes();
+			newRefTime[pi.providerWithPlacename()].reftimeUpdateRequest = true;
+
+			if( doDataversion ) {
+			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
+			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
+			}
+
 			continue;
-		} if( val[0]=='d' || val[0]=='D' ) {
+		} if( val[0]=='d' || val[0]=='D' ||  val[0]=='e' || val[0]=='E' ) {
 			doDisableEnable = true;
-			disable = true;
-		} else if( val[0]=='e' || val[0]=='E' ) {
-			doDisableEnable = true;
+
+			if( val[0]=='d' || val[0]=='D' )
+			   disable = true;
 		}
 		
 		try{ 
-			if( doDisableEnable )
+			if( doDisableEnable ) {
+			   newRefTime[pi.providerWithPlacename()].disableEnableRequest = true;
 				newRefTime[pi.providerWithPlacename()].disabled = disable;
-			else
+			} else {
 				newRefTime[pi.providerWithPlacename()].refTime = ptimeFromIsoString( val );
+				newRefTime[pi.providerWithPlacename()].reftimeUpdateRequest = true;
+			}
 
-			newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
+			if( doDataversion ) {
+			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
+			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
+			}
 		}
 		catch( logic_error &e ) {
 			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid value. key <" << key << "> value <" << val << ">. Not a valid timespec." );;
@@ -189,7 +211,10 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	std::ostringstream logMsg;
 	logMsg << "LocationUpdateHandler:Query: Requested providers reftime!\n";
 	for( ProviderRefTimeList::const_iterator it = newRefTime.begin(); it != newRefTime.end(); ++it )
-		logMsg <<"     " << it->first << ": " << it->second.refTime << " dataversion: " << it->second.dataversion << '\n';
+		logMsg <<"     " << it->first << ": " << it->second.refTime
+		       << " dataversion (" << (it->second.dataversionRequest?"t":"f") << "): " << it->second.dataversion
+		       << " disabled(" << (it->second.disableEnableRequest?"t":"f") << "): " << (it->second.disabled?"true":"false")
+		       <<  '\n';
 	WEBFW_LOG_DEBUG(logMsg.str());
 	
 	return true;
@@ -281,6 +306,7 @@ checkProviders( const ProviderList &providerList,
 	list<string>::const_iterator pit;
 	ProviderRefTimeList::const_iterator itOldRefTime;
 	bool disabled;
+	int dataversion;
 	
 	{
 		ostringstream ost;
@@ -303,7 +329,8 @@ checkProviders( const ProviderList &providerList,
 								it != requestedUpdate.end(); ++it )
 			ost << "    " << it->first << " -> " << it->second.refTime
 			    << " " <<  it->second.updatedTime
-			    << " " <<  (it->second.disabled?"true":"false") << endl;
+			    << " disabled(" << (it->second.disableEnableRequest?"t":"f") << "): " <<  (it->second.disabled?"true":"false")
+			    << " dataversion(" << (it->second.dataversionRequest?"t":"f") << "): " << it->second.dataversion << endl;
 
 		WEBFW_LOG_DEBUG( ost.str() );
 	}
@@ -317,15 +344,21 @@ checkProviders( const ProviderList &providerList,
 
 			if( oldRefTime.disabled( *pit, disabled ) )
 				requestedUpdate[*pit].disabled = disabled;
+
+			if( oldRefTime.dataversion( *pit, dataversion ) )
+			   requestedUpdate[*pit].dataversion = dataversion;
+
+			 requestedUpdate[*pit].reftimeUpdateRequest = true;
 		}
 
 		ostringstream ost;
 		ost << "checkProviders: return requestedUpdate: " << endl;
 		for( ProviderRefTimeList::const_iterator it = requestedUpdate.begin();
 				it != requestedUpdate.end(); ++it )
-			ost << "    " << it->first << " -> " << it->second.refTime
-			<< " " <<  it->second.updatedTime
-			<< " " <<  (it->second.disabled?"true":"false") << endl;
+			ost << "    reft.:" << it->first << " -> " << it->second.refTime
+			<< " updatet.:" <<  it->second.updatedTime
+			<< " disabled: " <<  (it->second.disabled?"true":"false")
+			<< " dataversion: " << it->second.dataversion << endl;
 
 		WEBFW_LOG_DEBUG( ost.str() );
 
@@ -361,9 +394,10 @@ checkProviders( const ProviderList &providerList,
 		ost << "checkProviders: return requestedUpdate: " << endl;
 		for( ProviderRefTimeList::const_iterator it = requestedUpdate.begin();
 			 it != requestedUpdate.end(); ++it )
-			ost << "    " << it->first << " -> " << it->second.refTime
-			<< " " <<  it->second.updatedTime
-			<< " " <<  (it->second.disabled?"true":"false") << endl;
+		   ost << "    reft.:" << it->first << " -> " << it->second.refTime
+		       << " updatet.:" <<  it->second.updatedTime
+		       << " disabled: " <<  (it->second.disabled?"true":"false")
+		       << " dataversion: " << it->second.dataversion << endl;
 
 		WEBFW_LOG_DEBUG( ost.str() );
 	}
@@ -523,7 +557,6 @@ get( webfw::Request  &req,
 	ostringstream ost;
 	string status;
 	ProviderRefTimeList requestedProviders;
-	ProviderRefTimeList requestedProvidersFromUrl;
 	ProviderList providerPriorityList;
 	int wciProtocol_;
 	
@@ -542,8 +575,6 @@ get( webfw::Request  &req,
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
 	}
-
-	requestedProvidersFromUrl = requestedProviders;
 
 	if( updateid.empty() ) {
 		std::string xml;         
@@ -567,18 +598,6 @@ get( webfw::Request  &req,
 		getProviderPriorityList( app, myWdbID, providerPriorityList );
 	
 		checkProviders( providerPriorityList, oldRefTime, requestedProviders );
-#if 0
-		if( requestedProviders.empty() ) {
-			if( !requestedProvidersFromUrl.empty() || !providerPriorityList.empty() )
-				response.out() << statusDoc("UnRecognizedProvider", "The requested provider is not in the provider_priority list or in the database.");
-			else
-				response.out() << statusDoc("NoProviderInDB", "No provider from the provider_priority list is in the database.");
-
-			WEBFW_LOG_INFO("No provider found to be updated.");
-			return;
-		}
-#endif
-		//app->initHightMap();
 		
 		
 		WEBFW_LOG_DEBUG( "LocationForecastUpdateHandler: myWdbID: " << myWdbID );;
@@ -609,8 +628,8 @@ get( webfw::Request  &req,
 
 		WEBFW_LOG_DEBUG( ost.str() );
 		
-		//Get a list of the providers with placename that is exiting in the database. It my happend that
-		//we dont have data for some models, ie they are deleted. 
+		//Get a list of the providers with placename that is exiting in the database.
+		//It my happend that we dont have data for some models, ie they are deleted.
 		if( updateProviderRefTimes( wciConnection, exitingProviders, providerPriorityList, wciProtocol_ ) ) {
 			
 			ost.str("");
@@ -633,8 +652,8 @@ get( webfw::Request  &req,
 			{
 				ost << " --- : " << it->first << " reftime: " << it->second.refTime
 						<< " updated: " << it->second.updatedTime
-						<< " disabled: " << (it->second.disabled?"true":"false")
-						<< " version: " << it->second.dataversion << endl;
+						<< " disabled(" << (it->second.disableEnableRequest?"t":"f") <<"): " << (it->second.disabled?"true":"false")
+						<< " version(" << (it->second.dataversionRequest?"t":"f") <<"): " << it->second.dataversion << endl;
 			}
 			WEBFW_LOG_DEBUG( ost.str() );
 
