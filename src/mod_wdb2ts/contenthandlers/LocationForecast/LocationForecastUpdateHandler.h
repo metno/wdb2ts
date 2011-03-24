@@ -71,6 +71,7 @@ private:
 	std::string  wdbDB;
 	std::string  updateid;
 	int          wciProtocol;
+	boost::mutex mutex;
 	std::string getWdbId( Wdb2TsApp *app );
 	ProviderRefTimeList getProviderReftimes( Wdb2TsApp *app );
 	std::string updateStatus( ProviderRefTimeList &oldRefTime, 

@@ -100,7 +100,8 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 		urlQuery.decode( query );
 	}
 	catch( const std::exception &ex ) {
-		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid query '" + query +". Reason: " + ex.what() );;
+		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid query '" + query +". Reason: " + ex.what() );
+		return false;
 	}
 
 	keys = urlQuery.keys();
@@ -467,18 +468,22 @@ ProviderRefTimeList
 LocationForecastUpdateHandler::
 getProviderReftimes( Wdb2TsApp *app )
 {
+   WEBFW_USE_LOGGER( "handler" );
 	boost::shared_ptr<NoteTag> note;
 	
 	note = app->notes.getNote( updateid + ".LocationProviderReftimeList" );
 	
-	if( ! note ) 
+	if( ! note ) {
+	   WEBFW_LOG_DEBUG("getProviderReftimes: No note for '" << updateid << ".LocationProviderReftimeList'");
 		return ProviderRefTimeList();
-	
+	}
 	
 	NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
 	
-	if( ! refTimes )
+	if( ! refTimes ) {
+	   WEBFW_LOG_DEBUG("getProviderReftimes: dynamic_cast failed for '" << updateid << ".LocationProviderReftimeList");
 		return ProviderRefTimeList();
+	}
 	
 	return *static_cast<ProviderRefTimeList*>(refTimes);
 }
@@ -560,6 +565,10 @@ get( webfw::Request  &req,
 	ProviderList providerPriorityList;
 	int wciProtocol_;
 	
+
+	//Only allow one update at a time.
+	boost::mutex::scoped_lock lock( mutex );
+
 	response.contentType("text/xml");
 	response.directOutput( true );
    
@@ -586,10 +595,13 @@ get( webfw::Request  &req,
 	}
 	
 
+	Wdb2TsApp *app=Wdb2TsApp::app();
 
+	//We must call checkForUpdatedPersistentNotes to ensure that
+	//all notes saved to disk is read in from disk at start up.
+	app->notes.checkForUpdatedPersistentNotes();
 	
 	try {
-		Wdb2TsApp *app=Wdb2TsApp::app();
 		ProviderRefTimeList exitingProviders;
 		ProviderRefTimeList oldRefTime = getProviderReftimes( app );
 		ProviderRefTimeList newRefTime( oldRefTime );
