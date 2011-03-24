@@ -265,7 +265,6 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
                if( refTimeIt->second.refTime == rit->second.refTime ) {
                   if( pi.placename.empty() ||
                       refTimeIt->first == pi.providerWithPlacename() ) {
-
                      proccessed = true;
 
                      if( it->second.dataversionRequest &&
@@ -286,10 +285,8 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 
                      changed = true;
                      proccessed = true;
-
                      ProviderTimes old = refTimeIt->second;
                      refTimeIt->second = rit->second;
-                     refTimeIt->second.dataversion = old.dataversion;
                      refTimeIt->second.disabled = old.disabled;
 
                      if( it->second.dataversionRequest )
@@ -304,12 +301,8 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
             if( ! proccessed ) {
                //There is no entry defined in the incoming refTimes for this provider.
                //We just add it to the refTimes.
-               if( it->second.dataversionRequest )
-                   rit->second.dataversion = it->second.dataversion;
-
-               if( it->second.disableEnableRequest )
-                  rit->second.disabled = it->second.disabled;
-
+               rit->second.dataversion = it->second.dataversion;
+               rit->second.disabled = it->second.disabled;
                refTimes[rit->first] = rit->second;
                changed = true;
             }
