@@ -1,3 +1,11 @@
+metno-wdb2ts (1.0.0~rc5-1) unstable; urgency=low
+  * Fix resetting of dataversion when only change of disable status was requested. 
+  * Fix race when two or more threads try to update the reference time at once.
+  * Fix bug in startup of the update handler. Did not read the persistent notes at startup. 
+    
+ -- Borge Moe <borge.moe@met.no>  Thu, 24 Mar 2011 13:22:00 +0100
+
+
 metno-wdb2ts (1.0.0~rc4-1) unstable; urgency=low
   * Added support to compute the relative humidity from temperature and dewpoint temperature. 
     
