@@ -207,7 +207,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	                          new NoteString( it->second.asString() ) );
 
 
-		app->notes.checkForUpdatedPersistentNotes();
+		//app->notes.checkForUpdatedPersistentNotes();
 	}
 	
 	wdbDB = wdbDB_;
