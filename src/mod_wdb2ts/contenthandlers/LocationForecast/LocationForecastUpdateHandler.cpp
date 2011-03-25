@@ -449,7 +449,8 @@ updateStatus( ProviderRefTimeList &oldRefTime,
 		
 		if( itNew == newRefTime.end() || 
 			 itOld->second.refTime != itNew->second.refTime ||
-			 itOld->second.dataversion != itNew->second.dataversion )
+			 itOld->second.dataversion != itNew->second.dataversion ||
+			 itOld->second.disabled != itNew->second.disabled )
 			return "Updated";
 	}
 	
