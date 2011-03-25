@@ -167,6 +167,21 @@ computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo
 	return relTopo * HEIGHT_CORRECTION_PER_METER;
 }
 
+std::string
+LocationElem::
+forecastprovider() const
+{
+   if( ! forecastProvider.empty() )
+      return forecastProvider;
+
+   if( ! oceanProvider_.empty() )
+      return oceanProvider_;
+
+   if( ! percentileProvider.empty() )
+      return percentileProvider;
+
+   return "";
+}
 
 float 
 LocationElem::

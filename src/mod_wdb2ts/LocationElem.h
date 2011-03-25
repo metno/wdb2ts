@@ -285,7 +285,7 @@ public:
 	
 	///Return the provider that was last used to return data.
 	std::string lastUsedProvider() const { return lastUsedProvider_; }
-	std::string forecastprovider() const { return forecastProvider; }
+	std::string forecastprovider() const;
 	std::string percentileprovider() const { return percentileProvider; }
 	std::string oceanProvider() const { return oceanProvider_; }
 	std::string modeltopoprovider() const { return modelTopoProvider; }
