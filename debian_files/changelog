@@ -1,3 +1,10 @@
+metno-wdb2ts (1.0.0~rc6-1) unstable; urgency=low
+  * The update handler sends 'updated' also when only the disable status is changed. 
+  * Fix a null pointer dereferance in the Gml handler.
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 28 Mar 2011 06:45:00 +0200
+
+
 metno-wdb2ts (1.0.0~rc5-1) unstable; urgency=low
   * Fix resetting of dataversion when only change of disable status was requested. 
   * Fix race when two or more threads try to update the reference time at once.
