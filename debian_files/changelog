@@ -1,3 +1,8 @@
+metno-wdb2ts (1.0.0~rc8-1) unstable; urgency=low
+  * Transactors: Topography and LocationPointRead, prefix POINT with nearest in wci.read.  
+        
+ -- Borge Moe <borge.moe@met.no>  Tue, 29 Mar 2011 15:00:00 +0200
+
 metno-wdb2ts (1.0.0~rc7-1) unstable; urgency=low
   * Fix missing initialisation of mediumCloud. This resulted in wrong symbol corrections.  
         
@@ -8,7 +13,6 @@ metno-wdb2ts (1.0.0~rc6-1) unstable; urgency=low
   * Fix a null pointer dereferance in the Gml handler.
       
  -- Borge Moe <borge.moe@met.no>  Mon, 28 Mar 2011 06:45:00 +0200
-
 
 metno-wdb2ts (1.0.0~rc5-1) unstable; urgency=low
   * Fix resetting of dataversion when only change of disable status was requested. 
