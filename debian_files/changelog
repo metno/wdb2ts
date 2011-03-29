@@ -1,3 +1,8 @@
+metno-wdb2ts (1.0.0~rc7-1) unstable; urgency=low
+  * Fix missing initialisation of mediumCloud. This resulted in wrong symbol corrections.  
+        
+ -- Borge Moe <borge.moe@met.no>  Tue, 29 Mar 2011 09:45:00 +0200
+
 metno-wdb2ts (1.0.0~rc6-1) unstable; urgency=low
   * The update handler sends 'updated' also when only the disable status is changed. 
   * Fix a null pointer dereferance in the Gml handler.
