@@ -433,6 +433,7 @@ struct PartialData {
    PartialData( const LocationElem &elem ) {
       totalCloud = elem.NN();
       lowCloud = elem.lowCloud();
+      mediumCloud = elem.mediumCloud();
       highCloud = elem.highCloud();
       fog = elem.fog();
       temperatureCorrected = elem.temperatureCorrected();
