@@ -209,6 +209,8 @@ doLocation( argument_type &t )
 
    if( surround_ )
       sSurround ="surround ";
+   else
+      sSurround = "nearest ";
 
    WEBFW_USE_LOGGER( "wdb" );
 

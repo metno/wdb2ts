@@ -107,7 +107,7 @@ operator () ( argument_type &t )
 
 		q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
 	      << "ARRAY['" << itPar->first << "'], " << endl
-	      << "'POINT(" << longitude_ << " " << latitude_ << ")', " << endl
+	      << "'nearest POINT(" << longitude_ << " " << latitude_ << ")', " << endl
 	      << wciTimeSpec( wciProtocol_, refTime ) << ", " << endl
 	      << validTime << ", " << endl
 	      << wciValueParameter( wciProtocol_, itPar->second ) << ", " << endl
