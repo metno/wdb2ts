@@ -1,3 +1,8 @@
+metno-wdb2ts (1.0.0-1) unstable; urgency=low
+  * No changes since last RC.
+        
+ -- Borge Moe <borge.moe@met.no>  Wed, 30 Mar 2011 11:45:00 +0200
+
 metno-wdb2ts (1.0.0~rc8-1) unstable; urgency=low
   * Transactors: Topography and LocationPointRead, prefix POINT with nearest in wci.read.  
         
