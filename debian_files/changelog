@@ -1,3 +1,9 @@
+metno-wdb2ts (1.0.1~rc1-1) unstable; urgency=low
+  * Add an include tag to the config file.
+  * (More to come)    
+        
+ -- Borge Moe <borge.moe@met.no>  Tue, 29 Mar 2011 15:00:00 +0200
+
 metno-wdb2ts (1.0.0-1) unstable; urgency=low
   * No changes since last RC.
         
