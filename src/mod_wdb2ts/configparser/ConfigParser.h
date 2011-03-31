@@ -24,9 +24,12 @@ class ConfigParser : public miutil::SAXParser
 	ParamDef currentParamDef;
 	bool currentQueryProbe;
 	bool currentQueryStopIfData;
+	std::string currentParamDefsId;
 	std::string currentQueryWdbdb;
 	std::list<std::string> currentParamDefProvider;
 	
+	bool mergeConfig( Config *config );
+	bool doInclude( const AttributeMap &atributes );
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );
 	bool doRequestActionParam( const AttributeMap &attributes, ActionParam &actionParam );
 	void doRequestConf( const AttributeMap &attributes, RequestConf &conf, const std::string &versionAttrName );

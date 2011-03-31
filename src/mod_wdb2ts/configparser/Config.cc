@@ -28,7 +28,116 @@ query( const std::string &query ) const
 	return it->second;
 }
 
+bool
+Config::
+addParamDef( const std::string &paramdefId,
+             const wdb2ts::ParamDef    &pd,
+             const std::list<std::string> &provider,
+             std::ostream &err )
+{
+   if( paramdefId.empty() ) {
+      if( provider.empty() ) {
+         if( ! paramDefs.addParamDef( pd, "" ) ) {
+            err << "addParam: ParamDef '" << pd.alias() << "' provider: 'default' allready defined.";
+            return false;
+         }
+      } else {
+         for( std::list<std::string>::const_iterator it = provider.begin();
+              it != provider.end();
+              ++it )
+         {
+            if( ! paramDefs.addParamDef( pd, *it ) ) {
+               err << "addParam: ParamDef '" << pd.alias() <<"' provider: '" << *it << "' allready defined.";
+               return false;
+            }
+         }
+      }
+   } else {
+      if( provider.empty() ) {
+          if( ! idParamDefs[paramdefId].addParamDef( pd, "" ) ) {
+             err << "addParam: ParamDef '" << pd.alias() << "' provider: 'default' allready defined.";
+             return false;
+          }
+       } else {
+          for( std::list<std::string>::const_iterator it = provider.begin();
+               it != provider.end();
+               ++it )
+          {
+             if( ! idParamDefs[paramdefId].addParamDef( pd, *it ) ) {
+                err << "addParam: ParamDef '" << pd.alias() << "' provider: '" << *it << "' allready defined.";
+                return false;
+             }
+          }
+       }
+   }
 
+   return true;
+}
+
+
+bool
+Config::
+merge( Config *other, std::ostream &err, const std::string &file )
+{
+   if( ! other ) {
+      err << "Config::merge: other == 0. Expecting a pointer to Config.";
+      return false;
+   }
+
+   for( wdb2ts::config::RequestMap::const_iterator it=other->requests.begin();
+        it != other->requests.end();
+        ++it ) {
+      wdb2ts::config::RequestMap::const_iterator itTmp = requests.find( it->first );
+
+      if( itTmp != requests.end() ) {
+         err << "WARNING: request <" << it->first
+             << "> allready defined. Ignoring redefinition in file <"
+             << file << ">." << endl;
+         continue;
+      }
+
+      requests[ it->first] = it->second;
+   }
+
+   for( Config::QueryDefs::const_iterator it= other->querys.begin();
+        it != other->querys.end();
+        ++it ) {
+      Config::QueryDefs::const_iterator itTmp = querys.find( it->first );
+
+      if( itTmp != querys.end() ) {
+         err << "WARNING: querydef <" << it->first
+             << "> allready defined. Ignoring redefinition in file <"
+             << file << ">." << endl;
+         continue;
+      }
+
+      querys[ it->first ] = it->second;
+   }
+
+   for( wdb2ts::ParamDefList::iterator pit =other->paramDefs.begin();
+        pit != other->paramDefs.end();
+        ++pit ) {
+      wdb2ts::ParamDefList::iterator pitTmp = paramDefs.find( pit->first );
+
+      //No params is defined for provider pit->first.
+      if( pitTmp == paramDefs.end() ) {
+         paramDefs[ pit->first ] = pit->second;
+         continue;
+      }
+
+      for( std::list<wdb2ts::ParamDef>::const_iterator it = pit->second.begin();
+           it != pit->second.end();
+           ++it ) {
+         if( ! paramDefs.addParamDef( *it, pit->first ) ) {
+            err << "WARNING: paramdef <" << it->alias()
+                << "> allready defined. Ignoring redefinition in file <"
+                << file << ">." << endl;
+         }
+      }
+   }
+
+   return true;
+}
 
 std::ostream& 
 operator<<( std::ostream& output, const Config& res)

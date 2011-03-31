@@ -30,7 +30,7 @@ main(int argn, char **argv )
 		for( Config::QueryDefs::const_iterator it=res->querys.begin();
 		     it!=res->querys.end();
 		     ++it ) {
-			cerr << "Query id: " << it->first << endl;
+			cerr << "Query id: " << it->first << " Paralells: " << it->second.dbRequestsInParalells() << endl;
 			for( Config::Query::const_iterator itQ=it->second.begin();
 				  itQ!=it->second.end();
 				  ++itQ )

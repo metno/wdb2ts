@@ -1,3 +1,4 @@
+#include <memory>
 #include <iostream>
 #include <readfile.h>
 #include <ConfigParser.h>
@@ -35,6 +36,43 @@ characters( const std::string &buf )
 	chardata << buf;
 }
 
+
+bool
+ConfigParser::
+mergeConfig( Config *config )
+{
+   return false;
+}
+
+bool
+ConfigParser::
+doInclude( const AttributeMap &attributes )
+{
+   std::string file;
+   if( ! getAttr( attributes, "file", file ) || file.empty() ) {
+      error("Include statement. Missing mandatory attribute 'file'.");
+      return false;
+   }
+
+   ostringstream ost;
+   ConfigParser myParser;
+   Config *myConfig = myParser.parseFile( file );
+
+
+   if( ! myConfig ) {
+      ost << "Parsing of file <" << file << "> failed.";
+      error( ost.str().c_str() );
+      return false;
+   } else {
+      std::auto_ptr<Config> p( myConfig ); //Delete myConfig on return.
+      if( ! config->merge( myConfig, ost, file ) ) {
+         error( ost.str() );
+         return false;
+      }
+
+      return true;
+   }
+}
 
 void
 ConfigParser::
@@ -472,22 +510,11 @@ addParamDef()
 	std::list<std::string> provider( currentParamDefProvider );
 	currentParamDef.clear();
 	currentParamDefProvider.clear();
-	
-	if( provider.empty() ) {
-		if( ! config->paramDefs.addParamDef( pd, "" ) ) {
-			error( "addParam: ParamDef '"+alias+"' provider: 'default' allready defined.");
-			return false;
-		}
-	} else {
-		for( std::list<std::string>::iterator it = provider.begin();
-		     it != provider.end();
-		     ++it )
-		{
-			if( ! config->paramDefs.addParamDef( pd, *it ) ) {
-				error( "addParam: ParamDef '"+alias+"' provider: '" + *it +"' allready defined.");
-				return false;
-			}
-		}
+	ostringstream err;
+
+	if( ! config->addParamDef( currentParamDefsId, pd, provider, err ) ) {
+	   error( err.str() );
+	   return false;
 	}
 	
 	return true;
@@ -517,8 +544,9 @@ startElement( const std::string &fullname,
 	xmlState = state.path();
 	
 	//cerr << "State: " << state.path() << endl;
-	
-	if( xmlState == "/wdb2ts/requests/request" ) {
+	if( xmlState == "/wdb2ts/include" ) {
+	   doInclude( attributes );
+	}else if( xmlState == "/wdb2ts/requests/request" ) {
 		doRequest( attributes ); 
 	} else if( xmlState == "/wdb2ts/requests/request/actionparam" ) {
 		doRequestDefaultActionParam( attributes );
@@ -536,6 +564,8 @@ startElement( const std::string &fullname,
 		doQuery( attributes );
 		inChardata = false;
 		chardata.str("");
+	} else if( xmlState == "/wdb2ts/paramdefs" ) {
+	   getAttr( attributes, "id", currentParamDefsId, "" );
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
 		doParamDef( attributes );
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef/valueparameter" ) {
@@ -605,7 +635,9 @@ endElement( const std::string &name )
 				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe, currentQueryStopIfData, currentQueryWdbdb ) );
 			}
 		}
-	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
+	} else if( xmlState == "/wdb2ts/paramdefs" ) {
+	   currentParamDefsId.erase();
+   } else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
 		addParamDef();
 	}
 		
