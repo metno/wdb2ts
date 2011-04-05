@@ -65,13 +65,6 @@ public:
 	void init( LocationElem &pointData );
 	void computeWind( float u, float v );
 	
-	/**
-	 * If the provider have symboldata, read it.
-	 * Correct the symbols if it has precipitation
-	 * so it has correct agregate state: snow, sleet or precipitation. 
-	 * The sun state is also corrected with polar night information. 
-	 */
-	void doSymbol( float temperature );
 	
 	float getTemperatureProability( float temp, bool tryHard )const;
 		

@@ -95,80 +95,10 @@ getTemperatureProability( float temp, bool tryHard )const
 	
 	pd->forecastprovider( provider );
 
-	/*
-	if( temp > -99.0 && temp < -20.0 )
-		prob = pd->T2M_PROBABILITY_4();
-	else if( ( temp >= -20.0 && temp < -10.0 ) || ( temp >= 25.0 && temp < 99.0 ) )
-		prob = pd->T2M_PROBABILITY_3();
-	else if( ( temp >= -10.0 && temp < -2.0 )  || ( temp >= 2.0 && temp < 25.0) )
-		prob = pd->T2M_PROBABILITY_2();
-	else if( temp >= -2.0 && temp < 2.0 )
-		prob = pd->T2M_PROBABILITY_1();
-	else
-		prob = FLT_MAX;
-	*/
 	return prob;
 }
 	
 
-/* The symbols in the database is just basis symbols, ie they
- * have to be corrected after we have corrected the temperature
- * with hight.
- * 
- * The symbols is corrected after the following table. Where
- * T is the hight adjusted temperature.
- * 
- * SYMBOLS           |       Hight adjusted temperature
- * from db           | 0.5 >= T < 1.5  |    T < 0.5          
- * ------------------+-----------------+----------------  
- *  (5) LIGHTRAINSUN |  (7) SLEETSUN   |  (8) SNOWSUN
- *  (9) LIGHTRAIN    | (12) SLEET      | (13) SNOW
- * (10) RAIN         | (12) SLEET      | (13) SNOW
- */
-void 
-MomentTags::
-doSymbol( float temperature )
-{
-   WEBFW_USE_LOGGER( "encode" );
-	boost::posix_time::ptime fromTime; 
-	
-	int symNumber = pd->symbol( fromTime );
-	
-	//cerr << "doSymbol: "  << symNumber << endl;
-	
-	if( symNumber == INT_MAX ) {
-	   WEBFW_LOG_DEBUG("doSymbol: NO SYMBOL for fromtime: " << fromTime );
-	   cerr << "doSymbol: NO SYMBOL for fromtime: " << fromTime << " Provider: " << pd->forecastprovider()
-	        <<endl;
-		return;
-	}
-
-	//cerr << "doSymbol: AddSymbol: " << symNumber << " (" << pd->symbol_PROBABILITY() << ") t: "
-	//     << pd->time() << " p: " << pd->forecastprovider() << " lat: "  << pd->latitude()
-	//     << endl;
-
-	//Allow the symbol probability to came from another provider than the symbol.
-	ostringstream o;
-
-	string savedProvider = pd->forecastprovider();
-
-	o << "doSymbol: savedProvider: '" << savedProvider << "' fromTime: " << fromTime;
-	float prob = pd->symbol_PROBABILITY( fromTime, true );
-
-	o << " symbol: " << symNumber << " prob: " << prob << " provider: '" << pd->forecastprovider()
-	  << "' time: " << pd->time() << " temperature: " << temperature;
-	symbolContext->addSymbol( symNumber, prob,
-			                    pd->time(), temperature, fromTime, pd->forecastprovider(), pd->latitude() );
-
-	//Add the symbol probability to the saved forecast provider in addition to
-	//the provider for probability.
-	if( savedProvider !=  pd->forecastprovider() )
-	   symbolContext->addSymbol( symNumber, prob,
-	                             pd->time(), temperature, fromTime, savedProvider, pd->latitude() );
-	pd->forecastprovider( savedProvider );
-	cerr << o.str() << endl;
-	WEBFW_LOG_DEBUG( o.str() );
-}
 
 void 
 MomentTags::
