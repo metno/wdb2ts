@@ -183,7 +183,6 @@ output( std::ostream &out, const std::string &indent )
 			}
 		}
 
-		//doSymbol( tempUsed );
 		nForecast++;
 		tmpout << indent << "<temperature id=\"TTT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
 	}
