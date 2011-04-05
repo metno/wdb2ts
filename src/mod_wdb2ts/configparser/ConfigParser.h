@@ -15,7 +15,7 @@ class ConfigParser : public miutil::SAXParser
 	Config *config;
 	std::ostringstream chardata;
 	bool inChardata;
-	State state;
+	State xmlState;
 	bool invalidRequest;
 	boost::shared_ptr<Request> currentRequest;
 	boost::shared_ptr<RequestConf> currentRequestVersion;

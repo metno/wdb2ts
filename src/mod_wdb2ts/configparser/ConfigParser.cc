@@ -525,7 +525,6 @@ ConfigParser::
 startElement( const std::string &fullname,
   	           const AttributeMap &attributes )
 {
-	string xmlState;
 	AttributeMap::const_iterator itKey;
 	string val;
 	inChardata = false;
@@ -540,8 +539,7 @@ startElement( const std::string &fullname,
     cerr <<"      " << it->first  << "=" << it->second << endl;
 #endif
 	
-	state.push( fullname );
-	xmlState = state.path();
+	xmlState.push( fullname );
 	
 	//cerr << "State: " << state.path() << endl;
 	if( xmlState == "/wdb2ts/include" ) {
@@ -576,6 +574,16 @@ startElement( const std::string &fullname,
 		doValue( attributes );
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef/dataversion" ) {
 		doDataVersion( attributes );
+	} else if( xmlState == "./parameter") {
+	   string name;
+	   getAttr( attributes, "name", name, "" );
+	   if( name.empty() ) {
+	      cerr << "ERROR: Parameter: <" << xmlState.path() << "> Missing attr 'name'" << endl;
+	   } else {
+	      cerr << "startElement: Parameter: <" << xmlState.path() << ">." << endl;
+	   }
+	} else if( xmlState == "./providerpriority/provider") {
+
 	}
 	
 
@@ -588,7 +596,7 @@ void
 ConfigParser::
 endElement( const std::string &name )
 {
-	string xmlState;
+	//string xmlState;
 	string stateVal;
 	string error;
 	
@@ -597,8 +605,6 @@ endElement( const std::string &name )
 	chardata.str("");
 	
 	//cerr << "endelement: " << name << endl;
-	
-	xmlState = state.path();
 	
 	//cerr << "EndElement <" << name << "> State: " << xmlState << endl;
 	
@@ -639,9 +645,15 @@ endElement( const std::string &name )
 	   currentParamDefsId.erase();
    } else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
 		addParamDef();
-	}
-		
-	state.pop( stateVal );	
+	} else if( xmlState == "./parameter") {
+	   cerr << "endElement: Parameter: <" << xmlState.path() << ">." << endl;
+	} else if( xmlState == "./providerpriority" ) {
+	   cerr << "endElement: providerpriority: <" << xmlState.path() << ">." << endl;
+	} else if( xmlState == "./providerpriority/provider" ) {
+	   cerr << "endElement: providerpriority/provider: <" << xmlState.path() << ">." << endl;
+   }
+
+	xmlState.pop( stateVal );	
 }
 
 
