@@ -14,6 +14,7 @@ class State
 	
 	std::string path_;
 	
+
 public:
 	State();
 	~State();
@@ -22,7 +23,8 @@ public:
 	bool pop( std::string &val );
 	void push( const std::string &val );
 	
-	std::string path();
+	bool operator==( const std::string &rhs ) const;
+	std::string path()const;
 };
 
 }
