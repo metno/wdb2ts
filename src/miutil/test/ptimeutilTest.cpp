@@ -140,6 +140,31 @@ testPtimeFromIsoString()
 	CPPUNIT_ASSERT_MESSAGE( "Sun, 1 Apr 2007 09:51:04 GMT", pt == ptTest );
 
 }
+void
+PtimeUtilTest::
+geologicalLocalTime()
+{
+   namespace m=miutil;
+   namespace b=boost::posix_time;
+
+   b::ptime pt=time_from_string("2007-04-01 09:51:04");
+   b::ptime rt;
+
+   rt = m::geologicalLocalTime( pt, 7.4 );
+   CPPUNIT_ASSERT_MESSAGE( "utc 0", rt == time_from_string("2007-04-01 09:51:04") );
+
+   rt = m::geologicalLocalTime( pt, 7.6 );
+   CPPUNIT_ASSERT_MESSAGE( "utc +1", rt == time_from_string("2007-04-01 10:51:04") );
+
+   rt = m::geologicalLocalTime( pt, -7.6 );
+   CPPUNIT_ASSERT_MESSAGE( "utc -1", rt == time_from_string("2007-04-01 08:51:04") );
+
+   rt = m::geologicalLocalTime( pt, 85 );
+   CPPUNIT_ASSERT_MESSAGE( "utc +6", rt == time_from_string("2007-04-01 15:51:04") );
+
+   rt = m::geologicalLocalTime( pt, -85 );
+   CPPUNIT_ASSERT_MESSAGE( "utc -6", rt == time_from_string("2007-04-01 03:51:04") );
+}
 
 void 
 PtimeUtilTest::

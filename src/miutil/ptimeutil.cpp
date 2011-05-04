@@ -345,6 +345,32 @@ ptimeFromIsoString( const std::string &isoTime )
 	return pt - td;
 }
 	
+boost::posix_time::ptime
+miutil::
+geologicalNowLocalTime( float longitude  )
+{
+   boost::posix_time::ptime pt = boost::posix_time::second_clock::universal_time();
+   return geologicalLocalTime( pt, longitude );
+}
+
+
+boost::posix_time::ptime
+miutil::
+geologicalLocalTime( const boost::posix_time::ptime &utcTime,
+                  float longitude_  )
+{
+   double longitude= fabs( longitude_ );
+   int zone = (7.5 + longitude)/15;
+
+   if( zone > 12 )
+      return boost::posix_time::ptime(); //Return is_spesial.
+
+   if( longitude_ < 0 )
+      return utcTime - boost::posix_time::hours( zone );
+   else
+      return utcTime + boost::posix_time::hours( zone );
+}
+
 
 namespace {
 	

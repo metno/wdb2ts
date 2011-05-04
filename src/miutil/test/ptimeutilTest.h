@@ -8,11 +8,13 @@ class PtimeUtilTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE( PtimeUtilTest );
    CPPUNIT_TEST( testPtimeFromIsoString );
    CPPUNIT_TEST( testRFC1123 );
+   CPPUNIT_TEST( geologicalLocalTime );
    CPPUNIT_TEST_SUITE_END();
 
    protected:
       void testPtimeFromIsoString();
       void testRFC1123();
+      void geologicalLocalTime();
       
    public:
       void setUp();

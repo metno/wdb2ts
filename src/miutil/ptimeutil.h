@@ -122,5 +122,30 @@ namespace miutil {
     */
    boost::posix_time::ptime ptimeFromIsoString( const std::string &isoTime );
    
+   /**
+    * Construct a ptime with value as the geographical localtime. This is
+    * NOT the same as the local time in effect on a given location.
+    * But this i good enough to compute meteorological variation over
+    * a day.
+    *
+    * @param longitude The longitude to return the localtime from.
+    * @return A ptime that represent a local time.
+    */
+   boost::posix_time::ptime geologicalNowLocalTime( float longitude  );
+
+   /**
+    * Construct a ptime with value as the geographical localtime. This is
+    * NOT the same as the local time in effect on a given location.
+    * But this i good enough to compute meteorological variation over
+    * a day.
+    *
+    * @param utcTime Convert this time, in utc, to local time at
+    *                the longitude.
+    * @param longitude The longitude to return the localtime from.
+    * @return A ptime that represent a local time.
+    */
+   boost::posix_time::ptime geologicalLocalTime( const boost::posix_time::ptime &utcTime,
+                                              float longitude  );
+
 }
 #endif 
