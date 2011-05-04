@@ -35,6 +35,7 @@
 #include <ProviderList.h>
 #include <ParamDef.h>
 #include <DbManager.h>
+#include <ptimeutil.h>
 #include <transactor/LocationPointMatrixData.h>
 #include <vector>
 
@@ -236,6 +237,48 @@ setData( const ParamDef &param,
 
    }
 
+}
+
+float
+NearestLand::
+correctValue( const boost::posix_time::ptime &time,
+              float longitude,
+              float t1, float t2 )
+{
+   static const boost::posix_time::time_duration c00(0,0,0);
+   static const boost::posix_time::time_duration c06(6,0,0);
+   static const boost::posix_time::time_duration c12(12,0,0);
+   static const boost::posix_time::time_duration c18(18,0,0);
+
+   boost::posix_time::ptime lt = miutil::geologicalLocalTime( time, longitude );
+   boost::posix_time::time_duration clock=lt.time_of_day();
+
+   if( clock>=c12 && clock <= c18 )
+      return t1;
+
+   if( clock >= c00 && clock <= c06 )
+      return t2;
+
+   if( clock > c18 && clock < c00 )
+      return linearInterpolateValue( clock, c18, c00, t1, t2 );
+
+   //06-12
+   return linearInterpolateValue( clock, c06, c12, t2, t1 );
+}
+
+float
+NearestLand::
+linearInterpolateValue( const boost::posix_time::time_duration &clock,
+                        const boost::posix_time::time_duration &c1,
+                        const boost::posix_time::time_duration &c2,
+                        float t1, float t2 )
+{
+   boost::posix_time::time_duration cDif = c2-c1;
+   boost::posix_time::time_duration dif = clock-c1;
+   float a = static_cast<float>(dif.hours())/static_cast<float>(cDif.hours());
+   float tDelta = t2-t1;
+
+   return t1 + tDelta*a;
 }
 
 

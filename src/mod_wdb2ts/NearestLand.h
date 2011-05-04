@@ -99,6 +99,37 @@ class NearestLand
                  LocationPointMatrixTimeserie &data
                );
 
+   /**
+    * The temperature is adjusted, based on the time on the day, after the
+    * following algorithm.
+    *
+    * We have two temperatures for a given point. The temperatures comes from
+    * different algorithms. We select one of the temeperatures or a linear
+    * combination of them based on the time of the day. The time is in the
+    * following table is geographical local time.
+    *
+    * The input to the method is the time in utc, and two temperatures t1 and t2.
+    *
+    * At 12-18 return t1.
+    * At 18-00 Select a linear combination of t1 and t2
+    * At 00-06 return t2.
+    * At 06-12 Select a linear combination of t2 and t1
+    *
+    * @param time in utc.
+    * @param The longitude for the location at the requested point.
+    *  This is needed to calculate the geographical local time.
+    * @param t1 Temperature from algorithm 1.
+    * @param t2 Temperature from algorithm 2.
+    * @return The new temperature.
+    */
+   float correctValue( const boost::posix_time::ptime &time,
+                       float longitude,
+                       float t1, float t2 );
+
+   float linearInterpolateValue( const boost::posix_time::time_duration &clock,
+                                 const boost::posix_time::time_duration &c1,
+                                 const boost::posix_time::time_duration &c2,
+                                 float t1, float t2 );
 public:
    NearestLand(const LocationPointList &locationPoints,
                const boost::posix_time::ptime &to,
