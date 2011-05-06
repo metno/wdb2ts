@@ -142,7 +142,7 @@ public:
    float asFloat(const std::string &paramname, float defValue )const;
 
    /**
-    * Return the defValue if the param dos not exist.
+    * Return the defValue if the param does not exist.
     * 
   	 * @throws std::logic_error if the paramname dont exist.
   	 * @throws std::bad_cast if the param value can not be converted to 
@@ -151,12 +151,41 @@ public:
    int asInt(const std::string &paramname )const;
    
    /**
-    * Return the defValue if the param dos not exist.
+    * Return the defValue if the param does not exist.
     * @throws std::bad_cast if the param value can not be converted to 
     *     an int.
     */
    int asInt(const std::string &paramname, int defValue )const;
-  
+
+
+   /**
+    * Return the value as an boolean. The following
+    * values is accepted as boolean values.
+    *
+    * true, false, TRUE, FALSE, 0 and 1.
+    *
+    * Return the defValue if the param does not exist.
+    *
+    * @throws std::bad_cast if the param value can not be converted to
+    *     an bool.
+    */
+   bool asBool(const std::string &paramname, bool defValue )const;
+
+
+   /**
+    * Return the value as an boolean. The following
+    * values is accepted as boolean values.
+    *
+    * true, false, TRUE, FALSE, 0 and 1.
+    *
+    * Return the defValue if the param does not exist.
+    *
+    * @throws std::logic_error if the paramname dont exist.
+    * @throws std::bad_cast if the param value can not be converted to
+    *     an bool.
+    */
+   bool asBool(const std::string &paramname )const;
+
    /**
   	 * @throws std::logic_error if the paramname dont exist.
   	 */

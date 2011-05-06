@@ -320,6 +320,55 @@ asInt(const std::string &paramname, int defValue )const
 	}
 }
 
+
+
+
+
+
+
+
+
+bool
+UrlQuery::
+asBool(const std::string &paramname )const
+{
+   std::string val = asString( paramname );
+
+   if( val.empty() || val=="T" || val == "t" || val == "true" || val=="TRUE"
+       || val == "1" )
+      return true;
+   else if( val == "F" || val == "f" || val == "false" ||
+         val == "FALSE" || val == "0" )
+      return false;
+   else
+      throw std::bad_cast();
+}
+
+bool
+UrlQuery::
+asBool(const std::string &paramname, bool defValue )const
+{
+   std::string val = asString( paramname, "__NO_PARAM__" );
+
+   if( val == "__NO_PARAM__" )
+      return defValue;
+
+   if( val.empty() || val=="T" || val == "t" || val == "true" || val=="TRUE"
+       || val == "1" )
+      return true;
+   else if( val == "F" || val == "f" || val == "false" ||
+         val == "FALSE" || val == "0" )
+      return false;
+   else
+      throw std::bad_cast();
+}
+
+
+
+
+
+
+
 boost::posix_time::ptime 
 UrlQuery::
 asPTime( const std::string &paramname )const
