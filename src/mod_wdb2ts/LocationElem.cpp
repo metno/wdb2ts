@@ -98,6 +98,8 @@ LocationElem():
 			   	boost::posix_time::time_duration( 0, 0, 0 ) ),
 	seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
 	   	                   boost::posix_time::time_duration( 0, 0, 0 ) ),
+	epoch( boost::gregorian::date(1970, 1, 1),
+	   	 boost::posix_time::time_duration( 0, 0, 0 ) ),
    timeSerie( 0 ),
    latitude_( FLT_MAX ), longitude_( FLT_MAX ),
    height_( INT_MIN ), topoHeight_( INT_MIN ),
@@ -1572,6 +1574,47 @@ topography( const std::string &provider_ )const
 }
 
 
+float
+LocationElem::
+landcover( const std::string &provider )const
+{
+   WEBFW_USE_LOGGER( "decode" );
+
+   TimeSerie::const_iterator it1=timeSerie->find( epoch );
+
+   if( it1 == timeSerie->end() ) {
+      WEBFW_LOG_WARN( "landcover: No LANDCOVER field loaded." );
+      return FLT_MIN;
+   }
+
+   FromTimeSerie::const_iterator it2=it1->second.find( epoch );
+
+   if( it2 == it1->second.end() ) {
+      WEBFW_LOG_WARN( "landcover: No LANDCOVER field loaded." );
+      return FLT_MIN;
+   }
+
+   float value=FLT_MIN;
+
+   ProviderPDataList::const_iterator it3=it2->second.find( provider );
+
+   if( it3 != it2->second.end() )
+     value = it3->second.LANDCOVER;
+
+   if( WEBFW_GET_LOGLEVEL() >= 8 ) {
+      ostringstream ost;
+      ost << "landcover: lookup: '" << provider << "' Value: ";
+
+      if( value == FLT_MIN )
+         ost << "(N/A)";
+      else
+         ost << value;
+
+      WEBFW_LOG_DEBUG( ost.str() );
+   }
+
+   return value;
+}
 
 }
 

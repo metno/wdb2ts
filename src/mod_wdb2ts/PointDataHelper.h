@@ -113,6 +113,7 @@ struct PData{
    float symbol_PROBABILITY;
    float modeltopography;
    float topography;
+   float LANDCOVER;
    
    PData()
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
@@ -156,7 +157,8 @@ struct PData{
    	 symbol( FLT_MAX ),
    	 symbol_PROBABILITY( FLT_MAX ),
    	 modeltopography( FLT_MAX ),
-   	topography( FLT_MAX ){}
+   	topography( FLT_MAX ),
+   	LANDCOVER( FLT_MAX ){}
    
    PData(const PData &pd)
       :windV10m(pd.windV10m), windU10m(pd.windU10m), 
@@ -206,7 +208,8 @@ struct PData{
        symbol( pd.symbol ),
        symbol_PROBABILITY( pd.symbol_PROBABILITY ),
        modeltopography( pd.modeltopography ),
-       topography( pd.topography ){}
+       topography( pd.topography ),
+       LANDCOVER( pd.LANDCOVER ){}
    
    PData& operator=(const PData &rhs){
       if(this!=&rhs){
@@ -276,6 +279,7 @@ struct PData{
          symbol_PROBABILITY = rhs.symbol_PROBABILITY;
          modeltopography = rhs.modeltopography;
          topography = rhs.topography;
+         LANDCOVER = rhs.LANDCOVER;
       }
       
       return *this;

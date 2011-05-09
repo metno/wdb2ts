@@ -68,6 +68,7 @@ class LocationElem {
 	const std::string topographyPostfix;
 	const boost::posix_time::ptime seaIceTime;
 	const boost::posix_time::ptime seaBottomTopographyTime;
+	const boost::posix_time::ptime epoch;
 	TimeSerie *timeSerie;
 	ITimeSerie itTimeSerie;
 	ProviderList providerPriority;
@@ -398,6 +399,13 @@ public:
 	 */
    int topography( const std::string &provider )const;
    
+   /**
+    *
+    * @param provider
+    * @return FLT_MIN if no value is found.
+    */
+   float landcover( const std::string &provider )const;
+
    float latitude() const { return latitude_; }
    float longitude() const { return longitude_; }
 	

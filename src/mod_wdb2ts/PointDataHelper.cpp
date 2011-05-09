@@ -160,6 +160,7 @@ merge( const PData &other )
     if( other.symbol_PROBABILITY != FLT_MAX ) symbol_PROBABILITY = other.symbol_PROBABILITY;
     if( other.modeltopography != FLT_MAX ) modeltopography = other.modeltopography;
     if( other.topography != FLT_MAX ) topography = other.topography;
+    if( other.LANDCOVER != FLT_MAX ) LANDCOVER = other.LANDCOVER;
 }
 
 void
@@ -229,6 +230,7 @@ print( std::ostream &o )const
    if( PRECIP_PROBABILITY_5_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_5_0MM: " << PRECIP_PROBABILITY_5_0MM << endl;
    if( symbol != FLT_MAX )  o << "symbol: " << symbol << endl;
    if( symbol_PROBABILITY != FLT_MAX ) o << "symbol_PROBABILITY: " << symbol_PROBABILITY << endl;
+   if( LANDCOVER != FLT_MAX ) o << "LANDCOVER: " << LANDCOVER << endl;
 }
 
 
@@ -302,6 +304,7 @@ count()const
     if( PRECIP_PROBABILITY_5_0MM != FLT_MAX ) ++n;
     if( symbol != FLT_MAX ) ++n;
     if( symbol_PROBABILITY != FLT_MAX ) ++n;
+    if( LANDCOVER != FLT_MAX ) ++n;
 
     return n;
 }
@@ -628,7 +631,12 @@ decodePData( const ParamDefList &paramDefs,
 						boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
 				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
-			}else if( paramDef->alias() == "TOTAL.CLOUD" )
+			} else if( paramDef->alias() == "LANDCOVER" ) {
+            ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
+                                 boost::posix_time::time_duration( 0, 0, 0 ) );
+            //WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
+            (*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
+         }else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;
 			else if( paramDef->alias() == "visibility" )
 				pd.visibility = value;
@@ -851,6 +859,8 @@ init( const std::string &param )
       pPM = &PData::PRECIP_PROBABILITY_2_0MM;
    else if( param == "PRECIP.PROBABILITY.5,0MM")
       pPM = &PData::PRECIP_PROBABILITY_5_0MM;
+   else if( param == "LANDCOVER" )
+      pPM = &PData::LANDCOVER;
    else
       pPM = 0;
 
