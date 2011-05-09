@@ -22,6 +22,7 @@ class WebQuery {
 	boost::posix_time::ptime reftime_;
 	std::string dataprovider_;
 	bool isPolygon_;
+	bool nearestLand_;
 	int skip_;
 
 	static boost::posix_time::ptime
@@ -36,7 +37,8 @@ public:
 			  const boost::posix_time::ptime &reftime,
 			  const std::string &dataprovider,
 			  bool isPolygon = false,
-			  int skip=0 );
+			  int skip=0,
+			  bool nearestLand = false );
 	WebQuery( );
 
 	/**
@@ -56,6 +58,7 @@ public:
 	boost::posix_time::ptime reftime() const { return reftime_; }
 	std::string dataprovider() const { return dataprovider_; }
 	int skip()const{ return skip_; }
+	bool nearestLand()const { return nearestLand_; }
 };
 
 

@@ -32,10 +32,11 @@ WebQuery( const LocationPointList &locationPoints, int altitude,
 		  const boost::posix_time::ptime &reftime,
 		  const std::string &dataprovider,
 		  bool isPolygon,
-		  int skip)
+		  int skip,
+		  bool nearestLand )
 	: altitude_( altitude ),
 	  from_( from ), to_( to ), reftime_( reftime ), dataprovider_( dataprovider ),
-	  isPolygon_( isPolygon ), skip_( skip )
+	  isPolygon_( isPolygon ), nearestLand_( nearestLand ), skip_( skip )
 {
 	points = locationPoints;
 }
@@ -163,7 +164,8 @@ decodeQuery( const std::string &queryToDecode )
       }
 
 
-		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon, skip );
+		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon,
+		                 skip, urlQuery.asBool( "nearest_land" ) );
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;
