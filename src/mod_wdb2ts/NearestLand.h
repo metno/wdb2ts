@@ -104,8 +104,8 @@ class NearestLand
     * following algorithm.
     *
     * We have two temperatures for a given point. The temperatures comes from
-    * different algorithms. We select one of the temeperatures or a linear
-    * combination of them based on the time of the day. The time is in the
+    * different algorithms. We select one of the temperatures or a linear
+    * combination of them based on the time of the day. The time in the
     * following table is geographical local time.
     *
     * The input to the method is the time in utc, and two temperatures t1 and t2.

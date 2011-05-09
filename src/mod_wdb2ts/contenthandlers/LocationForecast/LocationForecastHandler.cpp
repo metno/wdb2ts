@@ -441,6 +441,10 @@ get( webfw::Request  &req,
 			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
 						        altitude, refTimes, paramDefsPtr, providerPriority );
 
+		if( !webQuery.isPolygon() && webQuery.nearestLand() )
+		   nearestLandPoint( webQuery.locationPoints(), webQuery.to(), locationPointData,
+		                     altitude, refTimes, paramDefsPtr, providerPriority );
+
 		if( subversion == 0 ) {
 		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast'.");
 			EncodeLocationForecast encode( locationPointData,
@@ -601,8 +605,11 @@ nearestLandPoint( const LocationPointList &locationPoints,
                   const ProviderList &providerPriority
 ) const
 {
-   if( nearestLands.empty() || locationPoints.empty() )
+   if( nearestLands.empty() || locationPoints.empty() ) {
+      WEBFW_USE_LOGGER( "handler" );
+      WEBFW_LOG_DEBUG( "NearestLand: Not configured.");
       return;
+   }
 
    Wdb2TsApp *app=Wdb2TsApp::app();
    WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );

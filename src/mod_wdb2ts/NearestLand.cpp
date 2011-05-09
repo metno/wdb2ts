@@ -232,8 +232,9 @@ setData( const ParamDef &param,
       if( pit == fit->second.end() )
          continue;
 
-      WEBFW_LOG_DEBUG("Nearest Land: [" << tit->first << "," << fit->first << "] new value '" << avg << "' (" << setval.get( pit->second )<< ") for param '" << paramname << "', provider '" << provider << "'. Old value")
-      setval.set( pit->second, avg );
+      float newValue = correctValue( it->first, locationPoints.begin()->longitude(), avg, setval.get( pit->second ) );
+      WEBFW_LOG_DEBUG("Nearest Land: [" << tit->first << "," << fit->first << "] new value '" << newValue << "' (N: " << avg << ", O: " << setval.get( pit->second )<< ") for param '" << paramname << "', provider '" << provider << "'. Old value")
+      setval.set( pit->second, newValue );
 
    }
 
