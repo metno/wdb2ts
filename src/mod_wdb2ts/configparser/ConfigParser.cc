@@ -578,7 +578,12 @@ startElement( const std::string &fullname,
 		doRequestDefaultActionParam( attributes );
 	} else if( xmlState == "/wdb2ts/requests/request/version" ) {
 		doRequestVersion( attributes );
-	} else if( xmlState == "/wdb2ts/requests/request/version/actionparam" ) {
+	} else if( xmlState == "/wdb2ts/requests/request/meta/update" ||
+	       xmlState == "/wdb2ts/requests/request/version/meta/update" ) {
+
+	} else if( xmlState == "/wdb2ts/requests/request/meta/update/name" ||
+         xmlState == "/wdb2ts/requests/request/version/meta/update/name" ) {
+   } else if( xmlState == "/wdb2ts/requests/request/version/actionparam" ) {
 		if( currentRequestVersion )
 			doRequestActionParam( attributes,  currentRequestVersion->actionParam );
 		else 
@@ -673,7 +678,11 @@ endElement( const std::string &name )
 	   currentParamDefsId.erase();
    } else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
 		addParamDef();
-	} else if( xmlState == "./parameter") {
+	}else if( xmlState == "./meta/update" ) {
+
+   }else if( xmlState == "./meta/update/name" ) {
+
+   }else if( xmlState == "./parameter") {
 	   cerr << "endElement: Parameter: <" << xmlState.path() << ">." << endl;
 	} else if( xmlState == "./providerpriority" ) {
 	   cerr << "endElement: providerpriority: <" << xmlState.path() << ">." << endl;

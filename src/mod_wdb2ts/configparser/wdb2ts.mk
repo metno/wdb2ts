@@ -10,7 +10,9 @@ libwdb2tsconfigparser_la_SOURCES= \
 							src/mod_wdb2ts/configparser/RequestConf.h \
 							src/mod_wdb2ts/configparser/RequestConf.cc \
 							src/mod_wdb2ts/configparser/State.h \
-							src/mod_wdb2ts/configparser/State.cc
+							src/mod_wdb2ts/configparser/State.cc \
+						    src/mod_wdb2ts/configparser/NextRun.h \
+						    src/mod_wdb2ts/configparser/NextRun.cc
 
 EXTRA_DIST+= src/mod_wdb2ts/configparser/wdb2ts.mk \
 			 src/mod_wdb2ts/configparser/Makefile.am \

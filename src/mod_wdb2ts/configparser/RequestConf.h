@@ -38,6 +38,7 @@
 #include <ostream>
 #include <Value.h>
 #include <ParamDef.h>
+#include <NextRun.h>
 
 namespace wdb2ts {
 namespace config {
@@ -149,12 +150,12 @@ public:
 	~RequestConf(){}
 	
 	ActionParam actionParam;
+	Update     nextRun; //Metadata
 	miutil::Value queryid;
 	miutil::Value action;
 	miutil::Value wdbDB;
 	miutil::Value schema;
 	Version       version;
-	
 };
 
 
