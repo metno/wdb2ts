@@ -32,6 +32,7 @@ src_subdirs="	src/mod_wdb2ts \
 						
 test_subdirs="	test/unit \
 					src/mod_wdb2ts/test \
+					src/mod_wdb2ts/configparser/test \
 					src/webFW/test \
 					src/miutil/test \
 					test/wdb2tsget "
@@ -43,6 +44,7 @@ build_subdirs="	src/mod_wdb2ts/WciWebQuery \
 						src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 						src/mod_wdb2ts \
 						src/mod_wdb2ts/configparser \
+						src/mod_wdb2ts/configparser/test \
 						src/miutil \
 						src/webFW \
 						src/mod_wdb2ts/test \
@@ -221,6 +223,7 @@ AC_CONFIG_FILES([Makefile \
                  test/wdb2tsget/Makefile \
                  src/webFW/test/Makefile \
                  src/mod_wdb2ts/test/Makefile \
+                 src/mod_wdb2ts/configparser/test/Makefile \
                  etc/metno-wdb2ts.conf.template \
                  etc/metno-wdb2ts-db.conf.template \
                  etc/metno-wdb2ts-conf.xml.template \

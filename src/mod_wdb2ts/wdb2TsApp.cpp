@@ -220,9 +220,7 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 				logger.warning( log.str() );
 			}
 			
-			toConfigure->doConfigure( (*itVer)->actionParam, query,
-			                          (*itVer)->wdbDB.asString(""),
-			                          (*itVer)->schema.asString("") );
+			toConfigure->doConfigure( *itVer, query );
 			
 			std::string logprefix = it->second->path.asString();
 			miutil::replace( logprefix, " ", "_");

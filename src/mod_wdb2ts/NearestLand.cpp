@@ -112,7 +112,7 @@ decode( const wdb2ts::config::ActionParam &conf, const std::string &prefix, wdb2
          }
 
          msg << "   landmaskProvider: " << nearestLands[provider].landmaskProvider() << endl
-             << "  modelTopoProvider:" << nearestLands[provider].modelTopoProvider() << endl
+             << "  modelTopoProvider: " << nearestLands[provider].modelTopoProvider() << endl
              << "             rename: ";
 
          if( nearestLands[provider].rename() )
@@ -387,21 +387,21 @@ processNearestLandPoint( )
 		}
 
 		if( ! params.findParam( itParam, "LANDCOVER", it->second.landmaskProvider() ) ) {
-			WEBFW_LOG_WARN( "Nearest land: No parameter definition for maxconvecprec, provider '" << it->second.landmaskProvider() << "'.");
+			WEBFW_LOG_WARN( "Nearest land: No parameter definition for 'LANCOVER', provider '" << it->second.landmaskProvider() << "'.");
 			continue;
 		}
 
 		landmaskParam = *itParam;
 
 		if( ! params.findParam( itParam,  "MODEL.TOPOGRAPHY", it->second.modelTopoProvider() ) ) {
-		   WEBFW_LOG_WARN( "Nearest land: No parameter definition for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'.");
+		   WEBFW_LOG_WARN( "Nearest land: No parameter definition for 'MODEL.TOPOGRAPHY', provider '" << it->second.modelTopoProvider() << "'.");
 		   continue;
 		}
 
 		modelTopoParam = *itParam;
 
 		if( ! refTimes->providerReftime( it->second.modelTopoProvider(), modelTopoRefTime ) ) {
-			WEBFW_LOG_INFO( "Nearest land: No reference times found for MODEL.TOPOGRAPHY, provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
+			WEBFW_LOG_INFO( "Nearest land: No reference times found for 'MODEL.TOPOGRAPHY', provider '" << it->second.modelTopoProvider() << "'. This is NOT unususal.");
 			modelTopoRefTime = boost::posix_time::ptime();
 		}
 

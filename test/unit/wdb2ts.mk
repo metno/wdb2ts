@@ -13,7 +13,8 @@ wdb2TsUnitTest_CPPFLAGS = 	$(CPPUNIT_CFLAGS)
 
 wdb2TsUnitTest_LDFLAGS = 	$(AM_LDFLAGS) -L.
 
-wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) -lwebFW -lwdb2ts -lWciWebQuery -lmiutil
+wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) -lwdb2tsconfigparser \
+                             -lwebFW -lwdb2ts -lWciWebQuery -lmiutil
 # -ltestConfiguration -lwdbConfig
 
 EXTRA_DIST +=   			test/unit/wdb2ts.mk \

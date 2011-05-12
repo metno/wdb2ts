@@ -12,6 +12,7 @@ class HandlerBase
 protected:
 	std::string wdbdb;
 	std::string schema;
+	wdb2ts::config::RequestConf config;
 	
 public:
 	HandlerBase() {}
@@ -21,11 +22,9 @@ public:
 	{
 	}
 
-	bool doConfigure( const wdb2ts::config::ActionParam &params,
-			            const wdb2ts::config::Config::Query &query,
-	         			const std::string &wdbDB,
-	         			const std::string &schema="");
-		
+	bool doConfigure( boost::shared_ptr<wdb2ts::config::RequestConf> conf,
+	                  const wdb2ts::config::Config::Query &query );
+
 	
 	virtual bool configure( const wdb2ts::config::ActionParam &params,
 			                  const wdb2ts::config::Config::Query &query,

@@ -81,6 +81,7 @@ include src/mod_wdb2ts/wdb2ts.mk
 include test/unit/wdb2ts.mk
 include test/wdb2tsget/wdb2ts.mk
 include src/mod_wdb2ts/test/wdb2ts.mk
+include src/mod_wdb2ts/configparser/test/wdb2ts.mk
 include src/webFW/test/wdb2ts.mk
 include src/miutil/test/wdb2ts.mk
 

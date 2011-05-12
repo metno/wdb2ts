@@ -58,6 +58,7 @@
 #include <WebQuery.h>
 #include <Logger4cpp.h>
 #include <NearestHeight.h>
+#include <NearestLand.h>
 #include <WdbDataRequest.h>
 
 
@@ -231,6 +232,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	modelTopoProviders = configureModelTopographyProvider( params );
 	topographyProviders = configureTopographyProvider( params );
 	nearestHeights = NearestHeight::configureNearestHeight( params );
+	nearestLands = NearestLand::configureNearestLand( params );
 
 	configureSymbolconf( params, symbolConf_ );
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
