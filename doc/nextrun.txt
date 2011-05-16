@@ -1,0 +1,36 @@
+Ordforklaring:
+nextrun - Tidspunkt for neste oppdatering.
+rundended - Tidspunkt da varselet sist ble oppdatert.
+
+Oppdateringstidspunkter settes pr. i dag opp i en liste i
+konfigurasjonen til wdb2ts for hver dataprovider. Feks.
+proffdefault='03:30, 15:30'.
+
+Tidspunkt som vises på yr.no som neste oppdateringstidspunkt hentes så
+fra denne listen. Logikken rundt hvordan dette endres har jeg dog
+mistet helt oversikt over og det har egentlig aldri fungert spesielt
+bra.
+
+I xmlen er det ett nextrun/runended par for proff og ett for ec.
+
+En mulig ny måte å håndtere oppdateringstidspunkt på er følgende:
+
+1. En felles nextrun liste settes opp i wdb2ts. Pr. i dag tror jeg det
+   er en for hver dataprovider ( default, approved, eps ) som gjør at
+   nextrun endrer seg når approved deaktiveres ( ved oppdatering av
+   default dataene ).
+
+2. Nextrun listen inneholder oppdateringsintervall i stedet for
+   tidspunkt. F.eks. proffdefault="03:00-04:00, 15:00-16:00". nextrun
+   settes til slutttidspunkt i intervall.
+
+3. Oppdateringer som skjer før starttidspunkt i intervall vil ikke
+   føre til endringer i nextrun, men runended blir oppdatert.
+
+4. Kommer en oppdatering i oppdateringsintervallett, oppdateres
+   rundended og nextrun settes til neste tidspunkt på listen.
+
+5. Passerer man slutttidspunktet uten at en oppdatering er kommet
+   settes nextrun til neste tidspunkt. Kommer det likevel en oppdatering
+   etter at dette har skjedd( men uten at man er inne i neste
+   oppdateringsintervall) endres kun rundended.
