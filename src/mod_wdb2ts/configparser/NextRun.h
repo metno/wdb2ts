@@ -63,7 +63,8 @@ namespace config {
       boost::posix_time::time_duration getTo() const { return to; };
       boost::posix_time::time_duration getDif() const { return dif; }
 
-      boost::posix_time::ptime refto( const boost::posix_time::ptime &reftime )const;
+      boost::posix_time::ptime refto( const boost::posix_time::ptime &reftime,
+                                      boost::posix_time::ptime &fromtime )const;
    };
 
    class UpdateGroup
@@ -71,6 +72,7 @@ namespace config {
       std::string name;
       std::list<std::string> providerList;
       std::list<TimePeriode> timeList;
+      boost::posix_time::ptime currentUpdate_;
 
    public:
       UpdateGroup( const std::string &name );
@@ -95,7 +97,17 @@ namespace config {
       const TimePeriode* findTimePeriod( const boost::posix_time::time_duration &time,
                                    bool &inPeriod )const;
 
-      boost::posix_time::ptime nextRun( const boost::posix_time::ptime &reqTime )const;
+      boost::posix_time::ptime nextRun( const boost::posix_time::ptime &reqTime,
+                                        boost::posix_time::ptime &fromTime )const;
+
+      /**
+       * Return the current set update time for this group. If the 'now' time is
+       * greater than the current update time, find the next update time and set
+       * the current update time to this value.
+       * @param now The check time to test against.
+       * @return Return the update time for this group.
+       */
+      boost::posix_time::ptime currentUpdate( const boost::posix_time::ptime &now );
    };
 
    class Update {
