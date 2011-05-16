@@ -141,11 +141,15 @@ computeSymbols( LocationData& data,
 	vector<miutil::miTime>                times;
 	float                         val;
 
+	WEBFW_USE_LOGGER( "synop" );
 	min--;
 	
 	if( min < 0 )
 		min = 0;
 	
+	WEBFW_LOG_DEBUG("computeSymbols: " << provider << " min: " << min << " max: " << max
+	             << " precipHours: " << precipHours
+	             << " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f"));
 	data.init( startAt, provider );
 	
 	while( data.hasNext() ) {
@@ -210,7 +214,7 @@ computeSymbols( LocationData& data,
 		if( ( mitime.hour() % precipHours ) == 0 ) {
 			val = elem.PRECIP( precipHours, precipFromtime );
 			
-			//cerr << "computeSym: hour: " << precipHours << " from: " << precipFromtime << " to: " << mitime << " (min: " << min << " max: " << max << ") val: " << val << endl;
+			WEBFW_LOG_DEBUG( "computeSymbols: hour: " << precipHours << " from: " << precipFromtime << " to: " << mitime << " lprovider: " << elem.lastUsedProvider() << " val: " << val );
 
 			if( val != FLT_MAX ) {
 				//ost << " (17): " << val;
