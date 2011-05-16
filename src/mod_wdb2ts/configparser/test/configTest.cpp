@@ -112,46 +112,53 @@ testTimePeriod()
    //Test maping of reftime to datetime clampet to nearest to in TimePeriode in
    //the future.
    TimePeriode  tpReftime( time_duration( 22, 0, 0 ), time_duration( 2, 0, 0 ) );
+   ptime fromTime;
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:1",
-                           tpReftime.refto( time_from_string( "2011-05-12 23:00:00") ) ==
-                           time_from_string( "2011-05-13 2:00:00" )  );
+                           (tpReftime.refto( time_from_string( "2011-05-12 23:00:00"), fromTime ) ==
+                           time_from_string( "2011-05-13 2:00:00" )) &&
+                           fromTime == time_from_string( "2011-05-12 22:00:00" )  );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:2",
-                           tpReftime.refto( time_from_string( "2011-05-12 1:00:00") ) ==
-                           time_from_string( "2011-05-12 2:00:00" )  );
+                           (tpReftime.refto( time_from_string( "2011-05-12 1:00:00"), fromTime ) ==
+                           time_from_string( "2011-05-12 2:00:00" )) &&
+                           fromTime == time_from_string( "2011-05-11 22:00:00" ));
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:3",
-                           tpReftime.refto( time_from_string( "2011-05-12 22:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 22:00:00"), fromTime ) ==
                            time_from_string( "2011-05-13 2:00:00" )  );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:4",
-                           tpReftime.refto( time_from_string( "2011-05-12 2:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 2:00:00"), fromTime ) ==
                            time_from_string( "2011-05-12 2:00:00" )  );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:5",
-                           tpReftime.refto( time_from_string( "2011-05-12 21:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 21:00:00"), fromTime ) ==
                            time_from_string( "2011-05-13 2:00:00" )  );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:6",
-                           tpReftime.refto( time_from_string( "2011-05-12 3:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 3:00:00"), fromTime ) ==
                            time_from_string( "2011-05-13 2:00:00" )  );
 
    tpReftime = TimePeriode( time_duration( 8, 0, 0 ), time_duration( 12, 0, 0 ) );
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:7",
-                           tpReftime.refto( time_from_string( "2011-05-12 7:00:00") ) ==
-                           time_from_string( "2011-05-12 12:00:00" )  );
+                           (tpReftime.refto( time_from_string( "2011-05-12 7:00:00"), fromTime ) ==
+                            time_from_string( "2011-05-12 12:00:00" )) &&
+                            fromTime == time_from_string( "2011-05-12 08:00:00") );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:8",
-                           tpReftime.refto( time_from_string( "2011-05-12 10:00:00") ) ==
-                           time_from_string( "2011-05-12 12:00:00" )  );
+                           (tpReftime.refto( time_from_string( "2011-05-12 10:00:00"), fromTime ) ==
+                            time_from_string( "2011-05-12 12:00:00" )) &&
+                            fromTime == time_from_string( "2011-05-12 08:00:00") );
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:9",
-                           tpReftime.refto( time_from_string( "2011-05-12 14:00:00") ) ==
-                           time_from_string( "2011-05-13 12:00:00" )  );
+                           (tpReftime.refto( time_from_string( "2011-05-12 14:00:00"), fromTime ) ==
+                            time_from_string( "2011-05-13 12:00:00" ) ) &&
+                            fromTime == time_from_string( "2011-05-13 08:00:00") );
 
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:10",
-                           tpReftime.refto( time_from_string( "2011-05-12 8:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 8:00:00"), fromTime ) ==
                            time_from_string( "2011-05-12 12:00:00" )  );
+
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:11",
-                           tpReftime.refto( time_from_string( "2011-05-12 12:00:00") ) ==
+                           tpReftime.refto( time_from_string( "2011-05-12 12:00:00"), fromTime ) ==
                            time_from_string( "2011-05-12 12:00:00" )  );
 }
