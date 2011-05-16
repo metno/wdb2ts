@@ -165,7 +165,7 @@ decodeQuery( const std::string &queryToDecode )
 
 
 		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon,
-		                 skip, urlQuery.asBool( "nearest_land" ) );
+		                 skip, urlQuery.asBool( "nearest_land", false ) );
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;
