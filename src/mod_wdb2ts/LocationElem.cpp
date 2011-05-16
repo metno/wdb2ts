@@ -517,8 +517,15 @@ PRECIP( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
 	const float MIN_PRECIP = 0.1f;
 	
 	float precip;
-	
+
+	//WEBFW_USE_LOGGER( "synop" );
 	precip = PRECIP_MEAN( hoursBack, backTime_, tryHard );
+	
+/*	if( precip != FLT_MAX ) {
+	   WEBFW_LOG_DEBUG("PRECIP: (PRECIP_MEAN): " << precip );
+	} else {
+	   WEBFW_LOG_DEBUG("PRECIP: (PRECIP_MEAN): Opppppppssssssss" );
+	}*/
 
 	if( precip == FLT_MAX )
 	   precip = PRECIP_N( hoursBack, backTime_, tryHard );
@@ -550,6 +557,8 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    boost::posix_time::ptime stopTime;
    boost::posix_time::ptime startTime;
    boost::posix_time::ptime savedFromTime;
+   bool isEqual=false;
+   bool myTryHard = tryHard;
 
    WEBFW_USE_LOGGER( "main" );
 
@@ -562,7 +571,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    savedFromTime = fromTime;
 
    //We must adjust the startime with one hour because
-   //the one hour precipitation is for the hour preceeding
+   //the one hour precipitation is for the hour preceding
    //the totime.
    startTime = fromTime + hours( 1 );
 
@@ -572,10 +581,25 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
         ++it )
    {
 
+
+      if( isEqual )
+         fromTime = it->first;
+
       precipNow = getValue( &PData::PRECIP_MEAN,
                             it->second,
                             fromTime ,
-                            const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+                            const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+
+      if( !isEqual && precipNow == FLT_MAX  ) {
+         isEqual = true;
+         //Is fromtime and totime equal.
+         fromTime = it->first;
+         precipNow = getValue( &PData::PRECIP_MEAN,
+                                it->second,
+                                fromTime ,
+                                const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
+      }
+
 
       //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
       fromTime = it->first;
@@ -584,6 +608,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
       if( precipNow == FLT_MAX )
          return FLT_MAX;
 
+      myTryHard = false;
       sumPrecip += precipNow;
       count++;
    }
