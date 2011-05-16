@@ -141,28 +141,41 @@ overlap( const TimePeriode &other )
 
 boost::posix_time::ptime
 TimePeriode::
-refto( const boost::posix_time::ptime &reftime )const
+refto( const boost::posix_time::ptime &reftime,
+       boost::posix_time::ptime &fromTime )const
 {
    using namespace boost::posix_time;
    using namespace boost::gregorian;
 
    time_duration clock( reftime.time_of_day() );
+   ptime retTime;
    date d=reftime.date();
+
+   fromTime = ptime();
 
    if( inPeriode( clock ) ) {
       if( dif.is_negative() && clock > to )
          d += days( 1 );
 
-      return ptime( d, to );
+      retTime = ptime( d, to );
    } else if( dif.is_negative() ) {
-      return ptime( d + days(1), to );
+      retTime = ptime( d + days(1), to );
    } else {
 
       if( clock > to )
          d += days( 1 );
 
-      return ptime( d, to );
+      retTime = ptime( d, to );
    }
+
+   fromTime = retTime;
+
+   if( dif.is_negative() )
+      fromTime += dif;
+   else
+      fromTime -= dif;
+
+   return retTime;
 }
 
 UpdateGroup::
@@ -194,7 +207,8 @@ addTimePeriod( const TimePeriode &timePeriod )
 
 boost::posix_time::ptime
 UpdateGroup::
-nextRun( const boost::posix_time::ptime &reqTime )const
+nextRun( const boost::posix_time::ptime &reqTime,
+         boost::posix_time::ptime &fromtime )const
 {
    boost::posix_time::time_duration td;
    bool inPeriod;
@@ -203,7 +217,7 @@ nextRun( const boost::posix_time::ptime &reqTime )const
    if( ! tp )
       return boost::posix_time::ptime();
 
-   return tp->refto( reqTime );
+   return tp->refto( reqTime, fromtime );
 }
 
 const TimePeriode*
@@ -237,6 +251,12 @@ findTimePeriod( const boost::posix_time::time_duration &time,
    return &(*timeList.begin());
 }
 
+boost::posix_time::ptime
+UpdateGroup::
+currentUpdate( const boost::posix_time::ptime &now )
+{
+   return currentUpdate_;
+}
 
 Update::
 Update()
