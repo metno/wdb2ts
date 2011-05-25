@@ -1,8 +1,9 @@
-metno-wdb2ts (1.0.1~rc1-1) unstable; urgency=low
+metno-wdb2ts (1.0.2~rc1-1) unstable; urgency=low
   * Add an include tag to the config file.
+  * Implemented "nearest_land interpolation". (Kanariøyene).
   * (More to come)    
         
- -- Borge Moe <borge.moe@met.no>  Tue, 29 Mar 2011 15:00:00 +0200
+ -- Borge Moe <borge.moe@met.no>  Wed, 25 May 2011 14:00:00 +0200
 
 metno-wdb2ts (1.0.0-1) unstable; urgency=low
   * No changes since last RC.
