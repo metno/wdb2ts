@@ -30,6 +30,7 @@
 #include <sstream>
 #include <ptimeutil.h>
 #include <Logger4cpp.h>
+#include <ProviderList.h>
 #include <transactor/LocationPointMatrixData.h>
 #include <wciHelper.h>
 
@@ -45,20 +46,43 @@ using namespace std;
 
 namespace wdb2ts {
 
+LocationPointMatrixData::
+LocationPointMatrixData()
+   : query_( new std::string() ), locations_( new  LocationPointMatrixTimeserie() ),
+     logger_( "wdb" )
+{
+}
+
+LocationPointMatrixData::
+LocationPointMatrixData( const LocationPointMatrixData &lpmd )
+ : latitude_( lpmd.latitude_ ), longitude_( lpmd.longitude_ ),
+   params_( lpmd.params_ ), paramDef_( lpmd.paramDef_ ),
+   provider_( lpmd.provider_ ), reftimespec_( lpmd.reftimespec_ ),
+   surroundLevel_( lpmd.surroundLevel_ ), wciProtocol_( lpmd.wciProtocol_ ),
+   query_( lpmd.query_ ), locations_( lpmd.locations_ ),
+   logger_( lpmd.logger_ )
+{
+}
 
 
 LocationPointMatrixData::
 LocationPointMatrixData( float latitude, float longitude,
+		    const ParamDefList &params,
 		    const ParamDef &paramDef,
 		    const std::string &provider,
 		    const boost::posix_time::ptime &reftimespec,
 		    int surroundLevel,
-		    int wciProtocol )
+		    int wciProtocol,
+		    const std::string &logger)
 	: latitude_( latitude ), longitude_( longitude ),
-	  paramDef_( paramDef), provider_( provider ),
+	  params_( params ), paramDef_( paramDef ),
 	  reftimespec_( reftimespec ), surroundLevel_( surroundLevel ), wciProtocol_( wciProtocol ),
-	  locations_( new LocationPointMatrixTimeserie() )
+	  query_( new std::string() ),
+	  locations_( new LocationPointMatrixTimeserie() ),
+	  logger_( logger )
 {
+   ProviderItem pi = ProviderList::decodeItem( provider );
+   provider_ = pi.provider;
 }
 
 
@@ -67,19 +91,26 @@ LocationPointMatrixData::
 {
 }
 
-/*
- * 	   ost << "SELECT " << returnColoumns << " FROM wci.read(" << endl
-		   << "   " << dataprovider.selectPart() << ", " << endl
-		   << "   '" << sPointInterpolation << " POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
-//       	<< "   'POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
-		   << "   " << reftime.selectPart() << ", " << endl
-		   << "   " << validtime.selectPart() << ", " << endl
-		   << "   " << parameter.selectPart() << ", " << endl
-		   << "   " << levelspec.selectPart() << ", " << endl
-		   << "   " << dataversion.selectPart() << ", " << endl
-		   << "   NULL::wci.returnfloat )" << endl;
- *
- */
+
+LocationPointMatrixData&
+LocationPointMatrixData::
+operator=( const LocationPointMatrixData &rhs )
+{
+   if( this != &rhs ) {
+      latitude_ = rhs.latitude_;
+      longitude_ = rhs.longitude_;
+      params_ = rhs.params_;
+      paramDef_ = rhs.paramDef_;
+      provider_ = rhs.provider_;
+      reftimespec_ = rhs.reftimespec_;
+      surroundLevel_ = rhs.surroundLevel_;
+      wciProtocol_ = rhs.wciProtocol_;
+      query_ = rhs.query_ ;
+      locations_ = rhs.locations_;
+      logger_ = rhs.logger_;
+   }
+   return *this;
+}
 
 void
 LocationPointMatrixData::
@@ -92,7 +123,6 @@ operator () ( argument_type &t )
    boost::posix_time::ptime validtimefrom;
    boost::posix_time::ptime prevValidTimeTo;
    boost::posix_time::ptime prevValidTimeFrom;
-   ParamDefList params;
    ParamDefPtr itPar;
    LocationPoint locationPoint;
    string dummyGroupProvider;
@@ -102,33 +132,37 @@ operator () ( argument_type &t )
    float value;
    int x=0;
    int y=0;
-   WEBFW_USE_LOGGER( "wdb" );
+
+   WEBFW_USE_LOGGER( logger_ );
 
    locations_->clear();
+   query_->clear();
 
    if( surroundLevel_ < 0 ) {
       WEBFW_LOG_WARN("The SUROUND level is less than 0, setting it to 0.");
       surroundLevel_ = 0;
    }
 
-   params[provider_].push_back( paramDef_ );
-
    if( wciProtocol_ < 6) {
-      sSurround ="SUROUND ";
+      sSurround ="SURROUND ";
       expextNValues = 4;
       n=2;
    } else {
       if( surroundLevel_ > 0 ) {
          n = 2*surroundLevel_;
          expextNValues = 4*surroundLevel_*surroundLevel_; // (2*surroundLevel_)^2
-         q << "SUROUND(" << surroundLevel_ << ") ";
+         q << "SURROUND(" << surroundLevel_ << ") ";
          sSurround = q.str();
-         n=surroundLevel_;
+        // n=surroundLevel_;
       }
    }
 
-   LocationPointMatrix pointMatrix(boost::extents[n][n]);
-   LocationPointMatrix undefPointMatrix(boost::extents[n][n]);
+   LocationPointMatrix pointMatrix( n, n );
+   LocationPointMatrix undefPointMatrix( n, n );
+
+   for( int x=0; x<n; ++x)
+      for( int y=0; y<n; ++y )
+         undefPointMatrix[x][y] = LocationPoint();
 
    q.str("");
    q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
@@ -141,13 +175,14 @@ operator () ( argument_type &t )
      << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime, validtimeto, validtimefrom";
 
    WEBFW_LOG_DEBUG( "LocationPointMatrixData: transactor: SQL ["   << q.str() << "]" );
+   *query_ = q.str();
    pqxx::result  res = t.exec( q.str() );
 
    for( pqxx::result::const_iterator it=res.begin(); it != res.end(); ++it ) {
       if( it.at("value").is_null() )
          continue;
 
-      if( params.findParam( it, itPar, dummyGroupProvider ) ) {
+      if( params_.findParam( it, itPar, dummyGroupProvider ) ) {
          if( !LocationPoint::decodeGisPoint( it.at("point").c_str(), locationPoint ) )
             continue;
 
@@ -161,7 +196,19 @@ operator () ( argument_type &t )
             if( nValues != expextNValues ) {
                WEBFW_LOG_DEBUG("LocationPointMatrixData: expected: " << expextNValues << ", but got " << nValues << ".");
             }
+
+            if( WEBFW_GET_LOGLEVEL() == log4cpp::Priority::DEBUG ) {
+               ostringstream ost;
+               ost << "LocationPointMatrixData: " << prevValidTimeFrom << " - " << prevValidTimeTo;
+                for( int x=0; x<n; ++x)
+                   for( int y=0; y<n; ++y )
+                      ost << "\n                        [" << x << ", " << y <<"] = " << pointMatrix[x][y].value();
+
+                WEBFW_LOG_DEBUG( ost.str() );
+            }
+
             locations_->insert( prevValidTimeFrom, prevValidTimeTo, pointMatrix, false );
+            pointMatrix = undefPointMatrix;
             nValues = 0;
             x=0;
             y=0;
@@ -177,13 +224,28 @@ operator () ( argument_type &t )
          if( x < n && y < n ) {
             value = it.at("value").as<float>()*itPar->scale()+itPar->offset();
             locationPoint.value( value );
-            WEBFW_LOG_DEBUG("LocationPointMatrixData: pointMatrix[" << y << "][" << x <<"] = " << locationPoint.value() );
+            //WEBFW_LOG_DEBUG("LocationPointMatrixData: pointMatrix[" << y << "][" << x <<"] = " << locationPoint.value() );
             pointMatrix[y][x] = locationPoint;
             nValues++;
             x++;
          }
       }
    }
+
+   if( pointMatrix != undefPointMatrix ) {
+      if( WEBFW_GET_LOGLEVEL() == log4cpp::Priority::DEBUG ) {
+         ostringstream ost;
+         ost << "LocationPointMatrixData: " << prevValidTimeFrom << " - " << prevValidTimeTo;
+         for( int x=0; x<n; ++x)
+            for( int y=0; y<n; ++y )
+               ost << "\n                        [" << x << ", " << y <<"] = " << pointMatrix[x][y].value();
+
+         WEBFW_LOG_DEBUG( ost.str() );
+      }
+
+      locations_->insert( prevValidTimeFrom, prevValidTimeTo, pointMatrix, false );
+   }
+
 }
 
 

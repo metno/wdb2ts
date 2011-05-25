@@ -35,7 +35,6 @@
 #include <map>
 #include <vector>
 #include <limits.h>
-#include "boost/multi_array.hpp"
 #include <boost/shared_ptr.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -63,6 +62,7 @@ public:
 	LocationPoint();
 	LocationPoint( const LocationPoint &lp );
 	LocationPoint( float latitude, float longitude, float value=FLT_MIN );
+	~LocationPoint();
 
 	bool operator<( const LocationPoint &rhs ) const;
 	bool operator==( const LocationPoint &rhs ) const;
@@ -70,7 +70,8 @@ public:
 			{
 				return !( *this == rhs );
 			}
-	LocationPoint& operator=( const LocationPoint &rhs ) ;
+	//LocationPoint& operator=( const LocationPoint &rhs );
+	LocationPoint& operator=( const LocationPoint &rhs );
 
 	bool isSet()const { return latitude_!= INT_MIN && longitude_!= INT_MIN; }
 
@@ -124,16 +125,41 @@ public:
 typedef std::list<LocationPoint> LocationPointList;
 typedef boost::shared_ptr<LocationPointList> LocationPointListPtr;
 
-typedef boost::multi_array<LocationPoint, 2> LocationPointMatrix;
+typedef boost::multi_array<LocationPoint, 2> LocationPoint2DimMatrix;
+
+class LocationPointMatrix : public LocationPoint2DimMatrix
+{
+public:
+   LocationPointMatrix();
+   LocationPointMatrix( const LocationPointMatrix &cc );
+
+   LocationPointMatrix( int xSize, int ySize );
+
+   LocationPointMatrix& operator=( const LocationPointMatrix &rhs );
+};
+
+//typedef boost::multi_array<LocationPoint, 2> LocationPointMatrix;
 typedef boost::shared_ptr<LocationPointMatrix> LocationPointMatrixPtr;
 
 class LocationPointMatrixTimeserie
 {
 public:
-   typedef std::pair<boost::posix_time::ptime, LocationPointMatrix *> IndexValue;
-   typedef std::map<boost::posix_time::ptime, IndexValue> Index;
 
-   typedef std::list<LocationPointMatrix> DataType;
+   //typedef std::pair<boost::posix_time::ptime, LocationPointMatrix> Value;
+
+   struct Value {
+      boost::posix_time::ptime first;
+      LocationPointMatrix second;
+
+      Value();
+      Value( const boost::posix_time::ptime &first_, const LocationPointMatrix &second_ );
+
+      Value( const Value &cc );
+      Value& operator=( const Value &rhs );
+   };
+
+   typedef std::map<boost::posix_time::ptime, boost::posix_time::ptime > FromIndex;
+   typedef std::map<boost::posix_time::ptime, Value > DataType;
 
    struct XY {
       int x,y;
@@ -156,14 +182,16 @@ public:
 
 protected:
    DataType data;
-   Index toTimeIndex;
-   Index fromTimeIndex;
-   bool invalidFromTimeIndex;
+   FromIndex fromTimeIndex;
+   std::string logger;
 
 public:
+   LocationPointMatrixTimeserie( const LocationPointMatrixTimeserie &lp );
    LocationPointMatrixTimeserie();
+   LocationPointMatrixTimeserie( const std::string &logger );
    ~LocationPointMatrixTimeserie();
 
+   LocationPointMatrixTimeserie& operator=( const LocationPointMatrixTimeserie &rhs );
    void clear();
    int size()const { return data.size();};
 
@@ -179,6 +207,7 @@ public:
     */
    bool insert( const boost::posix_time::ptime &validTo, const boost::posix_time::ptime &validFrom,
                 const LocationPointMatrix &point, bool replace=false);
+#if 0
 
    /**
     *
@@ -188,10 +217,10 @@ public:
     *   greater than fromTime.
     * @return An iterator pointing to the first element if found. An iteartor eqal to endFromTime if not found.
     */
-   Index::const_iterator beginFromTime( const boost::posix_time::ptime &fromTime=boost::posix_time::ptime(),
+   FromIndex::const_iterator beginFromTime( const boost::posix_time::ptime &fromTime=boost::posix_time::ptime(),
                                         bool exact=false )const;
-   Index::const_iterator endFromTime()const;
-
+   FromIndex::const_iterator endFromTime()const;
+#endif
 
    /**
     *
@@ -201,9 +230,9 @@ public:
     *   greater than fromTime.
     * @return An iterator pointing to the first element if found. An iteartor eqal to endFromTime if not found.
     */
-   Index::const_iterator beginToTime( const boost::posix_time::ptime &fromTime=boost::posix_time::ptime(),
+   DataType::const_iterator beginToTime( const boost::posix_time::ptime &fromTime=boost::posix_time::ptime(),
                                       bool exact=false)const;
-   Index::const_iterator endToTime()const;
+   DataType::const_iterator endToTime()const;
 
 
    /**
@@ -230,6 +259,7 @@ public:
 };
 
 typedef boost::shared_ptr<LocationPointMatrixTimeserie> LocationPointMatrixTimeseriePtr;
+
 
 LocationPointList::iterator
 insertLocationPoint( LocationPointList &locations, LocationPoint  &locationPoint, bool replace=false );

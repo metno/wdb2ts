@@ -60,6 +60,7 @@
 #include <NearestHeight.h>
 #include <NearestLand.h>
 #include <WdbDataRequest.h>
+#include <LocationData.h>
 
 
 DECLARE_MI_PROFILE;
@@ -439,6 +440,15 @@ get( webfw::Request  &req,
 															 webQuery.isPolygon(),
 				                                             altitude, refTimes, paramDefsPtr, providerPriority );
 
+	   if( ! webQuery.isPolygon() ) {
+	      if( !locationPointData->empty() && (altitude==INT_MIN || altitude == INT_MAX)) {
+	            LocationData ld( locationPointData->begin()->second,
+	                             webQuery.longitude(), webQuery.latitude(), altitude,
+	                             providerPriority, modelTopoProviders, topographyProviders );
+	            altitude = ld.computeAndSetHeight( altitude );
+	      }
+	   }
+
 		if( ! webQuery.isPolygon() )
 			nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
 						        altitude, refTimes, paramDefsPtr, providerPriority );
@@ -608,7 +618,7 @@ nearestLandPoint( const LocationPointList &locationPoints,
 ) const
 {
    if( nearestLands.empty() || locationPoints.empty() ) {
-      WEBFW_USE_LOGGER( "handler" );
+      WEBFW_USE_LOGGER( "nearest_land" );
       WEBFW_LOG_DEBUG( "NearestLand: Not configured.");
       return;
    }

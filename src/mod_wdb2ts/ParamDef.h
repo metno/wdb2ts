@@ -145,6 +145,8 @@ public:
    addParamDef( const ParamDef  &pd,
                 const std::string &provider="" );
 
+   ProviderGroups getProviderGroups() const { return providerGroups_;}
+   void setProviderGroups( const ProviderGroups &pg ) { providerGroups_=pg; }
    std::string lookupGroupName( const std::string &providerName )const;
    void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
 };

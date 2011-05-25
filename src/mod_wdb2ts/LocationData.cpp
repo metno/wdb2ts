@@ -165,6 +165,19 @@ cleanup()
 	}
 }
 
+int
+LocationData::
+computeAndSetHeight( int altitude )
+{
+   if( altitude == INT_MIN || altitude == INT_MAX )
+      altitude = hightFromTopography();
+
+   if( altitude == INT_MIN )
+      altitude = hightFromModelTopo();
+
+   height( altitude );
+   return altitude;
+}
 
 int
 LocationData::

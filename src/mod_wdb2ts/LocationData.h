@@ -78,6 +78,19 @@ public:
 	int height() const { return locationElem.height(); }
 	void height( int h ) { locationElem.height( h ); }
 	
+	/**
+	 * Set the altitude to 'altitude'. If 'altitude' is INT_MAX/INT_MIN
+	 * compute the altitude withe call to
+	 *   hightFromTopography()
+	 *   hightFromModelTopo()
+	 *
+	 * If still no altitude is found set the altitude to INT_MIN;
+	 *
+	 * @param altitude The altitude to set, it can be INT_MAX or INT_MIN.
+	 * @return the altitude or INT_MIN.
+	 */
+	int computeAndSetHeight( int altitude );
+
 
 	/**
 	 *Use the hight to model topografi for the point given with latitude/longitude.

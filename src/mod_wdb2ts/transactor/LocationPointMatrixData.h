@@ -48,29 +48,40 @@ class  LocationPointMatrixData
 : public pqxx::transactor<>
 {
 public:
+   LocationPointMatrixData();
+   LocationPointMatrixData( const LocationPointMatrixData &lpmd );
    LocationPointMatrixData(  float latitude, float longitude,
+                             const ParamDefList &params,
                              const ParamDef &paramDef,
                              const std::string &provider,
                              const boost::posix_time::ptime &reftimespec,
                              int surroundLevel,
-                             int wciProtocol);
+                             int wciProtocol,
+                             const std::string &logger="wdb");
+
 
    ~LocationPointMatrixData();
+   LocationPointMatrixData& operator=( const LocationPointMatrixData &rhs );
+
 
    void doLocation( argument_type &t );
    void operator () ( argument_type &t );
 
    LocationPointMatrixTimeseriePtr result() const { return locations_; }
+   std::string query() const { return *query_; }
 
 private:
    float latitude_;
    float longitude_;
-   const ParamDef paramDef_;
-   const std::string provider_;
-   const boost::posix_time::ptime reftimespec_;
+   ParamDefList params_;
+   ParamDef paramDef_;
+   std::string provider_;
+   boost::posix_time::ptime reftimespec_;
    int surroundLevel_;
    int wciProtocol_;
+   boost::shared_ptr<std::string> query_;
    LocationPointMatrixTimeseriePtr locations_;
+   std::string logger_;
 };
 
 }
