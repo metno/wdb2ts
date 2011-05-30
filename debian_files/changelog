@@ -1,9 +1,14 @@
 metno-wdb2ts (1.0.2~rc1-1) unstable; urgency=low
   * Add an include tag to the config file.
   * Implemented "nearest_land interpolation". (Kanariøyene).
-  * (More to come)    
+  * Implement new variants of thunder symbols with symbolid 20, 21, 22 and 23.
         
- -- Borge Moe <borge.moe@met.no>  Wed, 25 May 2011 14:00:00 +0200
+ -- Borge Moe <borge.moe@met.no>  Mon, 30 May 2011 09:20:00 +0200
+
+metno-wdb2ts (1.0.1-1) unstable; urgency=low
+  * Fix PRECIP_MEAN, when validtimeto == fromtimeto in wdb.
+        
+ -- Borge Moe <borge.moe@met.no>  Mon, 16 May 2011 14:00:00 +0200
 
 metno-wdb2ts (1.0.0-1) unstable; urgency=low
   * No changes since last RC.
