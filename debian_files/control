@@ -19,12 +19,12 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
                libaprutil1-dev (>=1.2),
                proj (>=4.6),
                liblog4cpp5-dev (>= 1.0),
-               libcurl4-openssl-dev (>= 7.15.5), 
-               metlibs-pgconpool-dev, 
-               metlibs-milib-dev, 
-               metlibs-libmi-dev, 
-               metlibs-pumet-dev,
-               metlibs-putools-dev
+               libcurl4-openssl-dev (>= 7.15.5) 
+#               ,metlibs-pgconpool-dev, 
+#               metlibs-milib-dev, 
+#               metlibs-libmi-dev, 
+#               metlibs-pumet-dev,
+#               metlibs-putools-dev
 Standards-Version: 3.6.2
 
 Package: metno-wdb2ts
