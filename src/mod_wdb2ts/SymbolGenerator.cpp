@@ -238,7 +238,7 @@ computeSymbols( LocationData& data,
 	}
 
 	if( withoutStateOfAgregate )
-		tmpSymbols = sm.computeWithoutStateOfAggregate( parameters, times, min, max );
+		tmpSymbols = sm.computeWithoutStateOfAggregate( parameters, times, min, max, true );
 	else
 		tmpSymbols = sm.compute( parameters, times, min, max );
 
