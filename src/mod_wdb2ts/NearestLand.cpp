@@ -491,7 +491,7 @@ processNearestLandPoint( )
          ALP = LocationPointMatrixTimeserie::valuesGreaterThan( landMaskLocations, 3, 0.9, landPoints );
 
          if( ALP > 0 ) {
-            computeNearestLand( it->second, modelTopoLocations, landPoints, 2 );
+            computeNearestLand( it->second, modelTopoLocations, landPoints, 3 );
             continue;
          }
       }
