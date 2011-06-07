@@ -134,6 +134,34 @@ dataversion( const std::string &provider, int &dataversion_ ) const
    return false;
 }
 
+bool
+ProviderRefTimeList::
+providerReftimeDisabledAndDataversion( const std::string &provider,
+                                       boost::posix_time::ptime &refTime,
+                                       bool &disabled,
+                                       int &dataversion ) const
+{
+
+   ProviderItem pvItemIn = ProviderList::decodeItem( provider );
+   ProviderItem pvItem;
+
+   for( ProviderRefTimeList::const_iterator it = begin();
+         it != end(); ++it ) {
+
+      pvItem = ProviderList::decodeItem( it->first );
+
+      if( ( !pvItemIn.placename.empty() && pvItemIn == pvItem ) ||
+            ( pvItemIn.placename.empty() && pvItemIn.provider == pvItem.provider ) ) {
+         refTime = it->second.refTime;
+         disabled = it->second.disabled;
+         dataversion = it->second.dataversion;
+         return true;
+      }
+   }
+
+   return false;
+
+}
 
 int
 ProviderRefTimeList::

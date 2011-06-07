@@ -134,6 +134,11 @@ public:
 	bool providerReftime( const std::string &provider,
 			              boost::posix_time::ptime &refTime ) const;
 
+	bool providerReftimeDisabledAndDataversion( const std::string &provider,
+	                                            boost::posix_time::ptime &refTime,
+	                                            bool &disabled,
+	                                            int &dataversion ) const;
+
 	/**
 	 * updateDisableStatus updates the disable status for the requested provider.
 	 * If the requested provider do not have a placename all providers with
