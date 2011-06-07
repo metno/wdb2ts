@@ -83,6 +83,8 @@ operator () ( argument_type &t )
 	ostringstream q;
 	boost::posix_time::ptime refTime;
 	string validTime;
+	bool disabled;
+	int dataversion;
 
 	WEBFW_USE_LOGGER( "wdb" );
 
@@ -97,11 +99,22 @@ operator () ( argument_type &t )
 		itPar != paramDefs_.end();
 		++itPar )
 	{
-		if( ! refTimeList_.providerReftime( itPar->first, refTime ) ) {
+		if( ! refTimeList_.providerReftimeDisabledAndDataversion(itPar->first,
+		                                                         refTime,
+		                                                         disabled,
+		                                                         dataversion ) ) {
 			WEBFW_LOG_WARN("No reference times found for provider '" << itPar->first << "'." <<
 					        "Check that the provider is listed in provider_priority.");
 			continue;
 		}
+
+		if( disabled ) {
+		   WEBFW_LOG_WARN("Provider '" << itPar->first << "' disabled." );
+		   continue;
+		}
+
+		if( dataversion < -1 )
+		   dataversion = -1;
 
 		q.str("");
 
@@ -112,7 +125,7 @@ operator () ( argument_type &t )
 	      << validTime << ", " << endl
 	      << wciValueParameter( wciProtocol_, itPar->second ) << ", " << endl
 	      << "NULL, " << endl
-	      << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime";
+	      << "ARRAY[" << dataversion << "], NULL::wci.returnfloat ) ORDER BY referencetime";
 
 		WEBFW_LOG_DEBUG( "LocationPointRead: transactor: SQL ["	<< q.str() << "]" );
 		pqxx::result  res = t.exec( q.str() );
