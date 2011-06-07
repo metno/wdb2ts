@@ -148,6 +148,8 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 	ParamDef modelTopoParam;
 	LocationPointList topoLocations;
 	LocationPointList modelTopoLocations;
+	bool disabled;
+	int dummyDataversion;
 	boost::posix_time::ptime dataRefTime;
 	boost::posix_time::ptime modelTopoRefTime;
 	boost::posix_time::ptime topoRefTime;
@@ -181,9 +183,17 @@ processNearestHeightPoint( const LocationPointList &locationPoints,
 
 		modelTopoParam = *itParam;
 
-		if( ! refTimes->providerReftime( it->first, dataRefTime ) ) {
+		if( ! refTimes->providerReftimeDisabledAndDataversion( it->first,
+		                                                       dataRefTime,
+		                                                       disabled,
+		                                                       dummyDataversion ) ) {
 			WEBFW_LOG_WARN( "Nearest height: No reference times found for provider '" << it->first << "'. Check that the provider is listed in provider_priority.");
 			continue;
+		}
+
+		if( disabled ) {
+		   WEBFW_LOG_WARN( "Nearest height: Provider '" << it->first << "' disabled.");
+		   continue;
 		}
 
 		if( ! refTimes->providerReftime( it->second.topoProvider(), topoRefTime ) ) {
