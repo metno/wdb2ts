@@ -312,6 +312,8 @@ computeNearestLand( const NearestLandConfElement &conf,
    ParamDefPtr itParam;
    string provider;
    boost::posix_time::ptime dataRefTime;
+   bool disabled;
+   int dataversion;
    std::map< std::string, std::string> NearestLandParams = conf.params();
 
    for( std::map< std::string, std::string>::iterator itNearestLandParams=NearestLandParams.begin();
@@ -323,8 +325,17 @@ computeNearestLand( const NearestLandConfElement &conf,
          continue;
       }
 
-      if( ! refTimes->providerReftime( itNearestLandParams->second, dataRefTime ) ) {
+      if( ! refTimes->providerReftimeDisabledAndDataversion( itNearestLandParams->second,
+                                                             dataRefTime,
+                                                             disabled,
+                                                             dataversion
+                                                             ) ) {
          WEBFW_LOG_WARN( "Nearest land: No reference times found for provider '" << itNearestLandParams->second << "'. Check that the provider is listed in provider_priority.");
+         continue;
+      }
+
+      if( disabled ) {
+         WEBFW_LOG_WARN( "Nearest land: provider '" << itNearestLandParams->second << "' disabled.");
          continue;
       }
 
@@ -335,6 +346,7 @@ computeNearestLand( const NearestLandConfElement &conf,
                                                  *itParam,
                                                  itNearestLandParams->second,
                                                  dataRefTime,
+                                                 dataversion,
                                                  suroundLevel,
                                                  wciProtocol,
                                                  "nearest_land" );
@@ -435,6 +447,7 @@ processNearestLandPoint( )
                                                       modelTopoParam,
                                                       it->second.modelTopoProvider(),
                                                       modelTopoRefTime,
+                                                      -1,
                                                       suroundLevels,
                                                       wciProtocol,
                                                       "nearest_land");
@@ -455,6 +468,7 @@ processNearestLandPoint( )
                                                      landmaskParam,
                                                      it->second.landmaskProvider(),
                                                      landMaskRefTime,
+                                                     -1,
                                                      suroundLevels,
                                                      wciProtocol,
                                                      "nearest_land" );
