@@ -48,7 +48,8 @@ namespace wdb2ts {
 
 LocationPointMatrixData::
 LocationPointMatrixData()
-   : query_( new std::string() ), locations_( new  LocationPointMatrixTimeserie() ),
+   : dataversion_( -1 ),
+     query_( new std::string() ), locations_( new  LocationPointMatrixTimeserie() ),
      logger_( "wdb" )
 {
 }
@@ -58,6 +59,7 @@ LocationPointMatrixData( const LocationPointMatrixData &lpmd )
  : latitude_( lpmd.latitude_ ), longitude_( lpmd.longitude_ ),
    params_( lpmd.params_ ), paramDef_( lpmd.paramDef_ ),
    provider_( lpmd.provider_ ), reftimespec_( lpmd.reftimespec_ ),
+   dataversion_( lpmd.dataversion_ ),
    surroundLevel_( lpmd.surroundLevel_ ), wciProtocol_( lpmd.wciProtocol_ ),
    query_( lpmd.query_ ), locations_( lpmd.locations_ ),
    logger_( lpmd.logger_ )
@@ -71,12 +73,14 @@ LocationPointMatrixData( float latitude, float longitude,
 		    const ParamDef &paramDef,
 		    const std::string &provider,
 		    const boost::posix_time::ptime &reftimespec,
+	       int dataversion,
 		    int surroundLevel,
 		    int wciProtocol,
 		    const std::string &logger)
 	: latitude_( latitude ), longitude_( longitude ),
 	  params_( params ), paramDef_( paramDef ),
-	  reftimespec_( reftimespec ), surroundLevel_( surroundLevel ), wciProtocol_( wciProtocol ),
+	  reftimespec_( reftimespec ), dataversion_( dataversion ),
+	  surroundLevel_( surroundLevel ), wciProtocol_( wciProtocol ),
 	  query_( new std::string() ),
 	  locations_( new LocationPointMatrixTimeserie() ),
 	  logger_( logger )
@@ -103,6 +107,7 @@ operator=( const LocationPointMatrixData &rhs )
       paramDef_ = rhs.paramDef_;
       provider_ = rhs.provider_;
       reftimespec_ = rhs.reftimespec_;
+      dataversion_ = rhs.dataversion_;
       surroundLevel_ = rhs.surroundLevel_;
       wciProtocol_ = rhs.wciProtocol_;
       query_ = rhs.query_ ;
@@ -132,6 +137,7 @@ operator () ( argument_type &t )
    float value;
    int x=0;
    int y=0;
+   int myDataversion( dataversion_ );
 
    WEBFW_USE_LOGGER( logger_ );
 
@@ -164,6 +170,9 @@ operator () ( argument_type &t )
       for( int y=0; y<n; ++y )
          undefPointMatrix[x][y] = LocationPoint();
 
+   if( myDataversion < -1 )
+      myDataversion = -1;
+
    q.str("");
    q << "SELECT " << wciReadReturnColoumns( wciProtocol_ ) << " FROM wci.read(" << endl
      << "ARRAY['" << provider_ << "'], " << endl
@@ -172,7 +181,7 @@ operator () ( argument_type &t )
      << "NULL, " << endl
      << "ARRAY['" << paramDef_.valueparametername() << "'], " << endl
      << wciLevelSpec( wciProtocol_, paramDef_ ) << ", " << endl
-     << "ARRAY[-1], NULL::wci.returnfloat ) ORDER BY referencetime, validtimeto, validtimefrom";
+     << "ARRAY[" << myDataversion << "], NULL::wci.returnfloat ) ORDER BY referencetime, validtimeto, validtimefrom";
 
    WEBFW_LOG_DEBUG( "LocationPointMatrixData: transactor: SQL ["   << q.str() << "]" );
    *query_ = q.str();

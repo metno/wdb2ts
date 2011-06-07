@@ -55,6 +55,7 @@ public:
                              const ParamDef &paramDef,
                              const std::string &provider,
                              const boost::posix_time::ptime &reftimespec,
+                             int dataversion,
                              int surroundLevel,
                              int wciProtocol,
                              const std::string &logger="wdb");
@@ -77,6 +78,7 @@ private:
    ParamDef paramDef_;
    std::string provider_;
    boost::posix_time::ptime reftimespec_;
+   int dataversion_;
    int surroundLevel_;
    int wciProtocol_;
    boost::shared_ptr<std::string> query_;
