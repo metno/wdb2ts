@@ -562,7 +562,7 @@ LocationPointMatrixTimeserie::
 valuesGreaterThan( const LocationPointMatrix &values,
                    int suroundLevel, float checkValue, XYPoints &points )
 {
-   //WEBFW_USE_LOGGER( logger );
+   //WEBFW_USE_LOGGER( "nearest_land" );
    int nX = values.shape()[0];
    int nY = values.shape()[1];
    int level;
@@ -587,8 +587,8 @@ valuesGreaterThan( const LocationPointMatrix &values,
 
    level = nX/2;
 
-//   WEBFW_LOG_DEBUG( "nX: " << nX << " nY: " << nY << " N: " << N << " sl: " << suroundLevel
-//                    <<   " level: " << level );
+   //WEBFW_LOG_DEBUG( "nX: " << nX << " nY: " << nY << " N: " << N << " sl: " << suroundLevel
+   //                 <<   " level: " << level );
    int l = level - suroundLevel;
    int r=nX-l;
    int x=0;
@@ -597,6 +597,7 @@ valuesGreaterThan( const LocationPointMatrix &values,
    int nGreater=0;
 
    for( int yy=l; yy<r; ++yy,++y ) {
+      x = 0;
       for( int xx=l; xx<r; ++xx,++x ) {
          val = values[yy][xx].value();
 
