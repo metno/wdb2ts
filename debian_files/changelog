@@ -1,3 +1,8 @@
+metno-wdb2ts (1.0.2~rc3-1) unstable; urgency=low
+  * Fix index bug in "nearest_land".
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 14 Jun 2011 12:00:00 +0200
+
 metno-wdb2ts (1.0.2~rc2-1) unstable; urgency=low
   * Use disable status and dataversion in nearest_land.
   * Use disable status and dataversion in nearest_height.
