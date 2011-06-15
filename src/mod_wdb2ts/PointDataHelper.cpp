@@ -916,6 +916,10 @@ symbolidToName(int id) {
    case 14: return "SNOWTHUNDER";
    case 15: return "FOG";
    case 19: return "SNOWSUN"; 
+   case 20: return "SLEETSUNTHUNDER";
+   case 21: return "SNOWSUNTHUNDER";
+   case 22: return "LIGHTRAINTHUNDER";
+   case 23: return "SLEETTHUNDER";
    default:
       return "";         //Unknown symbol
    }
