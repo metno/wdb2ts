@@ -34,13 +34,24 @@
 #include "SymbolHolder.h"
 #include <SymbolGenerator.h>
 #include <Logger4cpp.h>
+#include <PointDataHelper.h>
 
 using namespace std;
 
 namespace {
-
+#if 0
 std::string 
 symbolidToName(int id);
+#endif
+
+void checkThunder( wdb2ts::SymbolHolderList &symbols );
+
+bool
+cmpSymbolHolder( boost::shared_ptr<wdb2ts::SymbolHolder> s1,
+                 boost::shared_ptr<wdb2ts::SymbolHolder> s2);
+
+bool
+symbolHasThunder( const wdb2ts::SymbolHolder::SymbolRange &range );
 
 }
 
@@ -279,6 +290,70 @@ next( int &symbolid,
    return true;
 }
 
+SymbolHolder::SymbolRange
+SymbolHolder::
+findSymbolsInRange(const boost::posix_time::ptime &fromTime,
+                   const boost::posix_time::ptime &toTime,
+                   bool exact )
+{
+   SymbolList::const_iterator begin;
+   SymbolList::const_iterator end = symbols_.end();
+   SymbolList::const_iterator it;
+
+   for( SymbolList::const_iterator it=symbols_.begin();
+         it != symbols_.end() && it->fromAsPtime() < fromTime;
+         ++it );
+
+   if( it == symbols_.end() || ( exact && it->fromAsPtime() != fromTime ) )
+      return SymbolRange( symbols_.end(), symbols_.end() );
+
+   begin = it;
+   for( ;
+         it != symbols_.end() && it->toAsPtime() < toTime;
+         ++it )
+      end = it;
+
+   if( end == symbols_.end() || ( exact && end->toAsPtime() != toTime ) )
+      return SymbolRange( symbols_.end(), symbols_.end() );
+
+  return SymbolRange( begin, ++end );
+}
+
+void
+SymbolHolder::
+consistentCheckThunder( SymbolHolder &otherSymbols )
+{
+   using namespace boost::posix_time;
+
+   if( otherSymbols.timespanInHours() >= timespanInHours() ||
+       (timespanInHours() % otherSymbols.timespanInHours() != 0 ) ) {
+      return;
+   }
+
+   SymbolHolder::Symbol symbol;
+   boost::posix_time::ptime from, to;
+   SymbolHolder::SymbolRange range;
+
+   for( std::vector<Symbol>::size_type i=0; i < symbols_.size(); ++i  ) {
+      symbol = symbols_[ i ];
+
+      if( ! symbol.hasThunder() )
+         continue;
+
+      symbol.fromAndToTime( from, to );
+      range = otherSymbols.findSymbolsInRange( from, to, true );
+
+      if( range.first == range.second )
+         continue;
+
+      if( ! symbolHasThunder( range ) )
+         continue;
+
+      //Turn of the thunder in symbol
+      symbol.turnOffThunder();
+      symbols_[ i ] = symbol;
+   }
+}
 
 bool
 SymbolHolder::
@@ -507,11 +582,69 @@ getPartialData( const boost::posix_time::ptime &time, PartialData &pd ) const
    return true;
 }
 
+void
+ProviderSymbolHolderList::
+consistentCheck()
+{
+   for( iterator it = begin(); it != end(); ++it ) {
+      if( it->second.size() > 1 ) {
+         checkThunder( it->second );
+      }
+   }
+}
+
 }
 
 
 namespace {
 
+bool
+cmpSymbolHolder( boost::shared_ptr<wdb2ts::SymbolHolder> s1,
+                 boost::shared_ptr<wdb2ts::SymbolHolder> s2)
+{
+   if( s1->timespanInHours() < s2->timespanInHours() )
+      return true;
+   else
+      return false;
+}
+
+
+bool
+symbolHasThunder( const wdb2ts::SymbolHolder::SymbolRange &range_ )
+{
+   wdb2ts::SymbolHolder::SymbolRange range( range_ );
+   while( range.first != range.second ) {
+      if( range.first->hasThunder() )
+         return true;
+      ++range.first;
+   }
+
+   return false;
+}
+
+
+void
+checkThunder( wdb2ts::SymbolHolderList &symbols_ )
+{
+   using namespace wdb2ts;
+
+   if( symbols_.size() < 2 )
+      return;
+
+   //Shallow copy.
+   wdb2ts::SymbolHolderList symbols( symbols_ );
+   boost::shared_ptr<wdb2ts::SymbolHolder> prev;
+   symbols.sort( cmpSymbolHolder );
+
+   SymbolHolderList::iterator it = symbols.begin();
+   prev = *it;
+
+   for( ++it; it != symbols.end(); ++it ) {
+      (*it)->consistentCheckThunder( *prev );
+   }
+}
+
+#if 0
 std::string 
 symbolidToName(int id) {
    if ( id<0 ) 
@@ -545,5 +678,5 @@ symbolidToName(int id) {
       return "";         //Unknown symbol
    }
 }
-
+#endif
 }

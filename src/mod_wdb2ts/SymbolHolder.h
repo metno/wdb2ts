@@ -32,10 +32,12 @@
 #include <float.h>
 #include <ostream>
 #include <vector>
+#include <utility>
 #include <map>
 #include <set>
 #include <list>
-#include <puMet/miSymbol.h>
+//#include <puMet/miSymbol.h>
+#include <puMet/symbolMaker.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "LocationElem.h"
 
@@ -88,6 +90,8 @@ public:
                   return this->from() == rhs.from();
            }
 
+      bool hasThunder() const { return symbolMaker::hasThunder( symbol ); }
+      void turnOffThunder() { symbolMaker::turnOffThunder( symbol ); }
       std::string idname()const;
       int         idnumber()const { return const_cast<Symbol*>(this)->symbol.customNumber(); }
       int timespanInHours() const { return max + min + 1; }
@@ -102,16 +106,19 @@ public:
 
    };
 
+   typedef std::vector<Symbol> SymbolList;
+   typedef std::pair<SymbolList::const_iterator,SymbolList::const_iterator> SymbolRange;
 
 private:
-   std::vector<Symbol> symbols_;
-   int                 min_, max_; 
-   int                 index_;
+   SymbolList symbols_;
+   int         min_, max_;
+   int         index_;
    
    SymbolHolder( int min, int max, const std::vector<Symbol> &s ) 
         : symbols_( s ), min_( min ), max_( max ), index_( 0 ) {}
          
    public:
+
       SymbolHolder(): min_( 0 ), max_( 0 ), index_(0) {}
       SymbolHolder( int timespan );
 
@@ -127,6 +134,10 @@ private:
       int timespanInHours()const { return max_+min_+1; }
       
       bool findSymbol( const boost::posix_time::ptime &fromTime, SymbolHolder::Symbol &symbol ) const;
+
+      SymbolRange findSymbolsInRange(const boost::posix_time::ptime &fromTime,
+                                     const boost::posix_time::ptime &toTime,
+                                     bool exact = true );
 
       void initIndex(){ index_=0;}
             
@@ -148,6 +159,18 @@ private:
       			  boost::posix_time::ptime &to,
       			  float &probability );
       
+      /**
+       * consistentCheckThuder, consistent check the symbols in this container against
+       * the symbols in the \em otherSymbols.
+       *
+       * Turn of thunder in symbols in this container if the symbols in the otherSymbols
+       * do not have thunder in the same range as this symbols covers.
+       *
+       * The timespan for the symbols in the \em otherSymbols container must be less than
+       * the timespan in this container and (this->timespan % otherSymbols.timespan == 0).
+       */
+      void consistentCheckThunder( SymbolHolder &otherSymbols );
+
       /**
        * Merge two list of symbols and remove duplicates.
        * A symbol is a duplicate if the timespan is equal and the  
@@ -201,6 +224,17 @@ public:
 
 		void addPartialData( const LocationElem &elem ) ;
 		bool getPartialData( const boost::posix_time::ptime &time, PartialData &pd )const;
+
+		/**
+		 * consistentCheck check the consistent between symbols with different time span for
+		 * each provider.
+		 *
+		 * The following consistent checks is implemented.
+		 *  - Thunder - Symbols with thunder of longer time span also have symbols
+		 *              with thunder in symbols of shorter time span. If not remove
+		 *              the thunder from the symbols of the longer time span.
+		 */
+		void consistentCheck();
 };
 
 
