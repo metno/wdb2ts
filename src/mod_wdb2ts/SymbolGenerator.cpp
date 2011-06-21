@@ -141,7 +141,7 @@ computeSymbols( LocationData& data,
 	vector<miutil::miTime>                times;
 	float                         val;
 
-	WEBFW_USE_LOGGER( "synop" );
+	WEBFW_USE_LOGGER( "symbols" );
 	min--;
 	
 	if( min < 0 )
@@ -182,7 +182,7 @@ computeSymbols( LocationData& data,
 			allParameters[58][mitime] = val;
 		}
 		
-		//Total cloud cower.
+		//Total cloud cover.
 		val = elem.NN();
 		
 		if( val != FLT_MAX ) {
@@ -192,6 +192,11 @@ computeSymbols( LocationData& data,
 		
 		//Thunder index
 		val = elem.thunderProbability();
+
+		//DEBUG (BEGIN)
+		//if( min == 2 )
+		//   val = 1;
+		//DEBUG (END)
 				
 		if( val != FLT_MAX ) {
 			//Must make an garanti that this can be read as an int
@@ -419,12 +424,16 @@ computeSymbols( LocationData& data,
 	            }
 	         }
 
-	         if( sh )
+	         if( sh ) {
+	            sh->provider = it->first;
 	            symbols[it->first].push_back( boost::shared_ptr<SymbolHolder>( sh ) );
+	         }
 	      }
 	   }
 	}
 	
+	symbols.consistentCheck();
+
 	return symbols;
 }
 

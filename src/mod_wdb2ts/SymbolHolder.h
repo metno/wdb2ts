@@ -118,6 +118,7 @@ private:
         : symbols_( s ), min_( min ), max_( max ), index_( 0 ) {}
          
    public:
+      std::string provider;
 
       SymbolHolder(): min_( 0 ), max_( 0 ), index_(0) {}
       SymbolHolder( int timespan );
@@ -136,8 +137,7 @@ private:
       bool findSymbol( const boost::posix_time::ptime &fromTime, SymbolHolder::Symbol &symbol ) const;
 
       SymbolRange findSymbolsInRange(const boost::posix_time::ptime &fromTime,
-                                     const boost::posix_time::ptime &toTime,
-                                     bool exact = true );
+                                     const boost::posix_time::ptime &toTime );
 
       void initIndex(){ index_=0;}
             
