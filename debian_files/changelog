@@ -1,3 +1,8 @@
+metno-wdb2ts (1.0.2~rc5-1) unstable; urgency=low
+  * Added consistent check for thunder symbols.
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 21 Jun 2011 14:15:00 +0200
+
 metno-wdb2ts (1.0.2~rc4-1) unstable; urgency=low
   * Fix missing symbol name for the new thunder symbols 20, 21, 22 and 23.
       
