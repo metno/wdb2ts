@@ -26,7 +26,8 @@ src_subdirs="	src/mod_wdb2ts \
 					src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 					src/miutil \
 					src/mod_wdb2ts/configparser \
-					src/webFW "
+					src/webFW \
+					src/util "
 
 #					src/mod_wdb2ts/configparser \
 						
@@ -47,6 +48,7 @@ build_subdirs="	src/mod_wdb2ts/WciWebQuery \
 						src/mod_wdb2ts/configparser/test \
 						src/miutil \
 						src/webFW \
+						src/util \
 						src/mod_wdb2ts/test \
 						src/webFW/test \
 						src/miutil/test \
@@ -214,6 +216,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 
 AC_CONFIG_FILES([Makefile \
                  src/miutil/Makefile \
+                 src/util/Makefile \
                  src/webFW/Makefile \
                  src/mod_wdb2ts/Makefile \
                  src/mod_wdb2ts/WciWebQuery/Makefile \
