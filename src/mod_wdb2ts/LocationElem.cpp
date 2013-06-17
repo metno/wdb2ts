@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <math.h>
 #include <algorithm>
 #include <vector>
 #include <iostream>
@@ -103,7 +104,8 @@ LocationElem():
    timeSerie( 0 ),
    latitude_( FLT_MAX ), longitude_( FLT_MAX ),
    height_( INT_MIN ), topoHeight_( INT_MIN ),
-   modeltopoSearched(false)
+   modeltopoSearched(false),
+   config( new ConfigData() )
 {
 }
 
@@ -124,7 +126,8 @@ LocationElem( const ProviderList &providerPriority_,
      modelTopoProviders( modelTopoProviders_ ),
      topographyProviders( topographyProviders_ ),
      latitude_( latitude ), longitude_( longitude ),
-     height_( hight ), topoHeight_( INT_MIN ), modeltopoSearched( false )
+     height_( hight ), topoHeight_( INT_MIN ), modeltopoSearched( false ),
+     config( new ConfigData() )
 {
 	
 }
@@ -299,7 +302,7 @@ LocationElem::
 temperatureCorrected( float temperature, const std::string &provider_ )
 {
 	string provider(provider_);
-	//WEBFW_USE_LOGGER( "main" );
+	WEBFW_USE_LOGGER( "encode" );
 
 	if( provider.empty() ) {
 		if( forecastProvider.empty() )
@@ -318,8 +321,70 @@ temperatureCorrected( float temperature, const std::string &provider_ )
 	if( itProvider == itFrom->second.end() )
 		return;
 
-	//WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
+	WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
 	itProvider->second.temperatureCorrected = temperature;
+}
+
+float
+LocationElem::
+wetBulbTemperature( bool tryHard )const
+{
+   WEBFW_USE_LOGGER( "main" );
+   //WEBFW_USE_LOGGER( "+wetbulb" );
+
+   if( config && !config->outputParam("symbol:T.WB") )
+      return FLT_MAX;
+
+   float tUhc; //Model temperature without height correction.
+   float tHc;  //Model temperature with height correction.
+   float rh;   //Relative humidity at 2 meter.
+   float h;      //"Real" height.
+
+   tUhc = T2M( tryHard );
+   tHc  = temperatureCorrected( tryHard );
+   rh = RH2M( false );
+   h = height();
+
+   if( tUhc == FLT_MAX || tHc == FLT_MAX || rh == FLT_MAX ||
+       h == INT_MIN || h == INT_MAX ) {
+      ostringstream ost;
+
+      ost << "wetBulbTemperature: MISSING data for parameter(s): ";
+      if( tUhc == FLT_MAX )
+         ost << "tUhc";
+      if( tHc == FLT_MAX )
+         ost << " tHc";
+      if( rh == FLT_MAX )
+         ost << " rh";
+      if( h == INT_MIN || h == INT_MAX)
+         ost << " h";
+
+      WEBFW_LOG_DEBUG( ost.str() );
+
+      return FLT_MAX;
+   }
+
+   ostringstream ost;
+   ost << "wetBulbTemperature: h: " << h  << " RH: " << rh
+       << " T.UHC: " << tUhc
+       << " T.HC: " << tHc;
+
+   float e = (rh/100)*0.611*exp( (17.63 * tUhc) / (tUhc + 243.04) );
+   float td = (116.9 + 243.04 * log( e ))/(16.78-log( e ));
+   float gamma = 0.00066*101300*exp(-1.21e-4*h)*0.001;
+   float rho = (4098*e)/pow(td+243.04, 2);
+   float tw = (gamma*tHc+rho*td)/(gamma+rho);
+
+   if( tw > tHc) {
+      ost << " [T.WB: " << tw <<" > T.HC: "<< tHc << " => T.WB=T.HC]";
+      tw = tHc;
+   }
+
+   ost << " T.WB: " << tw;
+
+   WEBFW_LOG_DEBUG( ost.str() );
+
+   return tw;
 }
 
 float
@@ -463,6 +528,12 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
 
       minOut = minOut<=MIN_PRECIP?0:minOut;
       maxOut = maxOut<=MIN_PRECIP?0:maxOut;
+
+      if( minOut>maxOut ) {
+         float tmp = minOut;
+         minOut = maxOut;
+         maxOut = tmp;
+      }
       return true;
    }
 
@@ -471,9 +542,6 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       maxOut = FLT_MAX;
       probOut = FLT_MAX;
       meanOut = sumVector( mean );
-
-      minOut = minOut<=MIN_PRECIP?0:minOut;
-      maxOut = maxOut<=MIN_PRECIP?0:maxOut;
 
       return true;
    }
@@ -498,9 +566,19 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    minOut = meanOut - v;
    maxOut = meanOut + v;
 
+   //Algorithm change 5. july 2011.
+   float sumMin = sumVector( min );
+   minOut = sumMin>minOut?sumMin:minOut; //max( sumMin, minOut )
+
    minOut = minOut<=MIN_PRECIP?0:minOut;
    maxOut = maxOut<=MIN_PRECIP?0:maxOut;
    probOut = maxInVector( prob );
+
+   if( minOut>maxOut ) {
+      float tmp = minOut;
+      minOut = maxOut;
+      maxOut = tmp;
+   }
 
    //WEBFW_LOG_DEBUG("PRECIP_MIN_MAX_MEAN: hoursBack: " << hoursBack << " (" << backTime_ << " - " << itTimeSerie->first << ") mean: " << meanOut << " min: " << minOut << " max: " << maxOut  );
    return true;
@@ -1205,13 +1283,116 @@ symbol( boost::posix_time::ptime &fromTime, bool tryHard)const
 
 float 
 LocationElem::
-iceingIndex( bool tryHard )const
+iceingIndex( bool tryHard, const std::string &provider )const
 {
-	return getValue( &PData::iceingIndex,
-			         itTimeSerie->second,
-				     const_cast<ptime&>(itTimeSerie->first),
-				     const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+
+   if( provider.empty() )
+      return getValue( &PData::iceingIndex,
+                       itTimeSerie->second,
+                       const_cast<ptime&>(itTimeSerie->first),
+                       const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+   else {
+      string providerTmp( provider );
+      return getValue( &PData::iceingIndex,
+                       itTimeSerie->second,
+                       const_cast<ptime&>(itTimeSerie->first),
+                       const_cast<string&>( providerTmp ), FLT_MAX, tryHard );
+   }
+
 }
+
+float
+LocationElem::
+significantSwellWaveHeight( bool tryHard )const
+{
+   if( config && !config->outputParam("significantSwellWaveHeight") )
+      return FLT_MAX;
+
+   return getValue( &PData::significantSwellWaveHeight,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+
+}
+
+float
+LocationElem::
+meanSwellWavePeriode( bool tryHard )const
+{
+   if( config && !config->outputParam("meanSwellWavePeriode") )
+      return FLT_MAX;
+
+   return getValue( &PData::meanSwellWavePeriode,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+meanSwellWaveDirection( bool tryHard )const
+{
+   if( config && !config->outputParam("meanSwellWaveDirection") )
+      return FLT_MAX;
+
+   return getValue( &PData::meanSwellWaveDirection,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+peakSwellWavePeriode( bool tryHard )const
+{
+   if( config && !config->outputParam("peakSwellWavePeriode") )
+      return FLT_MAX;
+
+   return getValue( &PData::peakSwellWavePeriode,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+peakSwellWaveDirection( bool tryHard )const
+{
+   if( config && !config->outputParam("peakSwellWaveDirection") )
+      return FLT_MAX;
+
+   return getValue( &PData::peakSwellWaveDirection,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+meanTotalWavePeriode( bool tryHard )const
+{
+   if( config && !config->outputParam("meanTotalWavePeriode") )
+      return FLT_MAX;
+
+   return getValue( &PData::meanTotalWavePeriode,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
+float
+LocationElem::
+maximumTotalWaveHeight( bool tryHard )const
+{
+   if( config && !config->outputParam("maximumTotalWaveHeight") )
+      return FLT_MAX;
+
+   return getValue( &PData::maximumTotalWaveHeight,
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(oceanProvider_), FLT_MAX, tryHard );
+}
+
 
 float
 LocationElem::

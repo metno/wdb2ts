@@ -116,6 +116,8 @@ class EncodeLocationForecastGml2 : public Encode
 	float longitude, latitude;
 	int altitude;
 
+	int nElements;
+
 	void encodeSymbols( std::ostream &out, 
 					        miutil::Indent &indent );
 

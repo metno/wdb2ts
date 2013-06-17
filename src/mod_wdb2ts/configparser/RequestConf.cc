@@ -38,6 +38,143 @@ namespace config {
 
 using namespace std;
 
+namespace {
+	const char *defaultid="";
+}
+
+
+void
+ParamDefConfig::
+clear()
+{
+	idParamDefs.clear();
+}
+
+bool
+ParamDefConfig::
+addParamDef( const std::string &paramdefId_,
+		     const wdb2ts::ParamDef    &pd,
+	         const std::list<std::string> &provider,
+	         bool replace,
+	         std::ostream &err )
+{
+	string paramdefId( paramdefId_ );
+	if( paramdefId.empty() )
+		paramdefId = defaultid;
+
+	if( provider.empty() ) {
+		if( ! idParamDefs[paramdefId].addParamDef( pd, "", replace) ) {
+			err << "addParam: ParamDef '" << pd.alias() << "' provider: 'default' allready defined.";
+			return false;
+		}
+	} else {
+		for( std::list<std::string>::const_iterator it = provider.begin();
+			it != provider.end(); ++it )
+		{
+			if( ! idParamDefs[paramdefId].addParamDef( pd, *it, replace ) ) {
+				err << "addParam: ParamDef '" << pd.alias() << "' provider: '" << *it << "' allready defined.";
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool
+ParamDefConfig::
+hasParam(  const std::string &alias,
+           const std::string &provider,
+           const std::string paramdefsId_ )const
+{
+	string paramdefsId( paramdefsId_ );
+
+	if( paramdefsId.empty() )
+		paramdefsId = defaultid;
+
+	ParamDefs::const_iterator it=idParamDefs.find( paramdefsId );
+
+	if( it == idParamDefs.end() )
+		return false;
+	else
+		return it->second.hasParam( alias, provider );
+}
+
+
+bool
+ParamDefConfig::
+hasParamDefId( const std::string &id )const
+{
+	ParamDefs::const_iterator it=idParamDefs.find( id );
+
+	return it != idParamDefs.end();
+}
+
+
+wdb2ts::ParamDefList
+ParamDefConfig::
+paramDefs( const std::string paramdefsId_ ) const
+{
+	string paramdefsId( paramdefsId_);
+
+	if( paramdefsId.empty() )
+		paramdefsId = defaultid;
+
+	ParamDefs::const_iterator it=idParamDefs.find( paramdefsId );
+
+	if( it != idParamDefs.end() )
+		return it->second;
+	else
+		return wdb2ts::ParamDefList();
+}
+
+void
+ParamDefConfig::
+merge( ParamDefConfig *other, bool replace )
+{
+//	cerr << "Merge this:" << endl;
+//	cerr << *this << endl << endl;
+//	cerr << "With other:" << endl;
+//	cerr << *other << endl << endl;
+
+	for( ParamDefs::iterator it = other->idParamDefs.begin();
+		 it!=other->idParamDefs.end(); ++it )
+	{
+		ParamDefs::iterator itIdParam = idParamDefs.find( it->first );
+
+		if( itIdParam == idParamDefs.end() ) {
+			idParamDefs[it->first] = it->second;
+			continue;
+		}
+
+		itIdParam->second.merge( &it->second, replace );
+	}
+
+//	cerr << "Merge result:" << endl;
+//	cerr << *this << endl << endl;
+}
+
+std::ostream&
+operator<<(std::ostream &o, const ParamDefConfig &pd )
+{
+	for( ParamDefConfig::ParamDefs::const_iterator idIt = pd.idParamDefs.begin();
+	     idIt != pd.idParamDefs.end(); ++idIt )
+	{
+		o << "{" <<  idIt->first << "}" <<  endl;
+		for( ParamDefList::const_iterator provIt=idIt->second.begin();
+			 provIt != idIt->second.end(); ++provIt	) {
+			o << "   [" <<  provIt->first << "]" << endl;
+
+			for(std::list<wdb2ts::ParamDef>::const_iterator parIt = provIt->second.begin();
+				parIt != provIt->second.end(); ++parIt )
+				o << "      " << parIt->alias() << ", " << parIt->valueparametername() << endl;
+		}
+	}
+
+	return o;
+}
+
+
 Version::
 Version( const std::string &version) 
 	: majorVer( -1 ), minorVer( -1 ) 
@@ -220,6 +357,12 @@ resolve( )
 			
 			(*it)->actionParam[apIt->first] = apIt->second;
 		}
+
+		if( ! requestDefault.paramdef.idParamDefs.empty() ) {
+			//cerr << " ---- Default params: " <<  requestDefault.paramdef << endl;
+			ostringstream err;
+			(*it)->paramdef.merge( &requestDefault.paramdef, false );
+		}
 	}
 	
 	if( requestDefault.version.defaultVersionHighest() ) {
@@ -251,6 +394,19 @@ addRequest( RequestMap &requestMap, boost::shared_ptr<Request> request )
 	if( request->path.asString("").empty() )
 		return;
 	
+//	//Merge paramdefs from defaultRequest with the paramsdefs in each
+//	//RequestVersions. Parameters in the RequestVersions take precedence
+//	//over the the parameters in defaultRequest.
+//	if( ! request->requestDefault.paramdef.idParamDefs.empty() ) {
+//		for( Request::RequestVersions::iterator it=request->requestVersions.begin();
+//			 it != request->requestVersions.end(); ++it )
+//		{
+//			cerr << request->requestDefault.paramdef << endl;
+//			ostringstream err;
+//			(*it)->paramdef.merge( &request->requestDefault.paramdef, err, "", false );
+//		}
+//	}
+
 	RequestMap::iterator it = requestMap.find( request->path.asString() );
 	
 	if( it != requestMap.end() )
@@ -283,10 +439,10 @@ operator<<(std::ostream& output, const Request& r )
 	for(Request::RequestVersions::const_iterator it=r.requestVersions.begin();
 		it != r.requestVersions.end(); ++it ) {
 		output << "      Version: " << (*it)->version << endl
-		       << "           wdbdb: " << (*it)->wdbDB << endl
-				 << "         queryid: " << (*it)->queryid << endl
-				 << "          action: " << (*it)->action << endl
-				 << "  ActionParam: ";
+		       << "        wdbdb: " << (*it)->wdbDB << endl
+			   << "      queryid: " << (*it)->queryid << endl
+			   << "       action: " << (*it)->action << endl
+			   << "  ActionParam: ";
 		if( (*it)->actionParam.empty() ) 
 				output << "(none)" << endl;
 		else {
@@ -294,6 +450,23 @@ operator<<(std::ostream& output, const Request& r )
 			for( ActionParam::const_iterator itAP=(*it)->actionParam.begin();
 				itAP != (*it)->actionParam.end(); ++itAP)
 				output << "      " << itAP->first << ": " << itAP->second << endl;
+		}
+		output << " ----- Params --------\n";
+		for( ParamDefConfig::ParamDefs::const_iterator itId = (*it)->paramdef.idParamDefs.begin();
+					itId != (*it)->paramdef.idParamDefs.end(); ++itId )
+		{
+			output << "[" << itId->first << "] : id" << endl;
+
+			for( wdb2ts::ParamDefList::const_iterator pit = itId->second.begin();
+					pit != itId->second.end(); ++pit )
+			{
+				output << "   [" << pit->first << "] " << endl;
+				for( std::list<wdb2ts::ParamDef>::const_iterator it = pit->second.begin();
+				     it != pit->second.end();  ++it )
+				{
+					output << "      " <<  it->alias() << " : " << it->valueparametername()<<endl;
+				}
+			}
 		}
 	}
 

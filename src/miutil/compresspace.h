@@ -34,10 +34,10 @@
 namespace miutil {
 /**
  * cmprspace komprimerer alle space slik at de bare opptar
- * en space. Dersom det er space før \n fjernes disse. Dersom
- * det er space i starten fjernes disse, dette gjelder også alle space før 
+ * en space. Dersom det er space fï¿½r \n fjernes disse. Dersom
+ * det er space i starten fjernes disse, dette gjelder ogsï¿½ alle space fï¿½r 
  * \n (newline). TAB og CR erstattes med SPACE.
- * Som space regnes SPACE, TAB og CR. Ved retur vil buf kun bestå av
+ * Som space regnes SPACE, TAB og CR. Ved retur vil buf kun bestï¿½ av
  * ord separert med kun en SPACE og eventuelt \n (newline).
  *
  * Eks.
@@ -47,6 +47,10 @@ namespace miutil {
 
 void 
 compresSpace(std::string &buf, bool newlineAsSpace=false);
+
+void
+compres(std::string &buf, const char *what);
+
 
 }
 #endif 

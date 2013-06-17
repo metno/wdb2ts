@@ -36,6 +36,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/InstantTimeTag.h \
                       src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
@@ -65,6 +67,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/LocationData.cpp \
 	                  src/mod_wdb2ts/Encode.cpp \
 	                  src/mod_wdb2ts/Encode.h \
+	                  src/mod_wdb2ts/configdata.h \
+	                  src/mod_wdb2ts/configdata.cpp \
+	                  src/mod_wdb2ts/ConfigUtils.h \
+	                  src/mod_wdb2ts/ConfigUtils.cpp \
 	                  src/mod_wdb2ts/ProviderGroups.h \
 	                  src/mod_wdb2ts/ProviderGroups.cpp \
 	                  src/mod_wdb2ts/ParamDef.h \
@@ -131,8 +137,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/WdbDataRequestCommand.cpp \
 					  src/mod_wdb2ts/WdbDataRequestCommand.h \
 					  src/mod_wdb2ts/RequestIterator.h \
-					  src/mod_wdb2ts/RequestIterator.cpp
- 
+					  src/mod_wdb2ts/RequestIterator.cpp \
+					  src/mod_wdb2ts/QueryMaker.h \
+					  src/mod_wdb2ts/QueryMaker.cpp
+
 
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 
@@ -141,11 +149,12 @@ mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 							 -module              \
 							 -avoid-version
 								
-mod_metno_wdb2ts_la_LIBADD=libwdb2ts.la \
+mod_metno_wdb2ts_la_LIBADD= \
                            -lwebFW  \
                     	   -lWciWebQuery	\
                     	   -lwdb2tsconfigparser \
                     	   -lXML_locationforecast \
+                    	   -lwdb2ts \
                     	   -lmiutil \
                     	   -lgfortran
 

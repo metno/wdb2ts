@@ -187,6 +187,8 @@ configure( const wdb2ts::config::ActionParam &params,
 		}
 	}
 	
+	noDataResponse = NoDataResponse::decode( params );
+
 	it=params.find("updateid");
 	
 	if( it != params.end() )  
@@ -223,9 +225,12 @@ configure( const wdb2ts::config::ActionParam &params,
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
-	paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
+	//paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
+	paramDefsPtr_.reset( new ParamDefList( getParamdef() ) );
 	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
-	
+	outputParams = OutputParams::decodeOutputParams( params );
+	WEBFW_LOG_DEBUG("OutputParams: " << outputParams );
+
 	return true;
 }
 
@@ -385,7 +390,12 @@ get( webfw::Request  &req,
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
 	}
-     
+
+   ConfigDataPtr configData( new ConfigData() );
+   configData->url = webQuery.urlQuery();
+   configData->parameterMap = outputParams;
+   configData->throwNoData = noDataResponse.doThrow();
+
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	extraConfigure( actionParams, app );
@@ -451,10 +461,27 @@ get( webfw::Request  &req,
 		                                   topographyProviders,
 		                                   symbolConf,
 		                                   expireRand );
+		encode.config( configData );
 		encode.schema( schema );
 		MARK_ID_MI_PROFILE("encodeXML");  
 		encode.encode( response );
 		MARK_ID_MI_PROFILE("encodeXML");
+	}
+	catch( const NoData &ex ) {
+	    if( noDataResponse.response == NoDataResponse::NotFound ) {
+	        response.status( webfw::Response::NOT_FOUND );
+	        WEBFW_LOG_INFO( "NoData: URL: " << webQuery.urlQuery() );
+	    } else if( noDataResponse.response == NoDataResponse::ServiceUnavailable ) {
+	        using namespace boost::posix_time;
+	        ptime retryAfter( second_clock::universal_time() );
+	        retryAfter += seconds( 10 );
+	        response.serviceUnavailable( retryAfter );
+	        response.status( webfw::Response::SERVICE_UNAVAILABLE );
+	        WEBFW_LOG_INFO( "ServiceUnavailable: URL: " << webQuery.urlQuery() );
+	    } else {
+	        response.status( webfw::Response::NO_ERROR);
+	    }
+
 	}
 	catch( const webfw::IOError &ex ) {
 		response.errorDoc( ex.what() );

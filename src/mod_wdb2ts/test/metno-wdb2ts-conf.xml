@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+    <include file="/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/default_qerydefs.xml"/>
+    <include file="/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/default_params.xml"/>
+    
+	<requests>
+		<request path="/locationupdate" default_version="-1"
+			wdbdb="proffec" action="LocationForecastUpdate" queryid="proffecepsforecast">
+			<actionparam key="updateid" value="location" />
+			<version version="1.0" action="LocationForecastUpdate"
+				queryid="proffecepsforecast" />
+		</request>
+		
+		<request path="/location" default_version="1.1"
+			wdbdb="proffec" action="LocationForecast4" queryid="proffecepsforecast"
+			schema="http://api.met.no/weatherapi/locationforecast/1.8/schema">
+
+			<actionparam key="updateid" value="location" />
+			<actionparam key="loglevels" value="default=warn;wdb=debug;encode=debug;decode=debug;wetbulb=error" />
+			<!-- <actionparam key="loglevels" value="default=debug;wetbulb=error" /> -->
+			<actionparam key="meta_model-proff.approved" value="name=YR;nextrun=06:00,08:30,18:00" />
+			<actionparam key="meta_model-proff.default" value="name=YR;nextrun=04:00,16:00" />
+			<actionparam key="meta_model-pgen_probability" value="name=EPS;nextrun=09:45,21:45" />
+			<actionparam key="expire_rand" value="240" />
+			<actionparam key="provider_priority"
+				value="yr corrected;proff.approved;proff.default;pgen_probability;met.no eceps modification;hirlam norway" />
+					
+			<actionparam key="topography_provider" value="statkart.no" />
+			<actionparam key="model_topo_provider-proff.approved"
+				value="proff.default" />
+			<actionparam key="model_topo_provider-proff.default"
+				value="proff.default" />
+			<actionparam key="model_topo_provider-pgen_probability"
+				value="met.no eceps modification" />
+			<actionparam key="model_topo_provider-yr corrected"
+				value="yr corrected" />
+			<actionparam key="precipitation" value="multi:1,2,3,6" />
+			<actionparam key="symbol_conf_file" value="qbSymbols.def" />
+			<actionparam key="symbol_provider-proff.default" value="(0,0,1) (2,0,1) (3,0,1) (6,0,1)" />
+			<actionparam key="symbol_provider-pgen_probability"
+				value="(6)" />
+			<actionparam key="symbol_provider-proff.approved" value="(0,0,1) (2,0,1) (3,0,1) (6,0,1)" />
+			<actionparam key="nearest_height-yr corrected"
+				value="T.2M.NO_ADIABATIC_HIGHT_CORRECTION, TOPOGRAPHY:statkart.no" />
+
+            <paramdefs idref="all@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml;
+                              default@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml;
+                              isobaric surface@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml"/>
+            
+            <!-- 
+            <paramdefs id="all" idref="all@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml"/>
+            <paramdefs id="default" idref="default@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml"/>
+            <paramdefs id="isobaric surface" idref="isobaric surface@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml"/>
+            <paramdefs id="" idref="@/home/borgem/projects/workspace/wdb2ts_trunk/src/mod_wdb2ts/test/locationforecast_params1.xml"/> 
+             -->
+			<version version="1.0" action="LocationForecast4" queryid="proffecepsforecast" />
+			<version version="1.1" action="LocationForecast4" queryid="proffecepsforecast" >
+			    <actionparam key="output_params" value="dewpointTemperature;seaIceingIndex;-symbol:T.WB" />
+			</version>
+		</request>
+	</requests>
+
+</wdb2ts>

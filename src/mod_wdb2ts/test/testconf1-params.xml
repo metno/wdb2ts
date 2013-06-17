@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+    <include file="locationforecast-no-levels-params.xml" />
+    
+<!--     <paramdefs idref="@/home/borgem/projects/build/params-2.xml"/>  -->
+    
+<!--         <paramdef id="PRECIP.PROBABILITY.5,0MM"> -->
+<!--             <valueparameter name="ortion of precipitation (>5.0mm)" -->
+<!--                 unit="percent" /> -->
+<!--             <levelparameter name="distance above ground" unit="metre" -->
+<!--                 from="0" to="0" /> -->
+<!--         </paramdef> -->
+<!--     </paramdefs> -->
+ 
+<!-- 
+    <paramdefs id="kl"/>
+ -->   
+	<paramdefs id="all">
+		<paramdef id="MODEL.TOPOGRAPHY" dataprovider="ecmwf atmospheric">
+			<valueparameter name="specific energy of land, geopotential height"
+				unit="square metre per square second" />
+			<levelparameter name="ground or water surface" unit=""
+				from="0" to="0" />
+			<value scale="0.1" offset="0.0" />
+			<dataversion version="-1" /> 
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.5,0MM">
+			<valueparameter name="proportion of precipitation (>5.0mm)"
+				unit="percent" />
+			<levelparameter name="distance above ground" unit="metre"
+				from="0" to="2" />
+		</paramdef>
+	</paramdefs>
+</wdb2ts>
+

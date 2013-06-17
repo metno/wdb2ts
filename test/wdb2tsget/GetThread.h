@@ -43,6 +43,7 @@ class GetThread
 		int nSuccess;
 		int nFailed;
 		int nCrcFail;
+		int unavailable;
 	};
 	
 	boost::shared_ptr<Results> results;
@@ -65,6 +66,7 @@ public:
 		results->nSuccess = 0;
 		results->nFailed  = 0;
 		results->nCrcFail = 0; 
+		results->unavailable = 0;
 	};
 	
 	GetThread( const GetThread &gt )
@@ -78,6 +80,8 @@ public:
 	int success() const { return results->nSuccess; }
 	int failed() const { return results->nFailed;}
 	int crcFail() const { return results->nCrcFail; }
+	int unavailable() const { return results->unavailable; }
+
 	bool all()const{ return all_;}
 	void all( bool f ) { all_ = f; }
 };

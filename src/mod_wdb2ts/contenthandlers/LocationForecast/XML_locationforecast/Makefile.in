@@ -27,7 +27,7 @@
 #
 # This is a skeletal automake file.  The real automake fules for
 # building the targets for this directory can be found in the
-# wdb.mk file. This file is simply here so that 'make all' can
+# wdb2ts.mk file. This file is simply here so that 'make all' can
 # work in each subdirectory.
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
@@ -48,7 +48,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/util
+subdir = src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/ac_apxs.m4 \
@@ -271,9 +271,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/util/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/util/Makefile
+	  $(AUTOMAKE) --gnu src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

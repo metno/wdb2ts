@@ -39,8 +39,11 @@
 #include <list>
 #include <ProviderGroups.h>
 
-
 namespace wdb2ts {
+namespace config {
+// from <RequestConf.h>, to break cyclisk include.
+	struct ParamDefConfig;
+}
 
 /**
  * ParamDef defines a parameter as it is recognised from
@@ -66,35 +69,46 @@ private:
 	int         dataversion_;
 	Compare     compare_;
 	int         compareValue_;
-	
+
 public:
+	std::string interpolation;
 	///defines an invalid ParamDef so the ParamDef can be used in a map, set etc.
 	ParamDef();
-	ParamDef(const std::string &alias,
-			   const std::string &valueparametername,
-				const std::string &valueparameterunit,
-				const std::string &levelparametername,
-				int               levelfrom,
-				int               levelto,
-				const std::string &levelunitname,
-				float             scale=1.0f,
-				float             offset=0.0f,
-				int               dataversion=-1,
-				Compare           compare=undef,
-				int               compareValue=INT_MAX );
+	ParamDef( const std::string &alias,
+			  const std::string &valueparametername,
+			  const std::string &valueparameterunit,
+			  const std::string &levelparametername,
+			  int               levelfrom,
+			  int               levelto,
+			  const std::string &levelunitname,
+			  float             scale=1.0f,
+			  float             offset=0.0f,
+			  int               dataversion=-1,
+			  Compare           compare=undef,
+			  int               compareValue=INT_MAX );
 	
 	ParamDef( const ParamDef &paramDef );
 	ParamDef& operator=( const ParamDef &paramDef );
 	
 	bool operator < ( const ParamDef &paramDef )const ;
+	bool hasLevelparameters() const {
+		//levelunitname are allowed to be empty so we do not include it in the test.
+		return !levelparametername_.empty() && levelfrom_ != INT_MIN &&
+				levelto_ != INT_MIN;
+
+	}
 	
 	std::string alias()              const { return alias_; }
 	std::string valueparametername() const { return valueparametername_; }
 	std::string valueparameterunit() const { return valueparameterunit_; }
 	std::string levelparametername() const { return levelparametername_; }
+	void levelparametername( const std::string &name ) { levelparametername_ = name; }
 	int         levelfrom()          const { return levelfrom_; }
+	void        levelfrom( int f)    { levelfrom_=f; }
 	int         levelto()            const { return levelto_; }
+	void        levelto( int t)      { levelto_ = t; }
 	std::string levelunitname()      const { return levelunitname_; }
+	void        levelunitname( const std::string &un) { levelunitname_ = un; }
 	float       scale()              const { return scale_; }
 	float       offset()             const { return offset_; }
 	int         dataversion()        const { return dataversion_; }
@@ -102,6 +116,8 @@ public:
 	int         compareValue()       const { return compareValue_; }
 	bool        isNullValue( float value )const;
 	
+
+
 	friend std::ostream& operator<<(std::ostream& output, const ParamDef &pd);
 };
 
@@ -114,7 +130,9 @@ class ParamDefList : public std::map<std::string, std::list<ParamDef> >
 {
    std::list<std::string>   providerListFromConfig;
    ProviderGroups providerGroups_;
+
 public:
+   wdb2ts::config::ParamDefConfig* idDefsParams;
 
    ParamDefList();
    ParamDefList( const ParamDefList &pdl );
@@ -138,18 +156,21 @@ public:
               const std::string &alias, const std::string &provider="" )const;
 
 /**
- * Return false if a paramdef with the same alias allready exist.
+ * Return false if a paramdef with the same alias allready exist and replace is false.
  * Return true if the paramdef was added to the paramsDefs.
  */
    bool
    addParamDef( const ParamDef  &pd,
-                const std::string &provider="" );
+                const std::string &provider="",
+                bool replace=false );
 
    ProviderGroups getProviderGroups() const { return providerGroups_;}
    void setProviderGroups( const ProviderGroups &pg ) { providerGroups_=pg; }
    std::string lookupGroupName( const std::string &providerName )const;
    void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
+   void merge( const ParamDefList *other, bool replace=false );
 };
+
 void
 renameProvider( std::string &providerWithPlacename, const std::string &newProvider );
 

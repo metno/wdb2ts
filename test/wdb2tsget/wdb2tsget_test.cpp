@@ -89,6 +89,7 @@ main( int argn, char **argv )
 	int failed=0;
 	int success=0;
 	int runs=0;
+	int unavailable=0;
 	int crcFail=0;
 	
 	for( list<wdb2ts::GetThread*>::iterator it = getThreads.begin(); 
@@ -98,13 +99,15 @@ main( int argn, char **argv )
 		failed  += (*it)->failed();
 		success += (*it)->success();
 		runs += (*it)->runs();
+		unavailable += (*it)->unavailable();
 		crcFail += (*it)->crcFail();
 	}
 	double runTime( stop-start );
 	cout << "Runtime:          " << runTime << " seconds " << endl;
 	cout << "seconds/request:  " << runTime/runs << " seconds" << endl;
 	cout << "#request/seconds: " << runs/runTime << endl; 
-	cout << "Runs: " << runs << " success: " << success << " Failed: " << failed <<  " CRCFail: " <<  crcFail << endl;
+	cout << "Runs: " << runs << " success: " << success << " Failed: " << failed
+	     <<  " Unavailable: " << unavailable << " CRCFail: " <<  crcFail << endl;
 
 	return 0;
 }

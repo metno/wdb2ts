@@ -1,7 +1,8 @@
 noinst_PROGRAMS+= shape2wdb2ts
 
-shape2wdb2ts_SOURCES = src/util/shape2wdb2ts.cpp
-
+shape2wdb2ts_SOURCES = src/util/shape2wdb2ts.cpp 
+					   
+					   
 shape2wdb2ts_LDFLAGS= -lmiutil 
 				
 

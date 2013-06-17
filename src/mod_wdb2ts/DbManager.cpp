@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 #include <sstream>
+#include <msleep.h>
 #include <DbManager.h>
 
 using namespace std;
@@ -134,7 +135,7 @@ DbManager( const miutil::pgpool::DbDefList     &dbSetup )
       
 miutil::pgpool::DbConnectionPtr 
 DbManager::
-newConnection(const std::string &dbid)
+newConnection(const std::string &dbid, int timeoutInMillis )
 {
    string id( dbid );
    
@@ -152,20 +153,20 @@ newConnection(const std::string &dbid)
       throw logic_error( "wdb2ts::DbManager::newConnection: No database definition for database id <" + id + ">!");
    
    try {
-      return it->second->newConnection();
+      return it->second->newConnection( timeoutInMillis );
    }
    catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
-	   throw;
+      throw;
    }
    catch( const miutil::pgpool::DbConnectionPoolCreateEx &ex ) {
-   	   throw;
-   }
-   catch( const miutil::pgpool::DbConnectionException &ex ) { 
+      throw;
+         }
+   catch( const miutil::pgpool::DbConnectionException &ex ) {
       throw logic_error( ex.what() );
    }
-   catch( const logic_error &ex ) { 
+   catch( const logic_error &ex ) {
       throw;
-   } 
+   }
    catch( ... ) {
       throw logic_error( "wdb2ts::DbManager::newConnection: Unknown exception!" );
    }
@@ -173,7 +174,7 @@ newConnection(const std::string &dbid)
 
 WciConnectionPtr
 DbManager::
-newWciConnection(const std::string &dbid)
+newWciConnection(const std::string &dbid, int timeoutInMilliSeconds  )
 {
 	string id( dbid );
 	
@@ -193,7 +194,7 @@ newWciConnection(const std::string &dbid)
 	if( wciuser.empty() )
 		throw logic_error( "wdb2ts::DbManager::newWciConnection: Missing wciuser id for database id <" + id + ">!");
 		
-	return WciConnectionPtr( new WciConnection( newConnection( dbid ), wciuser ) );
+	return WciConnectionPtr( new WciConnection( newConnection( dbid, timeoutInMilliSeconds ), wciuser ) );
 }
 
 

@@ -122,10 +122,13 @@ output( std::ostream &out, const std::string &indent )
 	int oldPrec = out.precision();
 	int modelTopo;
 	int nForecast=0;
+	float dewpoint=FLT_MAX;
 	int relTopo; //The difference between modelTopo and real topography
 
-	if( ! pd )
+	if( ! pd ) {
+		WEBFW_LOG_DEBUG("MomentTags: No data!");
 		return;
+	}
 	
 	out.precision(1);
 	tmpout.flags( out.flags() );
@@ -196,6 +199,14 @@ output( std::ostream &out, const std::string &indent )
 			provider = pd->forecastprovider();
 	}
 	
+	if( provider.empty() && pd->config ) {
+		provider = pd->config->requestedProvider;
+
+		if( loglevel >= log4cpp::Priority::DEBUG ) {
+			tmpout << indent << "<!-- Using requested dataprovider: " << provider << " -->\n";
+		}
+	}
+
 	if( ! provider.empty() ) {
 		pd->temperatureCorrected( tempUsed, provider );
 		computeWind( pd->windU10m(true), pd->windV10m() );
@@ -221,11 +232,11 @@ output( std::ostream &out, const std::string &indent )
 
 		pd->temperatureCorrected( tempUsed, provider );
 
+		dewpoint = pd->dewPointTemperature();
+
 		value = pd->RH2M( );
 
-		if( value == FLT_MAX ) {
-		   float dewpoint = pd->dewPointTemperature();
-
+		if( value == FLT_MAX && dewpoint != FLT_MAX) {
 		   if( dewpoint != FLT_MAX )
 		      value = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
 		}
@@ -270,7 +281,7 @@ output( std::ostream &out, const std::string &indent )
 			tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value << "\"/>\n";
 			nForecast++;
 		}
-	
+
 		tmpout.precision( 0 );
 	
 		if( tempProb != FLT_MAX )
@@ -278,11 +289,32 @@ output( std::ostream &out, const std::string &indent )
 	
 		if( windProb != FLT_MAX )
 			tmpout << indent << "<windProbability unit=\"probabilitycode\" value=\"" << probabilityCode( windProb ) << "\"/>\n";
+
+		tmpout.precision( 1 );
+
+		if( pd->config && pd->config->outputParam("seaiceingindex") ) {
+		   value = pd->iceingIndex( false, pd->forecastprovider() );
+		   if( value != FLT_MAX )
+		      tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
+		}
+
+		if( pd->config && pd->config->outputParam( "dewpointTemperature") ) {
+		   float myDewPoint= dewpoint;
+
+		   if( myDewPoint == FLT_MAX )
+		       myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
+
+		   if( myDewPoint != FLT_MAX )
+		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celcius\" value=\""<< myDewPoint << "\"/>\n";
+
+		}
+
+	//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
 		
 		out.precision( 1 );
 
-		//must have at least 2 elements.
-		if( nForecast > 1 )
+		//must have at least 1 elements.
+		if( nForecast > 0 )
 			out << tmpout.str();
 	}
 	

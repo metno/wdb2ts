@@ -48,6 +48,7 @@
 #include <NoteProviderList.h>
 #include <LocationPoint.h>
 #include <ProviderGroups.h>
+#include <ConfigUtils.h>
 
 namespace wdb2ts {
 
@@ -128,6 +129,9 @@ private:
    bool                wciProtocolIsInitialized;
    int                 wciProtocol;
    int                 expireRand; //Randomize the expire header. Default 120s.
+   OutputParams        doNotOutputParams;
+   NoDataResponse      noDataResponse;
+
    boost::mutex        mutex; 
       
   	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,

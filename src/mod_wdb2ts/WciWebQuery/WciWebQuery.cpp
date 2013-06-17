@@ -210,11 +210,13 @@ wciReadQuery() const
 		   sPointInterpolation.erase();
 	   else
 		   miutil::trimstr( sPointInterpolation, miutil::TRIMBOTH, "'" );
+
+	   if( sPointInterpolation.empty() )
+	      sPointInterpolation = "NEAREST";
       
 	   ost << "SELECT " << returnColoumns << " FROM wci.read(" << endl
 		   << "   " << dataprovider.selectPart() << ", " << endl
 		   << "   '" << sPointInterpolation << " POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
-//       	<< "   'POINT(" <<  longitude.value() << " " << latitude.value() << ")', " << endl
 		   << "   " << reftime.selectPart() << ", " << endl
 		   << "   " << validtime.selectPart() << ", " << endl
 		   << "   " << parameter.selectPart() << ", " << endl

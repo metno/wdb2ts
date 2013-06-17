@@ -13,16 +13,20 @@ class GMLContext
 	GMLContext( const GMLContext & );
 	GMLContext& operator=( const GMLContext & );
 	
+
 public:
+	typedef enum { OceanForecast, LocationForecast } ForecastType;
 	
 	//Helper to create the symbol data from providers
 	//that has encoded symbol fields.
 	SymbolContext symbolContext;
 	const ProjectionHelper *projectionHelper;
 	std::map<std::string, int > idMap;
+	ForecastType forecastType;
 	
 	GMLContext( const ProjectionHelper *projectionHelper_, bool useTempInFromtime )
-		: symbolContext( useTempInFromtime ), projectionHelper( projectionHelper_ )
+		: symbolContext( useTempInFromtime ), projectionHelper( projectionHelper_ ),
+		  forecastType( OceanForecast )
 	{
 		
 	}

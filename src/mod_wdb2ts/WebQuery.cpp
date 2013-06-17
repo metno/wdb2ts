@@ -6,6 +6,7 @@
 #include <WebQuery.h>
 #include <UrlQuery.h>
 #include <ptimeutil.h>
+#include <trimstr.h>
 #include <limits.h>
 #include <float.h>
 
@@ -31,12 +32,13 @@ WebQuery( const LocationPointList &locationPoints, int altitude,
 		  const boost::posix_time::ptime &to,
 		  const boost::posix_time::ptime &reftime,
 		  const std::string &dataprovider,
+		  const Level level,
 		  bool isPolygon,
 		  int skip,
 		  bool nearestLand )
 	: altitude_( altitude ),
 	  from_( from ), to_( to ), reftime_( reftime ), dataprovider_( dataprovider ),
-	  isPolygon_( isPolygon ), nearestLand_( nearestLand ), skip_( skip )
+	  isPolygon_( isPolygon ), nearestLand_( nearestLand ), skip_( skip ), level_(level)
 {
 	points = locationPoints;
 }
@@ -79,12 +81,68 @@ decodeTimeduration( const std::string &timeduration, const boost::posix_time::pt
 
 	return to;
 }
-	/**
-	 * @exception logic_error
-	 */	
+
+Level
+WebQuery::
+decodeLevel( const std::string &lvl_ )
+{
+	string lvl(lvl_);
+	string buf;
+	int h;
+	int sign=1;
+
+	miutil::trimstr( lvl );
+
+	if( lvl.empty() )
+		return Level();
+
+	if( lvl[0]=='-') {
+		sign = -1;
+		lvl.erase( 0, 1 );
+	}
+
+	string::size_type i = lvl.find_first_not_of("0123456789");
+
+	if( i == string::npos )
+		buf = lvl;
+	else
+		buf = lvl.substr( 0, i );
+
+	miutil::trimstr( buf );
+
+	if( buf.empty() )
+		throw std::logic_error("Invalid level '" + lvl_ + "' expecting a number.");
+
+	h = atoi( buf.c_str() );
+	h *= sign;
+
+	lvl.erase( 0, buf.size() );
+	buf = lvl;
+	miutil::trimstr( buf );
+
+	if( buf.empty() )
+		buf = "m";
+
+	if( buf == "m" ) {
+		if( h < 0 ) {
+			h = -1*h;
+			return Level( h, h, "depth", "m" );
+		} else {
+			return Level( h, h, "height above ground", "m" );
+		}
+	} else if( buf == "Pa" ) {
+		return Level( h, h, "isobaric surface", "Pa" );
+	}
+
+	throw std::logic_error("Invalid level '" + lvl_ + "'. Unsupported unit.");
+}
+
+/**
+ * @exception logic_error
+ */
 WebQuery 
 WebQuery::
-decodeQuery( const std::string &queryToDecode )
+decodeQuery( const std::string &queryToDecode, const std::string &urlPath )
 {
 	using namespace boost::posix_time;
 	ostringstream ost;
@@ -98,7 +156,8 @@ decodeQuery( const std::string &queryToDecode )
 	string dataprovider;
 	bool isPolygon( false );
 	int skip=0;
-	     
+	Level level;
+
 	try { 
 		urlQuery.decode( queryToDecode );
 		list<string> mustHaveParams;
@@ -163,9 +222,19 @@ decodeQuery( const std::string &queryToDecode )
          }
       }
 
+      if( urlQuery.hasParam( "level" ) ) {
+    	  level = decodeLevel( urlQuery.asString("level", "") );
+      }
 
-		return WebQuery( myPoints, alt, from, to, refTime, dataprovider, isPolygon,
-		                 skip, urlQuery.asBool( "nearest_land", false ) );
+
+      WebQuery webQury(myPoints, alt, from, to, refTime, dataprovider, level, isPolygon,
+                       skip, urlQuery.asBool( "nearest_land", false ) );
+      if( urlPath.empty() )
+         webQury.urlQuery_=queryToDecode;
+      else
+         webQury.urlQuery_= urlPath +"?"+queryToDecode;
+
+      return webQury;
 	}
 	catch( const std::exception &ex ) {
 		ostringstream ost;

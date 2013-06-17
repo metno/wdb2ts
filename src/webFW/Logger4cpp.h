@@ -7,6 +7,10 @@
 #define WEBFW_USE_LOGGER( name ) \
 	log4cpp::Category &webfw_logger___ = webfw::RequestHandler::getLogger( name )
 
+#define WEBFW_CREATE_LOGGER_FILE( name ) \
+    webfw::RequestHandler::getLogger( std::string("+") + name )
+
+
 #define WEBFW_USE_LOGGER_REQUESTHANDLER( name, handler ) \
 	log4cpp::Category &webfw_logger___ = webfw::RequestHandler::getLogger( name, handler )
 

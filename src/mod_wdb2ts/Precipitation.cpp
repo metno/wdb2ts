@@ -68,6 +68,8 @@ findPrecip( const std::string &provider,
 	boost::posix_time::time_duration duration= totime - fromtime;
 	int timespanInHours = duration.hours();
 
+	precip = Precipitation(); //Set all value to FLT_MAX.
+
 	timespanInHours = abs( timespanInHours );
 
 	it= find( timespanInHours );

@@ -1,12 +1,31 @@
 #include <iostream>
 #include <HandlerBase.h>
 #include <App.h>
+#include <wdb2TsApp.h>
 #include <Logger4cpp.h>
 
 using namespace std;
 
 namespace wdb2ts {
+
+ParamDefList
+HandlerBase::
+getParamdef()const
+{
+	ParamDefList params = Wdb2TsApp::app()->getParamDefs();
+
+	if( params.empty() ) {
+		params = config.paramdef.paramDefs("default");
+
+		if( params.empty() )
+			params = config.paramdef.paramDefs("");
+	}
 	
+	params.idDefsParams = new wdb2ts::config::ParamDefConfig( config.paramdef );
+	return params;
+}
+
+
 bool 
 HandlerBase::
 /*doConfigure( const wdb2ts::config::ActionParam &params,

@@ -104,8 +104,9 @@ public:
 	~Config(){};
 	
 	QueryDefs            querys;
-	ParamDefs            idParamDefs;
-	wdb2ts::ParamDefList paramDefs;
+	ParamDefConfig       paramdef;
+	//ParamDefs            idParamDefs;
+	//wdb2ts::ParamDefList paramDefs;
 	RequestMap           requests;
 	
 	bool validate( std::ostream &message ) const;
@@ -124,6 +125,7 @@ public:
 	addParamDef( const std::string &paramdefId,
 	             const wdb2ts::ParamDef    &pd,
 	             const std::list<std::string> &provider,
+	             bool replace,
 	             std::ostream &err );
 
 

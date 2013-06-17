@@ -116,7 +116,7 @@ class EncodeLocationForecast : public Encode
 
 	//Expire randomization.
 	int expireRand;
-	
+	int nElements;
 	void encodeSymbols( std::ostream &out, 
 					    miutil::Indent &indent );
 

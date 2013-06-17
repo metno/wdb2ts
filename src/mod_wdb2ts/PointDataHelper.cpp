@@ -116,12 +116,19 @@ merge( const PData &other )
     if( other.PRECIP_6T != FLT_MAX ) PRECIP_6T  = other.PRECIP_6T;
     if( other.PRECIP_12T != FLT_MAX ) PRECIP_12T = other.PRECIP_12T;
     if( other.PRECIP_24T != FLT_MAX ) PRECIP_24T = other.PRECIP_24T;
+    if( other.significantSwellWaveHeight != FLT_MAX ) significantSwellWaveHeight = other.significantSwellWaveHeight;
+    if( other.meanSwellWavePeriode != FLT_MAX ) meanSwellWavePeriode = other.meanSwellWavePeriode;
+    if( other.meanSwellWaveDirection != FLT_MAX ) meanSwellWaveDirection = other.meanSwellWaveDirection;
+    if( other.peakSwellWavePeriode != FLT_MAX ) peakSwellWavePeriode = other.peakSwellWavePeriode;
+    if( other.peakSwellWaveDirection != FLT_MAX ) peakSwellWaveDirection = other.peakSwellWaveDirection;
     if( other.seaCurrentVelocityV != FLT_MAX ) seaCurrentVelocityV = other.seaCurrentVelocityV;
     if( other.seaCurrentVelocityU != FLT_MAX ) seaCurrentVelocityU = other.seaCurrentVelocityU;
     if( other.seaSalinity != FLT_MAX ) seaSalinity = other.seaSalinity;
     if( other.seaSurfaceHeight != FLT_MAX ) seaSurfaceHeight = other.seaSurfaceHeight;
     if( other.seaTemperature != FLT_MAX ) seaTemperature = other.seaTemperature;
+    if( other.meanTotalWavePeriode != FLT_MAX) meanTotalWavePeriode = other.meanTotalWavePeriode;
     if( other.meanTotalWaveDirection != FLT_MAX ) meanTotalWaveDirection = other.meanTotalWaveDirection;
+    if( other.maximumTotalWaveHeight != FLT_MAX ) maximumTotalWaveHeight = other.maximumTotalWaveHeight;
     if( other.significantTotalWaveHeight != FLT_MAX ) significantTotalWaveHeight = other.significantTotalWaveHeight;
     if( other.seaIcePresence != FLT_MAX ) seaIcePresence = other.seaIcePresence;
     if( other.iceingIndex != FLT_MAX ) iceingIndex = other.iceingIndex;
@@ -189,12 +196,19 @@ print( std::ostream &o )const
    if( PRECIP_6T != FLT_MAX ) o << "PRECIP_6T: " << PRECIP_6T << endl;
    if( PRECIP_12T != FLT_MAX ) o << "PRECIP_12T: " << PRECIP_12T << endl;
    if( PRECIP_24T != FLT_MAX ) o << "PRECIP_24T: " << PRECIP_24T << endl;
+   if( significantSwellWaveHeight != FLT_MAX ) o << "seaTotalSwellWaveHeight: " << significantSwellWaveHeight << endl;
+   if( meanSwellWavePeriode != FLT_MAX) o << "seaMeanSwellWavePeriode: " << meanSwellWavePeriode << endl;
+   if( meanSwellWaveDirection != FLT_MAX ) o << "seaMeanSwellWaveDirection: " << meanSwellWaveDirection << endl;
+   if( peakSwellWavePeriode != FLT_MAX ) o << "seaPeakSwellWavePeriode: " << peakSwellWavePeriode << endl;
+   if( peakSwellWaveDirection != FLT_MAX ) o << "seaPeakSwellWaveDirection: " << peakSwellWaveDirection << endl;
    if( seaCurrentVelocityV != FLT_MAX ) o << "seaCurrentVelocityV: " << seaCurrentVelocityV << endl;
    if( seaCurrentVelocityU != FLT_MAX ) o << "seaCurrentVelocityU: " << seaCurrentVelocityU << endl;
    if( seaSalinity != FLT_MAX ) o << "seaSalinity: " << seaSalinity << endl;
    if( seaSurfaceHeight != FLT_MAX ) o << "seaSurfaceHeight: " << seaSurfaceHeight << endl;
    if( seaTemperature != FLT_MAX ) o << "seaTemperature: " << seaTemperature << endl;
+   if( meanTotalWavePeriode != FLT_MAX) o << "meanTotalWavePeriode: " << meanTotalWavePeriode << endl;
    if( meanTotalWaveDirection != FLT_MAX ) o << "meanTotalWaveDirection: " << meanTotalWaveDirection << endl;
+   if( maximumTotalWaveHeight != FLT_MAX ) o << "maximumTotalWaveHeight: " << maximumTotalWaveHeight << endl;
    if( significantTotalWaveHeight != FLT_MAX ) o << "significantTotalWaveHeight: " << significantTotalWaveHeight << endl;
    if( seaIcePresence != FLT_MAX )o << "seaIcePresence: " << seaIcePresence << endl;
    if( iceingIndex != FLT_MAX ) o << "iceingIndex: " << iceingIndex << endl;
@@ -263,12 +277,19 @@ count()const
     if( PRECIP_6T != FLT_MAX ) ++n;
     if( PRECIP_12T != FLT_MAX ) ++n;
     if( PRECIP_24T != FLT_MAX ) ++n;
+    if( significantSwellWaveHeight != FLT_MAX ) ++n;
+    if( meanSwellWavePeriode != FLT_MAX ) ++n;
+    if( meanSwellWaveDirection != FLT_MAX ) ++n;
+    if( peakSwellWavePeriode != FLT_MAX ) ++n;
+    if( peakSwellWaveDirection != FLT_MAX ) ++n;
     if( seaCurrentVelocityV != FLT_MAX ) ++n;
     if( seaCurrentVelocityU != FLT_MAX ) ++n;
     if( seaSalinity != FLT_MAX ) ++n;
     if( seaSurfaceHeight != FLT_MAX ) ++n;
     if( seaTemperature != FLT_MAX ) ++n;
+    if( meanTotalWavePeriode != FLT_MAX ) ++n;
     if( meanTotalWaveDirection != FLT_MAX ) ++n;
+    if( maximumTotalWaveHeight != FLT_MAX ) ++n;
     if( significantTotalWaveHeight != FLT_MAX ) ++n;
     if( seaIcePresence != FLT_MAX ) ++n;
     if( iceingIndex != FLT_MAX ) ++n;
@@ -348,6 +369,8 @@ toBeaufort(float mps, std::string &description)
    }else{ 
       description="Orkan"; return "12";
    }
+
+   return description;
 }
    
 std::string
@@ -394,7 +417,7 @@ decodePData( const ParamDefList &paramDefs,
 	ptime reftime;
 	ParamDefPtr paramDef;
 	IFromTimeSerie itTimeSerie;
-	string alias;
+//	string alias;
 	ProviderList::const_iterator itProvider;
 	string provider;
 	string providerWithPlacename;
@@ -422,11 +445,12 @@ decodePData( const ParamDefList &paramDefs,
 //			string provider_dbg = it.at("dataprovidername").c_str();
 ////			if( provider_dbg.find("ecmwf atmo") != string::npos )
 ////			      provider_dbg.clear();
-//
 //			//DEBUGEND
+
 			if( ! paramDefs.findParam( it, paramDef, providerGroup ) ) {
 				++it;
 
+				//WEBFW_LOG_DEBUG("Cant find paramdef. " << it.at("valueparametername").c_str() );
 //				//DEBUG
 //				if( ! provider_dbg.empty() )
 //				   cerr << "Cant find param: " << provider_dbg << "\n";
@@ -436,14 +460,10 @@ decodePData( const ParamDefList &paramDefs,
 				STOP_MARK_MI_PROFILE("db::decode");
 				continue;
 			}
-				
-			STOP_MARK_MI_PROFILE("findParam");
 			
-			if( alias !=  paramDef->alias() ) {
-				alias = paramDef->alias();
+		   STOP_MARK_MI_PROFILE("findParam");
+			
 
-			}
-			
 			START_MARK_MI_PROFILE("db::it");
 			reftime = ptimeFromIsoString( it.at("referencetime").c_str() );
 			
@@ -507,9 +527,9 @@ decodePData( const ParamDefList &paramDefs,
 			}
 
 //			//DBUG
-//   		string oldProviderWithPlacename = providerWithPlacename;
-//			if( !dataprovider_dbg.empty() )
-//			   cerr << "Decode: provider: " << dataprovider_dbg << " withPlacename: " << providerWithPlacename << endl;
+//			string oldProviderWithPlacename = providerWithPlacename;
+//			if( !provider_dbg.empty() )
+//			   cerr << "Decode: provider: " << provider_dbg << " withPlacename: " << providerWithPlacename << endl;
 //			//DBUGEND
 
 			renameProvider( providerWithPlacename, providerGroup  );
@@ -518,6 +538,7 @@ decodePData( const ParamDefList &paramDefs,
  			STOP_MARK_MI_PROFILE("timeSerie");
 	
  			if( it.at("value").is_null() ) {
+ 			//   WEBFW_LOG_DEBUG("<NULL> - " << paramDef->alias() << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
  				++it;
  				continue;
  			}
@@ -530,8 +551,7 @@ decodePData( const ParamDefList &paramDefs,
 			//defined in the paramdef section for the parameter in the
 			//configuration file.
 			if( paramDef->isNullValue( value ) ) {
-				//WEBFW_LOG_DEBUG( "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" )
-				//     << "  " << *paramDef << endl;
+				//WEBFW_LOG_DEBUG( "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" << "  " << *paramDef );
 				++it;
 				continue;
 			}
@@ -568,16 +588,16 @@ decodePData( const ParamDefList &paramDefs,
 			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
 				pd.PRECIP_ACCUMULATED = value;
 			else if( paramDef->alias() == "PRECIP.PROBABILITY" )  {
-            WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to << ")");
+			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to << ")");
 			   pd.PRECIP_PROBABILITY = value;
 			} else if( paramDef->alias() == "PRECIP.MIN" ) {
-			   WEBFW_LOG_DEBUG( "decodePData: PRECIP.MIN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
+			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.MIN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MIN = value;
 			} else if( paramDef->alias() == "PRECIP.MAX" ) {
-            WEBFW_LOG_DEBUG( "decodePData: PRECIP.MAX: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
+				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MAX: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MAX = value;
 			} else if( paramDef->alias() == "PRECIP.MEAN" )  {
-            WEBFW_LOG_DEBUG( "decodePData: PRECIP.MEAN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
+				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MEAN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
 			   pd.PRECIP_MEAN = value;
 			} else if( paramDef->alias() == "PRECIP" )
 				pd.PRECIP = value;	
@@ -591,6 +611,18 @@ decodePData( const ParamDefList &paramDefs,
 				pd.PRECIP_12T = value;
 			else if( paramDef->alias() == "PRECIP.24H" )
 				pd.PRECIP_24T = value;
+			else if( paramDef->alias() == "significantSwellWaveHeight")
+			   pd.significantSwellWaveHeight = value;
+			else if( paramDef->alias() == "meanSwellWavePeriode" ) {
+			   //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWavePeriode: " << value );
+			   pd.meanSwellWavePeriode = value;
+			}else if( paramDef->alias() == "meanSwellWaveDirection") {
+            //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWaveDirection: " << value );
+			   pd.meanSwellWaveDirection = value;
+			}else if( paramDef->alias() == "peakSwellWavePeriode")
+			   pd.peakSwellWavePeriode = value;
+			else if( paramDef->alias() == "peakSwellWaveDirection" )
+			   pd.peakSwellWaveDirection = value;
 			else if( paramDef->alias() == "seaCurrentVelocityV" )
 				pd.seaCurrentVelocityV = value;
 			else if( paramDef->alias() == "seaCurrentVelocityU" )
@@ -601,10 +633,14 @@ decodePData( const ParamDefList &paramDefs,
 				pd.seaSurfaceHeight = value;
 			else if( paramDef->alias() == "seaTemperature" )
 				pd.seaTemperature = value;
+			else if( paramDef->alias() == "meanTotalWavePeriode")
+			   pd.meanTotalWavePeriode = value;
 			else if( paramDef->alias() == "meanTotalWaveDirection" ) {
 				//WEBFW_LOG_DEBUG( "decode: waveDirection: " << value );
 				pd.meanTotalWaveDirection = value;
-			} else if( paramDef->alias() == "significantTotalWaveHeight" ) {
+			} else if( paramDef->alias() == "maximumTotalWaveHeight" ) {
+			   pd.maximumTotalWaveHeight = value;
+			}else if( paramDef->alias() == "significantTotalWaveHeight" ) {
 				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
 				pd.significantTotalWaveHeight = value;
 			}else if( paramDef->alias() == "seaBottomTopography" ) {
@@ -632,11 +668,11 @@ decodePData( const ParamDefList &paramDefs,
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
 				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
 			} else if( paramDef->alias() == "LANDCOVER" ) {
-            ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
-                                 boost::posix_time::time_duration( 0, 0, 0 ) );
-            //WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
-            (*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
-         }else if( paramDef->alias() == "TOTAL.CLOUD" )
+				ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
+                                     boost::posix_time::time_duration( 0, 0, 0 ) );
+				//WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
+				(*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
+			}else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;
 			else if( paramDef->alias() == "visibility" )
 				pd.visibility = value;
@@ -771,6 +807,16 @@ init( const std::string &param )
       pPM = &PData::PRECIP_12T;
    else if( param == "PRECIP.24H" )
       pPM = &PData::PRECIP_24T;
+   else if( param == "seaTotalSwellWaveHeight" )
+      pPM = &PData::significantSwellWaveHeight;
+   else if( param == "seaMeanSwellWavePeriode" )
+      pPM = &PData::meanSwellWavePeriode;
+   else if( param == "seaMeanSwellWaveDirection" )
+      pPM = &PData::meanSwellWaveDirection;
+   else if( param == "seaPeakSwellWavePeriode" )
+      pPM = &PData::peakSwellWavePeriode;
+   else if( param == "seaPeakSwellWaveDirection" )
+      pPM = &PData::peakSwellWaveDirection;
    else if( param == "seaCurrentVelocityV" )
       pPM = &PData::seaCurrentVelocityV;
    else if( param == "seaCurrentVelocityU" )
@@ -781,8 +827,12 @@ init( const std::string &param )
       pPM = &PData::seaSurfaceHeight;
    else if( param == "seaTemperature" )
       pPM = &PData::seaTemperature;
+   else if( param == "meanTotalWavePeriode" )
+      pPM = &PData::meanTotalWavePeriode;
    else if( param == "meanTotalWaveDirection" )
       pPM = &PData::meanTotalWaveDirection;
+   else if( param == "maximumTotalWaveHeight")
+      pPM = &PData::maximumTotalWaveHeight;
    else if( param == "significantTotalWaveHeight" )
       pPM = &PData::significantTotalWaveHeight;
    else if( param == "seaBottomTopography" )

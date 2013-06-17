@@ -325,6 +325,7 @@ encodeSymbols( std::ostream &out,
 			   if( symbols.getPartialData( symbol.fromAsPtime(), partialData ) )
 			      SymbolGenerator::correctSymbol( symbol, partialData );
 
+			   ++nElements;
 			   IndentLevel level3( indent );
 				TimeTag timeTag( 	symbol.fromAsPtime(), symbol.toAsPtime() );
 				timeTag.output( out, level3.indent() );
@@ -385,6 +386,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			LocationElem& location = *locationData->next();
 			
 			if( ! percentileOst.str().empty() ) {
+			   ++nElements;
 				ost << outOst.str();
 				percentileOst.str("");
 			}
@@ -427,9 +429,10 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 		}
 
 		//My have one left over.
-		if( ! percentileOst.str().empty() )
+		if( ! percentileOst.str().empty() ) {
+		   ++nElements;
 			ost << outOst.str();
-	
+		}
 	}
 }
 
@@ -512,7 +515,7 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 				if( precip == FLT_MAX || fromTime<prevFromTime ) {
 					continue;
 				}
-				
+				++nElements;
 				tryHard=false;
 				++ precipCount[precipIndex];
 			
@@ -631,6 +634,7 @@ encodePrecipitationMulti( const boost::posix_time::ptime &from,
 					    << itPrecip->second.provider << " -->\n";
 			}
 
+			++nElements;
 			prevProvider = itPrecip->second.provider;
 			fromTime = itPrecip->first;
 
@@ -708,6 +712,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 		LocationElem &location = *locationData->next();
 		
 		if( ! momentOst.str().empty() ) {
+		   ++nElements;
 			ost << tmpOst.str();
 			momentOst.str("");
 		}
@@ -735,8 +740,10 @@ encodeMoment( const boost::posix_time::ptime &from,
 	}
 
 	//May have one leftover.
-	if( ! momentOst.str().empty() ) 
+	if( ! momentOst.str().empty() ) {
+	   ++nElements;
 		ost << tmpOst.str();
+	}
 	
 	//Update symbols with symbol data from the symbolContext.
 	symbolContext.update( symbols );
@@ -756,7 +763,7 @@ encodeMeta( std::string &result )
 	ostringstream ost;
 	
 	if( breakTimes.empty() ) {
-		replace( result, metatemplate, "" );
+		replaceString( result, metatemplate, "" );
 		return;
 	}
 	
@@ -821,7 +828,7 @@ encodeMeta( std::string &result )
 		ost << level2.indent() << "</meta>\n";
 	}
 	
-	replace( result, metatemplate, ost.str() );
+	replaceString( result, metatemplate, ost.str() );
 }
 
 void  
@@ -840,6 +847,7 @@ encode(  webfw::Response &response )
  	MARK_ID_MI_PROFILE("EncodeXML");
  	WEBFW_USE_LOGGER( "encode" );
  	
+ 	nElements = 0;
  	//Use one decimal precision as default.
  	ost.setf(ios::floatfield, ios::fixed);
  	ost.precision(1);
@@ -919,6 +927,9 @@ encode(  webfw::Response &response )
 		encodePrecipitationPercentiles( from, ost, indent );
 	}
 
+	if( nElements <= 0 ) {
+	   throw NoData();
+	}
 	result = ost.str();
 	
 	encodeMeta( result );

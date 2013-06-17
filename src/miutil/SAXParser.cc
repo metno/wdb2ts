@@ -127,14 +127,14 @@ void
 SAXParser::
 startDocument()
 {
-  cerr << "startDocument!\n";
+  //cerr << "startDocument!\n";
 }
 
 void 
 SAXParser::
 endDocument()
 {
-  cerr << "endDocument!\n";
+  //cerr << "endDocument!\n";
 }
 
 void 
@@ -142,27 +142,27 @@ SAXParser::
 startElement(const std::string &fullname,
 		       const AttributeMap &atributes)
 {
-  	cerr << "startElement: " << fullname << endl;
-  	cerr << "  attributer: \n";
-
-	for( AttributeMap::const_iterator it=atributes.begin();
-	     it != atributes.end();
-		  ++it)
-    cerr <<"      " << it->first  << "=" << it->second << endl;
+//  	cerr << "startElement: " << fullname << endl;
+//  	cerr << "  attributer: \n";
+//
+//	for( AttributeMap::const_iterator it=atributes.begin();
+//	     it != atributes.end();
+//		  ++it)
+//    cerr <<"      " << it->first  << "=" << it->second << endl;
 }
 
 void 
 SAXParser::
 endElement(const std::string &name )
 {
-	cerr << "endElement: " << name << endl;
+//	cerr << "endElement: " << name << endl;
 }
 
 void
 SAXParser::
 characters(const std::string &buf )
 { 
-  cerr << "characters: [" << buf << "]\n";
+//  cerr << "characters: [" << buf << "]\n";
   
 }
 

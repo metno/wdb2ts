@@ -68,7 +68,7 @@ struct ProviderTimes {
 	   dataversion( -1 ) {}
 	
 	ProviderTimes( const boost::posix_time::ptime &refTime_,
-	               const boost::posix_time::ptime &updatedTime_,
+	               const boost::posix_time::ptime &updatedTime_=boost::posix_time::second_clock::universal_time(),
 	               bool disabled_ = false,
 	               int dataversion_ = -1,
 	               bool disableEnableRequest_ = false,

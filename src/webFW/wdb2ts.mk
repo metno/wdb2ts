@@ -38,8 +38,8 @@ libwebFW_la_SOURCES=   src/webFW/App.cpp \
 		               src/webFW/ApacheModule.h \
 		               src/webFW/Logger.h \
 		               src/webFW/Logger4cpp.h \
-		               src/webFW/macros.h 
-		                                    
+		               src/webFW/macros.h \
+		               src/webFW/visibility.h                                    
 
 EXTRA_DIST+= src/webFW/wdb2ts.mk \
 				 src/webFW/Makefile.am \

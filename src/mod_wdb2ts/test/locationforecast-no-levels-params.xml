@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+  <paramdefs>
+     <paramdef id="PRECIP.ACCUMULATED">
+	   <valueparameter name="lwe thickness of precipitation amount" unit="m" />
+	   <value scale="1000.0" offset="0.0" />
+	 </paramdef>
+     <paramdef id="PRECIP.1H">
+       <valueparameter name="lwe thickness of precipitation amount" unit="m" />
+	   <value scale="1000.0" offset="0.0" />
+     </paramdef>
+	 <paramdef id="TOTAL.CLOUD">
+	   <valueparameter name=" cloud area fraction" unit="%" />
+	 </paramdef>
+	 <paramdef id="RH.2M">
+	   <valueparameter name="relative humidity" unit="%" />
+	 </paramdef>
+	 <paramdef id="WIND.U10M">
+	   <valueparameter name="x wind" unit="m/s" />
+	 </paramdef>
+	 <paramdef id="WIND.V10M">
+	   <valueparameter name="y wind" unit="m/s" />
+	 </paramdef>
+	 <paramdef id="MSLP">
+	   <valueparameter name="air pressure at sea level" unit="Pa" />
+	   <value scale="0.01" offset="0.0" />
+	 </paramdef>
+     <paramdef id="T.2M">
+       <valueparameter name="air temperature" unit="K" />
+       <value scale="1.0" offset="-273.15" />
+     </paramdef>
+   </paramdefs>
+</wdb2ts>

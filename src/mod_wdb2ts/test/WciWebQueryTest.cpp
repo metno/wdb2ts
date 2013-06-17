@@ -29,33 +29,42 @@
 
 #include <WciWebQueryTest.h>
 #include <WciWebQuery.h>
+#include <WebQuery.h>
 
 CPPUNIT_TEST_SUITE_REGISTRATION( WciWebQueryTest );
 
 using namespace std;
 using namespace wdb2ts;
 
-WciWebQueryTest::WciWebQueryTest()
+WciWebQueryTest::
+WciWebQueryTest()
 {
 	// NOOP
 }
 
-WciWebQueryTest::~WciWebQueryTest()
+WciWebQueryTest::
+~WciWebQueryTest()
 {
 	// NOOP
 }
 
-void WciWebQueryTest::setUp()
+void
+WciWebQueryTest::
+setUp()
 {
 	// NOOP
 }
 
-void WciWebQueryTest::tearDown()
+void
+WciWebQueryTest::
+tearDown()
 {
 	// NOOP
 }
 
-void WciWebQueryTest::testFullQuery()
+void
+WciWebQueryTest::
+testFullQuery()
 {
 	WciWebQuery wQuery;
 	string query = wQuery.decode ( "lat=10;lon=10;"
@@ -69,7 +78,42 @@ void WciWebQueryTest::testFullQuery()
 	cout << query.c_str();
 }
 
-void WciWebQueryTest::testNullQuery()
+void
+WciWebQueryTest::
+testNullQuery()
 {
+
+}
+void
+WciWebQueryTest::
+testLevelQuery()
+{
+	WebQuery wq;
+	string prefix = "long=10;lat=60;";
+	ostringstream q;
+
+	q << prefix << "level=2m";
 	
+	wq = WebQuery::decodeQuery( q.str() );
+	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
+
+	q.str("");
+	q << prefix << "level=2 m";
+	wq = WebQuery::decodeQuery( q.str() );
+	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
+
+	q.str("");
+	q << prefix << "level=2%20m";
+	wq = WebQuery::decodeQuery( q.str() );
+	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
+
+	q.str("");
+	q << prefix << "level=-2m";
+	wq = WebQuery::decodeQuery( q.str() );
+	CPPUNIT_ASSERT( "exact 2 depth" == wq.getLevel().toWdbLevelspec() );
+
+	q.str("");
+	q << prefix << "level=-2 m";
+	wq = WebQuery::decodeQuery( q.str() );
+	CPPUNIT_ASSERT( "exact 2 depth" == wq.getLevel().toWdbLevelspec() );
 }

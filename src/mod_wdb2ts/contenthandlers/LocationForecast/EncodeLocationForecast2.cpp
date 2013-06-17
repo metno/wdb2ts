@@ -124,7 +124,7 @@ EncodeLocationForecast2():
 	symbolContext( false),
 	providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
 	topographyProviders( dummyTopoList ),
-	symbolConf( dummySymbolConfProvider )
+	symbolConf( dummySymbolConfProvider ), nElements( 0 )
 {
 	// NOOP
 }
@@ -154,7 +154,7 @@ EncodeLocationForecast2( LocationPointDataPtr locationPointData_,
      modelTopoProviders( modelTopoProviders_),
      topographyProviders( topographyProviders_ ),
      symbolConf( symbolConf_ ),
-     expireRand( expire_rand )
+     expireRand( expire_rand ), nElements( 0 )
 {
 }
 
@@ -288,6 +288,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			LocationElem& location = *locationData->next();
 			
 			if( ! percentileOst.str().empty() ) {
+			   ++nElements;
 				ost << outOst.str();
 				percentileOst.str("");
 			}
@@ -330,8 +331,10 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 		}
 
 		//My have one left over.
-		if( ! percentileOst.str().empty() )
+		if( ! percentileOst.str().empty() ) {
+		   ++nElements;
 			ost << outOst.str();
+		}
 	
 	}
 }
@@ -425,6 +428,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 		LocationElem &location = *locationData->next();
 		
 		if( ! momentOst.str().empty() ) {
+		   ++nElements;
 			ost << tmpOst.str();
 			momentOst.str("");
 		}
@@ -461,8 +465,10 @@ encodeMoment( const boost::posix_time::ptime &from,
 	}
 
 	//May have one leftover.
-	if( ! momentOst.str().empty() ) 
+	if( ! momentOst.str().empty() ) {
+	   ++nElements;
 		ost << tmpOst.str();
+	}
 }
 
 
@@ -543,7 +549,7 @@ encodeMeta( std::string &result )
 	ostringstream ost;
 	
 	if( breakTimes.empty() ) {
-		replace( result, metatemplate, "" );
+		replaceString( result, metatemplate, "" );
 		return;
 	}
 	
@@ -610,7 +616,7 @@ encodeMeta( std::string &result )
 		ost << level2.indent() << "</meta>\n";
 	}
 	
-	replace( result, metatemplate, ost.str() );
+	replaceString( result, metatemplate, ost.str() );
 }
 
 void  
@@ -629,6 +635,8 @@ encode(  webfw::Response &response )
  	MARK_ID_MI_PROFILE("EncodeXML");
  	WEBFW_USE_LOGGER( "encode" );
  	
+ 	nElements = 0;
+
  	//Use one decimal precision as default.
  	ost.setf(ios::floatfield, ios::fixed);
  	ost.precision(1);
@@ -699,6 +707,9 @@ encode(  webfw::Response &response )
 		encodePrecipitationPercentiles( from, ost, indent );
 
 	}
+
+	if( nElements <= 0 )
+	   throw NoData();
 
 	result = ost.str();
 	

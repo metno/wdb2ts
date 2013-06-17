@@ -58,8 +58,7 @@ MetaModelConf( const MetaModelConf &m )
 {
 }
 	
-MetaModelConf::
-MetaModelConf& 
+MetaModelConf&
 MetaModelConf::
 operator=( const MetaModelConf &rhs )
 {

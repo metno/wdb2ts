@@ -11,11 +11,13 @@ libXML_locationforecast_la_SOURCES= \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/PrecipitationPercentileTags.h \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/PrecipitationPercentileTags.cpp \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/TimeTag.h \
-                       src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/WeatherdataTag.h 
+                       src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/WeatherdataTag.h
+      
+#libXML_locationforecast_la_LIBADD= libwdb2ts.la
 	
 EXTRA_DIST+= src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/wdb2ts.mk \
-				 src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile.am \
-				 src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile.in
+		     src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile.am \
+			 src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile.in
 
 DISTCLEANFILES +=	src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile
 

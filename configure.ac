@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.0.2-rc5, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.2.0~rc3, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])
@@ -22,37 +22,37 @@ AC_CONFIG_HEADER([wdb2ts_config.h])
 # Source Directories
 # - All directories that need to be linked into AM_FLAGS
 src_subdirs="	src/mod_wdb2ts \
-					src/mod_wdb2ts/WciWebQuery \
-					src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
-					src/miutil \
-					src/mod_wdb2ts/configparser \
-					src/webFW \
-					src/util "
+				src/mod_wdb2ts/WciWebQuery \
+				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
+				src/miutil \
+				src/mod_wdb2ts/configparser \
+				src/webFW \
+				src/util "
 
 #					src/mod_wdb2ts/configparser \
 						
 test_subdirs="	test/unit \
-					src/mod_wdb2ts/test \
-					src/mod_wdb2ts/configparser/test \
-					src/webFW/test \
-					src/miutil/test \
-					test/wdb2tsget "
+				src/mod_wdb2ts/test \
+				src/mod_wdb2ts/configparser/test \
+				src/webFW/test \
+				src/miutil/test \
+				test/wdb2tsget "
 												
 
 # Build Directories
 # - All directories that building can occur in
 build_subdirs="	src/mod_wdb2ts/WciWebQuery \
-						src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
-						src/mod_wdb2ts \
-						src/mod_wdb2ts/configparser \
-						src/mod_wdb2ts/configparser/test \
-						src/miutil \
-						src/webFW \
-						src/util \
-						src/mod_wdb2ts/test \
-						src/webFW/test \
-						src/miutil/test \
-						test/wdb2tsget "
+				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
+				src/mod_wdb2ts \
+				src/mod_wdb2ts/configparser \
+				src/mod_wdb2ts/configparser/test \
+				src/miutil \
+				src/webFW \
+				src/util \
+				src/mod_wdb2ts/test \
+				src/webFW/test \
+				src/miutil/test \
+				test/wdb2tsget "
 
 #						src/mod_wdb2ts/configparser \
 #-----------------------------------------------------------------------------

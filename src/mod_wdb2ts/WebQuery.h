@@ -7,6 +7,7 @@
 #include <string>
 #include <list>
 #include <LocationPoint.h>
+#include <QueryMaker.h>
 
 namespace wdb2ts {
 
@@ -24,10 +25,12 @@ class WebQuery {
 	bool isPolygon_;
 	bool nearestLand_;
 	int skip_;
+	std::string urlQuery_;
+	Level       level_;
 
 	static boost::posix_time::ptime
 	decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError );
-
+	static Level decodeLevel( const std::string &lvl );
 	
 public:
 	WebQuery( const std::string &queryToDecode );
@@ -36,6 +39,7 @@ public:
 			  const boost::posix_time::ptime &to,
 			  const boost::posix_time::ptime &reftime,
 			  const std::string &dataprovider,
+			  const Level level=Level(),
 			  bool isPolygon = false,
 			  int skip=0,
 			  bool nearestLand = false );
@@ -44,8 +48,10 @@ public:
 	/**
 	 * @exception logic_error
 	 */	
-	static WebQuery decodeQuery( const std::string &queryToDecode );
+	static WebQuery decodeQuery( const std::string &queryToDecode,
+	                             const std::string &path="" );
 
+	std::string urlQuery() const { return urlQuery_; }
 	bool isValid()const;
 	bool isPolygon()const { return isPolygon_; }
 	
@@ -59,6 +65,7 @@ public:
 	std::string dataprovider() const { return dataprovider_; }
 	int skip()const{ return skip_; }
 	bool nearestLand()const { return nearestLand_; }
+	Level getLevel()const { return level_; }
 };
 
 

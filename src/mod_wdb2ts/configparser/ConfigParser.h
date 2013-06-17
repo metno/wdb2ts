@@ -49,14 +49,20 @@ class ConfigParser : public miutil::SAXParser
 	boost::shared_ptr<RequestConf> currentRequestVersion;
 	Config::QueryDefs::iterator itCurrentQueryDef;
 	std::string currentQueryDefWdbdb;
-	ParamDef currentParamDef;
 	bool currentQueryProbe;
 	bool currentQueryStopIfData;
+	ParamDefConfig currentParamDefConfig;
+	ParamDef currentParamDef;
 	std::string currentParamDefsId;
+	bool currentParamDefOverrid;
 	std::string currentQueryWdbdb;
 	std::list<std::string> currentParamDefProvider;
+	int recursionDepth; //Used to break out of circular reading of configuration files.
+	std::string basedir;
 	
+	std::string checkPath( const std::string &filename );
 	bool mergeConfig( Config *config );
+	Config* readFile( const std::string &filename );
 	bool doInclude( const AttributeMap &atributes );
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );
 	bool doRequestActionParam( const AttributeMap &attributes, ActionParam &actionParam );
@@ -65,7 +71,8 @@ class ConfigParser : public miutil::SAXParser
 	bool doRequestVersion( const AttributeMap &attributes );
 	void doQuery( const AttributeMap &attributes );
 	bool doQueryDef( const AttributeMap &attributes );
-   bool doParamDef( const AttributeMap &attributes );
+	bool doParamDef( const AttributeMap &attributes );
+   bool doParamDefs( const AttributeMap &attributes );
    bool doValueParameter( const AttributeMap &attributes );
    bool doLevelParameter( const AttributeMap &attributes );
    bool doValue(  const AttributeMap &attributes );
@@ -74,6 +81,7 @@ class ConfigParser : public miutil::SAXParser
    
 public:
 	ConfigParser();
+	ConfigParser( const std::string &basedir );
 	~ConfigParser();
 	
 	virtual void characters( const std::string &buf );
@@ -81,6 +89,8 @@ public:
 		  	                     const AttributeMap &atributes );
 	virtual void endElement( const std::string &name );
 	
+	void setBasedir( const std::string basedir );
+	std::string getBasedir()const;
 	Config* parseFile( const std::string &filename );
 	Config* parseBuf( const std::string &buf );
 };

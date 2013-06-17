@@ -47,6 +47,7 @@
 #include <NearestHeight.h>
 #include <WebQuery.h>
 #include <ProviderList.h>
+#include <ConfigUtils.h>
 
 namespace wdb2ts {
 
@@ -126,6 +127,8 @@ private:
    bool                wciProtocolIsInitialized;
    int                 wciProtocol;
    int                 expireRand; //Randomize the expire header. Default 120s.
+   OutputParams        outputParams;
+   NoDataResponse      noDataResponse;
    boost::mutex        mutex; 
    
   	

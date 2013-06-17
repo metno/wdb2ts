@@ -32,7 +32,6 @@ EXTRA_DIST=				etc/metno-wdb2ts.conf.template.in \
 			           	etc/metno-wdb2ts-db.conf.template.in \
 			           	etc/metno-wdb2ts-conf.xml.template.in \
 			           	etc/qbSymbols.def.in \
-			           	metlibs-3.3.0-20100326.tar.gz \
 			           	README.debian
 
 if HAS_WDB2TS_CONFIGDIR
@@ -81,10 +80,10 @@ include src/mod_wdb2ts/wdb2ts.mk
 
 include test/unit/wdb2ts.mk
 include test/wdb2tsget/wdb2ts.mk
-include src/mod_wdb2ts/test/wdb2ts.mk
 include src/mod_wdb2ts/configparser/test/wdb2ts.mk
 include src/webFW/test/wdb2ts.mk
 include src/miutil/test/wdb2ts.mk
+include src/mod_wdb2ts/test/wdb2ts.mk
 
 #-----------------------------------------------------------------------------
 # Installation Hooks

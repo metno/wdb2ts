@@ -1,3 +1,123 @@
+metno-wdb2ts (1.2.0~rc3) unstable; urgency=low
+  * Bugfix and adjust the support for requesting data for a specific provider and height level.
+        
+ -- Borge Moe <borge.moe@met.no>  Tue, 9 Apr 2013 15:00:00 +0200
+
+metno-wdb2ts (1.2.0~rc2) unstable; urgency=low
+  * Added support for requesting data for a specific provider and height level.
+        
+ -- Borge Moe <borge.moe@met.no>  Wed, 3 Apr 2013 14:30:00 +0100
+
+metno-wdb2ts (1.2.0~rc1) unstable; urgency=low
+  * New rc.
+  * Added config option for the "return type" of "no data" for a location. 
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 12 Feb 2013 09:30:00 +0100
+
+
+metno-wdb2ts (1.1.0) unstable; urgency=low
+  * New release.
+  * No change since 1.0.5~rc5, but changed the version number from 1.0.5 to 1.1.0. 
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 28 Nov 2012 08:30:00 +0100
+
+
+metno-wdb2ts (1.0.5~rc5) unstable; urgency=low
+  * Update the parameter names and xml-tag to be more consistent.
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 20 Nov 2012 17:00:00 +0100
+
+metno-wdb2ts (1.0.5~rc4) unstable; urgency=low
+  * Rename dewpoint temperature to dewpointTemperature in locationforecast.
+      
+ -- Borge Moe <borge.moe@met.no>  Wed, 07 Nov 2012 10:30:00 +0100
+
+metno-wdb2ts (1.0.5~rc3) unstable; urgency=low
+  * New parameters for oceanforcast, mox.
+  * Add config option for to controll the output of the new parameters, mox.
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 18 Oct 2012 15:00:00 +0200
+
+
+metno-wdb2ts (1.0.5~rc2) unstable; urgency=low
+  * Add debug commetn about wet bulb temperature to the output xml.
+      
+ -- Borge Moe <borge.moe@met.no>  Fri, 21 Sep 2012 10:15:00 +0200
+
+metno-wdb2ts (1.0.5~rc1) unstable; urgency=low
+  * Use wet bulb temperature to compute the aggregate state of precipitation in symbols. 
+  * Log where wet bulb temerature make a change in its own logfile.
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 20 Sep 2012 15:30:00 +0200
+
+metno-wdb2ts (1.0.4-1) unstable; urgency=low
+  * New release.
+  * No changes since 1.0.4~rc4.
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 25 Jun 2012 07:30:00 +0200
+
+
+metno-wdb2ts (1.0.4~rc4) unstable; urgency=low
+  * Add a comment into output xml if the symbol is corrected.
+    The comment is only written to the output if the debuglevel
+    for the "encode" logger is greater or equal to 'info'.
+      
+ -- Borge Moe <borge.moe@met.no>  Wed, 20 Jun 2012 10:30:00 +0200
+
+
+metno-wdb2ts (1.0.4~rc3) unstable; urgency=low
+  * Correct the symbol to at least PartlyCloud if the symbol is generated
+    to be Sun or LightCloud and there is a "probability" for rain.
+      
+ -- Borge Moe <borge.moe@met.no>  Fri, 15 Jun 2012 09:15:00 +0200
+
+
+metno-wdb2ts (1.0.4~rc2) unstable; urgency=low
+  * Set NEAREST as default point interpolation method.
+      
+ -- Borge Moe <borge.moe@met.no>  Wed, 11 Jan 2012 11:00:00 +0100
+
+metno-wdb2ts (1.0.4~rc1) unstable; urgency=low
+  * Fix nearest land time interpolation.
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 30 Aug 2011 08:50:00 +0200
+
+
+metno-wdb2ts (1.0.3) unstable; urgency=low
+  * New release 1.0.3. No changes since rc2.
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 22 Aug 2011 09:50:00 +0200
+
+
+metno-wdb2ts (1.0.3~rc2) unstable; urgency=low
+  * New release candidate with the fixes in 1.0.2.1 merged in.
+  * Make it compile when used with boost 1.33.1.
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 11 Aug 2011 14:30:00 +0200
+
+metno-wdb2ts (1.0.2.1~rc1) unstable; urgency=low
+  * Fix a segmentation fault in the consitent check of thunder symbols.
+  * Return 503 when an empty xml is generated.
+  * Return 503 when all db connection is in use. 
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 07 Jul 2011 19:21:00 +0200
+
+metno-wdb2ts (1.0.3~rc1) unstable; urgency=low
+  * Implement dynamic precipitation limits.
+  * Minor change in the shower precipitation algorithm.  
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 05 Jul 2011 10:30:00 +0200
+
+metno-wdb2ts (1.0.2) unstable; urgency=low
+  * New release 1.0.2. No changes since rc6. 
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 04 Jul 2011 06:45:00 +0200
+
+metno-wdb2ts (1.0.2~rc6-1) unstable; urgency=low
+  * Reverse the direction for consistent check of thunder symbols.
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 30 Jun 2011 17:45:00 +0200
+
 metno-wdb2ts (1.0.2~rc5-1) unstable; urgency=low
   * Added consistent check for thunder symbols.
       

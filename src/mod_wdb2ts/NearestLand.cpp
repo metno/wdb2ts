@@ -269,8 +269,11 @@ correctValue( const boost::posix_time::ptime &time,
    static const boost::posix_time::time_duration c18(18,0,0);
    static const boost::posix_time::time_duration c24(24,0,0);
    float retVal;
-   boost::posix_time::ptime lt = miutil::geologicalLocalTime( time, longitude );
-   boost::posix_time::time_duration clock=lt.time_of_day();
+   //boost::posix_time::ptime lt = miutil::geologicalLocalTime( time, longitude );
+   //boost::posix_time::time_duration clock=lt.time_of_day();
+
+   boost::posix_time::ptime utc = boost::posix_time::second_clock::universal_time();
+   boost::posix_time::time_duration clock=utc.time_of_day();
 
    if( clock>=c12 && clock <= c18 ) { //12-18
       retVal = t1;

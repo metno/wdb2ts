@@ -61,45 +61,10 @@ Config::
 addParamDef( const std::string &paramdefId,
              const wdb2ts::ParamDef    &pd,
              const std::list<std::string> &provider,
+             bool replace,
              std::ostream &err )
 {
-   if( paramdefId.empty() ) {
-      if( provider.empty() ) {
-         if( ! paramDefs.addParamDef( pd, "" ) ) {
-            err << "addParam: ParamDef '" << pd.alias() << "' provider: 'default' allready defined.";
-            return false;
-         }
-      } else {
-         for( std::list<std::string>::const_iterator it = provider.begin();
-              it != provider.end();
-              ++it )
-         {
-            if( ! paramDefs.addParamDef( pd, *it ) ) {
-               err << "addParam: ParamDef '" << pd.alias() <<"' provider: '" << *it << "' allready defined.";
-               return false;
-            }
-         }
-      }
-   } else {
-      if( provider.empty() ) {
-          if( ! idParamDefs[paramdefId].addParamDef( pd, "" ) ) {
-             err << "addParam: ParamDef '" << pd.alias() << "' provider: 'default' allready defined.";
-             return false;
-          }
-       } else {
-          for( std::list<std::string>::const_iterator it = provider.begin();
-               it != provider.end();
-               ++it )
-          {
-             if( ! idParamDefs[paramdefId].addParamDef( pd, *it ) ) {
-                err << "addParam: ParamDef '" << pd.alias() << "' provider: '" << *it << "' allready defined.";
-                return false;
-             }
-          }
-       }
-   }
-
-   return true;
+	return paramdef.addParamDef( paramdefId, pd, provider, replace, err );
 }
 
 
@@ -142,27 +107,7 @@ merge( Config *other, std::ostream &err, const std::string &file )
       querys[ it->first ] = it->second;
    }
 
-   for( wdb2ts::ParamDefList::iterator pit =other->paramDefs.begin();
-        pit != other->paramDefs.end();
-        ++pit ) {
-      wdb2ts::ParamDefList::iterator pitTmp = paramDefs.find( pit->first );
-
-      //No params is defined for provider pit->first.
-      if( pitTmp == paramDefs.end() ) {
-         paramDefs[ pit->first ] = pit->second;
-         continue;
-      }
-
-      for( std::list<wdb2ts::ParamDef>::const_iterator it = pit->second.begin();
-           it != pit->second.end();
-           ++it ) {
-         if( ! paramDefs.addParamDef( *it, pit->first ) ) {
-            err << "WARNING: paramdef <" << it->alias()
-                << "> allready defined. Ignoring redefinition in file <"
-                << file << ">." << endl;
-         }
-      }
-   }
+   paramdef.merge( &other->paramdef, false );
 
    return true;
 }
@@ -190,8 +135,9 @@ operator<<( std::ostream& output, const Config& res)
 	}
 	
 	output << endl << endl << "------------------  ParamDefs -----------------------------------" << endl;
-	for( wdb2ts::ParamDefList::const_iterator pit=res.paramDefs.begin();
-	     pit != res.paramDefs.end();
+	wdb2ts::ParamDefList paramDefs = res.paramdef.paramDefs();
+	for( wdb2ts::ParamDefList::const_iterator pit=paramDefs.begin();
+	     pit != paramDefs.end();
 	     ++pit )
 	{
 		for( std::list<wdb2ts::ParamDef>::const_iterator it = pit->second.begin();

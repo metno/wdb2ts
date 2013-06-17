@@ -30,7 +30,7 @@
 
 std::string& 
 miutil::
-replace(std::string &str, const std::string &what, const std::string &with, int nToReplace )
+replaceString(std::string &str, const std::string &what, const std::string &with, int nToReplace )
 {
 	int nCount = nToReplace;
 	std::string::size_type pos=str.find(what);
@@ -44,5 +44,25 @@ replace(std::string &str, const std::string &what, const std::string &with, int 
 		pos=str.find(what, pos+with.length());
 	}
 	
+	return str;
+}
+
+std::string
+miutil::
+replaceStringCopy( const std::string &str_, const std::string &what, const std::string &with, int nToReplace )
+{
+	std::string str( str_ );
+	int nCount = nToReplace;
+	std::string::size_type pos=str.find(what);
+
+	while( pos!=std::string::npos ){
+		if( nToReplace >0 && nCount == 0 )
+			break;
+
+		--nCount;
+		str.replace(pos, what.length(), with);
+		pos=str.find(what, pos+with.length());
+	}
+
 	return str;
 }

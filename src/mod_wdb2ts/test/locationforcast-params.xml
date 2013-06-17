@@ -1,0 +1,400 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+	<paramdefs>
+	  <paramdef id="TOPOGRAPHY" provider="statkart.no">
+	    <valueparameter name="altitude" unit="m" />
+	    <levelparameter name="height above reference ellipsoid" unit="m" from="0" to="0" />
+	    <value scale="1.0" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+	    <dataversion version="-1" /> <!-- Optional: default value="-1"-->
+	  </paramdef>
+
+	  <paramdef id="MODEL.TOPOGRAPHY">
+	    <valueparameter name="geopotential height" unit="m" />
+	    <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	    <value scale="1.0" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+	    <dataversion version="-1" /> <!-- Optional: default value="-1"-->
+	  </paramdef>
+	  
+	  <paramdef id="MODEL.TOPOGRAPHY" dataprovider="ecmwf atmospheric">
+	    <valueparameter name="geopotential" unit="m2/s2" />
+	    <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	    <value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+	    <dataversion version="-1" /> <!-- Optional: default value="-1"-->
+	  </paramdef>
+
+	  <paramdef id="MODEL.TOPOGRAPHY" dataprovider="yr corrected">
+	    <valueparameter name="geopotential height" unit="m"/>
+	    <levelparameter name="height above ground" unit="m" from="0" to="0"/>
+	    <value scale="1.0" offset="0.0" null="lt:-420"/>
+	    <dataversion version="-1"/>
+	  </paramdef>
+
+	  <paramdef id="T.2M.NO_ADIABATIC_HIGHT_CORRECTION" dataprovider="yr corrected">
+	    <valueparameter name="air temperature" unit="K"/>
+	    <levelparameter name="height above ground" unit="m" from="2" to="2"/>
+	    <value scale="1.0" offset="-273.15"/>
+	  </paramdef>
+	    <!-- ECEPS -->
+      <paramdef id="PRECIP.PROBABILITY.5,0MM">
+		<valueparameter name="probability of precipitation >5.0mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+      </paramdef>
+	  <paramdef id="PRECIP.PROBABILITY.2,0MM">
+		<valueparameter name="probability of precipitation >2.0mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PROBABILITY.1,0MM">
+	    <valueparameter name="probability of precipitation >1.0mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PROBABILITY.0,5MM">
+		<valueparameter name="probability of precipitation >0.5mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PROBABILITY.0,2MM">
+		<valueparameter name="probability of precipitation >0.2mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PROBABILITY.0,1MM">
+		<valueparameter name="probability of precipitation >0.1mm" unit="%" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PERCENTILE.10">
+		<valueparameter name="10th percentile of precipitation amount" unit="kg/m2" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1000.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PERCENTILE.25">
+		<valueparameter name="25th percentile of precipitation amount" unit="kg/m2" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1000.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PERCENTILE.50">
+		<valueparameter name="50th percentile of precipitation amount" unit="kg/m2" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1000.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PERCENTILE.75">
+		<valueparameter name="75th percentile of precipitation amount" unit="kg/m2" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1000.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="PRECIP.PERCENTILE.90">
+		<valueparameter name="90th percentile of precipitation amount" unit="kg/m2" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1000.0" offset="0.0" />
+	  </paramdef>
+	  <paramdef id="SYMBOL">
+        <valueparameter name="yr weather symbol" unit="" />
+        <levelparameter name="height above ground" unit="" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="SYMBOL.PROBABILITY">
+        <valueparameter name="probability of yr weather symbol" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+	  <paramdef id="WIND.PROBABILITY">
+        <valueparameter name="probability of wind speed" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+	  <paramdef id="T.2M.PROBABILITY.1">
+        <valueparameter name="probability of air temperature +/-1.5" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="T.2M.PROBABILITY.2">
+        <valueparameter name="probability of air temperature +/-2.5" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+	  <paramdef id="T.2M.PROBABILITY.3">
+        <valueparameter name="probability of temperature +/-3" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="T.2M.PROBABILITY.4">
+        <valueparameter name="probability of temperature +/-4" unit="%" />
+        <levelparameter name="height above ground" unit="m" from="0" to="0" />
+        <value scale="1.0" offset="0.0" /> 
+      </paramdef>
+      <paramdef id="T.2M.PERCENTILE.10">
+		<valueparameter name="10th percentile of air temperature" unit="K" />
+		<levelparameter name="height above ground" unit="m" from="0" to="0" />
+		<value scale="1.0" offset="-273.15" /> 
+	  </paramdef>
+	 <paramdef id="T.2M.PERCENTILE.25">
+	   <valueparameter name="25th percentile of air temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="-273.15" /> 
+	 </paramdef>
+	 <paramdef id="T.2M.PERCENTILE.50">
+	   <valueparameter name="50th percentile of air temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="-273.15" /> 
+	 </paramdef>
+	 <paramdef id="T.2M.PERCENTILE.75">
+	   <valueparameter name="75th percentile of air temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="-273.15" /> 
+	 </paramdef>
+	 <paramdef id="T.2M.PERCENTILE.90">
+	   <valueparameter name="90th percentile of air temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="-273.15" /> 
+	 </paramdef>
+	 <paramdef id="PRECIP.ACCUMULATED">
+	   <valueparameter name="lwe thickness of precipitation amount" unit="m" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1000.0" offset="0.0" />
+	 </paramdef>
+     <paramdef id="PRECIP.1H">
+       <valueparameter name="lwe thickness of precipitation amount" unit="m" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1000.0" offset="0.0" />
+     </paramdef>
+	 <paramdef id="FOG">
+	   <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="1000" to="1000" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="TOTAL.CLOUD">
+	   <valueparameter name=" cloud area fraction" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="1000" to="1000" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="LOW.CLOUD">
+	   <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="850" to="850" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="MEDIUM.CLOUD">
+	   <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="500" to="500" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="HIGH.CLOUD">
+	   <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="300" to="300" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="RH.2M">
+	   <valueparameter name="relative humidity" unit="%" />
+	   <levelparameter name="height above ground" unit="m" from="2" to="2" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="WIND.U10M">
+	   <valueparameter name="x wind" unit="m/s" />
+	   <levelparameter name="height above ground" unit="m" from="10" to="10" />
+	 </paramdef>
+	 <paramdef id="WIND.V10M">
+	   <valueparameter name="y wind" unit="m/s" />
+	   <levelparameter name="height above ground" unit="m" from="10" to="10" />
+	 </paramdef>
+	 <paramdef id="WIND.U10M" dataprovider="pgen_probability">
+	   <valueparameter name="x wind" unit="m/s" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	 </paramdef>
+	 <paramdef id="WIND.V10M" dataprovider="pgen_probability">
+	   <valueparameter name="y wind" unit="m/s" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	 </paramdef>
+	 	
+	 <paramdef id="MSLP">
+	   <valueparameter name="air pressure at sea level" unit="Pa" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="0.01" offset="0.0" />
+	 </paramdef>
+
+     <paramdef id="T.2M">
+       <valueparameter name="air temperature" unit="K" />
+       <levelparameter name="height above ground" unit="m" from="2" to="2" />
+       <value scale="1.0" offset="-273.15" />
+     </paramdef>
+	 <paramdef id="T.2M.LAND">
+	   <valueparameter name="air temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="2" to="2" />
+	   <value scale="1.0" offset="-273.15" />
+     </paramdef>
+	 <paramdef id="FOG.PROBABILITY">
+       <valueparameter name="proportion of fog probability" unit="ratio" />
+       <levelparameter name="height above ground" unit="" from="1000" to="1000" />
+       <value scale="1.0" offset="0.0" />
+     </paramdef>
+      <paramdef id="T.2M.NO_ADIABATIC_HIGHT_CORRECTION" dataprovider="inversion">
+		<valueparameter name="air temperature" unit="K" />
+		<levelparameter name="height above ground" unit="m" from="2" to="2" />
+		<value scale="1.0" offset="-273.15" />
+     </paramdef>
+
+	 <!-- ecmwf felt parameters -->
+     <paramdef id="MODEL.TOPOGRAPHY" dataprovider="ecmwf atmospheric">
+       <valueparameter name="geopotential height specific energy" unit="m2/s2" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+       <value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+       <dataversion version="-1" /> <!-- Optional: default value="-1"-->
+     </paramdef>
+
+     <paramdef id="T.2M" dataprovider="ecmwf atmospheric">
+       <valueparameter name="air temperature" unit="K" />
+       <levelparameter name="height above ground" unit="m" from="2" to="2" />
+       <value scale="1.0" offset="-273.15" />
+     </paramdef>
+     <paramdef id="RH.2M" dataprovider="ecmwf atmospheric">
+       <valueparameter name="relative humidity" unit="%" />
+       <levelparameter name="isobaric surface" unit="Pa" from="1000" to="1000" />
+       <value scale="1.0" offset="0.0" /> 
+     </paramdef>
+     <paramdef id="MSLP" dataprovider="ecmwf atmospheric">
+       <valueparameter name="air pressure at sea level" unit="Pa" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+       <value scale="0.01" offset="0.0" />
+     </paramdef>
+     <paramdef id="WIND.U10M" dataprovider="ecmwf atmospheric">
+       <valueparameter name="x wind" unit="m/s" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+     </paramdef>
+     <paramdef id="WIND.V10M" dataprovider="ecmwf atmospheric">
+       <valueparameter name="y wind" unit="m/s" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+     </paramdef>
+     <paramdef id="TOTAL.CLOUD" dataprovider="ecmwf atmospheric">
+       <valueparameter name=" cloud area fraction" unit="%" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+       <value scale="1.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="LOW.CLOUD" dataprovider="ecmwf atmospheric">
+       <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+       <levelparameter name="atmosphere sigma coordinate" unit="none" from="801" to="999" />
+       <value scale="1.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="MEDIUM.CLOUD" dataprovider="ecmwf atmospheric">
+       <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+       <levelparameter name="atmosphere sigma coordinate" unit="none" from="451" to="800" />
+       <value scale="1.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="HIGH.CLOUD" dataprovider="ecmwf atmospheric">
+       <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+       <levelparameter name="atmosphere sigma coordinate" unit="none" from="0" to="450" />
+       <value scale="1.0" offset="0.0" />
+     </paramdef>
+	 <paramdef id="FOG" dataprovider="ecmwf atmospheric">
+	   <valueparameter name="cloud area fraction in atmosphere layer" unit="%" />
+	   <levelparameter name="atmosphere sigma coordinate" unit="none" from="1000" to="1000" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+     <paramdef id="PRECIP.ACCUMULATED" dataprovider="ecmwf atmospheric">
+       <valueparameter name="precipitation amount" unit="kg/m2" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1000.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="PRECIP.1H" dataprovider="ecmwf atmospheric">
+       <valueparameter name="precipitation amount" unit="kg/m2" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+     </paramdef> -->
+	 <paramdef id="T.DEWPOINT" dataprovider="ecmwf atmospheric">
+	   <valueparameter name="dew point temperature" unit="K" />
+	   <levelparameter name="height above ground" unit="m" from="2" to="2" />
+       <value scale="1.0" offset="-273.15" />
+	 </paramdef> 
+
+	 <!-- PGEN_PROBABILITY -->
+     <paramdef id="MODEL.TOPOGRAPHY" dataprovider="pgen_probability">
+       <valueparameter name="geopotential height specific energy" unit="m2/s2" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+       <value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+       <dataversion version="-1" /> <!-- Optional: default value="-1"-->
+     </paramdef>
+
+     <paramdef id="T.2M" dataprovider="pgen_probability">
+         <valueparameter name="air temperature" unit="K" />
+         <levelparameter name="height above ground" unit="m" from="0" to="0" />
+         <value scale="1.0" offset="-273.15" />
+        </paramdef>
+     <paramdef id="RH.2M" dataprovider="pgen_probability">
+       <valueparameter name="relative humidity" unit="ratio" />
+       <levelparameter name="isobaric surface pressure" unit="Pa" from="1000" to="1000" />
+       <value scale="100.0" offset="0.0" /> 
+     </paramdef>
+     <paramdef id="MSLP" dataprovider="pgen_probability">
+       <valueparameter name="air pressure at sea level" unit="Pa" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+       <value scale="0.01" offset="0.0" />
+     </paramdef>
+     <paramdef id="WIND.U10M" dataprovider="pgen_probability">
+       <valueparameter name="x wind" unit="m/s" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+     </paramdef>
+     <paramdef id="WIND.V10M" dataprovider="pgen_probability">
+       <valueparameter name="y wind" unit="m/s" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+     </paramdef>
+        <paramdef id="TOTAL.CLOUD" dataprovider="pgen_probability">
+        <valueparameter name=" cloud area fraction" unit="ratio" />
+        <levelparameter name="height above ground" unit="" from="0" to="0" />
+        <value scale="1.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="LOW.CLOUD" dataprovider="pgen_probability">
+       <valueparameter name="cloud area fraction in atmosphere layer" unit="ratio" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+       <value scale="100.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="MEDIUM.CLOUD" dataprovider="pgen_probability">
+       <valueparameter name="cloud area fraction in atmosphere layer" unit="ratio" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+       <value scale="100.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="HIGH.CLOUD" dataprovider="pgen_probability">
+       <valueparameter name="high cloud cover" unit="ratio" />
+       <levelparameter name="height above ground" unit="" from="0" to="0" />
+       <value scale="100.0" offset="0.0" />
+     </paramdef>
+     <paramdef id="PRECIP.ACCUMULATED" dataprovider="pgen_probability">
+       <valueparameter name="lwe thickness of precipitation amount" unit="m" />
+       <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1000.0" offset="0.0" />
+     </paramdef>
+	 <paramdef id="SYMBOL" dataprovider="pgen_probability">
+	   <valueparameter name="yr weather symbol" unit="none" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="0.0" /> 
+	 </paramdef>
+     
+     <!-- Post processed precipitation values -->
+	 <paramdef id="PRECIP.MIN">
+	   <valueparameter name="local 20th percentile of precipitation amount" unit="kg/m2" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+
+	 <paramdef id="PRECIP.MAX">
+	   <valueparameter name="local 80th percentile of precipitation amount" unit="kg/m2" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+        
+	 <paramdef id="PRECIP.MEAN">
+	   <valueparameter name="local 50th percentile of precipitation amount" unit="kg/m2" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+         
+	 <paramdef id="PRECIP.PROBABILITY">
+	   <valueparameter name="probability of precipitation" unit="ratio" />
+	   <levelparameter name="height above ground" unit="m" from="1000" to="1000" />
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+	 <paramdef id="THUNDER.PROBABILITY">
+	   <valueparameter name="thunderstorm probability" unit="%" />
+	   <levelparameter name="height above ground" unit="m" from="0" to="0"/>
+	   <value scale="1.0" offset="0.0" />
+	 </paramdef>
+   </paramdefs>
+</wdb2ts>

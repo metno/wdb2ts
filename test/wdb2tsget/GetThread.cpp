@@ -87,7 +87,10 @@ operator()()
 		if( ! http.get( request, out ) ) {
 			cout << "FAILED: t: " << id << " : " << request << endl;
 			results->nFailed++;
-		} else if( http.returnCode() != 200 ) {
+		} else if( http.returnCode() == 503 ) {
+		   cout << "UNAVAILABLE t: " << id << " : code: " << http.returnCode() << " req: " << request << endl;
+		   results->unavailable++;
+		}else if( http.returnCode() != 200 ) {
 			cout << "FAILED: t: " << id << " : code: " << http.returnCode() << " req: " << request << endl;
 			results->nFailed++;
 		} else {

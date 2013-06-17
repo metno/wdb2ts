@@ -77,22 +77,63 @@ struct ParamDef {
 		levelTo = INT_MIN;
 		valueScale = 1.0f;
 		valueOffset = 0.0f;
-      dataVersion = -1;
-      compare = wdb2ts::ParamDef::undef;
-      compareValue = INT_MAX;
+        dataVersion = -1;
+        compare = wdb2ts::ParamDef::undef;
+        compareValue = INT_MAX;
 	}
 	
-	bool valid() {
+	bool valid( bool ignoreLevelParameters ) {
+
 		if( id.asString("").empty() ||
-			 valueparameterName.asString("").empty() ||
-			 levelName.asString("").empty() ||
-			 levelFrom == INT_MIN || levelTo == INT_MIN )
+			valueparameterName.asString("").empty() )
 			return false;
+
+		if( ! ignoreLevelParameters )
+			return hasLevelDef();
+
 		return true;
 	}
 	
+	bool hasLevelDef()const {
+		return levelName.defined() && levelUnit.defined() &&
+			   levelFrom != INT_MIN && levelTo != INT_MIN;
+	}
 };
 
+struct ParamDefConfig {
+	typedef std::map< std::string, wdb2ts::ParamDefList > ParamDefs;
+	ParamDefs            idParamDefs;
+	//wdb2ts::ParamDefList paramDefs;
+
+	void clear();
+	/**
+	 * Add a paramdef to either paramDefs or idParamDefs.
+	 *
+	 * It is added to idParamDefs if paramdefId is set and to
+	 * paramdefs if peramdefId is not set.
+	 *
+	 * Return false if a paramdef with the same alias allready exist.
+	 * Return true if the paramdef was added to the paramsDefs.
+	 */
+	bool
+	addParamDef( const std::string &paramdefId,
+			     const wdb2ts::ParamDef    &pd,
+		         const std::list<std::string> &provider,
+		         bool replace,
+		         std::ostream &err );
+
+	bool hasParam(  const std::string &alias,
+	                const std::string &provider,
+	                const std::string paramdefsid )const;
+
+	bool hasParamDefId( const std::string &id )const;
+	wdb2ts::ParamDefList paramDefs( const std::string paramdefsId="")const;
+
+	void merge( ParamDefConfig *other, bool replace=false );
+	friend std::ostream &operator<<(std::ostream &o, const ParamDefConfig &pd );
+
+};
+std::ostream &operator<<(std::ostream &o, const ParamDefConfig &pd );
 
 
 struct Version
@@ -156,6 +197,7 @@ public:
 	miutil::Value wdbDB;
 	miutil::Value schema;
 	Version       version;
+	ParamDefConfig paramdef;
 };
 
 

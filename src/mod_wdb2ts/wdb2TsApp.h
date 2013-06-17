@@ -69,13 +69,13 @@ public:
      * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
      *            miutill::pgpool::DbConnectionPoolCreateEx
      */
-	miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="");
+	miutil::pgpool::DbConnectionPtr newConnection( const std::string &dbid="", unsigned int timeoutInMilliSecound=2000 );
 
 	/**
 	 * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
      *            miutill::pgpool::DbConnectionPoolCreateEx
 	 */
-	WciConnectionPtr newWciConnection(const std::string &dbid="");
+	WciConnectionPtr newWciConnection( const std::string &dbid="", unsigned int timeoutInMilliSecound=2000 );
 
 	
 	ParamDefList &getParamDefs() { return paramDefs_; }
@@ -113,6 +113,8 @@ public:
     
 protected:
 	
+	void initDbPool();
+
 	virtual void initAction( webfw::RequestHandlerManager& reqHandlerMgr,
                              webfw::Logger &logger );
 	

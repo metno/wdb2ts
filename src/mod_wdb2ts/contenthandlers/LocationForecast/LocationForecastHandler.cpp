@@ -61,7 +61,8 @@
 #include <NearestLand.h>
 #include <WdbDataRequest.h>
 #include <LocationData.h>
-
+#include <configdata.h>
+#include <ConfigUtils.h>
 
 DECLARE_MI_PROFILE;
 
@@ -188,6 +189,10 @@ configure( const wdb2ts::config::ActionParam &params,
 		
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	actionParams = params;
+
+	//Create a logger file for the wetbulb logger.
+	WEBFW_CREATE_LOGGER_FILE("wetbulb");
+
 	WEBFW_USE_LOGGER( "handler" );
 	
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
@@ -204,6 +209,8 @@ configure( const wdb2ts::config::ActionParam &params,
 		}
 	}
 	
+	noDataResponse = NoDataResponse::decode( params );
+
 	it=params.find("updateid");
 	
 	if( it != params.end() )  
@@ -239,8 +246,10 @@ configure( const wdb2ts::config::ActionParam &params,
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 
 	precipitationConfig = ProviderPrecipitationConfig::configure( params, app );
-	paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
+	//paramDefsPtr_.reset( new ParamDefList( app->getParamDefs() ) );
+	paramDefsPtr_.reset( new ParamDefList( getParamdef() ) );
 	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
+	doNotOutputParams = OutputParams::decodeOutputParams( params );
 
 	return true;
 }
@@ -373,17 +382,22 @@ get( webfw::Request  &req,
 
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
-		webQuery = WebQuery::decodeQuery( req.urlQuery() );
+		webQuery = WebQuery::decodeQuery( req.urlQuery(), req.urlPath() );
 		altitude = webQuery.altitude();
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {
-		WEBFW_LOG_ERROR( ex.what() );
+		WEBFW_LOG_ERROR("get: decodeQuery: " <<  ex.what() );
 		response.errorDoc( ost.str() );
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
 	}
-     
+
+	ConfigDataPtr configData( new ConfigData() );
+	configData->url = webQuery.urlQuery();
+	configData->parameterMap = doNotOutputParams;
+	configData->throwNoData = noDataResponse.doThrow();
+
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	extraConfigure( actionParams, app );
@@ -403,7 +417,7 @@ get( webfw::Request  &req,
     		retryAfter += seconds( 30 );
     		response.serviceUnavailable( retryAfter );
     		response.status( webfw::Response::SERVICE_UNAVAILABLE );
-    		WEBFW_LOG_INFO( "INIT: Loading map file." );
+    		WEBFW_LOG_INFO( "get: INIT: Loading map file." );
     		MARK_ID_MI_PROFILE("getHight");
     		return;
     	}
@@ -471,7 +485,7 @@ get( webfw::Request  &req,
 									       topographyProviders,
 									       symbolConf,
 									       expireRand );
-
+			encode.config( configData );
          encode.schema( schema );
 			MARK_ID_MI_PROFILE("encodeXML");
 			encode.encode( response );
@@ -491,6 +505,7 @@ get( webfw::Request  &req,
 									        symbolConf,
 									        expireRand );
 			encode.schema( schema );
+			encode.config( configData );
          MARK_ID_MI_PROFILE("encodeXML");
          encode.encode( response );
          MARK_ID_MI_PROFILE("encodeXML");
@@ -509,6 +524,8 @@ get( webfw::Request  &req,
                                          symbolConf,
                                          expireRand );
 		   encode.schema( schema );
+		   encode.config( configData );
+
 			MARK_ID_MI_PROFILE("encodeXML");
 			encode.encode( response );
 			MARK_ID_MI_PROFILE("encodeXML");
@@ -519,6 +536,35 @@ get( webfw::Request  &req,
 		}
 
 	}
+	catch( const NoData &ex ) {
+	   using namespace boost::posix_time;
+
+	   if( noDataResponse.response == NoDataResponse::ServiceUnavailable ) {
+	       ptime retryAfter( second_clock::universal_time() );
+	       retryAfter += seconds( 10 );
+	       response.serviceUnavailable( retryAfter );
+	       response.status( webfw::Response::SERVICE_UNAVAILABLE );
+	       WEBFW_LOG_INFO( "ServiceUnavailable: Url: " << webQuery.urlQuery() );
+	   } else if( noDataResponse.response == NoDataResponse::NotFound ) {
+	       response.status( webfw::Response::NOT_FOUND );
+	       WEBFW_LOG_INFO( "NotFound: Url: " <<  webQuery.urlQuery()  );
+	   } else {
+	       response.status( webfw::Response::NO_ERROR );
+	       WEBFW_LOG_INFO( "Unexpected NoData exception: Url: " <<  webQuery.urlQuery()  );
+	       response.status( webfw::Response::NOT_FOUND );
+	   }
+	   return;
+	}
+	catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
+	   using namespace boost::posix_time;
+
+	   ptime retryAfter( second_clock::universal_time() );
+	   retryAfter += seconds( 10 );
+	   response.serviceUnavailable( retryAfter );
+	   response.status( webfw::Response::SERVICE_UNAVAILABLE );
+	   WEBFW_LOG_INFO( "get: Database not available or heavy loaded." );
+	   return;
+	}
 	catch( const WdbDataRequestManager::ResourceLimit &ex )
 	{
 		using namespace boost::posix_time;
@@ -527,7 +573,7 @@ get( webfw::Request  &req,
 		retryAfter += seconds( 10 );
 		response.serviceUnavailable( retryAfter );
 		response.status( webfw::Response::SERVICE_UNAVAILABLE );
-		WEBFW_LOG_INFO( "Database not available or heavy loaded." );
+		WEBFW_LOG_INFO( "get: RequestManager: Database not available or heavy loaded." );
 		return;
 	}
 	catch( const webfw::IOError &ex ) {
@@ -554,6 +600,7 @@ get( webfw::Request  &req,
 		WEBFW_LOG_ERROR( "get: std::exception: " << ex.what() );;
 	}
 	catch( ... ) {
+	   WEBFW_LOG_ERROR( "get: .... Unexpected exception." );;
 		response.errorDoc("Unexpected exception!");
     	response.status( webfw::Response::INTERNAL_ERROR );
 	}

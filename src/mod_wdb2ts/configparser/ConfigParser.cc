@@ -28,6 +28,7 @@
 
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <readfile.h>
 #include <ConfigParser.h>
 #include <trimstr.h>
@@ -42,8 +43,16 @@ using namespace std;
 
 ConfigParser::
 ConfigParser()
-	:config( 0 ), inChardata( false )
+	:config( 0 ), inChardata( false ), recursionDepth( 0 ),
+	 basedir( WDB2TS_DEFAULT_SYSCONFDIR )
 	 
+{
+}
+
+ConfigParser::
+ConfigParser( const std::string &basedir_ )
+	: config( 0 ), inChardata( false ), recursionDepth( 0 ),
+      basedir( basedir_ )
 {
 }
 
@@ -72,34 +81,107 @@ mergeConfig( Config *config )
    return false;
 }
 
+std::string
+ConfigParser::
+checkPath( const std::string &filename )
+{
+	string file( filename );
+
+	//If the filename is NOT an absolute path we
+	//prepend the basedir path to the file. The
+	//default basedir is SYSCONF path.
+	//The basedir path must be an absolute path.
+	miutil::trimstr( file );
+	if( file.size() > 0 && file[0] != '/' ) {
+		std::string confpath( basedir );
+		miutil::trimstr( confpath );
+		if( confpath.size() > 0  && confpath[0] == '/' ) {
+			if( confpath[confpath.length()-1] != '/' )
+				confpath += '/';
+			file = confpath + file;
+		} else {
+			error("Basedir '" + basedir + "' is NOT an absolute path and the file to read is not an absolute path '" + filename + "'.");
+			return "";
+		}
+	}
+
+	return file;
+}
+
+
+Config*
+ConfigParser::
+readFile( const std::string &filename )
+{
+	string file( checkPath( filename ) );
+
+	if( file.empty() ) {
+		return 0;
+	}
+
+	//cerr << "readFile: '" << file << "'.\n";
+
+	if( recursionDepth > 30 ) {
+		error( "Recursion dept error: Circular reading of configuaration files?");
+		return 0;
+	}
+
+	++recursionDepth;
+
+	ostringstream ost;
+	ConfigParser myParser( basedir );
+	myParser.recursionDepth = recursionDepth;
+
+	Config *myConfig = myParser.parseFile( file );
+	--recursionDepth;
+
+	if( ! myParser.getErrMsg().empty() ) {
+		ost << "Problems in file '" << file << "'. "
+				<<  myParser.getErrMsg() << endl << " --- End file '" << file << "'";
+		warning( ost.str() );
+		ost.str("");
+	}
+
+	if( ! myConfig ) {
+		if( recursionDepth <= 10 ) {
+			ost << "Parsing of file <" << file << "> failed.";
+			error( ost.str().c_str() );
+		}
+		return 0;
+	} else {
+		return myConfig;
+	}
+}
+
 bool
 ConfigParser::
 doInclude( const AttributeMap &attributes )
 {
-   std::string file;
-   if( ! getAttr( attributes, "file", file ) || file.empty() ) {
-      error("Include statement. Missing mandatory attribute 'file'.");
-      return false;
-   }
+	std::string file;
 
-   ostringstream ost;
-   ConfigParser myParser;
-   Config *myConfig = myParser.parseFile( file );
+	//cerr << "doInclude called" << endl;
+	if( ! getAttr( attributes, "file", file ) || file.empty() ) {
+		error("Include statement. Missing mandatory attribute 'file'.");
+		return false;
+	}
 
+	//cerr << "Include file: '" << file << "' (" << checkPath(file)<<").\n";
+	Config *myConfig = readFile( file );
 
-   if( ! myConfig ) {
-      ost << "Parsing of file <" << file << "> failed.";
-      error( ost.str().c_str() );
-      return false;
-   } else {
-      std::auto_ptr<Config> p( myConfig ); //Delete myConfig on return.
-      if( ! config->merge( myConfig, ost, file ) ) {
-         error( ost.str() );
-         return false;
-      }
+	if( ! myConfig ) {
 
-      return true;
-   }
+		return false;
+	} else {
+		ostringstream ost;
+		std::auto_ptr<Config> p( myConfig ); //Delete myConfig on return.
+		//cerr << "Do merge!" << endl;
+		if( ! config->merge( myConfig, ost, file ) ) {
+			error( ost.str() );
+			return false;
+		}
+
+		return true;
+	}
 }
 
 void
@@ -116,7 +198,7 @@ doRequestConf( const AttributeMap &attributes, RequestConf &conf, const std::str
 		else if( it->first == "queryid" )
 			conf.queryid = it->second;
 		else if( it->first == versionAttrName )
-			conf.version = Version(it->second);
+			conf.version = Version( it->second );
 		else if( it->first == "path" )
 			continue;
 		else if( it->first == "schema")
@@ -308,10 +390,13 @@ doParamDef( const AttributeMap &attributes )
 		if( it->empty() )
 			continue;
 		
-		if(  config->paramDefs.hasParam( id, *it ) ) {
-			currentParamDefProvider.clear();
-			error("doParamDef id: '" + id + "' provider: '" + *it + "' allready defined.");
-			return false;
+
+		if(  config->paramdef.hasParam( id, *it, currentParamDefsId ) ) {
+			if( ! currentParamDefOverrid ) {
+				currentParamDefProvider.clear();
+				error("doParamDef id: '" + id + "' provider: '" + *it + "' allready defined.");
+				return false;
+			}
 		}
 		
 		currentParamDefProvider.push_back( *it );
@@ -321,7 +406,143 @@ doParamDef( const AttributeMap &attributes )
 	return true;
 }
 
+//bool
+//ConfigParser::
+//doParamDefs( const AttributeMap &attributes )
+//{
+//	string idref;
+//	vector<string> idRefs;
+//	getAttr( attributes, "id", currentParamDefsId, "" );
+//	getAttr( attributes, "idref", idref, "" );
+//
+//	currentParamDefConfig.clear();
+//
+//	if( idref.empty() )
+//		currentParamDefOverrid = false;
+//	else {
+//		currentParamDefOverrid = true;
+//		idRefs = miutil::splitstr( idref, ';');
+//	}
+//
+//	if( ! idRefs.empty() ) {
+//		currentParamDefConfig.idParamDefs[currentParamDefsId] = wdb2ts::ParamDefList();
+//
+//		for( vector<string>::iterator it=idRefs.begin();
+//			 it != idRefs.end(); ++it	)
+//		{
+//			Config *conf=0;
+//			string file;
+//			string id;
+//			string::size_type i = it->find("@");
+//			if( i != string::npos ) {
+//				id = it->substr( 0, i );
+//				file = it->substr(i+1);
+//			} else {
+//				id = *it;
+//			}
+//
+//			miutil::trimstr( id );
+//			miutil::trimstr( file );
+//			cerr << "idref: " << *it << "(" << id << "," << file << ")" << endl;
+//
+//			if( !file.empty() ) {
+//				conf = readFile( file );
+//			}
+//
+//			if( conf ) {
+//				wdb2ts::ParamDefList tmp=conf->paramdef.paramDefs( id );
+//				currentParamDefConfig.idParamDefs[currentParamDefsId].merge( &tmp, true );
+//				delete conf;
+//			}
+//		}
+//	}
+//	return true;
+//}
+
+
 bool 
+ConfigParser::
+doParamDefs( const AttributeMap &attributes )
+{
+	string idref;
+	vector<string> idRefs;
+	getAttr( attributes, "id", currentParamDefsId, "__UNDEFINED__" );
+	getAttr( attributes, "idref", idref, "" );
+
+	currentParamDefConfig.clear();
+
+	if( idref.empty() )
+		currentParamDefOverrid = false;
+	else {
+		currentParamDefOverrid = true;
+		idRefs = miutil::splitstr( idref, ';');
+	}
+
+	if( ! idRefs.empty() ) {
+		currentParamDefConfig.idParamDefs[currentParamDefsId] = wdb2ts::ParamDefList();
+
+		for( vector<string>::iterator it=idRefs.begin();
+			 it != idRefs.end(); ++it	)
+		{
+			Config *conf=0;
+			string file;
+			string id;
+			bool allParamIds=false;
+			string::size_type i = it->find("@");
+
+			if( i != string::npos ) {
+				id = it->substr( 0, i );
+				file = it->substr(i+1);
+			} else {
+				allParamIds = true;
+				file = *it;
+			}
+
+			miutil::trimstr( id );
+			miutil::trimstr( file );
+			//cerr << "idref: " << *it << "(" << id << "," << file << ")" << endl;
+
+			if( !file.empty() ) {
+				conf = readFile( file );
+			}
+
+			if( ! conf )
+				continue;
+
+			if( allParamIds ) {
+				for( ParamDefConfig::ParamDefs::iterator pit=conf->paramdef.idParamDefs.begin();
+					 pit != conf->paramdef.idParamDefs.end(); ++pit ) {
+					wdb2ts::ParamDefList tmp=pit->second;
+					if( currentParamDefsId == "__UNDEFINED__" )
+						currentParamDefConfig.idParamDefs[pit->first].merge( &tmp, true );
+					else
+						currentParamDefConfig.idParamDefs[currentParamDefsId].merge( &tmp, true );
+				}
+			} else {
+				wdb2ts::ParamDefList tmp=conf->paramdef.paramDefs( id );
+				if( currentParamDefsId == "__UNDEFINED__" )
+					currentParamDefConfig.idParamDefs[id].merge( &tmp, true );
+				else
+					currentParamDefConfig.idParamDefs[currentParamDefsId].merge( &tmp, true );
+			}
+
+			delete conf;
+		}
+	}
+
+	//If the currentParamDefsId id undefined set it to the empty id.
+	//We could also have set it to the predefined 'default' id but,
+	//this id should be set explicit since it has a predefined meaning
+	//at the moment.
+	if( currentParamDefsId == "__UNDEFINED__" )
+		currentParamDefsId="";
+
+	return true;
+}
+
+
+
+bool
 ConfigParser::
 doValueParameter( const AttributeMap &attributes )
 {
@@ -352,8 +573,7 @@ doLevelParameter( const AttributeMap &attributes )
 	string unit;
 	string from;
 	string to;
-	miutil::Value vFrom;
-	miutil::Value vTo;
+
 	bool ret=true;
 	
 	if( ! getAttr( attributes, "name", name) || name.empty() ) {
@@ -361,44 +581,39 @@ doLevelParameter( const AttributeMap &attributes )
 		return false;
 	}
 	
-	if( ! getAttr( attributes, "unit", unit)  ) {
-		error("ParamDef id: '"+currentParamDef.id.asString()+"'. Mandatory 'levelparameter' attribute 'unit' missing.");
+	
+	if( ! getAttr( attributes, "unit", unit ) ) {
+			error("ParamDef id: '"+currentParamDef.id.asString()+"'. 'levelparameter' attribute 'unit' must be defined.");
+			return false;
+	}
+	if( ! getAttr( attributes, "from", from ) ) {
+		error("ParamDef id: '"+currentParamDef.id.asString()+"'. 'levelparameter' attribute 'from' must be defined.");
 		return false;
 	}
-	
-	if( ! getAttr( attributes, "from", from ) || from.empty() ) {
-		error("ParamDef id: '"+currentParamDef.id.asString()+"'. Mandatory 'levelparameter' attribute 'from' missing.");
+	if( ! getAttr( attributes, "to", to ) ){
+		error("ParamDef id: '"+currentParamDef.id.asString()+"'. 'levelparameter' attribute 'to' must be defined.");
 		return false;
 	}
-	
-	if( ! getAttr( attributes, "to", to ) || to.empty() ) {
-		error("ParamDef id: '"+currentParamDef.id.asString()+"'. Mandatory 'levelparameter' attribute 'to' missing.");
-		return false;
-	}
-	
-	vFrom = from;
-	vTo = to;
-	
-	try {
-			currentParamDef.levelTo = vTo.asInt();
-	}
-	catch( std::exception & ex) {
-			error("ParamDef id: '"+currentParamDef.id.asString()+"' : levelparameter invalid attribute value 'to' '"+ to + "' " + ex.what() +".");
-			ret = false;
-	}
-	
-	try {
-		currentParamDef.levelFrom = vFrom.asInt();
-	}
-	catch( std::exception & ex) {
-		error("ParamDef id: '"+currentParamDef.id.asString()+"' : levelparameter invalid attribute value 'from' '"+ from + "' " + ex.what() +".");
-		ret = false;
-	}
-	
+
 	currentParamDef.levelName = name;
 	currentParamDef.levelUnit = unit;
-	
-	return true;
+
+	string par, parVal;
+
+	try {
+		par="to"; parVal = to;
+		currentParamDef.levelTo = miutil::Value( to ).asInt();
+
+		par="from"; parVal = from;
+		currentParamDef.levelFrom = miutil::Value(from).asInt();
+	}
+	catch( std::exception & ex) {
+		error("ParamDef id: '"+currentParamDef.id.asString()+"' : levelparameter, invalid attribute value for '" + par + "' value '"
+				+ parVal +"': Reason: " + ex.what() +".");
+		ret = false;
+	}
+
+	return ret;
 }
 
 bool
@@ -514,7 +729,7 @@ addParamDef()
 		return false;
 	}
 	
-	if( ! currentParamDef.valid() ) {
+	if( ! currentParamDef.valid( true ) ) {
 		error("Some invalid values for paramdef id '"+alias+"'.");
 		currentParamDef.clear();
 		currentParamDefProvider.clear();
@@ -524,10 +739,10 @@ addParamDef()
 	wdb2ts::ParamDef pd( alias,
 			               currentParamDef.valueparameterName.asString(),
 			               currentParamDef.valueparameterUnit.asString(),
-			               currentParamDef.levelName.asString(),
+			               currentParamDef.levelName.asString(""),
 			               currentParamDef.levelFrom,
 			               currentParamDef.levelTo,
-			               currentParamDef.levelUnit.asString(),
+			               currentParamDef.levelUnit.asString(""),
 			               currentParamDef.valueScale,
 			               currentParamDef.valueOffset,
 			               currentParamDef.dataVersion,
@@ -540,7 +755,8 @@ addParamDef()
 	currentParamDefProvider.clear();
 	ostringstream err;
 
-	if( ! config->addParamDef( currentParamDefsId, pd, provider, err ) ) {
+	if( ! currentParamDefConfig.addParamDef( currentParamDefsId, pd, provider, currentParamDefOverrid, err ) )
+	{
 	   error( err.str() );
 	   return false;
 	}
@@ -595,9 +811,13 @@ startElement( const std::string &fullname,
 		doQuery( attributes );
 		inChardata = false;
 		chardata.str("");
-	} else if( xmlState == "/wdb2ts/paramdefs" ) {
-	   getAttr( attributes, "id", currentParamDefsId, "" );
-	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
+	} else if( xmlState == "/wdb2ts/paramdefs" ||
+			   xmlState == "/wdb2ts/requests/request/paramdefs" ||
+			   xmlState == "/wdb2ts/requests/request/version/paramdefs") {
+	   doParamDefs( attributes );
+	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ||
+			   xmlState == "/wdb2ts/requests/request/paramdefs/paramdef" ||
+			   xmlState == "/wdb2ts/requests/request/version/paramdefs/paramdef") {
 		doParamDef( attributes );
 	} else if( xmlState == "/wdb2ts/paramdefs/paramdef/valueparameter" ) {
 		doValueParameter( attributes );
@@ -664,10 +884,10 @@ endElement( const std::string &name )
 		itCurrentQueryDef = config->querys.end();
    } else if(xmlState == "/wdb2ts/querydefs/querydef/query" ) {
 		miutil::trimstr( buf );
-		miutil::replace(buf, "\n", "");
+		miutil::replaceString(buf, "\n", "");
 		miutil::compresSpace( buf );
-		miutil::replace(buf, " ,", ",");
-		miutil::replace(buf, "; ", ";");
+		miutil::replaceString(buf, " ,", ",");
+		miutil::replaceString(buf, "; ", ";");
 
 		if( !buf.empty() ) {
 			if( itCurrentQueryDef != config->querys.end() ){
@@ -675,8 +895,15 @@ endElement( const std::string &name )
 			}
 		}
 	} else if( xmlState == "/wdb2ts/paramdefs" ) {
-	   currentParamDefsId.erase();
-   } else if( xmlState == "/wdb2ts/paramdefs/paramdef" ) {
+		ostringstream err;
+	   config->paramdef.merge( &currentParamDefConfig, true );
+	} else if( xmlState == "/wdb2ts/requests/request/paramdefs" ) {
+		currentRequest->requestDefault.paramdef.merge( &currentParamDefConfig, true );
+	} else if( xmlState == "/wdb2ts/requests/request/version/paramdefs" ) {
+		currentRequestVersion->paramdef.merge( &currentParamDefConfig, true );
+	} else if( xmlState == "/wdb2ts/paramdefs/paramdef" ||
+		       xmlState == "/wdb2ts/requests/request/paramdefs/paramdef" ||
+		       xmlState == "/wdb2ts/requests/request/version/paramdefs/paramdef") {
 		addParamDef();
 	}else if( xmlState == "./meta/update" ) {
 
@@ -693,13 +920,29 @@ endElement( const std::string &name )
 	xmlState.pop( stateVal );	
 }
 
+void
+ConfigParser::
+setBasedir( const std::string basedir )
+{
+	this->basedir = basedir;
+}
 
+std::string
+ConfigParser::
+getBasedir()const
+{
+	return basedir;
+}
 
 Config* 
 ConfigParser::
-parseFile( const std::string &filename )
+parseFile( const std::string &filename_ )
 {
 	std::string content;
+	std::string filename( checkPath( filename_ ) );
+
+	if( filename.empty() )
+		return 0;
 	
 	try{
 		config = new Config();

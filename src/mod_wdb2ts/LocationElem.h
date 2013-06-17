@@ -38,6 +38,7 @@
 #include <PointDataHelper.h>
 #include <UpdateProviderReftimes.h>
 #include <TopoProvider.h>
+#include "configdata.h"
 
 namespace wdb2ts {
 
@@ -283,6 +284,8 @@ class LocationElem {
 public:
 	
 	~LocationElem(){};
+
+	ConfigDataPtr config;
 	
 	///Return the provider that was last used to return data.
 	std::string lastUsedProvider() const { return lastUsedProvider_; }
@@ -311,6 +314,7 @@ public:
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard=false )const;
    float temperatureCorrected( bool tryHard = false )const;
    void  temperatureCorrected( float temperature, const std::string &provider = "" );
+   float wetBulbTemperature( bool tryHard = false )const;
    float UU( bool tryHard=false )const;
    
    bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
@@ -376,9 +380,17 @@ public:
    int   symbol( boost::posix_time::ptime &fromTime, bool tryHard=false )const;
       
    
-   float iceingIndex( bool tryHard=false  )const;
+   float iceingIndex( bool tryHard=false, const std::string &provider=""  )const;
 
    /*ocean parameters.*/
+   float significantSwellWaveHeight( bool tryHard=false )const;
+   float meanSwellWavePeriode( bool tryHard=false )const;
+   float meanSwellWaveDirection( bool tryHard=false )const;
+   float peakSwellWavePeriode( bool tryHard=false )const;
+   float peakSwellWaveDirection( bool tryHard=false )const;
+   float meanTotalWavePeriode( bool tryHard=false )const;
+   float maximumTotalWaveHeight( bool tryHard=false )const;
+
    float seaCurrentVelocityU( bool tryHard=false )const; 
    float seaCurrentVelocityV( bool tryHard=false )const;
    float seaSalinity( bool tryHard=false )const;
@@ -427,6 +439,10 @@ struct PartialData {
    float highCloud;
    float fog;
    float temperatureCorrected;
+   float wetBulbTemperature;
+   float latitude;
+   float longitude;
+   ConfigDataPtr config;
    boost::posix_time::ptime time;
 
    PartialData()
@@ -435,7 +451,10 @@ struct PartialData {
         mediumCloud( FLT_MAX ),
         highCloud( FLT_MAX ),
         fog( FLT_MAX ),
-        temperatureCorrected( FLT_MAX )
+        temperatureCorrected( FLT_MAX ),
+        wetBulbTemperature( FLT_MAX ),
+        latitude( FLT_MAX ),
+        longitude( FLT_MAX )
    {}
 
    PartialData( const LocationElem &elem ) {
@@ -445,7 +464,12 @@ struct PartialData {
       highCloud = elem.highCloud();
       fog = elem.fog();
       temperatureCorrected = elem.temperatureCorrected();
+      wetBulbTemperature = elem.wetBulbTemperature();
+      latitude = elem.latitude();
+      longitude = elem.longitude();
+      config = elem.config;
       time = elem.time();
+
    }
    PartialData( const PartialData &pd )
       : totalCloud( pd.totalCloud ),
@@ -454,9 +478,17 @@ struct PartialData {
         highCloud( pd.highCloud ),
         fog( pd.fog ),
         temperatureCorrected( pd.temperatureCorrected ),
+        wetBulbTemperature( pd.wetBulbTemperature ),
+        latitude( pd.latitude ),
+        longitude( pd.longitude ),
+        config( pd.config ),
         time( pd.time )
    {}
 
+   std::string url() const{
+      if( config ) return config->url;
+      else return "";
+   }
 };
 
 

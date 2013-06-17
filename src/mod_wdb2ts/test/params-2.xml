@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+    <paramdefs>
+        <paramdef id="MODEL1" dataprovider="ecmwf atmospheric;ny">
+            <valueparameter name="specific energy of land, geopotential height"
+                unit="square metre per square second" />
+            <levelparameter name="ground or water surface" unit=""
+                from="0" to="0" />
+            <value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+            <dataversion version="-1" /> <!-- Optional: default value="-1" -->
+        </paramdef>
+        <paramdef id="PRECIP">
+            <valueparameter name="proportion of precipitation (>5.0mm)"
+                unit="percent" />
+            <levelparameter name="distance above ground" unit="metre"
+                from="0" to="0" />
+        </paramdef>
+        <paramdef id="PRECIP.PROBABILITY.5,0MM">
+            <valueparameter name="proportion of precipitation (>5.0mm)"
+                unit="percent" />
+            <levelparameter name="distance above ground" unit="metre"
+                from="0" to="0" />
+        </paramdef>
+    </paramdefs>
+    <paramdefs id="default">
+		<paramdef id="MODEL" dataprovider="ecmwf atmospheric;ny">
+			<valueparameter name="specific energy of land, geopotential height"
+				unit="square metre per square second" />
+			<levelparameter name="ground or water surface" unit=""
+				from="0" to="0" />
+			<value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+			<dataversion version="-1" /> <!-- Optional: default value="-1" -->
+		</paramdef>
+		<paramdef id="PRECIP.PROBABILITY.5,0MM">
+			<valueparameter name="proportion of precipitation (>5.0mm)"
+				unit="percent" />
+			<levelparameter name="distance above ground" unit="metre"
+				from="0" to="0" />
+		</paramdef>
+	</paramdefs>
+	<paramdefs id="all">
+        <paramdef id="MODEL" dataprovider="ecmwf atmospheric;ny">
+            <valueparameter name="specific energy of land, geopotential height"
+                unit="square metre per square second" />
+            <levelparameter name="ground or water surface" unit=""
+                from="0" to="0" />
+            <value scale="0.1" offset="0.0" /> <!-- Optional: default scale="1.0" offset="0.0" -->
+            <dataversion version="-1" /> <!-- Optional: default value="-1" -->
+        </paramdef>
+        <paramdef id="PRECIP.PROBABILITY.5,0MM">
+            <valueparameter name="proportion of precipitation (>5.0mm)"
+                unit="percent" />
+            <levelparameter name="distance above ground" unit="metre"
+                from="0" to="0" />
+        </paramdef>
+    </paramdefs>
+</wdb2ts>
+

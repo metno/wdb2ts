@@ -5,6 +5,29 @@
 using namespace std;
 using namespace wdb2ts::config;
 
+
+void printParamdefs( const ParamDefConfig &paramdef, const std::string &heading )
+{
+	cerr << endl << endl << "------------------  ParamDefs [" << heading << "]----------------------------------" << endl;
+
+	for( ParamDefConfig::ParamDefs::const_iterator itId = paramdef.idParamDefs.begin();
+			itId != paramdef.idParamDefs.end(); ++itId )
+	{
+		cerr << "[" << itId->first << "] : id" << endl;
+
+		for( wdb2ts::ParamDefList::const_iterator pit = itId->second.begin();
+				pit != itId->second.end(); ++pit )
+		{
+			cerr << "   [" << pit->first << "] " << endl;
+			for( std::list<wdb2ts::ParamDef>::const_iterator it = pit->second.begin();
+					it != pit->second.end();  ++it )
+			{
+				cerr << "      " <<  it->alias() << " : " << it->valueparametername()<<endl;
+			}
+		}
+	}
+}
+
 int
 main(int argn, char **argv )
 {
@@ -37,17 +60,8 @@ main(int argn, char **argv )
 				cerr << endl << "query[" << itQ->query() << "]" << endl;
 			cerr << endl;
 		}
-		
-		cerr << endl << endl << "------------------  ParamDefs -----------------------------------" << endl;
-		for( wdb2ts::ParamDefList::iterator pit = res->paramDefs.begin(); 
-		     pit != res->paramDefs.end(); 
-		     ++pit )
-		{
-			for( std::list<wdb2ts::ParamDef>::iterator it = pit->second.begin();
-		        it != pit->second.end();
-		        ++it )
-				cerr << "[" << pit->first << "] " << *it << endl;
-		}
+
+		printParamdefs( res->paramdef, "Global");
 		
 		cerr << "******************  WARNINGS  *************************************" << endl;
 		cerr << config.getErrMsg() << endl;

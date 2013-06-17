@@ -31,6 +31,7 @@
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <stdexcept>
+#include "visibility.h"
 #include <macros.h>
 #include <exception.h>
 #include <Logger.h>
@@ -48,7 +49,7 @@ namespace webfw {
  * App is a singelton class that holds the globale state of
  * this instance of the application.
  */
-class App 
+class DSO_NOEXPORT App
 {
    RequestHandlerManager *requestHandlerManager_;
    IAbortHandlerManager  *abortHandlerManager_;

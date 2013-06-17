@@ -58,15 +58,26 @@ public:
       miSymbol symbol;
       float probability;
       bool withOutStateOfAgregate;
+      miSymbol oldThunderSymbol;
+      miSymbol oldHeightCorrectedSymbol;
+      float    wetBulbTemp;
+      float    heightCorrectedTemp;
 
-      Symbol() : min(-1), max( -1 ), probability( FLT_MAX ), withOutStateOfAgregate( true ) {}
+      Symbol()
+         : min(-1), max( -1 ),
+           probability( FLT_MAX ), withOutStateOfAgregate( true ),
+           wetBulbTemp( FLT_MAX ), heightCorrectedTemp( FLT_MAX ){}
       Symbol( int min_, int max_, const miSymbol &symbol_, float probability_=FLT_MAX, bool withOutStateOfAgregate_=true )
          : min( min_ ), max( max_ ), symbol ( symbol_ ), probability( probability_ ),
-           withOutStateOfAgregate( withOutStateOfAgregate_ ) {}
+           withOutStateOfAgregate( withOutStateOfAgregate_ ),
+           wetBulbTemp( FLT_MAX ), heightCorrectedTemp( FLT_MAX ){}
 
       Symbol( const Symbol &s )
          : min( s.min ), max( s.max ), symbol( s.symbol ), probability( s.probability ),
-           withOutStateOfAgregate( s.withOutStateOfAgregate ){}
+           withOutStateOfAgregate( s.withOutStateOfAgregate ),
+           oldThunderSymbol( s.oldThunderSymbol ),
+           oldHeightCorrectedSymbol( s.oldHeightCorrectedSymbol ),
+           wetBulbTemp( s.wetBulbTemp ), heightCorrectedTemp( s.heightCorrectedTemp ){}
 
       Symbol& operator=( const Symbol &rhs ) {
                     if ( this != &rhs ) {
@@ -75,6 +86,10 @@ public:
                         symbol = rhs.symbol;
                         probability = rhs.probability;
                         withOutStateOfAgregate = rhs.withOutStateOfAgregate;
+                        oldThunderSymbol = rhs.oldThunderSymbol;
+                        oldHeightCorrectedSymbol = rhs.oldHeightCorrectedSymbol;
+                        wetBulbTemp = rhs.wetBulbTemp;
+                        heightCorrectedTemp = rhs.heightCorrectedTemp;
                     }
 
                     return *this;
@@ -92,8 +107,13 @@ public:
 
       bool hasThunder() const { return symbolMaker::hasThunder( symbol ); }
       void turnOffThunder() { symbolMaker::turnOffThunder( symbol ); }
+      void turnOnThunder() { symbolMaker::turnOnThunder( symbol ); }
+      static std::string idname( const miSymbol &symbol );
+      static int symbolid( const miSymbol &symbol );
       std::string idname()const;
+      std::string idnameOldThunderSymbol()const;
       int         idnumber()const { return const_cast<Symbol*>(this)->symbol.customNumber(); }
+      int         symbolid()const { return const_cast<Symbol*>(this)->symbol.index(); }
       int timespanInHours() const { return max + min + 1; }
       boost::posix_time::ptime toAsPtime()const;
       boost::posix_time::ptime fromAsPtime()const;
@@ -107,7 +127,7 @@ public:
    };
 
    typedef std::vector<Symbol> SymbolList;
-   typedef std::pair<SymbolList::const_iterator,SymbolList::const_iterator> SymbolRange;
+   typedef std::pair<SymbolList::iterator,SymbolList::iterator> SymbolRange;
 
 private:
    SymbolList symbols_;
@@ -138,6 +158,9 @@ private:
 
       SymbolRange findSymbolsInRange(const boost::posix_time::ptime &fromTime,
                                      const boost::posix_time::ptime &toTime );
+      SymbolRange findSymbolsIncludedRange( const boost::posix_time::ptime &fromTime,
+                                            const boost::posix_time::ptime &toTime );
+
 
       void initIndex(){ index_=0;}
             

@@ -116,6 +116,7 @@ class EncodeLocationForecast2 : public Encode
 
 	//Expire randomization.
 	int expireRand;
+	int nElements;
 	
 
 	void encodePrecipitationPercentiles( const boost::posix_time::ptime &from, 

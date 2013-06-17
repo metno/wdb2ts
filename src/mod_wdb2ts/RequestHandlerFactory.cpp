@@ -1,6 +1,7 @@
 #include <RequestHandlerFactory.h>
 #include <contenthandlers/Location/LocationHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastHandler.h>
+#include <contenthandlers/LocationForecast/LocationForecastHandler2.h>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>
 #include <contenthandlers/LocationForecastGml/LocationForecastGmlHandler.h>
 
@@ -22,6 +23,8 @@ requestHandlerFactory( const std::string &id,
 		return new LocationForecastUpdateHandler( ver.majorVer, ver.minorVer );
 	else if( id == "LocationForecastGml" )
 			return new LocationForecastGmlHandler( ver.majorVer, ver.minorVer );
+	else if( id == "LocationForecast4" )
+		return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "3" );
 	else
 		return 0;
 }

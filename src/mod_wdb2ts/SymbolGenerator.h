@@ -39,6 +39,7 @@
 #include <LocationData.h>
 #include <SymbolHolder.h>
 #include <SymbolConf.h>
+#include "Precipitation.h"
 
 namespace wdb2ts {
 
@@ -57,12 +58,6 @@ public:
 
 	bool readConf( const std::string &confile );
 	
-	/*
-	bool 
-	computeSymbols(std::map<miutil::miTime, std::map <std::string,float> >& data,
-	               vector<miSymbol> &symbols,
-	               float latitude, int min, int max, std::string &error);
-	 */
 	static
 	SymbolHolder*
 	computeSymbolsWithPuMet( LocationData& data,
@@ -92,10 +87,14 @@ public:
 			                                 bool withoutStateOfAgregate,
 			                                 std::string &error );
 	static
-	void correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data );
+	void correctSymbol( SymbolHolder::Symbol &symbol,
+	                    const LocationElem &data,
+	                    const Precipitation &precip=Precipitation() );
 
 	static
-   void correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd );
+   void correctSymbol( SymbolHolder::Symbol &symbol,
+                       const PartialData &pd,
+                       const Precipitation &precip=Precipitation());
 
 			                           
 };

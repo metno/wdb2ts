@@ -39,6 +39,13 @@
 
 namespace wdb2ts {
 
+class DbExceptionResourceLimit :
+   public std::exception
+{
+public:
+      explicit DbExceptionResourceLimit(){}
+};
+
 
 	class WciConnection 
 	{
@@ -98,14 +105,14 @@ namespace wdb2ts {
        *            miutill::pgpool::DbConnectionPoolCreateEx
        *
        */
-      miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="");
+      miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="", int timeoutInMilliSeconds=2000 );
       
       /**
        *
        * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
        *            miutill::pgpool::DbConnectionPoolCreateEx
 	   */
-      WciConnectionPtr newWciConnection(const std::string &dbid="");
+      WciConnectionPtr newWciConnection(const std::string &dbid="", int timeoutInMilliSeconds=2000 );
       
    };
    

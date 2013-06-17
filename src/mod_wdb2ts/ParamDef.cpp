@@ -29,6 +29,7 @@
 #include <iostream>
 #include <ParamDef.h>
 #include <math.h>
+#include <RequestConf.h>
 
 namespace {
 const std::string defaultProvider("__DEFAULT__");
@@ -39,7 +40,7 @@ namespace wdb2ts {
 using namespace std;
 
 ParamDef::
-ParamDef()
+ParamDef():interpolation( "nearest" )
 {
 }
 
@@ -67,7 +68,8 @@ ParamDef(const std::string &alias,
 	  offset_( offset ),
 	  dataversion_( dataversion ),
 	  compare_( compare ),
-	  compareValue_( compareValue )
+	  compareValue_( compareValue ),
+	  interpolation("nearest")
 {
 }
 	
@@ -84,7 +86,8 @@ ParamDef( const ParamDef &paramDef )
 	  offset_( paramDef.offset_ ),
 	  dataversion_( paramDef.dataversion_ ),
 	  compare_( paramDef.compare_ ),
-	  compareValue_( paramDef.compareValue_ )
+	  compareValue_( paramDef.compareValue_ ),
+	  interpolation( paramDef.interpolation )
 {
 }
 
@@ -105,7 +108,7 @@ operator=( const ParamDef &paramDef )
 		dataversion_        = paramDef.dataversion_;
 		compare_            = paramDef.compare_;
 		compareValue_       = paramDef.compareValue_;
-
+		interpolation       = paramDef.interpolation;
 	}
 	
 	return *this;
@@ -167,20 +170,29 @@ operator<<(std::ostream& output, const ParamDef &pd)
 
 ParamDefList::
 ParamDefList()
+	:idDefsParams( 0 )
 {
 }
 
 ParamDefList::
 ParamDefList( const ParamDefList &pdl )
+	: idDefsParams( 0 )
 {
    providerGroups_ = pdl.providerGroups_;
    providerListFromConfig = pdl.providerListFromConfig;
+
+   if( pdl.idDefsParams )
+	   idDefsParams = new wdb2ts::config::ParamDefConfig( *pdl.idDefsParams );
+
    insert( pdl.begin(), pdl.end() );
 }
+
 
 ParamDefList::
 ~ParamDefList()
 {
+	if( idDefsParams )
+		delete idDefsParams;
 }
 
 ParamDefList
@@ -190,6 +202,14 @@ operator=(const ParamDefList &rhs )
    if( this != &rhs ) {
       providerGroups_ = rhs.providerGroups_;
       providerListFromConfig = rhs.providerListFromConfig;
+
+      if( idDefsParams ) {
+    	  delete idDefsParams;
+    	  idDefsParams = 0;
+      }
+
+      if( rhs.idDefsParams )
+    	  idDefsParams = new wdb2ts::config::ParamDefConfig( *rhs.idDefsParams );
 
       clear();
       insert( rhs.begin(), rhs.end() );
@@ -311,18 +331,41 @@ findParam( ParamDefPtr &paramDef,
 bool 
 ParamDefList::
 addParamDef( const ParamDef  &pd,
-		       const std::string &provider ) 
+		     const std::string &provider_,
+		     bool replace )
 {
-	
-	if( hasParam( pd.alias(), provider ) )
-		return false;
+	std::string provider( provider_ );
 
 	if( provider.empty() )
-		(*this)[defaultProvider].push_back( pd );
-	else
-		(*this)[provider].push_back( pd );
+		provider = defaultProvider;
+
+	bool hasp=hasParam( pd.alias(), provider );
 	
-	return true;
+	if( hasp && ! replace )
+		return false;
+
+	if( !hasp ) {
+		(*this)[provider].push_back( pd );
+		return true;
+	}
+
+	ParamDefList::iterator it = find( provider );
+
+	//Should never happend. Since we allready has checked this.
+	if( it == end() )
+		return false;
+
+	for( std::list<ParamDef>::iterator paramDef = it->second.begin();
+		 paramDef != it->second.end(); ++paramDef )
+	{
+		if( paramDef->alias() == pd.alias() ) {
+			*paramDef = pd;
+			return true;
+		}
+	}
+
+	//Should never be reached.
+	return false;
 }
 
 std::string
@@ -340,6 +383,29 @@ resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid )
 
    providerGroups_.resolve( app, wdbid, providerListFromConfig );
 }
+
+void
+ParamDefList::
+merge( const ParamDefList *other, bool replace )
+{
+	for( wdb2ts::ParamDefList::const_iterator pit = other->begin();
+		 pit != other->end(); ++pit )
+	{
+		wdb2ts::ParamDefList::iterator pitTmp = find( pit->first );
+
+		//No params is defined for provider pit->first.
+		if( pitTmp == end() ) {
+			(*this)[ pit->first ] = pit->second;
+			continue;
+		}
+
+		for( std::list<wdb2ts::ParamDef>::const_iterator itParam = pit->second.begin();
+			 itParam != pit->second.end(); ++itParam )
+			addParamDef( *itParam, pit->first, replace );
+	}
+}
+
+
 
 void
 renameProvider( std::string &providerWithPlacename, const std::string &newProvider ) {

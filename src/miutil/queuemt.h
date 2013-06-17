@@ -32,6 +32,12 @@
 #ifndef __QUEUEMT_H__
 #define __QUEUEMT_H__
 
+#include <boost/version.hpp>
+
+#if BOOST_VERSION < 103500
+#include <boost/thread/xtime.hpp>
+#endif
+
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/shared_ptr.hpp>
@@ -43,14 +49,14 @@ namespace miutil {
 
 class QueueSuspended : std::exception{
 public:
-	explicit QueueSuspended(){}
+   explicit QueueSuspended(){}
 
-	virtual ~QueueSuspended() throw(){};
+   virtual ~QueueSuspended() throw(){};
 
-	const char *what()const throw()
-	{
-		return "QueueSuspended";
-	}
+   const char *what()const throw()
+   {
+      return "QueueSuspended";
+   }
 };
 
 
@@ -60,138 +66,192 @@ template<typename T>
 class queuemt
 {
 protected:
-	typedef boost::mutex::scoped_lock  Lock;
+   typedef boost::mutex::scoped_lock  Lock;
 
-	mutable boost::mutex mutex;
-	std::queue<T> dataQueue;
-	boost::condition cond;
-	bool suspended;
+   mutable boost::mutex mutex;
+   std::queue<T> dataQueue;
+   boost::condition cond;
+   bool suspended;
+   unsigned int maxSize;
 
 public:
 
-	queuemt()
-		: suspended( false )
-	{}
+   queuemt()
+      : suspended( false ), maxSize( 0 )
+   {}
 
-	queuemt( const queuemt &que )
-	{
-		Lock lock( que.mutex );
-		suspended = que.suspended;
-		dataQueue = que.dataQueue;
-	}
+   queuemt( unsigned int maxQueSize)
+         : suspended( false ), maxSize( maxQueSize )
+      {}
 
-	void
-	push(T value)
-	{
-		Lock lock( mutex );
+   queuemt( const queuemt &que )
+   {
+      Lock lock( que.mutex );
+      suspended = que.suspended;
+      maxSize = que.maxSize;
+      dataQueue = que.dataQueue;
+   }
 
-		if( suspended )
-			throw QueueSuspended();
+   void
+   push(T value)
+   {
+      Lock lock( mutex );
 
-		dataQueue.push( value );
-		cond.notify_one();
-	}
+      if( suspended )
+         throw QueueSuspended();
 
-	void
-	waitAndPop(T& value)
-	{
-		Lock lock( mutex );
+      while( maxSize>0 && dataQueue.size() >= maxSize ) {
+         cond.wait( lock );
+      }
 
-		while( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
+      dataQueue.push( value );
+      cond.notify_one();
+   }
 
-			cond.wait( lock );
-		}
+   bool
+   timedPush( T value, unsigned int timeoutInMillisecond )
+   {
+      Lock lock( mutex );
 
-		value = dataQueue.front();
-		dataQueue.pop();
-	}
+      if( suspended )
+         throw QueueSuspended();
 
-	boost::shared_ptr<T>
-	waitAndPop()
-	{
-		Lock lock( mutex );
+      if( maxSize > 0 && dataQueue.size() >= maxSize ) {
+#if BOOST_VERSION < 103500
+         boost::xtime waitUntil;
+         //Round up to the nearest second if timeoutInMillisecond is not a multiple of 1000.
+         int sec = (timeoutInMillisecond/1000) + (((timeoutInMillisecond % 1000) == 0)?0:1);
+         boost::xtime_get( &waitUntil, boost::TIME_UTC );
+         waitUntil.sec += sec;
+
+         if( ! cond.timed_wait( lock, waitUntil ) )
+            return false;
+#else
+         if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) )
+            return false;
+#endif
+         if( dataQueue.size() >= maxSize )
+            return false;
+      }
+
+      dataQueue.push( value );
+      cond.notify_one();
+
+      return true;
+   }
+
+   void
+   waitAndPop(T& value)
+   {
+      Lock lock( mutex );
+
+      while( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
+
+         cond.wait( lock );
+      }
+
+      value = dataQueue.front();
+      dataQueue.pop();
+
+      if( maxSize > 0  )
+         cond.notify_one();
+   }
+
+   bool
+   timedWaitAndPop( int timeoutInMillisecond, T &value )
+   {
+      Lock lock( mutex );
+
+      if( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
+
+#if BOOST_VERSION < 103500
+         boost::xtime waitUntil;
+         //Round up to the nearest second if timeoutInMillisecond is not a multiple of 1000.
+         int sec = (timeoutInMillisecond/1000) + (((timeoutInMillisecond % 1000) == 0)?0:1);
+         boost::xtime_get( &waitUntil, boost::TIME_UTC );
+         waitUntil.sec += sec;
+
+         if( ! cond.timed_wait( lock, waitUntil ) )
+            return false;
+#else
+         if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) )
+            return false;
+#endif
+         if( dataQueue.empty() )
+            return false;
+      }
 
 
-		while( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
+      value = dataQueue.front();
+      dataQueue.pop();
 
-			cond.wait( lock );
-		}
+      if( maxSize > 0  )
+         cond.notify_one();
 
-		boost::shared_ptr<T> res( new T( dataQueue.front() ) );
-		dataQueue.pop();
-		return res;
-	}
-
-	bool
-	tryPop(T& value)
-	{
-		Lock lock( mutex );
-
-		if( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
-
-			return false;
-		}
-
-		value = dataQueue.front();
-		dataQueue.pop();
-		return true;
-	}
-
-	boost::shared_ptr<T>
-	tryPop()
-	{
-		Lock lock( mutex );
-
-		if( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
-
-			return boost::shared_ptr<T>();
-		}
-
-		boost::shared_ptr<T> res( new T( dataQueue.front() ) );
-		dataQueue.pop();
-
-		return res;
-	}
-
-	bool
-	empty() const
-	{
-		Lock lock( mutex );
-		return dataQueue.empty();
-	}
+      return true;
+   }
 
 
-	void
-	suspend()
-	{
-	  Lock lock( mutex );
+   bool
+   tryPop(T& value)
+   {
+      Lock lock( mutex );
 
-	  if( suspended )
-	    return;
+      if( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
 
-	  suspended = true;
-	  cond.notify_all();
-	}
+         return false;
+      }
 
-	void
-	resume()
-	{
-	  Lock lock( mutex );
+      value = dataQueue.front();
+      dataQueue.pop();
 
-	  if( !suspended )
-	    return;
+      if( maxSize > 0  )
+         cond.notify_one();
 
-	  suspended = false;
-	  cond.notify_all();
-	}
+      return true;
+   }
+
+   bool
+   empty() const
+   {
+      Lock lock( mutex );
+      return dataQueue.empty();
+   }
+
+
+   void
+   suspend( bool clearQue = false)
+   {
+     Lock lock( mutex );
+
+     if( suspended )
+       return;
+
+     suspended = true;
+
+     if( clearQue )
+        dataQueue.clear();
+
+     cond.notify_all();
+   }
+
+   void
+   resume()
+   {
+     Lock lock( mutex );
+
+     if( !suspended )
+       return;
+
+     suspended = false;
+     cond.notify_all();
+   }
 
 };
 
@@ -199,112 +259,206 @@ template<typename T>
 class queuemtPtr
 {
 protected:
-	typedef boost::mutex::scoped_lock  Lock;
+   typedef boost::mutex::scoped_lock  Lock;
 
-	mutable boost::mutex mutex;
-	std::queue< T* > dataQueue;
-	boost::condition cond;
-	bool suspended;
+   mutable boost::mutex mutex;
+   std::queue< T* > dataQueue;
+   boost::condition cond;
+   bool suspended;
+   unsigned int maxSize;
 
 public:
 
-	queuemtPtr()
-		: suspended( false )
-	{}
+   queuemtPtr()
+      : suspended( false ), maxSize( 0 )
+   {}
 
-	queuemtPtr( const queuemtPtr &que )
-	{
-		Lock lock( que.mutex );
-		suspended = que.suspended;
-		dataQueue = que.dataQueue;
-	}
+   queuemtPtr( unsigned int maxQueSize )
+   : suspended( false ), maxSize( maxQueSize )
+   {}
 
-	void
-	push( T *value)
-	{
-		Lock lock( mutex );
-
-		if( suspended )
-			throw QueueSuspended();
-
-		dataQueue.push(  value );
-		cond.notify_one();
-	}
+   queuemtPtr( const queuemtPtr &que )
+   {
+      Lock lock( que.mutex );
+      suspended = que.suspended;
+      dataQueue = que.dataQueue;
+      maxSize = que.maxSize;
+   }
 
 
+   void
+   push( T *value)
+   {
+      Lock lock( mutex );
 
-	T*
-	waitAndPop()
-	{
-		Lock lock( mutex );
+      if( suspended )
+         throw QueueSuspended();
+
+      while( maxSize>0 && dataQueue.size() >= maxSize ) {
+         cond.wait( lock );
+      }
+
+      dataQueue.push(  value );
+      cond.notify_one();
+   }
+
+   bool
+   timedPush( T *value, unsigned int timeoutInMillisecond )
+   {
+      Lock lock( mutex );
+
+      if( suspended )
+         throw QueueSuspended();
+
+      if( maxSize > 0 && dataQueue.size() >= maxSize ) {
+#if BOOST_VERSION < 103500
+         boost::xtime waitUntil;
+         //Round up to the nearest second if timeoutInMillisecond is not a multiple of 1000.
+         int sec = (timeoutInMillisecond/1000) + (((timeoutInMillisecond % 1000) == 0)?0:1);
+         boost::xtime_get( &waitUntil, boost::TIME_UTC );
+         waitUntil.sec += sec;
+
+         if( ! cond.timed_wait( lock, waitUntil ) )
+            return false;
+#else
+         if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) )
+            return false;
+#endif
+         if( dataQueue.size() >= maxSize )
+            return false;
+      }
+
+      dataQueue.push( value );
+      cond.notify_one();
+
+      return true;
+   }
 
 
-		while( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
 
-			cond.wait( lock );
-		}
+   T*
+   waitAndPop()
+   {
+      Lock lock( mutex );
 
-		T* res = dataQueue.front();
-		dataQueue.pop();
-		return res;
-	}
+      while( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
 
-	T*
-	tryPop()
-	{
-		Lock lock( mutex );
+         cond.wait( lock );
+      }
 
-		if( dataQueue.empty() ) {
-			if( suspended )
-				throw QueueSuspended();
+      T* res = dataQueue.front();
+      dataQueue.pop();
 
-			return boost::shared_ptr<T>();
-		}
+      if( maxSize > 0  )
+         cond.notify_one();
 
-		T* res = dataQueue.front();
-		dataQueue.pop();
+      return res;
+   }
 
-		return res;
-	}
+   T*
+   timedWaitAndPop( int timeoutInMillisecond )
+   {
+      Lock lock( mutex );
 
-	bool
-	empty() const
-	{
-		Lock lock( mutex );
-		return dataQueue.empty();
-	}
+      if( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
+
+#if BOOST_VERSION < 103500
+         boost::xtime waitUntil;
+         //Round up to the nearest second if timeoutInMillisecond is not a multiple of 1000.
+         int sec = (timeoutInMillisecond/1000) + (((timeoutInMillisecond % 1000) == 0)?0:1);
+         boost::xtime_get( &waitUntil, boost::TIME_UTC );
+         waitUntil.sec += sec;
+
+         if( ! cond.timed_wait( lock, waitUntil ) )
+            return 0;
+#else
+         if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) )
+            return 0;
+#endif
+         if( dataQueue.empty() )
+            return 0;
+      }
+
+      T *res = dataQueue.front();
+      dataQueue.pop();
+
+      if( maxSize > 0  )
+         cond.notify_one();
+
+      return res;
+   }
 
 
-	void
-	suspend()
-	{
-	  Lock lock( mutex );
 
-	  if( suspended )
-	    return;
+   T*
+   tryPop()
+   {
+      Lock lock( mutex );
 
-	  suspended = true;
-	  cond.notify_all();
-	}
+      if( dataQueue.empty() ) {
+         if( suspended )
+            throw QueueSuspended();
 
-	void
-	resume()
-	{
-	  Lock lock( mutex );
+         return 0;
+         //return boost::shared_ptr<T>();
+      }
 
-	  if( !suspended )
-	    return;
+      T* res = dataQueue.front();
+      dataQueue.pop();
 
-	  suspended = false;
-	  cond.notify_all();
-	}
+      if( maxSize > 0  )
+         cond.notify_one();
+
+      return res;
+   }
+
+   bool
+   empty() const
+   {
+      Lock lock( mutex );
+      return dataQueue.empty();
+   }
+
+
+   void
+   suspend( bool clearQue=false, bool deleteElements=false )
+   {
+     Lock lock( mutex );
+
+     if( suspended )
+       return;
+
+     suspended = true;
+
+     if( clearQue ) {
+        if( deleteElements ) {
+           for( typename std::queue<T*>::iterator it=dataQueue.begin(); it != dataQueue.end(); ++it )
+              delete *it;
+        }
+
+        dataQueue.clear();
+     }
+
+     cond.notify_all();
+   }
+
+   void
+   resume()
+   {
+     Lock lock( mutex );
+
+     if( !suspended )
+       return;
+
+     suspended = false;
+     cond.notify_all();
+   }
 
 };
-
-
-
 }
 
 #endif

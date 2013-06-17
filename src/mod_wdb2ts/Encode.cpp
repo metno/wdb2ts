@@ -56,6 +56,26 @@ schemaName()const
 {
    return schema_;
 }
+
+
+void
+Encode::
+config( ConfigDataPtr cf )
+{
+   config_ = cf;
+}
+
+std::string
+Encode::
+url() const
+{
+   if( config_ ) {
+      return config_->url;
+   } else {
+      return "";
+   }
+}
+
 void 
 Encode::
 encode( webfw::Response &response )

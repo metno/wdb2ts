@@ -132,6 +132,51 @@ populateThreadInfos( const std::string &wdbidDefault,
 
 void
 WdbDataRequestManager::
+populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
+  	                 const std::string &wdbid,
+                     const LocationPointList &locationPoints,
+                     const boost::posix_time::ptime &toTime,
+                     bool isPolygon )
+{
+	//string dbProfileProvider__; //Only used when profiling
+	//string decodeProfileProvider__; //Only used when profiling
+	bool   mustHaveData=false;
+	bool   stopIfQueryHasData=false;
+
+	WEBFW_USE_LOGGER( "wdb" );
+
+	if( querys->querys.empty() || querys->params.empty() ) {
+		throw logic_error( "EXCEPTION: QueryMaker: No querys is generated." );
+	}
+
+	for( std::list<qmaker::Query*>::const_iterator qit = querys->querys.begin();
+			qit != querys->querys.end(); ++qit ) {
+		list<string> qs = (*qit)->getQuerys( querys->wciProtocol );
+
+		for( list<string>::iterator it=qs.begin(); it != qs.end(); ++it ) {
+			boost::shared_ptr<ThreadInfo> threadInfo(
+					new ThreadInfo(
+							new WdbDataRequestCommand( WciConnectionPtr(),
+									webfw::RequestHandler::getRequestHandler(),
+									*it,
+									querys->params,
+									querys->providerPriority,
+									querys->referenceTimes,
+									querys->wciProtocol,
+									isPolygon ),
+									wdbid,
+									mustHaveData,
+									stopIfQueryHasData )
+			);
+			threadInfos.push_back( threadInfo );
+
+		}
+	}
+}
+
+
+void
+WdbDataRequestManager::
 startThreads( Wdb2TsApp &app )
 {
    WEBFW_USE_LOGGER( "wdb" );
@@ -260,7 +305,7 @@ runRequests( Wdb2TsApp &app )
                }
                if( now > waitUntil ) {
                   //WEBFW_LOG_DEBUG("runRequests: Failed to obtain a db connection (waited " << WAIT_SECONDS <<" seconds)." );
-                  throw ResourceLimit( "Waiting more than 5 seconds on db connection.");
+                  throw ResourceLimit( "Waiting more than 10 seconds on db connection.");
                }
             }
 
@@ -286,6 +331,9 @@ runRequests( Wdb2TsApp &app )
       }
 
       waitForCompleted();
+   }
+   catch( const ResourceLimit &ex ) {
+      throw;
    }
    catch( const exception &ex ) {
       WEBFW_LOG_DEBUG("runRequests: EXCEPTION: " << ex.what() );
@@ -407,5 +455,24 @@ requestData( Wdb2TsApp *app,
 
    return mergeData( isPolygon );
 }
+
+LocationPointDataPtr
+WdbDataRequestManager::
+requestData( Wdb2TsApp *app,
+		     const qmaker::QuerysAndParamDefsPtr querys,
+             const std::string &wdbid,
+             const LocationPointList &locationPoints,
+             const boost::posix_time::ptime &toTime,
+             bool isPolygon,
+             int altitude)
+{
+	nParalell = 3;
+
+	populateThreadInfos( querys, wdbid, locationPoints, toTime, isPolygon );
+	runRequests( *app );
+
+	return mergeData( isPolygon );
+}
+
 
 }

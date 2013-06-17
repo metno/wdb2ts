@@ -113,8 +113,8 @@ struct ThreadData {
 
 			if( logprefix.empty() ) {
 				logprefix = abortHandler->req->urlPath();
-				miutil::replace( logprefix, " ", "_");
-				miutil::replace( logprefix, "/", ".");
+				miutil::replaceString( logprefix, " ", "_");
+				miutil::replaceString( logprefix, "/", ".");
 			
 				//Remove . and _ from the start, if any.
 				while( ! logprefix.empty() && ( logprefix[0] == '.' || logprefix[0] == '_') )
@@ -179,12 +179,14 @@ cleanupThreadData( const std::string &method )
 }
 
 void
-setupLogger( const std::string &name,
+setupLogger( const std::string &name_,
 		     const webfw::RequestHandler *reqHandler )
 {
 
 	boost::mutex::scoped_lock lock( setupLoggerMutex );
+	string name( name_ );
 	string filename;
+	string filenameExtra;
 	string category;
 	std::string logdir;
 	std::string prefix;
@@ -194,6 +196,11 @@ setupLogger( const std::string &name,
 		logdir = reqHandler->getLogDir();
 		prefix = reqHandler->getLogprefix();
 		module = reqHandler->getModuleName();
+	}
+
+	if( !name.empty() && name[0]=='+' ) {
+	   name.erase(0, 1);
+	   filenameExtra = "-" + name;
 	}
 
 	if( prefix.empty() )
@@ -208,20 +215,25 @@ setupLogger( const std::string &name,
 		filename = module +"-";
 
 	std::string tmpprefix = prefix;
-	miutil::replace( tmpprefix, ".", "_");
+	miutil::replaceString( tmpprefix, ".", "_");
 
 	if( tmpprefix.empty() )
 		filename.erase();
 	else if( !logdir.empty() )
-		filename = logdir + "/" + filename + tmpprefix+".log";
+		filename = logdir + "/" + filename + tmpprefix+filenameExtra+".log";
 	else
 		filename.erase();
 	
 	log4cpp::Appender *appender=0;
 	
 	if( reqHandler  && !filename.empty()) {
-		//We use the category given with prefix as a dummy category to hold an appender.
-		//All subcategories use the same appender as this.
+	   //If the 'name' contains a + in front we create a own file
+	   //for this category. Otherwise we use the category given with
+	   //prefix as a dummy category to hold an appender. All subcategories
+	   //use the same appender as this.
+
+	   if( !filenameExtra.empty() )
+	      prefix = category;
 
 		if( ! log4cpp::Category::exists( prefix ) ) {
 			cerr << "Loggsystem: No appender exist for '" << prefix << "' filename: '" << filename << "'"<< endl;
@@ -559,10 +571,12 @@ webfw::
 RequestHandler::
 getLogger( const std::string &name, const RequestHandler *reqHandler )
 {
-	
+	std::string category( name );
 	ThreadData *threadData = threadDataTSS.get();
 	const RequestHandler *handler = reqHandler;
 
+	if( !category.empty() && category[0]=='+')
+	   category.erase( 0, 1 );
 
 	if( threadData )
 		handler = threadData->requestHandler;
@@ -572,16 +586,17 @@ getLogger( const std::string &name, const RequestHandler *reqHandler )
 	}
 
 	if( handler ) {
-		std::string name_ = threadData->logprefix + "." + name;
-		if( ! log4cpp::Category::exists( name_ ) )
+		category.insert(0, threadData->logprefix + ".");
+
+		if( ! log4cpp::Category::exists( category ) )
 			setupLogger( name, handler );
 			
-		return log4cpp::Category::getInstance( name_ );
+		return log4cpp::Category::getInstance( category );
 	} else {
-		if( ! log4cpp::Category::exists( name ) ) 
+		if( ! log4cpp::Category::exists( category ) )
 			setupLogger( name, 0 );
 
-		return log4cpp::Category::getInstance( name );
+		return log4cpp::Category::getInstance( category );
 	}
 }
 

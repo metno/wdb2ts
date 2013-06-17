@@ -69,12 +69,19 @@ struct PData{
    float PRECIP_6T;
    float PRECIP_12T;
    float PRECIP_24T;
+   float significantSwellWaveHeight;
+   float meanSwellWavePeriode;
+   float meanSwellWaveDirection;
+   float peakSwellWavePeriode;
+   float peakSwellWaveDirection;
    float seaCurrentVelocityU;
    float seaCurrentVelocityV;
    float seaSalinity;
    float seaSurfaceHeight;
    float seaTemperature;
    float meanTotalWaveDirection;
+   float meanTotalWavePeriode;
+   float maximumTotalWaveHeight;
    float significantTotalWaveHeight;
    float seaIcePresence;
    float iceingIndex;
@@ -124,10 +131,19 @@ struct PData{
    	 PRECIP( FLT_MAX ),
    	 PRECIP_ACCUMULATED( FLT_MAX ), PRECIP_1T( FLT_MAX ),
    	 PRECIP_3T( FLT_MAX ), PRECIP_6T( FLT_MAX ), PRECIP_12T( FLT_MAX ), 
-   	 PRECIP_24T( FLT_MAX ), seaCurrentVelocityU( FLT_MAX ), 
+   	 PRECIP_24T( FLT_MAX ),
+   	 significantSwellWaveHeight( FLT_MAX ),
+   	 meanSwellWavePeriode( FLT_MAX ),
+   	 meanSwellWaveDirection( FLT_MAX ),
+   	 peakSwellWavePeriode( FLT_MAX ),
+   	 peakSwellWaveDirection( FLT_MAX ),
+   	 seaCurrentVelocityU( FLT_MAX ),
    	 seaCurrentVelocityV( FLT_MAX ), seaSalinity( FLT_MAX ),
    	 seaSurfaceHeight( FLT_MAX ), seaTemperature( FLT_MAX ),
-   	 meanTotalWaveDirection( FLT_MAX ), significantTotalWaveHeight( FLT_MAX ),
+   	 meanTotalWaveDirection( FLT_MAX ),
+   	 meanTotalWavePeriode( FLT_MAX),
+   	 maximumTotalWaveHeight( FLT_MAX ),
+   	 significantTotalWaveHeight( FLT_MAX ),
    	 seaIcePresence( FLT_MAX), iceingIndex( FLT_MAX ),
    	 seaBottomTopography( FLT_MAX ),
    	 NN( FLT_MAX ), visibility( FLT_MAX), fog( FLT_MAX ),
@@ -173,11 +189,19 @@ struct PData{
        PRECIP_1T(pd.PRECIP_1T), PRECIP_3T(pd.PRECIP_3T), 
        PRECIP_6T(pd.PRECIP_6T), PRECIP_12T(pd.PRECIP_12T), 
        PRECIP_24T(pd.PRECIP_24T),
+       significantSwellWaveHeight( pd.significantSwellWaveHeight ),
+       meanSwellWavePeriode( pd. meanSwellWavePeriode ),
+       meanSwellWaveDirection( pd.meanSwellWaveDirection ),
+       peakSwellWavePeriode( pd.peakSwellWavePeriode ),
+       peakSwellWaveDirection( pd.peakSwellWaveDirection ),
        seaCurrentVelocityU( pd.seaCurrentVelocityU ),
        seaCurrentVelocityV( pd.seaCurrentVelocityV ),
        seaSalinity( pd.seaSalinity ),
        seaSurfaceHeight( pd.seaSurfaceHeight ), seaTemperature( pd.seaTemperature ),
-       meanTotalWaveDirection( pd.meanTotalWaveDirection ), significantTotalWaveHeight( pd.significantTotalWaveHeight ),
+       meanTotalWaveDirection( pd.meanTotalWaveDirection ),
+       meanTotalWavePeriode( pd.meanTotalWavePeriode),
+       maximumTotalWaveHeight( pd.maximumTotalWaveHeight ),
+       significantTotalWaveHeight( pd.significantTotalWaveHeight ),
        seaIcePresence( pd.seaIcePresence ), iceingIndex( pd.iceingIndex ),
        seaBottomTopography( pd.seaBottomTopography ),
        NN(pd.NN), visibility( pd.visibility), fog(pd.fog),
@@ -235,12 +259,19 @@ struct PData{
          PRECIP_6T  = rhs.PRECIP_6T;
          PRECIP_12T = rhs.PRECIP_12T;
          PRECIP_24T = rhs.PRECIP_24T;
+         significantSwellWaveHeight = rhs.significantSwellWaveHeight;
+         meanSwellWavePeriode = rhs.meanSwellWavePeriode;
+         meanSwellWaveDirection = rhs.meanSwellWaveDirection;
+         peakSwellWavePeriode = rhs.peakSwellWavePeriode;
+         peakSwellWaveDirection = rhs.peakSwellWaveDirection;
          seaCurrentVelocityV = rhs.seaCurrentVelocityV; 
          seaCurrentVelocityU = rhs.seaCurrentVelocityU;
          seaSalinity         = rhs.seaSalinity;
          seaSurfaceHeight    = rhs.seaSurfaceHeight;
          seaTemperature      = rhs.seaTemperature;
-         meanTotalWaveDirection       = rhs.meanTotalWaveDirection;
+         meanTotalWaveDirection = rhs.meanTotalWaveDirection;
+         meanTotalWavePeriode = rhs.meanTotalWavePeriode;
+         maximumTotalWaveHeight = rhs.maximumTotalWaveHeight;
          significantTotalWaveHeight = rhs.significantTotalWaveHeight;
          seaIcePresence = rhs.seaIcePresence;
          iceingIndex = rhs.iceingIndex;

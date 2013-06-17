@@ -1,4 +1,4 @@
 #!/bin/sh
 
-autoreconf -i
+autoreconf -i -f
 

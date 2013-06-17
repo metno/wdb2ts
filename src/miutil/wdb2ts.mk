@@ -42,7 +42,9 @@ libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 		              src/miutil/msleep.h \
 		              src/miutil/msleep.cpp \
 		              src/miutil/metfunctions.h \
-		              src/miutil/metfunctions.cpp
+		              src/miutil/metfunctions.cpp \
+		              src/miutil/ShapeReader.h \
+		              src/miutil/ShapeReader.cpp
 
 EXTRA_DIST+= src/miutil/wdb2ts.mk \
 				 src/miutil/Makefile.am \

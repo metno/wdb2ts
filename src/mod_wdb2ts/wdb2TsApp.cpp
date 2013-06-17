@@ -140,7 +140,7 @@ readConfiguration( webfw::RequestHandlerManager&  reqHandlerMgr,
 		return;
 	}
 	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 1.\n";
-	paramDefs_ = config->paramDefs;
+	paramDefs_ = config->paramdef.paramDefs();
 	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 2.\n";
 	configureRequestsHandlers( config, reqHandlerMgr, logger );
 }
@@ -223,8 +223,8 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			toConfigure->doConfigure( *itVer, query );
 			
 			std::string logprefix = it->second->path.asString();
-			miutil::replace( logprefix, " ", "_");
-			miutil::replace( logprefix, "/", ".");
+			miutil::replaceString( logprefix, " ", "_");
+			miutil::replaceString( logprefix, "/", ".");
 
 			if( ! logprefix.empty() && logprefix[0]=='.' )
 				logprefix.erase( 0, 1 );
@@ -381,6 +381,9 @@ wciProtocol( const std::string &wdbid )
 			patch = -1;
 	}
 	
+	WEBFW_LOG_INFO( "wciProtocol: Version ("<< version<<") major: " << major << " minor: " << minor << " patch: " << patch  );
+
+
 	if( major == 0 && minor <= 7 )
 		return 1;
 	
@@ -399,66 +402,51 @@ wciProtocol( const std::string &wdbid )
 	if( major == 0 && minor == 9 && patch >= 7 )
 	   return 6;
 
+	if( major == 1 && minor == 0 /* && patch == 0  */ )
+	   return 6;
+
 
 	return 6;
 }
 
-
-
-miutil::pgpool::DbConnectionPtr
+void
 Wdb2TsApp::
-newConnection(const std::string &dbid)
+initDbPool()
 {
+   boost::mutex::scoped_lock lock( mutex );
+
    if( ! dbManager ) {
-      boost::mutex::scoped_lock lock( mutex );
+      WEBFW_USE_LOGGER( "main" );
+      WEBFW_LOG_INFO("Intitializing the database pool.");
 
-      if( ! dbManager ) {
-         WEBFW_USE_LOGGER( "main" );
-         WEBFW_LOG_INFO("Intitializing the database pool.");
-
-         try{
-            dbManager = DbManagerPtr( new DbManager( dbsetup ) );
-         }
-         catch( const std::exception &ex) {
-            throw logic_error( string(string("Cant initialize the database pool. Reason: ") + string(ex.what())).c_str() );
-         }
+      try{
+         dbManager = DbManagerPtr( new DbManager( dbsetup ) );
+      }
+      catch( const std::exception &ex) {
+         throw logic_error( string(string("Cant initialize the database pool. Reason: ") + string(ex.what())).c_str() );
       }
 
       if( ! dbManager )
          throw logic_error("Cant initialize the database pool." );
    }
+}
 
 
+miutil::pgpool::DbConnectionPtr
+Wdb2TsApp::
+newConnection( const std::string &dbid, unsigned int timeoutInMilliSecound )
+{
+   initDbPool();
    return dbManager->newConnection( dbid );
-
 }
 
 
 WciConnectionPtr
 Wdb2TsApp::
-newWciConnection(const std::string &dbid)
+newWciConnection( const std::string &dbid, unsigned int timeoutInMilliSecound)
 {
-   if( ! dbManager ) {
-      boost::mutex::scoped_lock lock( mutex );
-
-      if( ! dbManager ) {
-         WEBFW_USE_LOGGER( "main" );
-         WEBFW_LOG_INFO("Intitializing the database pool.");
-
-         try{
-            dbManager = DbManagerPtr( new DbManager( dbsetup ) );
-         }
-         catch( const std::exception &ex) {
-            throw logic_error(string(string("Cant initialize the database pool. Reason: ") + string(ex.what())).c_str() );
-         }
-      }
-
-      if( ! dbManager )
-         throw logic_error("Cant initialize the database pool." );
-   }
-   
+   initDbPool();
    return dbManager->newWciConnection( dbid );
-
 }
 
 } // namespace

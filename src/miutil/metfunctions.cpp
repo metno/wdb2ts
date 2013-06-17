@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <math.h>
 #include "metfunctions.h"
 
 namespace {
@@ -66,5 +67,19 @@ dewPointTemperatureToRelativeHumidity( float temperature, float dewPointTemperat
 
    return rh * 100.;
 }
+
+
+float
+dewPointTemperature( float ta, float rh )
+{
+   if( ta == FLT_MAX || rh == FLT_MAX )
+      return FLT_MAX;
+
+   float e = (rh/100)*0.611*exp( (17.63 * ta) / (ta + 243.04) );
+   float td = (116.9 + 243.04 * log( e ))/(16.78-log( e ));
+
+   return (td<=ta ? td : ta);
+}
+
 
 }

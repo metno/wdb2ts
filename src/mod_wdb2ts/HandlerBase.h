@@ -22,6 +22,8 @@ public:
 	{
 	}
 
+	ParamDefList getParamdef()const;
+
 	bool doConfigure( boost::shared_ptr<wdb2ts::config::RequestConf> conf,
 	                  const wdb2ts::config::Config::Query &query );
 

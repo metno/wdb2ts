@@ -64,6 +64,27 @@ idname() const
 	return symbolidToName(  const_cast<SymbolHolder::Symbol*>(this)->symbol.customNumber() );
 }
 
+std::string
+SymbolHolder::Symbol::
+idnameOldThunderSymbol()const
+{
+   return symbolidToName(  const_cast<SymbolHolder::Symbol*>(this)->oldThunderSymbol.customNumber() );
+}
+
+std::string
+SymbolHolder::Symbol::
+idname( const miSymbol &symbol_ )
+{
+   return symbolidToName( symbol_.customNumber() );
+}
+
+int
+SymbolHolder::Symbol::
+symbolid( const miSymbol &symbol_ )
+{
+   return symbol_.index();
+}
+
 boost::posix_time::ptime
 SymbolHolder::Symbol::
 toAsPtime()const
@@ -295,8 +316,8 @@ SymbolHolder::
 findSymbolsInRange(const boost::posix_time::ptime &fromTime,
                    const boost::posix_time::ptime &toTime )
 {
-   SymbolList::const_iterator begin;
-   SymbolList::const_iterator it;
+   SymbolList::iterator begin;
+   SymbolList::iterator it;
    boost::posix_time::ptime from, to;
 
    //WEBFW_USE_LOGGER("symbols");
@@ -330,6 +351,47 @@ findSymbolsInRange(const boost::posix_time::ptime &fromTime,
    return SymbolRange( begin, ++it );
 }
 
+SymbolHolder::SymbolRange
+SymbolHolder::
+findSymbolsIncludedRange(const boost::posix_time::ptime &fromTime,
+                   const boost::posix_time::ptime &toTime )
+{
+   SymbolList::iterator begin, end;
+   SymbolList::iterator it;
+   boost::posix_time::ptime from, to;
+
+   //WEBFW_USE_LOGGER("symbols");
+
+
+//   WEBFW_LOG_DEBUG("findSymbolsInRange: " << fromTime << " - " << toTime
+//                 << " Timespan: " << timespanInHours() );
+
+   for( it = symbols_.begin(); it != symbols_.end(); ++it ) {
+      it->fromAndToTime( from, to );
+
+      if( from <= fromTime && to >= toTime )
+         break;
+   }
+
+   if(  it == symbols_.end() )
+      return SymbolRange( symbols_.end(), symbols_.end() );
+
+   begin = it;
+   end = it+1;
+
+   for( ++it; it != symbols_.end(); ++it ) {
+      it->fromAndToTime( from, to );
+      end = it;
+
+      if( ! (from <= fromTime && to >= toTime ) )
+         break;
+   }
+
+   //   WEBFW_LOG_DEBUG("findSymbolsInRange: " << begin->fromAsPtime() << " - " << it->toAsPtime());
+   return SymbolRange( begin, end );
+}
+
+
 void
 SymbolHolder::
 consistentCheckThunder( SymbolHolder &otherSymbols )
@@ -341,6 +403,67 @@ consistentCheckThunder( SymbolHolder &otherSymbols )
    WEBFW_LOG_DEBUG( "consistentCheckThunder: '" << provider
                  << "' timespan (this): " << timespanInHours()
                  << " timespan (other): " << otherSymbols.timespanInHours() );
+
+   if( otherSymbols.timespanInHours() > timespanInHours() ) {
+      return;
+   }
+
+   SymbolHolder::Symbol symbol;
+   SymbolHolder::Symbol oldSymbol;
+   boost::posix_time::ptime from, to;
+   boost::posix_time::ptime otherFrom, otherTo;
+
+   SymbolRange range;
+   SymbolList::iterator itRange;
+
+   //First turn off all thunder in this container.
+   for( SymbolHolder::SymbolList::iterator it = symbols_.begin();
+         it != symbols_.end(); ++it ) {
+      it->oldThunderSymbol = it->symbol;
+      it->turnOffThunder();
+   }
+
+   for( SymbolHolder::SymbolList::const_iterator it = otherSymbols.symbols_.begin();
+         it != otherSymbols.symbols_.end(); ++it ) {
+
+      if( ! it->hasThunder() )
+         continue;
+
+      it->fromAndToTime( otherFrom, otherTo );
+
+      range = findSymbolsIncludedRange( otherFrom, otherTo );
+
+      if( range.first == range.second ) {
+         WEBFW_LOG_DEBUG( "consistentCheckThunder: No symbols in range." );
+         continue;
+      }
+
+      for( itRange = range.first; itRange != range.second; ++itRange ) {
+         itRange->turnOnThunder();
+         WEBFW_LOG_DEBUG( "consistentCheckThunder: Turn ON thunder: "
+                       << itRange->fromAsPtime() << " - " << itRange->toAsPtime()
+                       <<  " (" << itRange->idnameOldThunderSymbol() << " -> "<< itRange->idname() << ")." );
+      }
+   }
+}
+
+
+
+
+
+#if 0
+void
+SymbolHolder::
+consistentCheckThunder( SymbolHolder &otherSymbols )
+{
+   using namespace boost::posix_time;
+
+   WEBFW_USE_LOGGER( "symbols" );
+
+   WEBFW_LOG_DEBUG( "consistentCheckThunder: '" << provider
+                 << "' timespan (this): " << timespanInHours()
+                 << " timespan (other): " << otherSymbols.timespanInHours() );
+
    if( otherSymbols.timespanInHours() > timespanInHours() ) {
       return;
    }
@@ -381,6 +504,7 @@ consistentCheckThunder( SymbolHolder &otherSymbols )
       symbols_[ i ] = symbol;
    }
 }
+#endif
 
 bool
 SymbolHolder::
@@ -671,6 +795,31 @@ checkThunder( wdb2ts::SymbolHolderList &symbols_ )
       prev = *it;
    }
 }
+
+
+#if 0
+void
+checkThunder( wdb2ts::SymbolHolderList &symbols_ )
+{
+   using namespace wdb2ts;
+
+   if( symbols_.size() < 2 )
+      return;
+
+   //Shallow copy.
+   wdb2ts::SymbolHolderList symbols( symbols_ );
+   boost::shared_ptr<wdb2ts::SymbolHolder> prev;
+   symbols.sort( cmpSymbolHolder );
+
+   SymbolHolderList::iterator it = symbols.begin();
+   prev = *it;
+
+   for( ++it; it != symbols.end(); ++it ) {
+      (*it)->consistentCheckThunder( *prev );
+      prev = *it;
+   }
+}
+#endif
 
 #if 0
 std::string 

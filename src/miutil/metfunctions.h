@@ -43,6 +43,18 @@ namespace miutil {
 float
 dewPointTemperatureToRelativeHumidity( float temperature, float dewPointTemperature );
 
+
+/**
+ * Compute dew point temperature from temperature
+ * and relative humidity.
+ *
+ * @param temperature air temperature
+ * @param relativeHumidity relative humidity in percent.
+ * @return The dew point temperature on success and FLT_MAX on failure.
+ */
+float
+dewPointTemperature( float temperature, float relativeHumidity );
+
 }
 
 #endif /* METFUNCTIONS_H_ */

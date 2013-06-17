@@ -16,6 +16,7 @@ FOGSTATUS  = true
 THUNDERSTATUS = true
 VISIBILITY = false
 PICTURES   = false
+DYNAMIC_RAINLIMITS = true
 
 {
 SUN
@@ -141,6 +142,18 @@ LIGHTRAINTHUNDER
 SLEETTHUNDER
 23 Sludd og torden
 23 Sludd og torden
+}
+
+{
+DRIZZLE
+24 duskregn
+24 duskregn
+}
+
+{
+LIGTHSNOW
+25 lett snø
+25 lett snø
 }
 
 {

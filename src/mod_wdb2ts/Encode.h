@@ -28,10 +28,12 @@
 #ifndef __ENCODE_H__
 #define __ENCODE_H__
 
+#include <boost/shared_ptr.hpp>
 #include <string>
 #include <stdexcept>
 #include <ptimeutil.h>
 #include <Response.h>
+#include "configdata.h"
 
 
 
@@ -44,6 +46,12 @@
 
 namespace wdb2ts {
 
+class NoData : public std::exception
+{
+public:
+   explicit NoData(){};
+};
+
 /**
  * A virtual base class, interface. It is used to implements 
  * encoders for output from wdb2ts.
@@ -52,17 +60,21 @@ class Encode
 {
    protected:
       std::string schema_;
+      ConfigDataPtr config_;
 
 	public:
 		Encode();
 		virtual ~Encode();
 		
+		void config( ConfigDataPtr cf );
+		ConfigDataPtr config()const { return config_; }
+		std::string url() const;
 		void schema( const std::string &s ) { schema_ = s; }
       std::string codetime( const boost::posix_time::ptime &time ) const;
       
       virtual std::string schemaName()const ;
       /**
-       * @exception logic_error ios_base::failure webFW::IOError 
+       * @exception logic_error ios_base::failure webFW::IOError NoData
        */
       virtual void encode( webfw::Response &response );
 };

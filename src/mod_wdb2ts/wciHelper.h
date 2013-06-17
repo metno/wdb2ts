@@ -27,25 +27,26 @@
 */
 
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <string>
+#include <boost/date_time.hpp>
 #include <ParamDef.h>
 
-using namespace std;
+
 
 namespace wdb2ts {
 
-string
+std::string
 wciReadReturnColoumns( int wciProtocol );
 
-string
+std::string
 wciTimeSpec( int wciProtocol, const boost::posix_time::ptime &from,
 		     const boost::posix_time::ptime &to = boost::posix_time::ptime( boost::posix_time::not_a_date_time)  );
 
 
-string
+std::string
 wciLevelSpec( int wciProtocol, const wdb2ts::ParamDef &paramDef );
 
-string
+std::string
 wciValueParameter( int wciProtocol, const std::list<wdb2ts::ParamDef> &paramDefs );
 
 }

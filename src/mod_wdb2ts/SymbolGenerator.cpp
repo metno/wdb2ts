@@ -25,7 +25,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
-
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <map>
@@ -65,20 +65,17 @@ readConf( const std::string &confile )
 
 void
 SymbolGenerator::
-correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd )
+correctSymbol( SymbolHolder::Symbol &symbol,
+               const PartialData &pd,
+               const Precipitation &precip )
 {
-   WEBFW_USE_LOGGER( "encode" );
+   //WEBFW_USE_LOGGER( "encode" );
+   WEBFW_USE_LOGGER("+wetbulb");
 // SymbolHolder::Symbol oldSymbol;
 
-   if( pd.totalCloud != FLT_MAX && symbol.idnumber() == 4 ) {
+   if( pd.totalCloud != FLT_MAX && symbol.symbol == symbolMaker::Cloud ) {
       if( pd.mediumCloud < 13  && pd.lowCloud < 13 && pd.fog < 13 ) {
-         miSymbol partlyCloud( 3, false );
-         code light;
-         code dark;
-
-         light.AddValues( 3, "delvis skyet", 9 );
-         dark.AddValues( 17, "delvis skyet i m�rketid", 9 );
-         partlyCloud.AddCodes( light, dark );
+         miSymbol partlyCloud( symbolMaker::createSymbol( symbolMaker::PartlyCloud ));
          partlyCloud.setTime( symbol.symbol.getTime() );
          partlyCloud.setLightStat( symbol.symbol.getLightStat() );
 
@@ -94,11 +91,58 @@ correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd )
       }
    }
 
-   if( ! symbol.withOutStateOfAgregate  || pd.temperatureCorrected==FLT_MAX  ) {
+   if( precip.max != FLT_MAX ) {
+      float noRainLimit, rainLimit;
+      symbolMaker::rainLimits( symbol.timespanInHours(), noRainLimit, rainLimit );
+
+      if( precip.max > noRainLimit &&
+          (symbol.symbol == symbolMaker::Sun ||
+           symbol.symbol == symbolMaker::LightCloud ) ) {
+         miSymbol partlyCloud( symbolMaker::createSymbol( symbolMaker::PartlyCloud ));
+         partlyCloud.setTime( symbol.symbol.getTime() );
+         partlyCloud.setLightStat( symbol.symbol.getLightStat() );
+
+         symbol.symbol = partlyCloud;
+      }
+   }
+
+   if( ! symbol.withOutStateOfAgregate  ||
+         (pd.temperatureCorrected==FLT_MAX && pd.wetBulbTemperature==FLT_MAX) ) {
       return;
    }
-// oldSymbol = symbol;
-   symbolMaker::stateMaker( symbol.symbol, pd.temperatureCorrected );
+
+
+   if( pd.wetBulbTemperature != FLT_MAX ) {
+
+      symbol.wetBulbTemp = pd.wetBulbTemperature;
+      SymbolHolder::Symbol oldSymbol;
+      oldSymbol = symbol;
+
+      symbolMaker::stateMaker( symbol.symbol, pd.wetBulbTemperature, AggregateLimits( 0.5, 1.0 ) );
+
+      if( pd.temperatureCorrected != FLT_MAX ) {
+         symbol.heightCorrectedTemp = pd.temperatureCorrected;
+         symbolMaker::stateMaker( oldSymbol.symbol, pd.temperatureCorrected );
+         symbol.oldHeightCorrectedSymbol = oldSymbol.symbol;
+
+         WEBFW_LOG_DEBUG(pd.time << " T.HC: " << fixed << setprecision(1) << setw(5) << pd.temperatureCorrected
+                         << " T.WB: " << setw( 5 ) << pd.wetBulbTemperature
+                         << " (" << setw(5) << pd.temperatureCorrected - pd.wetBulbTemperature << ")" <<
+                         ( pd.url().empty()?"":(" - "+pd.url()) ));
+
+      }
+
+      if( pd.temperatureCorrected != FLT_MAX &&
+          symbol.symbol != oldSymbol.symbol ) {
+         WEBFW_LOG_NOTICE( fixed << setprecision(0) << pd.time << " - " << setw(19) << oldSymbol.idname() <<
+                         " (" << setw(2) << oldSymbol.idnumber() << ") -> " <<
+                         setw(19) << symbol.idname() << " (" << setw(2) << symbol.idnumber() << ") "  << setprecision(1) <<
+                         " T.HC: " << setw(5) << pd.temperatureCorrected << " T.WB: " << setw(5) << pd.wetBulbTemperature <<
+                         ( pd.url().empty()?"":(" - " + pd.url())) );
+      }
+   } else {
+      symbolMaker::stateMaker( symbol.symbol, pd.temperatureCorrected );
+   }
 
 
 /*
@@ -115,9 +159,11 @@ correctSymbol( SymbolHolder::Symbol &symbol,  const PartialData &pd )
 
 void
 SymbolGenerator::
-correctSymbol( SymbolHolder::Symbol &symbol,  const LocationElem &data )
+correctSymbol( SymbolHolder::Symbol &symbol,
+               const LocationElem &data,
+               const Precipitation &precip )
 {
-   correctSymbol( symbol, PartialData( data ) );
+   correctSymbol( symbol, PartialData( data ), precip );
 }
 
 SymbolHolder*
@@ -128,6 +174,7 @@ computeSymbols( LocationData& data,
 {
 	//stringstream ost;
 	symbolMaker sm;
+	ostringstream smLog;
 	boost::posix_time::ptime startAt;
 	boost::posix_time::ptime pTime;
 	boost::gregorian::date  date;
@@ -137,9 +184,9 @@ computeSymbols( LocationData& data,
 	vector<miSymbol> symbols;
 	vector<miSymbol> tmpSymbols;
 	map< int, map<miutil::miTime,float> > allParameters;
-	vector<paramet>               parameters;
-	vector<miutil::miTime>                times;
-	float                         val;
+	vector<paramet>        parameters;
+	vector<miutil::miTime> times;
+	float                  val;
 
 	WEBFW_USE_LOGGER( "symbols" );
 	min--;
@@ -194,7 +241,7 @@ computeSymbols( LocationData& data,
 		val = elem.thunderProbability();
 
 		//DEBUG (BEGIN)
-		//if( min == 2 )
+		//if( min == 0 )
 		//   val = 1;
 		//DEBUG (END)
 				
@@ -219,6 +266,11 @@ computeSymbols( LocationData& data,
 		if( ( mitime.hour() % precipHours ) == 0 ) {
 			val = elem.PRECIP( precipHours, precipFromtime );
 			
+			//DEBUG (BEGIN)
+			//if( min == 0 )
+			//   val = 0.4;
+			//DEBUG (END)
+
 			WEBFW_LOG_DEBUG( "computeSymbols: hour: " << precipHours << " from: " << precipFromtime << " to: " << mitime << " lprovider: " << elem.lastUsedProvider() << " val: " << val );
 
 			if( val != FLT_MAX ) {
@@ -231,7 +283,23 @@ computeSymbols( LocationData& data,
 		//cerr << ost.str();
 	}
 	
-	
+#if 0
+	//This code is here only to create a test data set.
+	ostringstream foutname;
+	foutname << "/home/borgem/projects/data_" << provider << "_min_" << min << "_max_" << max << ".dat";
+	ofstream  fout( foutname.str().c_str() );
+	if( fout.good() ) {
+	   fout << "min: " << min << " max: " << max << endl;
+	   for( map< int, map<miutil::miTime,float> >::const_iterator it = allParameters.begin();
+	         it != allParameters.end(); ++it ) {
+	      for( map<miutil::miTime,float>::const_iterator tit=it->second.begin();
+	            tit != it->second.end(); ++tit ) {
+	         fout << it->first << "," << tit->first << "," << tit->second << endl;
+	      }
+	   }
+	   fout.close();
+	}
+#endif
 	
 	for( map< int, map<miutil::miTime,float> >::const_iterator it = allParameters.begin();
 	     it != allParameters.end(); ++it ) {
@@ -242,17 +310,35 @@ computeSymbols( LocationData& data,
 		}
 	}
 
+	int logLevel = WEBFW_GET_LOGLEVEL();
+
+	if( logLevel == log4cpp::Priority::DEBUG)
+	    sm.setLogger( &smLog );
+
 	if( withoutStateOfAgregate )
 		tmpSymbols = sm.computeWithoutStateOfAggregate( parameters, times, min, max, true );
 	else
 		tmpSymbols = sm.compute( parameters, times, min, max );
 
-   //tmpSymbols = sm.compute( parameters, times, min, max);
+    if( logLevel == log4cpp::Priority::DEBUG) {
+        WEBFW_LOG_DEBUG("symbolMaker: " << smLog.str() );
+    }
    
+
+
+
+//	for(vector<miSymbol>::iterator myIt = tmpSymbols.begin();
+//	        myIt != tmpSymbols.end(); ++myIt ) {
+//	    WEBFW_LOG_DEBUG( "Symbol: " << myIt->getTime() << " : " << myIt->customNumber()
+//	                    << " (" << symbolidToName( myIt->customNumber() ) << ")" );
+//	}
+
    //Do some cleanup
    
    vector<miSymbol>::iterator tmpIt = tmpSymbols.begin();
    
+
+
    //Remove all symbols that has a hour  where hour % preciphours != 0. This symbols 
    //is garbage. 
   

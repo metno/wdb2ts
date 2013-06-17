@@ -132,7 +132,8 @@ EncodeLocationForecastGml2()
 	:  reqit( dummyRequestIterator ), gmlContext( 0, true ), metaConf( dummyMetaConf ),
       modelTopoProviders( dummyTopoProvider ),
       topographyProviders( dummyTopoList ),
-      symbolConf( dummySymbolConfProvider )
+      symbolConf( dummySymbolConfProvider ),
+      nElements( 0 )
 {
 }
 
@@ -154,7 +155,8 @@ EncodeLocationForecastGml2( RequestIterator &reqit_,
      modelTopoProviders( modelTopoProviders_),
      topographyProviders( topographyProviders_),
      symbolConf( symbolConf_ ),
-     expireRand( expire_rand_ )
+     expireRand( expire_rand_ ),
+     nElements( 0 )
 {
 }
 
@@ -321,6 +323,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 		   
 		while( locationData->hasNext() ) {
 			LocationElem& location = *locationData->next();
+			location.config = config_;
 			
 			if( ! percentileOst.str().empty() ) {
 				ost << outOst.str();
@@ -414,7 +417,8 @@ encodePrecipitation( const boost::posix_time::ptime &from,
 	   	
 	   	while( locationData->hasNext() ) {
    			location = locationData->next();
-			
+   			location->config = config_;
+
 	   		if(  location->time() > itbt->to )  
 	   			break;
 	   			
@@ -496,6 +500,8 @@ encodeFeatureMemberTag( const LocationElem &location,
 	if( momentOst.str().empty() ) 
 		return false;
 	
+	nElements++;
+
 	{
 		WdbForecastTag forcastTag( gmlContext );
 		forcastTag.output( ost, indent );
@@ -549,6 +555,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 					
 	while( locationData->hasNext() ) {
 		LocationElem &location = *locationData->next();
+		location.config = config_;
 
 		if( encodeFeatureMemberTag( location, ost, indent ) )
 				updateBreakTimes( location.forecastprovider(), location.time() );
@@ -594,7 +601,7 @@ computePrecipitationMulti( const boost::posix_time::ptime &from,
 
 			while( locationData->hasNext() ) {
 				location = locationData->next();
-
+				location->config = config_;
 
 				if(  location->time() > itbt->to )
 					break;
@@ -689,6 +696,8 @@ encodePeriods( const boost::posix_time::ptime &from,
 						}
 					} //Close timePeriodTag
 
+					nElements++;
+
 					ost << level4.indent() << "<mox:precipitation  uom=\"mm\">" << itPrecip->second.precip << "</mox:precipitation>\n";
 
 					if( symbols.findSymbol( prevProvider, fromTime, precip.precipHours[hourIndex], symbol ) ) {
@@ -698,25 +707,6 @@ encodePeriods( const boost::posix_time::ptime &from,
 
 				} //Close oceanForecastTag
 			} //Close forecastTag
-
-
-
-#if 0
-			TimeTag timeTag( fromTime, fromTime+boost::posix_time::hours( precip.precipHours[hourIndex] ) );
-			timeTag.output( ost, level3.indent() );
-
-			IndentLevel level4( indent );
-			LocationTag locationTag( latitude, longitude, altitude );
-			locationTag.output( ost, level4.indent() );
-
-			IndentLevel level5( indent );
-			PrecipitationTags precipitationTag( itPrecip->second.precip );
-			precipitationTag.output( ost, level5.indent() );
-
-			if( symbols.findSymbol( prevProvider, fromTime, precip.precipHours[hourIndex], symbol ) ) {
-				ost << level5.indent() << "<symbol value=\"" << symbol.idname() << "\"/> \n";
-			}
-#endif
 		}
 	}
 }
@@ -998,6 +988,9 @@ encode(  webfw::Response &response )
 			locationPointData = reqit.next();
 		}
 	}
+
+	if( nElements == 0 && config_ && config_->throwNoData )
+	    throw NoData();
 
 	//result = ost.str();
 	string header;

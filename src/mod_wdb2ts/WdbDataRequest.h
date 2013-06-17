@@ -37,6 +37,7 @@
 #include <UpdateProviderReftimes.h>
 #include <ParamDef.h>
 #include <Config.h>
+#include <QueryMaker.h>
 
 
 namespace wdb2ts {
@@ -102,6 +103,14 @@ class WdbDataRequestManager {
                         const wdb2ts::config::Config::Query &urlQuerys,
                         int wciProtocol );
 
+   void
+   populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
+		                const std::string &wdbid,
+                        const LocationPointList &locationPoints,
+                        const boost::posix_time::ptime &toTime,
+                        bool isPloygon );
+
+
    /**
    * wait for threads in the runningThreads list to complete. It is waited for
    * at least the number of threads given with waitForAtLeast.
@@ -148,6 +157,14 @@ public:
                                      const ProviderList  &providerPriority,
                                      const wdb2ts::config::Config::Query &urlQuerys,
                                      int wciProtocol );
+
+   LocationPointDataPtr requestData( Wdb2TsApp *app,
+		   	   	   	   	   	   	   	 const qmaker::QuerysAndParamDefsPtr querys,
+                                     const std::string &wdbid,
+                                     const LocationPointList &locationPoints,
+                                     const boost::posix_time::ptime &toTime,
+                                     bool isPloygon,
+                                     int altitude);
 };
 
 }

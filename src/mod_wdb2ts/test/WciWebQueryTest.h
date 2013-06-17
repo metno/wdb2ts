@@ -41,6 +41,7 @@ class WciWebQueryTest : public CppUnit::TestFixture
 	CPPUNIT_TEST_SUITE( WciWebQueryTest );
 	//CPPUNIT_TEST( testFullQuery );
 	//CPPUNIT_TEST( testNullQuery );
+	CPPUNIT_TEST( testLevelQuery );
 	CPPUNIT_TEST_SUITE_END();
 public:
 	
@@ -52,7 +53,8 @@ public:
 	
 	void testFullQuery();
 	void testNullQuery();
-	
+	void testLevelQuery();
+
 private:
 
 };

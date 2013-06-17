@@ -124,7 +124,8 @@ EncodeLocationForecast3():
 	symbolContext( false),
 	providerPriority( dummyProviderPriority ), modelTopoProviders( dummyTopoProvider ),
 	topographyProviders( dummyTopoList ),
-	symbolConf( dummySymbolConfProvider )
+	symbolConf( dummySymbolConfProvider ),
+	nElements( 0 )
 {
 	// NOOP
 }
@@ -154,7 +155,8 @@ EncodeLocationForecast3( LocationPointDataPtr locationPointData_,
      modelTopoProviders( modelTopoProviders_),
      topographyProviders( topographyProviders_ ),
      symbolConf( symbolConf_ ),
-     expireRand( expire_rand )
+     expireRand( expire_rand ),
+     nElements( 0 )
 {
 }
 
@@ -288,6 +290,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 			LocationElem& location = *locationData->next();
 			
 			if( ! percentileOst.str().empty() ) {
+			   ++nElements;
 				ost << outOst.str();
 				percentileOst.str("");
 			}
@@ -330,8 +333,10 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 		}
 
 		//My have one left over.
-		if( ! percentileOst.str().empty() )
+		if( ! percentileOst.str().empty() ) {
+		   ++nElements;
 			ost << outOst.str();
+		}
 	
 	}
 }
@@ -433,8 +438,10 @@ encodeMoment( const boost::posix_time::ptime &from,
 	
 	while( locationData->hasNext() ) {
 		LocationElem &location = *locationData->next();
+		location.config = config_;
 		
 		if( ! momentOst.str().empty() ) {
+		   ++nElements;
 			ost << tmpOst.str();
 			momentOst.str("");
 		}
@@ -471,8 +478,10 @@ encodeMoment( const boost::posix_time::ptime &from,
 	}
 
 	//May have one leftover.
-	if( ! momentOst.str().empty() ) 
+	if( ! momentOst.str().empty() ) {
+	   ++nElements;
 		ost << tmpOst.str();
+	}
 }
 
 
@@ -489,10 +498,12 @@ encodePeriods( LocationElem &elem,
 
 	boost::posix_time::ptime totime = elem.time();
 	std::string forecastProvider = elem.forecastprovider();
-	//WEBFW_USE_LOGGER( "encode" );
+	WEBFW_USE_LOGGER( "encode" );
 	std::set<boost::posix_time::ptime> fromtimes;
 	Precipitation precip;
 	SymbolHolder::Symbol symbol;
+	SymbolHolder::Symbol oldSymbol;
+	log4cpp::Priority::Value logLevel=WEBFW_GET_LOGLEVEL();
 	bool hasData = false;
 
 	aggregates.findAllFromtimes( totime, forecastProvider, fromtimes );
@@ -523,7 +534,43 @@ encodePeriods( LocationElem &elem,
 
 		if( symbols.findSymbol(forecastProvider, *it, totime, symbol ) ) {
 			hasData = true;
-			SymbolGenerator::correctSymbol( symbol, elem );
+			oldSymbol=symbol;
+			SymbolGenerator::correctSymbol( symbol, elem, precip );
+
+			if( oldSymbol.symbolid() != symbol.symbolid()
+			    && logLevel >= log4cpp::Priority::INFO ) {
+			   ost << "<!-- Symbol corrected: " << oldSymbol.idname() << " to "
+			       << symbol.idname() << " -->\n";
+			}
+
+			{  //Create a temporary block so we can change the logger
+ 			   //temporarily to log information about WetBulbTemperature.
+			   WEBFW_USE_LOGGER( "+wetbulb" );
+			   bool doLog=false;
+			   log4cpp::Priority::Value wetbulbLogLevel=WEBFW_GET_LOGLEVEL();
+			   if( wetbulbLogLevel >= log4cpp::Priority::NOTICE &&
+			       symbol.wetBulbTemp != FLT_MAX  && symbol.heightCorrectedTemp != FLT_MAX ) {
+			      ostringstream wost;
+			      wost << "<!-- Symbol wetbulb: " << fixed <<  setprecision( 1 );
+
+			      if( symbol.symbolid() != symbol.oldHeightCorrectedSymbol.index() ) {
+			          wost << "SYMBOL " << SymbolHolder::Symbol::idname( symbol.oldHeightCorrectedSymbol ) << " -> "
+			               << SymbolHolder::Symbol::idname( symbol.symbol )
+			               << " T.HC: " << symbol.heightCorrectedTemp
+			               << " T.WB: " << symbol.wetBulbTemp;
+			          doLog = true;
+			      } else if( wetbulbLogLevel >= log4cpp::Priority::DEBUG ) {
+			         wost << " T.HC: "  << symbol.heightCorrectedTemp
+			              << " T.WB: " << symbol.wetBulbTemp
+			              << " (" << symbol.heightCorrectedTemp - symbol.wetBulbTemp << ")";
+			         doLog = true;
+			      }
+
+			      if( doLog )
+			         ost << wost.str() << " -->\n";
+			   }
+			}
+
 			ost << "<symbol id=\"" << symbol.idname() <<"\" number=\"" << symbol.idnumber() << "\"/>\n";
 
 			if( symbol.probability != FLT_MAX ){
@@ -553,7 +600,7 @@ encodeMeta( std::string &result )
 	ostringstream ost;
 	
 	if( breakTimes.empty() ) {
-		replace( result, metatemplate, "" );
+		replaceString( result, metatemplate, "" );
 		return;
 	}
 	
@@ -620,7 +667,7 @@ encodeMeta( std::string &result )
 		ost << level2.indent() << "</meta>\n";
 	}
 	
-	replace( result, metatemplate, ost.str() );
+	replaceString( result, metatemplate, ost.str() );
 }
 
 void  
@@ -639,6 +686,8 @@ encode(  webfw::Response &response )
  	MARK_ID_MI_PROFILE("EncodeXML");
  	WEBFW_USE_LOGGER( "encode" );
  	
+ 	nElements = 0;
+
  	//Use one decimal precision as default.
  	ost.setf(ios::floatfield, ios::fixed);
  	ost.precision(1);
@@ -709,6 +758,10 @@ encode(  webfw::Response &response )
 		encodeMoment(  from, ost, indent );
 		encodePrecipitationPercentiles( from, ost, indent );
 
+	}
+
+	if( nElements == 0 ) {
+	   throw NoData();
 	}
 
 	result = ost.str();
