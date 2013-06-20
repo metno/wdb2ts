@@ -372,6 +372,34 @@ geologicalLocalTime( const boost::posix_time::ptime &utcTime,
 }
 
 
+time_t
+miutil::
+to_time_t( const boost::posix_time::ptime &t )
+{
+    namespace pt=boost::posix_time;
+    namespace gd=boost::gregorian;
+
+    pt::ptime epoch( gd::date(1970, gd::Jan, 1), pt::time_duration(0,0,0) );
+
+    if( t.is_special() || t < epoch ) {
+        std::ostringstream ost;
+
+        if( t.is_special() )
+            ost << "The time is undefined.";
+        else
+            ost << "The time '" << t <<"' is before the epoch ("<< epoch <<").";
+
+        throw std::range_error( ost.str() );
+    }
+
+    pt::time_duration dif = t - epoch;
+
+    return static_cast<time_t>( dif.total_seconds() );
+}
+
+
+
+
 namespace {
 	
 	/**
@@ -414,8 +442,6 @@ namespace {
 		buf[nextN]='\0';
 		return atoi( buf );
 	}
-	
-	
 	
 }
 

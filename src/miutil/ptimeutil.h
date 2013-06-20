@@ -30,6 +30,7 @@
 #define __RFC1123DATE_H__
 
 #include <string>
+#include <stdexcept>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace miutil {
@@ -147,5 +148,18 @@ namespace miutil {
    boost::posix_time::ptime geologicalLocalTime( const boost::posix_time::ptime &utcTime,
                                               float longitude  );
 
+   /**
+    * Creat a time_t from a posix time.
+    *
+    * Precondition: The time to convert must be greater
+    * than the epoch, 1 Jan 1970 00:00:00;
+    *
+    * @param t The time to convert to time_t.
+    * @return a time_t.
+    * @exception std::range_error if t is less than epoch or
+    *    t is not a time, ie t.is_special is true.
+    */
+
+   time_t to_time_t( const boost::posix_time::ptime &t );
 }
 #endif 
