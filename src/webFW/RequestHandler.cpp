@@ -25,8 +25,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
-#include <unistd.h>
-#include <sys/types.h>
+//#include <unistd.h>
+//#include <sys/types.h>
 #include <errno.h>
 #include <string.h>
 #include <iostream>
@@ -239,22 +239,19 @@ setupLogger( const std::string &name_,
 			cerr << "Loggsystem: No appender exist for '" << prefix << "' filename: '" << filename << "'"<< endl;
 			errno = 0;
 			appender = new log4cpp::RollingFileAppender( prefix, filename, 10 * 1024 * 1024, 10, true, 00640 );
-			int savedErr = errno;
-			char buf[256];
-			buf[0]='\0';
 
-			if( savedErr != 0 ) {
-#ifdef _GNU_SOURCE
-				strerror_r( errno, buf, 256 );
-				cerr << " **** (GNU) errno: " << savedErr << " '" << strerror_r( errno, buf, 256 ) << "'. uid: " << getuid()
-			         << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
-#else
-				strerror_r( errno, buf, 256 );
-				cerr << " **** errno: " << savedErr << " '" << buf << "'. uid: " << getuid()
-			         << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
+			if( errno != 0 ) {
+			    char buf[256];
+			    strerror_r( errno, buf, 256 );
+			    buf[255]='\0';
+			    cerr << "ERROR: Loggsystem: errno: " << errno << " what: " << buf << "." << endl;
+
+//				cerr << " Loggsystem: **** errno: " << savedErr << " '" << buf << "'. uid: " << getuid()
+//			         << " euid: " << geteuid() << " gid: " << getgid() << " egid: " << getegid() << endl;
+
+
 				delete appender;
 				appender=0;
-#endif
 			} else {
 				ostringstream ost;
 				log4cpp::PatternLayout *layout = new log4cpp::PatternLayout();
