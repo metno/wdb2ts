@@ -26,9 +26,29 @@
     MA  02110-1301, USA
 */
 
-#include <sys/time.h>
-#include <unistd.h>
+//#include <sys/time.h>
+//#include <unistd.h>
+#include <boost/date_time/gregorian_calendar.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "gettimeofday.h"
+
+namespace pt=boost::posix_time;
+namespace gd=boost::gregorian;
+
+double
+miutil::
+gettimeofday()
+{
+    pt::ptime epoch( gd::date(1970, gd::Jan, 1), pt::time_duration(0,0,0) );
+    pt::ptime now( pt::microsec_clock::universal_time() );
+    pt::time_duration dif = now - epoch;
+
+    return dif.total_microseconds()/1000000.0;
+}
+
+
+
+#if 0
 
 double
 miutil::
@@ -41,3 +61,5 @@ gettimeofday()
 	
 	return (double)tv.tv_sec+((double)tv.tv_usec)/1000000.0;
 }
+
+#endif
