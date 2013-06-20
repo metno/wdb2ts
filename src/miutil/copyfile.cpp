@@ -26,13 +26,13 @@
     MA  02110-1301, USA
 */
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <utime.h>     
-#include <unistd.h>
+//#include <sys/stat.h>
+//#include <sys/types.h>
+//#include <utime.h>
+//#include <unistd.h>
 #include <fstream>
 #include "copyfile.h"
-
+#include "fileutil.h"
 
 
 bool
@@ -139,7 +139,7 @@ copyfile(const std::string &fromfile, const std::string &tofile,
     //Det har oppst�tt en feil en plass.
     fclose(to);
     fclose(from);
-    unlink(tofile.c_str());
+    miutil::file::removefile( tofile );
     return false;
   }
 
@@ -147,15 +147,10 @@ copyfile(const std::string &fromfile, const std::string &tofile,
   fclose(from);
 
   if(set_mtime){
-    struct stat fromStat;
-    struct utimbuf toUtime;
-    
-    if(stat(fromfile.c_str(), &fromStat)<0)
-      return true;
-    
-    toUtime.modtime=fromStat.st_mtime;
-    toUtime.actime=fromStat.st_atime;
-    utime(tofile.c_str(), &toUtime);
+      boost::posix_time::ptime t = miutil::file::getmtime( fromfile );
+
+      if( ! t.is_special() )
+          miutil::file::setmtime( tofile, t );
   }
 
 
@@ -184,9 +179,9 @@ safecopy(const std::string &fromfile, const std::string &tofile,
     if(!copyfile(fromfile, tmp, set_mtime))
       return false;
     
-    if(rename(tmp.c_str(), tofile.c_str())<0){
-      unlink(tmp.c_str());
-      return false;
+    if( ! miutil::file::renamefile( tmp, tofile ) ){
+        miutil::file::removefile( tmp );
+        return false;
     }
     
     return true;
@@ -215,7 +210,7 @@ copyFromStreamToFile( std::istream &ist, const std::string &destFile )
 		ofile.write( buf, n );
 
 		if( ! ofile ) {
-			unlink( destFile.c_str() );
+		    miutil::file::removefile( destFile );
 			return false;
 		}
 
@@ -229,8 +224,8 @@ copyFromStreamToFile( std::istream &ist, const std::string &destFile )
 	   ofile.write( buf, n );
 
 	   if( ! ofile ) {
-	      unlink( destFile.c_str() );
-	      return false;
+	       miutil::file::removefile( destFile );
+	       return false;
 	   }
 	}
 
