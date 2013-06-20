@@ -332,17 +332,18 @@ write( const std::string &buf, bool wait, bool &wasLocked )
 
     if( ! fd.is_open() )  {
         cerr << "FileLockHelper::write: Cant truncate the file '" << filename_ << "'." << endl;
+        try {
+            flock.unlock();
+        }
+        catch( ... ) {
+        }
         fdTmp.close();
-        flock.unlock();
     }
-
-    fdTmp.close(); //We dont need this anymore
 
     cerr << "FileLockHelper::write: buf[" << buf << "]" << endl;
 
     fd.write( buf.c_str(), buf.size() );
     fd.flush();
-    fd.close();
 
     try {
         flock.unlock();
@@ -351,6 +352,9 @@ write( const std::string &buf, bool wait, bool &wasLocked )
         cerr << "FileLockHelper::write: unlock failed '" << filename_
              << "'. Reason: " << ex.what() << endl;
     }
+
+    fdTmp.close();
+    fd.close();
 
     return true;
 }
