@@ -12,6 +12,7 @@
 #include <boost/date_time/posix_time/ptime.hpp>
 
 namespace miutil {
+namespace file {
 
 bool
 renamefile( const std::string &from, const std::string &to );
@@ -23,12 +24,11 @@ bool
 setmtime( const std::string &file,
           const boost::posix_time::ptime &newModificationTime );
 
-bool
-setatime( const std::string &file,
-          const boost::posix_time::ptime &newAccessTime );
+boost::posix_time::ptime
+getmtime( const std::string &file );
 
 }
-
+}
 
 
 #endif
