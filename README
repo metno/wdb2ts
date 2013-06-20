@@ -21,15 +21,20 @@ Wdb2ts is implemented as an Apache module. It depends on Apache version 2.x.
 It is tested an developed on version 2.2.x with the threaded mpm_worker_module. 
 It should work with different MPM module too.
 
-
 In order to compile wdb2ts the development files for Apache must be installed. The
 configure script use apxs, as is part of the apache installation, to find information
 about your installation of Apache. On some systems the name of this program is apxs2.
 This is true for the Apache 2.x on debian.
 
 Other dependencies.
-- Boost  1.33.1
-- diWdb >= 0.1.x.
+- Boost  1.44.0
+- putools (metlibs)
+- pgconpool  (metlibs)
+- milib (metlibs)
+- libmi (metlibs)
+- pumet (metlibs)
+- puctools (metlibs)
+- curl
 - postgresql client library.
 - proj >= 4.4.9
 - libpqxx >= 2.6.x.
@@ -37,18 +42,8 @@ Other dependencies.
 Boost
 ----- 
 Boost can be downloaded from www.boost.org. From the library you must install
-the librarys boost::thread, boost::iostream, boost::date_time and 
-boost::regex in addition to the base.
-
-diWdb
------------
-diWdb can be downloaded from the svn repository at met.no with the command 
-
-  svn co shttp://svn/met.no/metlibs/diWdb/tags/0.1.0 diWdb-0.1.0
-  
-To compile and install 
-   
-  ./configure --prefix=/your/install/path
+the librarys thread, iostream, date_time, system , filesystem and 
+regex in addition to the base.
   
 postgresql
 ----------
