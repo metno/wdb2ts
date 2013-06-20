@@ -24,6 +24,10 @@ bool
 setmtime( const std::string &file,
           const boost::posix_time::ptime &newModificationTime );
 
+bool
+truncate( const std::string &file );
+
+
 boost::posix_time::ptime
 getmtime( const std::string &file );
 

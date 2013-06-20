@@ -48,6 +48,16 @@ removefileImpl( const std::string &path )
 }
 
 bool
+truncateImpl( const std::string &file )
+{
+    boost::system::error_code ec;
+
+    fs::resize_file( file, 0, ec );
+    return ec.value() == s::errc::success;
+}
+
+
+bool
 setmtimeImpl( const std::string &file,
               const boost::posix_time::ptime &newModificationTime )
 {
@@ -89,6 +99,14 @@ removefileImpl( const std::string &path )
 {
     return unlink( path.c_str() ) != -1;
 }
+
+bool
+truncateImpl( const std::string &file )
+{
+    return truncate( file.c_str(), 0 ) != 0;
+}
+
+
 
 bool
 setmtimeImpl( const std::string &file,
@@ -136,6 +154,13 @@ removefile( const std::string &path )
     return removefileImpl( path );
 
 }
+
+bool
+truncate( const std::string &file )
+{
+    return truncateImpl( file );
+}
+
 
 bool
 setmtime( const std::string &file,
