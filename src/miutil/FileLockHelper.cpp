@@ -26,14 +26,38 @@
     MA  02110-1301, USA
 */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
+#include <boost/version.hpp>
+#include "ptimeutil.h"
+#include "fileutil.h"
+
+//#define BOOST_VERSION 103100
+
+#if BOOST_VERSION >= 104400
+#  define USE_BOOST 1
+#  define OLD_BOOST_FILESYSTEM_VERSION BOOST_FILESYSTEM_VERSION
+#  if BOOST_VERSION < 104800
+#    define BOOST_FILESYSTEM_VERSION 3
+#  endif
+#  include <boost/system/error_code.hpp>
+#  include <boost/filesystem.hpp>
+#  include <boost/interprocess/sync/file_lock.hpp>
+namespace fs = boost::filesystem;
+namespace s = boost::system;
+namespace ip = boost::interprocess;
+#else
+#  undef USE_BOOST
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <unistd.h>
+#  include <errno.h>
+#  include <fcntl.h>
+#endif
+
+
 #include <FileLockHelper.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
@@ -69,6 +93,19 @@ filename() const
 {
 	return filename_;
 }
+
+boost::posix_time::ptime
+FileLockHelper::
+modifiedTime() const
+{
+    if( filename_.empty() )
+        throw runtime_error("No filename is given.");
+
+    return miutil::file::getmtime( filename_ );
+}
+
+
+#ifndef USE_BOOST
 
 bool 
 FileLockHelper::
@@ -244,33 +281,154 @@ read( std::string &buf, bool wait, bool &wasLocked )
 }
 
 
-boost::posix_time::ptime 
+
+#else
+
+bool
 FileLockHelper::
-modifiedTime() const
+write( const std::string &buf, bool wait, bool &wasLocked )
 {
-	struct stat statBuf;
-	
-	if( filename_.empty() ) 
-		throw runtime_error("No filename is given.");
-	
-	int ret = stat( filename_.c_str(), &statBuf );
-	
-	if( ret < 0 ) {
-		if( errno == ENOENT ) 
-			return boost::posix_time::ptime();
-		
-		char errBuf[512];
-		
-		if( ::strerror_r( errno, errBuf, 512 ) < 0 ) { 
-			throw runtime_error( "stat: Unknown error!");
-		} else {
-			errBuf[511] = '\0';
-			throw runtime_error( errBuf );
-		}
-	}
-	return  boost::posix_time::from_time_t( statBuf.st_mtime );
-	//return  boost::posix_time::from_time_t( statBuf.st_mtim.tv_sec );
+    boost::mutex::scoped_lock mylock( mutex );
+    wasLocked = false;
+
+    if( filename_.empty() )
+        return false;
+
+    ofstream fdTmp;
+    fdTmp.open( filename_.c_str() );
+
+    if( ! fdTmp.is_open() ) {
+        cerr << "FileLockHelper::write: Cant open '" << filename_ << "' for writing." << endl;
+        return false;
+    }
+
+    ip::file_lock flock( filename_.c_str() );
+
+    try {
+        if( wait ) {
+            flock.lock();
+        }else {
+            if( ! flock.try_lock() )
+                wasLocked = true;
+        }
+    }
+    catch( const ip::interprocess_exception &ex ) {
+        fdTmp.close();
+        cerr << "FileLockHelper::write: lock failed '" << filename_
+              << "'. Reason: " << ex.what() << endl;
+        return false;
+    }
+
+    if( wasLocked ) {
+        cerr << "FileLockHelper::write: Cant lock '" << filename_
+             << "'. Already locked." <<  endl;
+
+        fdTmp.close();
+        return false;
+    }
+
+    ofstream fd;
+    fd.open( filename_.c_str(), ios_base::out | ios_base::trunc | ios_base::ate );
+
+    if( ! fd.is_open() )  {
+        cerr << "FileLockHelper::write: Cant truncate the file '" << filename_ << "'." << endl;
+        fdTmp.close();
+        flock.unlock();
+    }
+
+    fdTmp.close(); //We dont need this anymore
+
+    cerr << "FileLockHelper::write: buf[" << buf << "]" << endl;
+
+    fd.write( buf.c_str(), buf.size() );
+    fd.flush();
+    fd.close();
+
+    try {
+        flock.unlock();
+    }
+    catch( const ip::interprocess_exception &ex ) {
+        cerr << "FileLockHelper::write: unlock failed '" << filename_
+             << "'. Reason: " << ex.what() << endl;
+    }
+
+    return true;
 }
 
+bool
+FileLockHelper::
+read( std::string &buf, bool wait, bool &wasLocked )
+{
+    boost::mutex::scoped_lock mylock( mutex );
+    int n;
+
+    wasLocked = false;
+
+    if( filename_.empty() )
+        return false;
+
+    ifstream fd( filename_.c_str() );
+
+    if( ! fd.is_open() ) {
+        cerr << "FileLockHelper::read: Cant open '" << filename_ << "' for reading." << endl;
+        return false;
+    }
+
+    ip::file_lock flock( filename_.c_str() );
+
+    try {
+        if( wait ) {
+            flock.lock_sharable();
+        }else {
+            if( ! flock.try_lock_sharable() )
+                wasLocked = true;
+            }
+        }
+    catch( const ip::interprocess_exception &ex ) {
+        fd.close();
+        cerr << "FileLockHelper::read: lock failed '" << filename_
+             << "'. Reason: " << ex.what() << endl;
+        return false;
+    }
+
+    if( wasLocked ) {
+        cerr << "FileLockHelper::read: Cant lock '" << filename_
+             << "'. Already locked." <<  endl;
+
+        fd.close();
+        return false;
+    }
+
+    fd.seekg (0, fd.end);
+    n = fd.tellg();
+    fd.seekg (0, fd.beg);
+
+    char *tmp = new char [n+1];
+
+    std::cout << "FileLockHelper::read: Reading " << n << " characters from file '"
+              << filename_ << "'." <<endl;
+
+    fd.read( tmp, n );
+    tmp[n]='\0';
+
+    buf = tmp;
+    delete[] tmp;
+
+    try {
+        flock.unlock_sharable();
+    }
+    catch( const ip::interprocess_exception &ex ) {
+        cerr << "FileLockHelper::read: unlock failed '" << filename_
+             << "'. Reason: " << ex.what() << endl;
+    }
+
+
+    return true;
+}
+
+
+
+
+#endif
 }
 
