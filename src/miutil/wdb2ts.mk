@@ -3,6 +3,8 @@ noinst_LTLIBRARIES+=		libmiutil.la
 
 libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 					  src/miutil/Dir.h \
+					  src/miutil/fileutil.cpp \
+					  src/miutil/fileutil.h \
 					  src/miutil/copyfile.cpp \
 					  src/miutil/copyfile.h \
 		              src/miutil/gettimeofday.cpp \
