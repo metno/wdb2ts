@@ -32,6 +32,8 @@
 #ifndef __PROJECTIONHELPER_H__
 #define __PROJECTIONHELPER_H__
 
+//#include <projects.h>
+#include <proj_api.h>
 #include <string>
 #include <map>
 #include <pqxx/pqxx>
@@ -60,17 +62,84 @@ public:
 	typedef float GridSpec[6] ;
 			  
 	MiProjection();
+	MiProjection( const std::string &projDef );
 	MiProjection( const MiProjection &proj );
-	MiProjection( GridSpec gridSpec, ProjectionType pt );
-	
+	MiProjection( GridSpec gridSpec, ProjectionType pt, const char *proj=0 );
+	~MiProjection();
+
 	MiProjection& operator=( const MiProjection &rhs );
 	
 	void set( GridSpec gridSpec, ProjectionType pt  );
+
+	std::string createProjDefinition( bool addDatum );
+
+	bool valid()const{ return geoproj && proj; }
 	void makeGeographic();
 	
 	const float* getGridSpec()const { return gridSpec; }
 	ProjectionType getProjectionType()const { return gridType; }
 	
+
+	bool calculateVectorRotationElements(const MiProjection& srcProj, int nvec,
+			                             const double *to_x, const double *to_y,
+			                             double *cosa_out,
+			                             double *sina_out) const;
+
+	bool calculateVectorRotationElements( const MiProjection& srcProj,
+									      const double to_x, const double to_y,
+									      double &cosa_out, double &sina_out) const;
+
+	bool getVectorRotationElements( const MiProjection &data_area,
+		                            const MiProjection &map_area,
+		                            const int nvec, const double *x, const double *y,
+		                            double ** cosx,	double ** sinx) const;
+
+	bool getVectorRotationElement( const MiProjection &data_area,
+								   const MiProjection &map_area,
+			                       double x, double y,
+			                       double &cosx_out, double &sinx) const;
+
+	bool getVectors(const MiProjection& data_area, const MiProjection& map_area,
+		     		int nvec, const double *x, const double *y, double *u, double *v )const;
+
+	bool getVector( const MiProjection& data_area, const MiProjection& map_area,
+		        	double x, double y, double &u, double &v )const;
+
+
+	bool getPoints(const MiProjection& area, const MiProjection& map_area,
+	                int npos, double *x, double *y )const;
+
+	bool xyv2geo( const MiProjection& area,
+			      int nvec, const double *to_x, const double *to_y,
+			      double *u, double *v ) const;
+
+	bool uv2geo( const MiProjection& uvProj,
+				 int nvec, const double *longX, const double *latY, double *u,
+	             double *v)const;
+
+
+	bool directionAndLength(int nvec, const double *longitude, const double  *latitude,
+							double *u, double *v, const MiProjection &area,
+							double *dd, double *length ) const;
+
+
+	/**
+	 * Convert coordinates between projection.
+	 *
+	 * On call of this method x (longitude) and y (latitude) is given in the
+	 * projection of proj. On return the x and y is given
+	 * in the projection of this projection.
+	 * x and y are arrays and nvec is number of elements in the arrays.
+	 *
+	 * @param proj Convert x/y (longitude/latitude) from projection (proj) to this projection.
+	 * @param nvec numbers of elements in the x and y arrays.
+	 * @param x (longitude) x in the projection given with proj.
+	 * @param y (latitude) y in the projection given with proj.
+	 * @return true on success and false on failure.
+	 */
+
+	bool transform( const MiProjection &proj, int nvec, double *y, double *x )const;
+
 	/**
 	 * Convert coordinates between projection.
 	 * 
@@ -85,6 +154,42 @@ public:
 	 */
 	bool xyconvert( const MiProjection &proj, float &latitude, float &longitude )const;
 	
+
+	/**
+	 * Convert from geographic to the projection represented
+	 * by this projection definition.
+	 *
+	 * On input latitude and longitude is in decimal degrees. On
+	 * output the coordinates is in X and Y.
+	 *
+	 * @param latitude Geographic latitude on input and Y on output.
+	 * @param longitude Geographic longitude on input and Y on output.
+	 * @return true on success and false on failure.
+	 */
+	bool convertFromGeographicToXY( double &latitudeToY, double &longitudeToX )const;
+	bool convertFromXYToGeographic( double &yToLatitude, double &xToLongitude )const;
+
+	bool convertFromGeographicToXY( int nvec, double *latitudeToY, double *longitudeToX )const;
+	bool convertFromXYToGeographic( int nvec, double *yToLatitude, double *xToLongitude )const;
+
+	/**
+	 * Convert vector values from the srcProj projections to this projection
+	 * at position to_x/to_y  (longitude/latitude). The vector components is
+	 * given with u and v.
+	 *
+	 * The converted vectors is returned in u and v.
+	 */
+
+	bool convertVectors( const MiProjection& srcProj, int nvec,
+							 const double * to_x,  const double * to_y,
+							 double * u, double * v) const;
+
+	bool convertVectors( const MiProjection& srcProj,
+						 const double to_x,  const double to_y,
+						 double &u, double &v) const;
+
+
+
 	/**
 	 * Turn vector (ex. velocity) components between different projections.
     * 
@@ -105,11 +210,44 @@ public:
 	 */
 	bool uvconvert( const MiProjection &proj, float latitude, float longitude, float &u, float &v )const;
 	
+	/**
+	 * Convert a vector represented with u and v to direction and length at a
+	 * given location given with latitudeY and longitudeX. The location
+	 * (latitudeY/longitudeX) is in the projectin given with srcProj. The projection
+	 * to the vector components is projection given with this MiProjection object.
+	 * Most of the time the location is in the geographic projection and the projection
+	 * to the vector is in the projection to original field.
+	 *
+	 * @param srcProj The projection the latitudeY and longitudeX location is in.
+	 * @param latitudeY the latitude (Y) component of the location.
+	 * @param longitudeX the longitude (X) component of the location.
+	 * @param u the u component the vector.
+	 * @param v the v component the vector.
+	 * @param[out] direction The direction to the vector in decimal deegrees.
+	 * @param[out] length the length of the vector.
+	 * @param turn Turn the resulting direction 180 deegrees. (The atmosphere people and
+	 * sea-physic people can't agree on the direction a wind blow or the sea flows :-).)
+	 */
+	bool convertToDirectionAndLength_( const MiProjection &srcProj,
+									  double latitudeY, double longitudeX,
+			                          double u, double v,
+								      double &direction, double &length, bool turn=false )const;
+
+	bool convertToDirectionAndLength( const MiProjection &srcProj,
+									  float latitudeY, float longitudeX,
+				                      float u, float v,
+									  float &direction, float &length, bool turn=false )const;
+
+
 	friend std::ostream& operator<<(std::ostream &o, const MiProjection &proj );
 
 private:
-		ProjectionType gridType;
-		GridSpec gridSpec;
+	void init();
+	std::string projString;
+	projPJ proj;
+	projPJ geoproj;
+	ProjectionType gridType;
+	GridSpec gridSpec;
 };
 
 
@@ -158,6 +296,12 @@ public:
 	
 	ProjectionHelper();
 	
+
+	static MiProjection createProjection( float startx, float starty,
+				  	  	  	  	  	  	  float incrementx, float incrementy,
+				  	  	  	  	  	  	  const std::string &projDefinition );
+
+
 	/**
 	 * Load the projection data in projectionMap from wdb.
 	 * Which projection that is associated with each providername is defined
@@ -191,12 +335,14 @@ public:
 	 *    oposit direction. ocean parameters need turn=true.
 	 */
 	bool convertToDirectionAndLength( const std::string &provider, 
-								             float latitude, float longitude, 
-								             float u, float v, 
-								             float &direction, float &length, bool turn=false )const;
+								      float latitude, float longitude,
+								      float u, float v,
+								      float &direction, float &length, bool turn=false )const;
 	
-	
-	
+	bool convertToDirectionAndLength_( const std::string &provider,
+									   float latitude, float longitude,
+									   float u, float v,
+									   float &direction, float &length, bool turn=false )const;
 };
 
 bool 

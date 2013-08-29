@@ -1,3 +1,9 @@
+metno-wdb2ts (1.2.0~rc4) unstable; urgency=low
+  * Reprojection of vector fields now use proj.
+        
+ -- Borge Moe <borge.moe@met.no>  Thu, 29 Aug 2013 12:30:00 +0200
+
+
 metno-wdb2ts (1.2.0~rc3) unstable; urgency=low
   * Bugfix and adjust the support for requesting data for a specific provider and height level.
         

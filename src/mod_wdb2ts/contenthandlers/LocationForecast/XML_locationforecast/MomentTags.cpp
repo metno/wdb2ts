@@ -210,10 +210,17 @@ output( std::ostream &out, const std::string &indent )
 	if( ! provider.empty() ) {
 		pd->temperatureCorrected( tempUsed, provider );
 		computeWind( pd->windU10m(true), pd->windV10m() );
-		projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
+		if( projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
 		   	                                           pd->windU10m(), pd->windV10m(),
-			                                           dd_, ff_ );
-		if( dd!=FLT_MAX && ff != FLT_MAX ) {
+			                                           dd_, ff_ ) ) {
+			tmpout << "<!-- libmi reprojection: dd: " << dd_ << " ff: " << ff_ << " -->\n";
+		}
+
+		projectionHelper->convertToDirectionAndLength_( provider, pd->latitude(), pd->longitude(),
+				   	                                           pd->windU10m(), pd->windV10m(),
+					                                           dd_, ff_ );
+
+		if( dd_!=FLT_MAX && ff_ != FLT_MAX ) {
 			if( loglevel >= log4cpp::Priority::DEBUG )
 				tmpout << indent << "<!-- dd: " << dd << " ff: " << ff << " -->\n";
 

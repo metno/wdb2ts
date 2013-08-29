@@ -415,6 +415,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    float precipMax;
    float precipMean;
    float precipProb;
+   float maxPrecipMax=0.0;
    bool myTryHard = tryHard;
    bool isEqual=false;
    boost::posix_time::ptime fromTime;
@@ -516,6 +517,9 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       max.push_back( precipMax );
       mean.push_back( precipMean );
       prob.push_back( precipProb );
+
+      if( precipMax > maxPrecipMax )
+    	  maxPrecipMax = precipMax;
    }
 
    backTime_ = savedFromTime;
@@ -571,7 +575,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    minOut = sumMin>minOut?sumMin:minOut; //max( sumMin, minOut )
 
    minOut = minOut<=MIN_PRECIP?0:minOut;
-   maxOut = maxOut<=MIN_PRECIP?0:maxOut;
+   maxOut = maxOut<maxPrecipMax?maxPrecipMax:maxOut;
    probOut = maxInVector( prob );
 
    if( minOut>maxOut ) {

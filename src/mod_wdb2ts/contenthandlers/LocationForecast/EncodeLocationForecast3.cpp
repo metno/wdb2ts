@@ -397,7 +397,7 @@ updatePrecipAggregates( LocationElem &location,
 	   if( ! location.PRECIP_MIN_MAX_MEAN( precipConfig.precipHours[precipIndex], fromTime, precipMin, precipMax, precip, precipProb ) )
 	      precip = location.PRECIP( precipConfig.precipHours[precipIndex], fromTime);
 
-		if( precip != FLT_MAX ) {
+	   if( precip != FLT_MAX ) {
 //		   WEBFW_LOG_DEBUG( "updatePrecipAggregates: " <<  precipConfig.precipHours[precipIndex] << " "
 //					        << fromTime <<  "  " << provider << " " << precip
 //					        << " type: " << (precipConfig.precipType == PrecipSequence?"sequence":"multi"));
