@@ -1841,11 +1841,13 @@ ProjectionHelper::
 convertToDirectionAndLength_( const std::string &provider,
 		                      float latitude, float longitude,
 							  float u_, float v_,
-							  float &direction, float &length, bool turn )const
+							  float &direction_, float &length_, bool turn )const
 {
 	if( u_ == FLT_MAX || v_ == FLT_MAX )
 		return false;
 
+	double direction=direction_;
+	double length=length_;
 	double u=u_;
 	double v=v_;
 
@@ -1864,7 +1866,7 @@ convertToDirectionAndLength_( const std::string &provider,
 				return false;
 			}
 
-			if( ! geographic.convertVectors( it->second, longitude, latitude, u, v ) ){
+			if( ! geographic.convertToDirectionAndLength_(it->second, latitude, longitude, u, v, direction, length, turn ) ){
 				WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed!" );
 				return false;
 			}
@@ -1875,28 +1877,8 @@ convertToDirectionAndLength_( const std::string &provider,
 		}
 	} //End mutex protected scope.
 
-	if( u == FLT_MAX || v == FLT_MAX ) {
-		WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed u or/and v undefined!" );
-		return false;
-	}
-
-	double deg=180./3.141592654;
-	double fTurn;
-
-	if( turn )
-		fTurn = 90.0;
-	else
-		fTurn = 270.0;
-
-	length = std::sqrt(u*u + v*v);
-
-	if( length>0.0001) {
-		direction = fTurn - deg*atan2( v, u );
-		if( direction > 360 ) direction -=360;
-		if( direction < 0   ) direction +=360;
-	} else {
-		direction = 0;
-	}
+	direction_ = static_cast<float>( direction );
+	length_ = static_cast<float>( length );
 
 	return true;
 }
