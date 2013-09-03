@@ -1,6 +1,7 @@
 #-----------------------------------------------------------------------------
 # gribWrite unit tests
 #-----------------------------------------------------------------------------
+diFieldLibs=-ldiField -lboost_date_time-mt -lfimex -lmic -lpropoly -lpuCtools -lmi -lcurl -lmiLogger -llog4cpp 
 
 TESTS +=   					wdb2TsUnitTest
 
@@ -23,11 +24,13 @@ wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) \
                             -lWciWebQuery \
                             -lXML_locationforecast \
                             -lmiutil \
+                            $(diFieldLibs) \
                             $(pgconpool_LIBS) \
                             $(putools_LIBS) \
                             $(pumet_LIBS) \
                             $(milib_LIBS) \
                             $(LIBPQXX_LIBS) \
+                            -lproj \
                             -lgfortran
                              
 # -ltestConfiguration -lwdbConfig
