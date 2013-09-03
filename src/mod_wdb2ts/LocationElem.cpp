@@ -404,7 +404,9 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                      bool tryHard )const
 {
    const float MIN_PRECIP=0.0;
-   static float a[]={ 1.0, 0.3370, 0.6121, 0.9307, 0.4207, 1.4325 };
+// static float a[]={ 1.0,  0.3370, 0.6121, 0.9307, 0.4207, 1.4325 };
+   static float a[]={ 0.98, 0.60,   0.64,   0.32,   0.39,   1.75 };
+
    std::vector<float> min;
    std::vector<float> max;
    std::vector<float> mean;
