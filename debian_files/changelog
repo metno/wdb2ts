@@ -1,6 +1,14 @@
+metno-wdb2ts (1.2.0~rc5) unstable; urgency=low
+  * Changes so it compiles on Hardy.
+  * New coeficients in the algorithm for showery precipitation.
+        
+ -- Borge Moe <borge.moe@met.no>  Tue, 3 Sep 2013 08:00:00 +0200
+
+
 metno-wdb2ts (1.2.0~rc4) unstable; urgency=low
   * Reprojection of vector fields now use proj.
-        
+  * Better consistency check in the computations of showery precipitation.
+          
  -- Borge Moe <borge.moe@met.no>  Thu, 29 Aug 2013 12:30:00 +0200
 
 
