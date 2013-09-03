@@ -26,15 +26,43 @@
     MA  02110-1301, USA
 */
 
-#include <boost/thread.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/version.hpp>
+#include "msleep.h"
 
-namespace pt=boost::posix_time;
+#if BOOST_VERSION < 104000
+#  include <errno.h>
+#  include <time.h>
+#else
+#  include <boost/thread.hpp>
+#  include <boost/date_time/posix_time/ptime.hpp>
+#endif
+
 namespace miutil {
+
+#if BOOST_VERSION < 104000
+
+#warning "---- msleep using: nanosleep ------"
 
 void
 msleep( unsigned long millisecond )
 {
+   timespec toSleep;
+   timespec remainToSleep;
+
+   toSleep.tv_sec = millisecond/1000;
+   toSleep.tv_nsec = (millisecond % 1000) * 1000000;
+
+   while( nanosleep( &toSleep, &remainToSleep) == -1 && errno == EINTR )
+      toSleep = remainToSleep;
+}
+
+#else
+
+void
+msleep( unsigned long millisecond )
+{
+	namespace pt=boost::posix_time;
+
     pt::ptime sleepTo = pt::microsec_clock::universal_time();
 
     sleepTo += pt::milliseconds( millisecond );
@@ -46,5 +74,7 @@ msleep( unsigned long millisecond )
         //Interupted
     }
 }
+
+#endif
 
 }
