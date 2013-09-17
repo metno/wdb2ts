@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.2.0~rc5, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.2.0~rc6, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])
@@ -169,6 +169,9 @@ LDFLAGS="$log4cpp_LIBS $LDFLAGS"
 AM_PATH_CPPUNIT(1.12.0,, [echo WARNING: CppUnit not found - you will not be able to run all tests])
 AC_MSG_CHECKING(for CPPUNIT_CFLAGS)
 AM_CONDITIONAL(HAS_CPPUNIT,test -n $CPPUNIT_CFLAGS)
+
+PKG_CHECK_MODULES([difield], [diField >= 4.10])
+
 
 # DOCBOOK
 WDB_DOCBOOK_CHECK
