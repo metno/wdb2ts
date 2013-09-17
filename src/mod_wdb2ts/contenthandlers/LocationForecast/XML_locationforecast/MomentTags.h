@@ -42,8 +42,8 @@ namespace wdb2ts {
 
 class MomentTags : public IXmlTemplate 
 {
-	float ff;
-	float dd;
+	//float ff;
+	//float dd;
 	LocationElem *pd;
 	SymbolContext *symbolContext;
 	const ProjectionHelper *projectionHelper;
@@ -63,8 +63,6 @@ public:
 	}
 	
 	void init( LocationElem &pointData );
-	void computeWind( float u, float v );
-	
 	
 	float getTemperatureProability( float temp, bool tryHard )const;
 		

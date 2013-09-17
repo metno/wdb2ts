@@ -26,8 +26,9 @@
     MA  02110-1301, USA
 */
 
-
+#include <math.h>
 #include <metlibs/diField/diProjection.h>
+#include <Logger4cpp.h>
 #include <ProjectionTest.h>
 #include <ProjectionHelper.h>
 
@@ -35,6 +36,33 @@ CPPUNIT_TEST_SUITE_REGISTRATION( MiProjectionTest );
 
 using namespace std;
 using namespace wdb2ts;
+
+namespace {
+
+int
+pow10( int p ) {
+	int r=1;
+	for( int i=0; i<p; ++i )
+		r *= 10;
+	return r;
+}
+
+
+long double
+asLong( double f, int des ){
+	return roundl( f * pow10( des ) );
+}
+
+
+bool
+equals( double a1, double a2, int des ) {
+	return asLong( a1, des ) == asLong( a2, des );
+}
+
+
+}
+
+
 
 MiProjectionTest::
 MiProjectionTest()
@@ -197,138 +225,89 @@ void
 MiProjectionTest::
 testVectorReprojection()
 {
-	cerr << "\n\n\n ----- testVectorReprojection -------\n\n\n";
-	MiProjection::ProjectionType gst=MiProjection::spherical_rotated;
-	float gs[6]={-6.703, -16.003, 0.036, 0.036, -24, 66.5};
-	const char *ob_tran="+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +a=6367470.0 +no_defs";
-	const char *lcc="+proj=lcc +lon_0=15 +lat_1=63 +lat_2=63 +R=6.371e+06 +units=m +no_defs";
-	MiProjection obTranMi( gs, gst, ob_tran );
-	MiProjection geographic;
-	MiProjection miLambert( lcc );
-	geographic.makeGeographic();
-
-	CPPUNIT_ASSERT( MiProjection::geographic == geographic.getProjectionType() );
-
-	cerr << "GEOGRAPHIC: " << geographic << endl;
-	cerr << "ob_tran MI: " << obTranMi << endl;
+	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_SET_LOGLEVEL( log4cpp::Priority::WARN );
+	//cerr << "\n\n\n ----- testVectorReprojection -------\n\n\n";
 
 	float flat, flon;
 	double dlat, dlon;
-	double resx, resy;
 	float fU, fV;
 	float fDD, fFF;
 	double dU, dV;
 	double dDD, dFF;
+	double resx, resy;
 
-	Projection	diObTranGS;
-	Projection diObTran( ob_tran, 1, 1 );
-	MiProjection miObTran( ob_tran );
-	MiProjection miObTranGS( gs, MiProjection::spherical_rotated, ob_tran );
+	MiProjection geographic;
+	geographic.makeGeographic();
 
-
-	cerr << "diObTran:   " << diObTran << endl;
-
-	diObTranGS.set_mi_gridspec( 3, gs, resx, resy );
-	cerr << "diObTranGS: " << diObTranGS << endl;
-
-	dlat=61.0;
-	dlon=7.0;
-	flat=61.0;
-	flon=7.0;
-
-	diObTran.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTran: proj: lat = " << flat << " lon = " << flon << endl;
-	miObTran.convertFromGeographicToXY( dlat, dlon );
-	cerr << "miObTran: proj: lat = " << dlat << " lon = " << dlon << endl;
-
-
-	flat=61.0;
-	flon=7.0;
-	diObTranGS.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTranGS: proj (mi): lat = " << flat << " lon = " << flon << endl;
-
-	flat=61.0;
-	flon=7.0;
-	diObTranGS.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTranGS:          : lat = " << flat << " lon = " << flon << endl;
+	//Projection: ob_tran (spherical_rotated)
+	//placename: proff grid
+	MiProjection obtran = ProjectionHelper::createProjection(
+					-6.739, -16.039, 0.036, 0.036,
+					"+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +a=6367470.0 +no_defs"
+				);
 
 	flat=68.1531;
 	flon=14.6491;
 	fU = 4.68000030517578;
 	fV = 10.577000617981;
 
-	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( miObTranGS, flat, flon, fU, fV, fDD, fFF, false) );
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLengthMiLib( obtran, flat, flon, fU, fV, fDD, fFF, false) );
 
-	cerr << "miObTranGS: dd: " << fDD << " ff: " << fFF << endl;
-
-
+//	cerr << "obtran (miLib): dd: " << fDD << " ff: " << fFF << endl;
 	dlat=68.1531;
 	dlon=14.6491;
 	dU = 4.68000030517578;
 	dV = 10.577000617981;
 
-	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength_( miObTran, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obtran, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 239.178, dDD, 2 ) );
+	CPPUNIT_ASSERT( equals( 11.5661, dFF, 2 ) );
+	//cerr << "obtran  (proj): " << dDD << " ff: " << dFF << endl;
 
-	cerr << "miObTran: dd: " << dDD << " ff: " << dFF << endl;
+	//Projection: geographic
+	//Placename: Ecmwf Grid 3
+	MiProjection geo = ProjectionHelper::createProjection(
+			-179.75, -90, 0.25, 0.25,
+			"+proj=longlat +a=6367470.0 +towgs84=0,0,0 +no_defs" );
+
+	flat=68.1531;
+	flon=14.6491;
+	fU = -4.248046875;
+	fV = 1.44552612304688;
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLengthMiLib( geo, flat, flon, fU, fV, fDD, fFF, false) );
+	//cerr << "geographic (miLib): dd: " << fDD << " ff: " << fFF << endl;
 
 	dlat=68.1531;
 	dlon=14.6491;
-	dU = 8.3120002746582;
-	dV = 5.61900043487549;
+	dU = -4.248046875;
+	dV = 1.44552612304688;
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( geo, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals(108.792, dDD, 2 ) );
+	CPPUNIT_ASSERT( equals(4.49, dFF, 2 ) );
+	//cerr << "geographic (proj) : dd: " << dDD << " ff: " << dFF << endl;
 
-	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength_( miLambert, dlat, dlon, dU, dV, dDD, dFF, false) );
 
-	cerr << "miLambert:  dd: " << dDD << " ff: " << dFF << endl;
+	//Projection: lcc (lambert)
+	//Placename: arome_norway_grid_scandinavia"
+	MiProjection lambert =ProjectionHelper::createProjection(
+			-897499, 7.22338e+06, 2500, 2500,
+			"+proj=lcc +lon_0=15 +lat_1=63 +lat_2=63 +R=6.371e+06 +units=m +no_defs");
+
+	flat=68.1531;
+	flon=14.6491;
+	fU = -4.99100017547607;
+	fV = 5.70400047302246;
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLengthMiLib( lambert, flat, flon, fU, fV, fDD, fFF, false) );
+
+	//cerr << "lambert (miLib): dd: " << fDD << " ff: " << fFF << endl;
+
 	dlat=68.1531;
 	dlon=14.6491;
-	dU = 4.68000030517578;
-	dV = 10.577000617981;
-
-
-	CPPUNIT_ASSERT( geographic.directionAndLength( 1, &dlon, &dlat, &dU, &dV, miObTran, &dDD, &dFF ) );
-	//geographic.directionAndLength( 1, &dlon, &dlat, &dU, &dV, miObTran, &dDD, &dFF );
-	cerr << "miObTran: (hmm) dd: " << dDD << " ff: " << dFF << endl;
-
+	dU = -4.99100017547607;
+	dV = 5.70400047302246;
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lambert, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 138.501, dDD, 2 ) );
+	CPPUNIT_ASSERT( equals( 7.58, dFF, 2 ) );
+	//cerr << "lambert (proj) : dd: " << dDD << " ff: " << dFF << endl;
 }
-
-#if 0
-void
-WciWebQueryTest::
-testNullQuery()
-{
-}
-
-void
-WciWebQueryTest::
-testLevelQuery()
-{
-	WebQuery wq;
-	string prefix = "long=10;lat=60;";
-	ostringstream q;
-
-	q << prefix << "level=2m";
-	
-	wq = WebQuery::decodeQuery( q.str() );
-	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
-
-	q.str("");
-	q << prefix << "level=2 m";
-	wq = WebQuery::decodeQuery( q.str() );
-	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
-
-	q.str("");
-	q << prefix << "level=2%20m";
-	wq = WebQuery::decodeQuery( q.str() );
-	CPPUNIT_ASSERT( "exact 2 height above ground" == wq.getLevel().toWdbLevelspec() );
-
-	q.str("");
-	q << prefix << "level=-2m";
-	wq = WebQuery::decodeQuery( q.str() );
-	CPPUNIT_ASSERT( "exact 2 depth" == wq.getLevel().toWdbLevelspec() );
-
-	q.str("");
-	q << prefix << "level=-2 m";
-	wq = WebQuery::decodeQuery( q.str() );
-	CPPUNIT_ASSERT( "exact 2 depth" == wq.getLevel().toWdbLevelspec() );
-}
-#endif

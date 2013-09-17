@@ -20,7 +20,8 @@
 #define WEBFW_GET_LOGLEVEL( ) \
 	webfw_logger___.getPriority()
 
-	
+#define WEBFW_SET_LOGLEVEL( loglevel ) \
+	webfw_logger___.setPriority( loglevel )
 
 #define WEBFW_LOG_TRACE( stream ) \
 	{ webfw_logger___.debugStream() << stream; \

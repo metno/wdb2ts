@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # gribWrite unit tests
 #-----------------------------------------------------------------------------
-diFieldLibs=-ldiField -lboost_date_time-mt -lfimex -lmic -lpropoly -lpuCtools -lmi -lcurl -lmiLogger -llog4cpp 
+#diFieldLibs=-ldiField -lboost_date_time-mt -lfimex -lmic -lpropoly -lpuCtools -lmi -lcurl -lmiLogger -llog4cpp 
 
 TESTS +=   					wdb2TsUnitTest
 
@@ -9,7 +9,7 @@ check_PROGRAMS +=       	wdb2TsUnitTest
 
 wdb2TsUnitTest_SOURCES = 	test/unit/wdb2TsUnitTest.cpp
 
-wdb2TsUnitTest_CPPFLAGS = 	$(CPPUNIT_CFLAGS)  \
+wdb2TsUnitTest_CPPFLAGS = 	$(CPPUNIT_CFLAGS) $(difield_CFLAGS)  \
                          -DTESTDIR_MOD_WDB2TS="\""$(top_srcdir)/src/mod_wdb2ts/test"\"" 
                           
 
@@ -24,7 +24,7 @@ wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) \
                             -lWciWebQuery \
                             -lXML_locationforecast \
                             -lmiutil \
-                            $(diFieldLibs) \
+                            $(difield_LIBS) \
                             $(pgconpool_LIBS) \
                             $(putools_LIBS) \
                             $(pumet_LIBS) \

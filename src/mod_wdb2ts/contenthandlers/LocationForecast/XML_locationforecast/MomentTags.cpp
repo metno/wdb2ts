@@ -43,41 +43,9 @@ void
 MomentTags::
 init( LocationElem &pointData )
 {
-	
 	pd = &pointData;
-	ff=FLT_MAX;
-	dd=FLT_MAX;
-
 }
 		
-//Compute the wind direction and speed. 
-//TODO: The computation of wind direction maybe wrong check it.
-//The problem maybe that the u and v components is oriented to the
-//grid and must be corrected so they are oriented to the geographic
-//directions.
-void 
-MomentTags::
-computeWind( float u, float v )
-{
-	if( u==FLT_MAX || v==FLT_MAX )
-		return;
-		
-	ff = sqrtf( u*u + v*v);
-	
-	float deg=180./3.141592654;
-	     
-	if( ff > 0.0001) {
-		dd = 270.0 - deg * atan2( v, u );	
-
-		if( dd > 360 ) 
-			dd -= 360;
-		if( dd < 0 ) 
-			dd += 360;
-	} else {
-		dd = 0;
-	}
-	
-}
 
 float 
 MomentTags::
@@ -112,7 +80,7 @@ output( std::ostream &out, const std::string &indent )
 	float tempNoAdiabatic;
 	float tempAdiabatic;
 	float tempUsed=FLT_MAX;
-	float dd_, ff_;
+	float dd, ff;
 	string provider;
 	string tempNoAdiabaticProvider;
 	float tempCorrection;
@@ -209,27 +177,26 @@ output( std::ostream &out, const std::string &indent )
 
 	if( ! provider.empty() ) {
 		pd->temperatureCorrected( tempUsed, provider );
-		computeWind( pd->windU10m(true), pd->windV10m() );
-		if( projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
+
+		if( projectionHelper->convertToDirectionAndLengthMiLib( provider, pd->latitude(), pd->longitude(),
 		   	                                           pd->windU10m(), pd->windV10m(),
-			                                           dd_, ff_ ) ) {
-			tmpout << "<!-- libmi reprojection: dd: " << dd_ << " ff: " << ff_ << " -->\n";
+			                                           dd, ff ) ) {
+			if( loglevel >= log4cpp::Priority::DEBUG ) {
+				tmpout << "<!-- libmi reprojection: dd: " << dd << " ff: " << ff << " -->\n";
+			}
 		}
 
-		projectionHelper->convertToDirectionAndLength_( provider, pd->latitude(), pd->longitude(),
-				   	                                           pd->windU10m(), pd->windV10m(),
-					                                           dd_, ff_ );
+		projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
+				                                       pd->windU10m(), pd->windV10m(),
+					                                   dd, ff );
 
-		if( dd_!=FLT_MAX && ff_ != FLT_MAX ) {
-			if( loglevel >= log4cpp::Priority::DEBUG )
-				tmpout << indent << "<!-- dd: " << dd << " ff: " << ff << " -->\n";
-
+		if( dd!=FLT_MAX && ff != FLT_MAX ) {
 			tmpout << indent
-			    << "<windDirection id=\"dd\" deg=\""<< dd_ << "\" " 
-			    << "name=\"" << windDirectionName(dd_ ) <<"\"/>\n"
+			    << "<windDirection id=\"dd\" deg=\""<< dd << "\" " 
+			    << "name=\"" << windDirectionName(dd ) <<"\"/>\n"
 			    << indent 
-			    << "<windSpeed id=\"ff\" mps=\""<< ff_ << "\" " 
-			    << "beaufort=\"" << toBeaufort( ff_, description) << "\" "
+			    << "<windSpeed id=\"ff\" mps=\""<< ff << "\" " 
+			    << "beaufort=\"" << toBeaufort( ff, description) << "\" "
 			    << "name=\"" << description << "\"/>\n";
 		
 			windProb = pd->WIND_PROBABILITY( true );

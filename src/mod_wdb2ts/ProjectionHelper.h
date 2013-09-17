@@ -228,12 +228,12 @@ public:
 	 * @param turn Turn the resulting direction 180 deegrees. (The atmosphere people and
 	 * sea-physic people can't agree on the direction a wind blow or the sea flows :-).)
 	 */
-	bool convertToDirectionAndLength_( const MiProjection &srcProj,
+	bool convertToDirectionAndLength( const MiProjection &srcProj,
 									  double latitudeY, double longitudeX,
 			                          double u, double v,
 								      double &direction, double &length, bool turn=false )const;
 
-	bool convertToDirectionAndLength( const MiProjection &srcProj,
+	bool convertToDirectionAndLengthMiLib( const MiProjection &srcProj,
 									  float latitudeY, float longitudeX,
 				                      float u, float v,
 									  float &direction, float &length, bool turn=false )const;
@@ -334,12 +334,12 @@ public:
 	 * @param[out] turn turn the direction 180 degrease. ocean ant atmosphere parameters is in
 	 *    oposit direction. ocean parameters need turn=true.
 	 */
-	bool convertToDirectionAndLength( const std::string &provider, 
+	bool convertToDirectionAndLengthMiLib( const std::string &provider,
 								      float latitude, float longitude,
 								      float u, float v,
 								      float &direction, float &length, bool turn=false )const;
 	
-	bool convertToDirectionAndLength_( const std::string &provider,
+	bool convertToDirectionAndLength( const std::string &provider,
 									   float latitude, float longitude,
 									   float u, float v,
 									   float &direction, float &length, bool turn=false )const;

@@ -109,7 +109,6 @@ north( const wdb2ts::MiProjection &p,
 {
 	double north_x=x;
 	double north_y=y;
-	float ret;
 
 	p.convertFromXYToGeographic( north_y, north_x );
 	north_y = std::min<double>(north_y + 0.1, 90);
@@ -514,13 +513,13 @@ directionAndLength(int nvec, const double *longitude, const double  *latitude,
           double *dd, double *length ) const
 {
 
-	cerr << "--- IN2: u: " << *u << " v: " << *v << endl;
+	//cerr << "--- IN2: u: " << *u << " v: " << *v << endl;
   // transform u,v to a geographic grid
   if( ! uv2geo( area, nvec, longitude, latitude, u, v ) ) {
 	  return false;
   }
 
-  cerr << "--- CONVERTED2: u: " << *u << " v: " << *v << endl;
+  //cerr << "--- CONVERTED2: u: " << *u << " v: " << *v << endl;
 
   double deg = 180. / 3.141592654;
   //double ff;
@@ -743,12 +742,13 @@ createProjDefinition( bool addDatum )
     gridResolutionX = 1.0;
   if (gridResolutionY == 0.0)
     gridResolutionY = 1.0;
-  if (gridType!=undefined_projection && gridType!=geographic) {
-    cerr << "GridDef: " << gridType << " - " << gridSpec[0] << ","
-        << gridSpec[1] << "," << gridSpec[2] << "," << gridSpec[3] << ","
-        << gridSpec[4] << "," << gridSpec[5] << "; ProjDef: " << projDefinition
-        << "; GridRes: " << gridResolutionX << "  -  " << gridResolutionY << endl;
-  }
+
+//  if (gridType!=undefined_projection && gridType!=geographic) {
+//    cerr << "GridDef: " << gridType << " - " << gridSpec[0] << ","
+//        << gridSpec[1] << "," << gridSpec[2] << "," << gridSpec[3] << ","
+//        << gridSpec[4] << "," << gridSpec[5] << "; ProjDef: " << projDefinition
+//        << "; GridRes: " << gridResolutionX << "  -  " << gridResolutionY << endl;
+//  }
 
   return projDefinition;
 
@@ -1105,16 +1105,22 @@ uvconvert( const MiProjection &miProj, float latitude, float longitude, float &u
 
 bool
 MiProjection::
-convertToDirectionAndLength_( const MiProjection &srcProj,
+convertToDirectionAndLength( const MiProjection &srcProj,
 		                     double latitudeY, double longitudeX,
 		                     double u, double v,
 							 double &direction, double &length, bool turn )const
 {
+	WEBFW_USE_LOGGER( "handler" );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+
+	ostringstream log;
+
 	if( u == FLT_MAX || v == FLT_MAX )
 		return false;
 
-	WEBFW_USE_LOGGER( "handler" );
-	cerr << "----- IN: u: " << u << " v: " << v << endl;
+	if( loglevel >= log4cpp::Priority::DEBUG )
+		log << " MiProjection::convertToDirectionAndLength IN: u: " << u << " v: " << v << endl;
+
 	if( !convertVectors( srcProj, longitudeX*DEG_TO_RAD, latitudeY*DEG_TO_RAD, u, v ) ){
 		WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed!" );
 		return false;
@@ -1124,7 +1130,10 @@ convertToDirectionAndLength_( const MiProjection &srcProj,
 		WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed u or/and v undefined!" );
 		return false;
 	}
-	cerr << "----- CONVERTED: u: " << u << " v: " << v << endl;
+	if( loglevel >= log4cpp::Priority::DEBUG ) {
+		log << "----- CONVERTED: u: " << u << " v: " << v << endl;
+		WEBFW_LOG_DEBUG( log.str() );
+	}
 
 	double deg=180./3.141592654;
 	double fTurn;
@@ -1150,7 +1159,7 @@ convertToDirectionAndLength_( const MiProjection &srcProj,
 
 bool
 MiProjection::
-convertToDirectionAndLength( const MiProjection &srcProj,
+convertToDirectionAndLengthMiLib( const MiProjection &srcProj,
 							 float latitudeY, float longitudeX,
 				             float u, float v,
 							 float &direction, float &length, bool turn )const
@@ -1601,11 +1610,6 @@ createProjection( float startx, float starty,
 			gs[4] = lon_0; //longitude_of_projection_origin;
 			//				// reference latitude , first and second parallel
 			gs[5] = lat_1; //standard_parallel;
-
-			cerr << "Lambert\n";
-			for( int i = 0; i<6; ++i ) {
-				cerr << "gs[" << i << "]: " << gs[i] << endl;
-			}
 		}
 		break;
 
@@ -1775,7 +1779,7 @@ findProjection( const std::string &provider )
 
 bool 
 ProjectionHelper::
-convertToDirectionAndLength( const std::string &provider, 
+convertToDirectionAndLengthMiLib( const std::string &provider,
 		                       float latitude, float longitude, 
 								     float u, float v, 
 								     float &direction, float &length, bool turn )const
@@ -1838,7 +1842,7 @@ convertToDirectionAndLength( const std::string &provider,
 
 bool 
 ProjectionHelper::
-convertToDirectionAndLength_( const std::string &provider,
+convertToDirectionAndLength( const std::string &provider,
 		                      float latitude, float longitude,
 							  float u_, float v_,
 							  float &direction_, float &length_, bool turn )const
@@ -1866,7 +1870,7 @@ convertToDirectionAndLength_( const std::string &provider,
 				return false;
 			}
 
-			if( ! geographic.convertToDirectionAndLength_(it->second, latitude, longitude, u, v, direction, length, turn ) ){
+			if( ! geographic.convertToDirectionAndLength(it->second, latitude, longitude, u, v, direction, length, turn ) ){
 				WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed!" );
 				return false;
 			}
@@ -1937,6 +1941,10 @@ operator<<(std::ostream &o, const MiProjection &proj )
 	  << proj.gridSpec[3] << "," 
 	  << proj.gridSpec[4] << ","
 	  << proj.gridSpec[5] << "]";
+
+	if( ! proj.projString.empty( ) )
+		o << " proj: '" << proj.projString << "'";
+
 	return o;
 }
 
