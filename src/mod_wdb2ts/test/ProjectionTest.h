@@ -43,7 +43,7 @@ class MiProjectionTest : public CppUnit::TestFixture
 	CPPUNIT_TEST( testLambert );
 	CPPUNIT_TEST( testObTran );
 	CPPUNIT_TEST( testVectorReprojection );
-
+	CPPUNIT_TEST( testAtThePoles );
 	CPPUNIT_TEST_SUITE_END();
 public:
 	
@@ -56,6 +56,7 @@ public:
 	void testLambert();
 	void testObTran();
 	void testVectorReprojection();
+	void testAtThePoles();
 private:
 
 };

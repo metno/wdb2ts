@@ -90,6 +90,9 @@ tearDown()
 	// NOOP
 }
 
+
+
+
 void
 MiProjectionTest::
 testLambert()
@@ -310,4 +313,80 @@ testVectorReprojection()
 	CPPUNIT_ASSERT( equals( 138.501, dDD, 2 ) );
 	CPPUNIT_ASSERT( equals( 7.58, dFF, 2 ) );
 	//cerr << "lambert (proj) : dd: " << dDD << " ff: " << dFF << endl;
+}
+
+void
+MiProjectionTest::
+testAtThePoles()
+{
+    const char *sPolar1="+proj=stere +lat_0=90 +lon_0=58 +lat_ts=60 +a=6371000 +units=m +no_defs";
+    const char *sPpolar2="+proj=stere +lat_0=90 +lon_0=24 +lat_ts=60 +a=6371000 +units=m +no_defs";
+
+    MiProjection geographic;
+	MiProjection lambert( "+proj=lcc +lon_0=15 +lat_1=63 +lat_2=63 +R=6.371e+06 +units=m +no_defs" );
+	MiProjection obTran( "+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +a=6367470.0 +no_defs" );
+	MiProjection lonLat( "+proj=longlat +a=6367470.0 +towgs84=0,0,0 +no_defs" );
+
+	geographic.makeGeographic();
+
+	cerr << "------ testNorthPole -----------\n";
+	cerr << "OBTRAN    : " << obTran << endl;
+	cerr << "LAMBERT   : " << lambert << endl;
+	cerr << "GEOGRAPHIC: " << geographic << endl;
+
+	double dlat;
+	double dlon;
+	double dU = -4.99100017547607;
+	//double dV = 5.70400047302246;
+	double dV = 6.70400047302246;
+	double dDD, dFF;
+
+	//Test north pole
+	dlat=90;
+	dlon=0;
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lambert, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 169.402, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+
+	//This is also at the north pole, and the result should be the same as above.
+	dlat=90;
+	dlon = 30;
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lambert, dlat, dlon, dU, dV, dDD, dFF, false) );
+	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
+	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
+
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
+	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+	CPPUNIT_ASSERT( equals( 169.402, dDD, 2 ) && equals(8.35785, dFF, 2) );
+
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
+	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
+
+
+	cerr << " ----- south pole ------\n";
+	//Test south pole
+	dlat = -90;
+	dlon = 0;
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 257.696, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
+	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+
+
 }
