@@ -181,11 +181,11 @@ public:
 	 */
 
 	bool convertVectors( const MiProjection& srcProj, int nvec,
-							 const double * to_x,  const double * to_y,
-							 double * u, double * v) const;
+					     double * to_x,  double * to_y,
+						 double * u, double * v) const;
 
 	bool convertVectors( const MiProjection& srcProj,
-						 const double to_x,  const double to_y,
+						 double to_x, double to_y,
 						 double &u, double &v) const;
 
 

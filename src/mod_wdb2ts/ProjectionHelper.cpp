@@ -44,6 +44,7 @@
 using namespace std;
 
 namespace {
+
 struct uv {
   double u;
   double v;
@@ -111,7 +112,8 @@ north( const wdb2ts::MiProjection &p,
 	double north_y=y;
 
 	p.convertFromXYToGeographic( north_y, north_x );
-	north_y = std::min<double>(north_y + 0.1, 90);
+	//north_y = std::min<double>(north_y + 0.1, 90);
+	north_y = std::min<double>(north_y + 0.1, 89.999999);
 	p.convertFromGeographicToXY( north_y, north_x );
 	return uv(north_x - x, north_y - y).angle();
 }
@@ -128,7 +130,8 @@ north( const wdb2ts::MiProjection &p,
 	p.convertFromXYToGeographic( nvec, north_y, north_x );
 
 	for (int i = 0; i < nvec; i++){
-		north_y[i] = std::min<double>(north_y[i] + 0.1, 90);
+		//north_y[i] = std::min<double>(north_y[i] + 0.1, 90);
+		north_y[i] = std::min<double>(north_y[i] + 0.1, 89.999999);
 	}
 
 	p.convertFromGeographicToXY( nvec, north_y, north_x );
@@ -144,9 +147,9 @@ north( const wdb2ts::MiProjection &p,
 }
 
 
-float turn(float angle_a, float angle_b)
+double turn( double angle_a, double angle_b)
 {
-	float angle = angle_a + angle_b;
+	double angle = angle_a + angle_b;
 	if (angle >= 360)
 		angle -= 360;
 	if (angle < 0)
@@ -842,6 +845,19 @@ convertFromGeographicToXY( int nvec,  double *latitudeToY, double *longitudeToX 
 	}
 
 	for( int i=0; i<nvec; ++i ) {
+//		if( latitudeToY[i] == 90 ) {
+//			latitudeToY[i] = 89.9999;
+//			longitudeToX[i]=0;
+//		} else if( latitudeToY[i] == -90 ) {
+//			latitudeToY[i] = -89.9999;
+//			longitudeToX[i]=0;
+//		}
+//
+//		if( longitudeToX[i] == 180 )
+//			longitudeToX[i] = 179.9999;
+//		else if( longitudeToX[i] == -180 )
+//			longitudeToX[i] = -179.9999;
+
 		longitudeToX[i] *= DEG_TO_RAD;
 		latitudeToY[i] *= DEG_TO_RAD;
 	}
@@ -896,10 +912,22 @@ convertFromXYToGeographic( int nvec, double *yToLatitude, double *xToLongitude )
 bool
 MiProjection::
 convertVectors(const MiProjection& srcProj, int nvec,
-    const double * to_x,  const double * to_y, double * u, double * v) const
+               double * to_x,  double * to_y, double * u, double * v) const
 {
-  float udef= +1.e+35;
+  double udef= HUGE_VAL;
   bool ret=true;
+
+  //Check if this is a geo projection
+  if( pj_is_latlong(proj) ) {
+	  //We define that the north pole is at lat 90 and long 0
+	  //so if to_y is equal to 90 we set to_x t0 0.
+	  const double lat90 = 90 * DEG_TO_RAD;
+	  for( int i = 0; i < nvec; ++i ) {
+		  if( fabs(to_y[i]) == lat90 )
+			  to_x[i] = 0;
+
+	  }
+  }
 
   double * from_x = new double[nvec];
   double * from_y = new double[nvec];
@@ -918,9 +946,9 @@ convertVectors(const MiProjection& srcProj, int nvec,
 		  const float length = std::sqrt(u[i]*u[i] + v[i]*v[i]);
 
 		  // the difference between angles in the two projections:
-		  float angle_diff = to_north[i] - from_north[i];
+		  double angle_diff = to_north[i] - from_north[i];
 
-		  float new_direction = turn(uv(u[i], v[i]).angle(), angle_diff);
+		  double new_direction = turn(uv(u[i], v[i]).angle(), angle_diff);
 			  // float new_direction = to_north[ i ]; // This makes all directions be north.
 		  uv convert(new_direction);
 		  u[i] = convert.u * length;
@@ -941,17 +969,26 @@ convertVectors(const MiProjection& srcProj, int nvec,
 bool
 MiProjection::
 convertVectors( const MiProjection& srcProj,
-		        const double to_x,  const double to_y,
+		        double to_x, double to_y,
 				double &u, double &v) const
 {
-	float udef= +1.e+35;
+	double udef= HUGE_VAL;
 	bool ret=true;
+
+	if( pj_is_latlong( proj ) ) {
+		//We define that the north pole is at lat 90 and long 0
+		//so if to_y is equal to 90 we set to_x t0 0.
+		const double lat90 = 90 * DEG_TO_RAD;
+		if( fabs( to_y ) == lat90 )
+			to_x = 0;
+	}
 
 	double from_x = to_x;
 	double from_y = to_y;
 
-	// convert the position x/y (longitude/latitude) back to old projection
-	srcProj.transform( *this, 1, &from_y, &from_x);
+	// convert the position x/y (longitude/latitude) to srcProj
+	if( ! srcProj.transform( *this, 1, &from_y, &from_x) )
+		return false;
 
 	double from_north = north( srcProj, from_x, from_y ); // degrees
 	double to_north = north( *this, to_x, to_y ); // degrees
@@ -960,9 +997,9 @@ convertVectors( const MiProjection& srcProj,
 		const float length = std::sqrt( u*u + v*v );
 
 		// the difference between angles in the two projections:
-		float angle_diff = to_north - from_north;
+		double angle_diff = to_north - from_north;
 
-		float new_direction = turn(uv(u, v).angle(), angle_diff);
+		double new_direction = turn(uv(u, v).angle(), angle_diff);
 		// float new_direction = to_north[ i ]; // This makes all directions be north.
 		uv convert(new_direction);
 		u = convert.u * length;
@@ -986,12 +1023,15 @@ transform( const MiProjection &srcProj, int nvec, double *y, double *x )const
 	}
 
 	if( (error=pj_transform( srcProj.proj, proj, nvec, 1, x, y, NULL)) != 0 ) {
-		cerr << "ERROR: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
+		if( error == -14 )
+			cerr << "WARNING: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
+		else
+			cerr << "ERROR: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
 		for( int i=0; i<nvec; ++i )
 			cerr << "   x: " << x[i] << " y: " << y[i] << endl;
 		cerr << "srcProj def: '" << pj_get_def( srcProj.proj, 0 ) << "'\n";
 		cerr << "dstProj def: '" << pj_get_def( proj, 0 ) << "'\n";
-		return false;
+		return error==-14; //We accept -14 here and leaves it to the caller to check that the values is NOT HUGE_VAL.
 	}
 
 	return true;
@@ -1115,7 +1155,7 @@ convertToDirectionAndLength( const MiProjection &srcProj,
 
 	ostringstream log;
 
-	if( u == FLT_MAX || v == FLT_MAX )
+	if( u == HUGE_VAL || v == HUGE_VAL )
 		return false;
 
 	if( loglevel >= log4cpp::Priority::DEBUG )
@@ -1126,7 +1166,7 @@ convertToDirectionAndLength( const MiProjection &srcProj,
 		return false;
 	}
 
-	if( u == FLT_MAX || v == FLT_MAX ) {
+	if( u == HUGE_VAL || v == HUGE_VAL ) {
 		WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed u or/and v undefined!" );
 		return false;
 	}
