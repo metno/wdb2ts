@@ -977,7 +977,8 @@ convertVectors( const MiProjection& srcProj,
 
 	if( pj_is_latlong( proj ) ) {
 		//We define that the north pole is at lat 90 and long 0
-		//so if to_y is equal to 90 we set to_x t0 0.
+		//so if to_y is equal to 90 we set to_x to 0 and we do
+		//the same for the south pole ie lat is -90.
 		const double lat90 = 90 * DEG_TO_RAD;
 		if( fabs( to_y ) == lat90 )
 			to_x = 0;

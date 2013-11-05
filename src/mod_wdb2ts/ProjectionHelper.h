@@ -179,7 +179,6 @@ public:
 	 *
 	 * The converted vectors is returned in u and v.
 	 */
-
 	bool convertVectors( const MiProjection& srcProj, int nvec,
 					     double * to_x,  double * to_y,
 						 double * u, double * v) const;
