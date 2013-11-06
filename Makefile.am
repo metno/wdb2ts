@@ -155,6 +155,21 @@ clean-local:
 # Debian stuff
 #-----------------------------------------------------------------------------
 
+EXTRA_DIST += \
+	debian_files/changelog \
+	debian_files/compat \
+	debian_files/conffiles \
+   debian_files/config \
+   debian_files/control \
+   debian_files/copyright \
+   debian_files/dirs \
+   debian_files/docs \
+   debian_files/postinst \
+   debian_files/postrm \
+   debian_files/README.Debian \
+   debian_files/rules \
+   debian_files/templates
+   
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian
 DEBIAN_PACKAGE = $(PACKAGE)_$(VERSION)
