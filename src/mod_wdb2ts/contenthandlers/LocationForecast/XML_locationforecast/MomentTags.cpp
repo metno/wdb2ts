@@ -275,8 +275,10 @@ output( std::ostream &out, const std::string &indent )
 		if( pd->config && pd->config->outputParam( "dewpointTemperature") ) {
 		   float myDewPoint= dewpoint;
 
-		   if( myDewPoint == FLT_MAX )
-		       myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
+		   if( myDewPoint == FLT_MAX ){
+		       //myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
+			   myDewPoint = miutil::dewPointTemperature( tempUsed, pd->RH2M() );
+		   }
 
 		   if( myDewPoint != FLT_MAX )
 		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celcius\" value=\""<< myDewPoint << "\"/>\n";
