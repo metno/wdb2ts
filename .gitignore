@@ -6,3 +6,9 @@
 /.project
 /wdb2ts_config.h.in~
 /.autotools
+/libtool
+/Makefile
+/stamp-h1
+/wdb2ts_config.h
+/config.log
+/config.status
