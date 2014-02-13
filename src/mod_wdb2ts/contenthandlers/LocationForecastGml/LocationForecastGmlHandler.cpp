@@ -52,6 +52,8 @@
 #include <WebQuery.h>
 #include <Logger4cpp.h>
 #include <RequestIterator.h>
+#include <ProviderGroupsResolve.h>
+#include <ProviderListConfigure.h>
 
 DECLARE_MI_PROFILE;
 
@@ -138,7 +140,7 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 
    if( ! providerPriorityIsInitialized ) {
       noteProviderList = configureProviderPriority( params, app );
-      paramDefsPtr_->resolveProviderGroups( *app, wdbDB );
+      paramDefListRresolveProviderGroups(*app, *paramDefsPtr_, wdbDB );
       symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
    }
 

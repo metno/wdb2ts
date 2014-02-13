@@ -1,7 +1,7 @@
 /*
     wdb - weather and water data storage
 
-    Copyright (C) 2008 met.no
+    Copyright (C) 2007 met.no
 
     Contact information:
     Norwegian Meteorological Institute
@@ -26,53 +26,31 @@
     MA  02110-1301, USA
 */
 
-#ifndef __WCI_READ_H__
-#define __WCI_READ_H__
+#ifndef __PROVIDERGROUPSRESOLVE_H__
+#define __PROVIDERGROUPSRESOLVE_H__
 
-
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <pqxx/transactor>
 #include <string>
-#include <Config.h>
+#include <map>
+#include <list>
+#include "ProviderGroups.h"
 
 namespace wdb2ts {
 
-
-class WciReadHelper
-{
-
-public:
-	WciReadHelper();
-	virtual ~WciReadHelper();
-	
-	pqxx::transaction_base *transaction;
-	///id return an id to use in logging.
-	virtual std::string id();
-	virtual std::string query()=0; 
-	virtual void clear();
-	virtual void doRead( pqxx::result &result )=0;
-	virtual void on_abort( const char msg_[] )throw ();
-};
-
+class Wdb2TsApp;
+class ParamDefList;
 
 /**
- * Transactor class to fetch data from an wdb database.
- * The data is returned in an TimeSeriePtr.
+ * Use wdbs wci.getdataproviderto build the reverse lookup table.
+ *
+ * @param app The wdb2ts Application class. We need this to get a db connection.
+ * @param wdbid The database to use.
  */
-class WciRead 
-	: public pqxx::transactor<>
-{
-public:
-	WciRead( WciReadHelper *helper );
-	
-	~WciRead();
-	void operator () ( argument_type &t );
-	void on_abort( const char msg_[] )throw (); 
-	
-private:
-	WciReadHelper *helper;
-};
 
+ProviderGroups
+providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
+
+void
+paramDefListRresolveProviderGroups( Wdb2TsApp &app, ParamDefList &paramDefList, const std::string &wdbid );
 }
 
-#endif 
+#endif

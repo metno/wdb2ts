@@ -34,13 +34,14 @@
 #include <string>
 #include <string>
 #include <ostream>
-#include <pqxx/pqxx>
+//#include <pqxx/pqxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
 #include <ParamDef.h>
 //#include <ProviderList.h>
-#include <UpdateProviderReftimes.h>
+#include <ProviderReftimes.h>
 #include <LocationPoint.h>
+#include <ITupleContainer.h>
 
 namespace wdb2ts {
 
@@ -364,6 +365,7 @@ std::string
 symbolidToName( int id );
 
 
+#if 0
 void 
 decodePData( const ParamDefList &paramDefs,
 		     const ProviderList &providers,
@@ -372,6 +374,17 @@ decodePData( const ParamDefList &paramDefs,
 		     const pqxx::result &result,
 		     const bool isPolygonRequest,
 		     LocationPointData &timeSerie );
+#endif
+
+void
+decodePData( const ParamDefList &paramDefs,
+		     const ProviderList &providers,
+		     const ProviderRefTimeList &refTimeList,
+		     const miutil::container::ITupleContainer &result,
+		     const bool isPolygonRequest,
+		     LocationPointData &timeSerie,
+		     int   protocol = 3);
+
 
 }
 

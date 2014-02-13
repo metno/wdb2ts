@@ -38,6 +38,7 @@
 #include <string>
 #include <list>
 #include <ProviderGroups.h>
+#include <ITupleContainer.h>
 
 namespace wdb2ts {
 namespace config {
@@ -142,6 +143,11 @@ public:
 
    void setProviderList( const std::list<std::string> &providerList ){ providerListFromConfig = providerList; }
 
+   bool
+   findParam( const miutil::container::ITuple &it,
+   		     ParamDefPtr &paramDef,
+   		     std::string &providerGroup )const;
+
 
    bool
    findParam( pqxx::result::const_iterator it,
@@ -164,12 +170,23 @@ public:
                 const std::string &provider="",
                 bool replace=false );
 
+
+   static bool isDefaultProvider( const std::string & providerName  );
    ProviderGroups getProviderGroups() const { return providerGroups_;}
    void setProviderGroups( const ProviderGroups &pg ) { providerGroups_=pg; }
    std::string lookupGroupName( const std::string &providerName )const;
-   void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
+
+   //void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
+
+   friend void
+   paramDefListRresolveProviderGroups( Wdb2TsApp &app, ParamDefList &paramDefList, const std::string &wdbid );
+
    void merge( const ParamDefList *other, bool replace=false );
+
+   friend std::ostream& operator<<( std::ostream &o, const ParamDefList &par );
 };
+
+std::ostream& operator<<( std::ostream &o, const ParamDefList &par );
 
 void
 renameProvider( std::string &providerWithPlacename, const std::string &newProvider );

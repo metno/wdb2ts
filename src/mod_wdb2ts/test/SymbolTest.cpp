@@ -26,8 +26,6 @@
     MA  02110-1301, USA
 */
 
-
-#include <metlibs/diField/diProjection.h>
 #include <SymbolTest.h>
 #include <SymbolGenerator.h>
 
@@ -38,6 +36,7 @@ using namespace wdb2ts;
 
 SymbolTest::
 SymbolTest()
+	: testdir(TESTDIR_MOD_WDB2TS)
 {
 	// NOOP
 }
@@ -46,6 +45,13 @@ SymbolTest::
 ~SymbolTest()
 {
 	// NOOP
+}
+
+wdb2ts::LocationData*
+SymbolTest::
+loadDataFromFile( const std::string &filename )
+{
+	return 0;
 }
 
 void
@@ -67,6 +73,7 @@ SymbolTest::
 testRain()
 {
 
+	CPPUNIT_ASSERT( true );
 }
 
 #if 0

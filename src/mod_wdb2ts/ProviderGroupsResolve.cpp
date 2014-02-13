@@ -30,52 +30,21 @@
 #include <list>
 #include <ProviderGroups.h>
 #include <ProviderList.h>
+#include <ParamDef.h>
 #include <transactor/ResolveProviderGroups.h>
+#include <wdb2TsApp.h>
 #include <Logger4cpp.h>
+#include "ProviderGroupsResolve.h"
 
 
 namespace wdb2ts {
 
-ProviderGroups::
-ProviderGroups()
-{
-}
-
-ProviderGroups::
-ProviderGroups( const ProviderGroups &pg)
-   : reverseLookupTable( pg.reverseLookupTable )
-{
-}
-
 ProviderGroups
-ProviderGroups::
-operator=( const ProviderGroups &rhs )
+providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList )
 {
-   if( this != &rhs ) {
-      reverseLookupTable = rhs.reverseLookupTable;
-   }
+	ProviderGroups groups;
 
-   return *this;
-}
-
-std::string
-ProviderGroups::
-lookUpGroupName( const std::string &providerName )const
-{
-   std::map<std::string, std::string>::const_iterator it=reverseLookupTable.find( providerName );
-
-   if( it != reverseLookupTable.end() )
-      return it->second;
-   else
-      return providerName;
-}
-
-#if 0
-void
-ProviderGroups::
-resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList )
-{
-   WciConnectionPtr wciConnection;
+	WciConnectionPtr wciConnection;
 
    WEBFW_USE_LOGGER( "handler" );
 
@@ -84,17 +53,17 @@ resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> 
    }
    catch( const std::exception &ex ) {
       WEBFW_LOG_ERROR( "ResolveProviderGroups: NO DB CONNECTION. " << ex.what() );
-      return;
+      return groups;
    }
    catch( ... ) {
       WEBFW_LOG_ERROR( "ResolveProviderGroups: NO DB CONNECTION. unknown exception ");
-      return;
+      return groups;
    }
 
    try {
       ResolveProviderGroups resolveGroups;
       wciConnection->perform( resolveGroups, 3 );
-      reverseLookupTable  = *resolveGroups.result();
+      groups.reverseLookupTable  = *resolveGroups.result();
    }
    catch( const std::ios_base::failure &ex ) {
       WEBFW_LOG_ERROR( "std::ios_base::failure: ResolveProviderGroups: " << ex.what() );
@@ -117,16 +86,25 @@ resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> 
    std::map<std::string, std::string>::iterator itrl;
 
    for( std::list<std::string>::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
-      itrl = reverseLookupTable.find( *it );
+      itrl = groups.reverseLookupTable.find( *it );
 
-      if( itrl == reverseLookupTable.end() )
+      if( itrl == groups.reverseLookupTable.end() )
          continue;
 
       itrl->second = *it;
    }
 
+   return groups;
+}
+
+
+void
+paramDefListRresolveProviderGroups( Wdb2TsApp &app, ParamDefList &paramDefList, const std::string &wdbid )
+{
+	//paramDefList.providerGroups_.clear();
+	paramDefList.providerGroups_ = providerGroupsResolve( app, wdbid, paramDefList.providerListFromConfig );
 
 }
-#endif
+
 }
 

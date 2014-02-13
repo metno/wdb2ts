@@ -30,6 +30,7 @@
 #include <transactor/WciRead.h>
 #include <WdbDataRequestCommand.h>
 #include <Logger4cpp.h>
+#include <PqTupleContainer.h>
 
 namespace {
 
@@ -66,7 +67,8 @@ public:
 	void clear() { data.clear(); }
 
 	void doRead( pqxx::result &result ) {
-		decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, result, isPolygon, data );
+		miutil::container::PqContainer container( result );
+		decodePData( paramDefs, providerPriority, *refTimes, container, isPolygon, data, wciProtocol );
 	}
 };
 

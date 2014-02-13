@@ -73,6 +73,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/ConfigUtils.cpp \
 	                  src/mod_wdb2ts/ProviderGroups.h \
 	                  src/mod_wdb2ts/ProviderGroups.cpp \
+	                  src/mod_wdb2ts/ProviderGroupsResolve.h \
+	                  src/mod_wdb2ts/ProviderGroupsResolve.cpp \
 	                  src/mod_wdb2ts/ParamDef.h \
 	                  src/mod_wdb2ts/ParamDef.cpp \
 	                  src/mod_wdb2ts/PointDataHelper.cpp \
@@ -85,6 +87,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/preprocessdata.cpp \
 	                  src/mod_wdb2ts/ProviderList.h \
 	                  src/mod_wdb2ts/ProviderList.cpp \
+	                  src/mod_wdb2ts/ProviderListConfigure.h \
+	                  src/mod_wdb2ts/ProviderListConfigure.cpp \
+	                  src/mod_wdb2ts/ProviderReftimes.h \
+	                  src/mod_wdb2ts/ProviderReftimes.cpp \
 	                  src/mod_wdb2ts/UpdateProviderReftimes.h \
 	                  src/mod_wdb2ts/UpdateProviderReftimes.cpp \
 	                  src/mod_wdb2ts/wdb2TsApp.cpp \
@@ -150,12 +156,13 @@ mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 							 -avoid-version
 								
 mod_metno_wdb2ts_la_LIBADD= \
-                           -lwebFW  \
+                        -lwebFW  \
                     	   -lWciWebQuery	\
                     	   -lwdb2tsconfigparser \
                     	   -lXML_locationforecast \
                     	   -lwdb2ts \
                     	   -lmiutil \
+                    	   -ltuplecontainer \
                     	   -lgfortran
 
 noinst_PROGRAMS+= TestWdb2Ts
@@ -169,6 +176,7 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 					-lXML_locationforecast \
 					-lmiutil \
 					$(LIBPQXX_LIBS) \
+					-ltuplecontainer \
 					-lgfortran
 
 

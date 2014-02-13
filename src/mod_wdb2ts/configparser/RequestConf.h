@@ -129,6 +129,7 @@ struct ParamDefConfig {
 	bool hasParamDefId( const std::string &id )const;
 	wdb2ts::ParamDefList paramDefs( const std::string paramdefsId="")const;
 
+	wdb2ts::ParamDefList getParamDefs( const std::list<std::string> &providers );
 	void merge( ParamDefConfig *other, bool replace=false );
 	friend std::ostream &operator<<(std::ostream &o, const ParamDefConfig &pd );
 

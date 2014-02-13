@@ -128,6 +128,31 @@ paramDefs( const std::string paramdefsId_ ) const
 		return wdb2ts::ParamDefList();
 }
 
+wdb2ts::ParamDefList
+ParamDefConfig::
+getParamDefs( const std::list<std::string> &providers )
+{
+	ParamDefList defs;
+	for( ParamDefs::const_iterator it = idParamDefs.begin(); it != idParamDefs.end(); ++it ) {
+		for( ParamDefList::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit ) {
+			if( ParamDefList::isDefaultProvider( pit->first ) ) {
+				for( list<wdb2ts::ParamDef>::const_iterator par=pit->second.begin();  par !=  pit->second.end(); ++par )
+					defs.addParamDef( *par, pit->first, false );
+			} else {
+				list<string>::const_iterator p;
+				for( p = providers.begin(); p != providers.end() && *p != pit->first; ++p );
+
+				if( p == providers.end() )
+					continue;
+
+				for( list<wdb2ts::ParamDef>::const_iterator par=pit->second.begin();  par !=  pit->second.end(); ++par )
+					defs.addParamDef( *par, pit->first, false );
+			}
+		}
+	}
+	return defs;
+}
+
 void
 ParamDefConfig::
 merge( ParamDefConfig *other, bool replace )

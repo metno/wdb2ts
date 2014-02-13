@@ -138,23 +138,8 @@ public:
 };
 
 
-/**
- * For providers that is not defined with a placename, search the database and 
- * set the placename. The priority for the placename for these providers is
- * unpredictable.
- */
-ProviderList
-providerPrioritySetPlacename( const ProviderList &pvList, 
-										const std::string &wdbDB,
-										Wdb2TsApp *app );
-
 ProviderList
 providerListFromConfig( const wdb2ts::config::ActionParam &params );
-
-ProviderList
-configureProviderList( const wdb2ts::config::ActionParam &params, 
-		                 const std::string &wdbDB,
-		                 Wdb2TsApp *app );
 
 
 }

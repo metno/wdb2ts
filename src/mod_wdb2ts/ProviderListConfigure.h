@@ -1,7 +1,7 @@
 /*
     wdb - weather and water data storage
 
-    Copyright (C) 2008 met.no
+    Copyright (C) 2007 met.no
 
     Contact information:
     Norwegian Meteorological Institute
@@ -26,36 +26,33 @@
     MA  02110-1301, USA
 */
 
-#ifndef __SymbolTest_H__
-#define __SymbolTest_H__
 
-#include <cppunit/extensions/HelperMacros.h>
-#include "../LocationData.h"
+#ifndef __PROVIDER_LIST_CONFIGURE_H__
+#define __PROVIDER_LIST_CONFIGURE_H__
+
+#include <ProviderList.h>
+#include <map>
+
+namespace wdb2ts {
+
+class Wdb2TsApp;
+
 /**
- * Testsuite for MiProjection.
+ * For providers that is not defined with a placename, search the database and 
+ * set the placename. The priority for the placename for these providers is
+ * unpredictable.
  */
-class SymbolTest : public CppUnit::TestFixture
-{
-	CPPUNIT_TEST_SUITE( SymbolTest );
-	//CPPUNIT_TEST( testFullQuery );
-	//CPPUNIT_TEST( testNullQuery );
-	CPPUNIT_TEST( testRain );
-	CPPUNIT_TEST_SUITE_END();
+ProviderList
+providerPrioritySetPlacename( const ProviderList &pvList, 
+										const std::string &wdbDB,
+										Wdb2TsApp *app );
 
-	std::string testdir;
- wdb2ts::LocationData* loadDataFromFile( const std::string &filename );
 
-public:
-	
-	SymbolTest();
-	virtual ~SymbolTest();
-	
-	virtual void setUp();
-	virtual void tearDown();
+ProviderList
+configureProviderList( const wdb2ts::config::ActionParam &params, 
+		                 const std::string &wdbDB,
+		                 Wdb2TsApp *app );
 
-	void testRain();
-private:
 
-};
-
-#endif
+}
+#endif 

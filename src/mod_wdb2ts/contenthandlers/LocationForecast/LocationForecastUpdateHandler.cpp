@@ -44,7 +44,7 @@
 #include <Logger4cpp.h>
 #include <UrlQuery.h>
 #include <RequestConf.h>
-#include <ProviderList.h>
+#include <ProviderListConfigure.h>
 
 using namespace std;
 using namespace boost::posix_time; //ptime, second_clock

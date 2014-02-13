@@ -41,7 +41,7 @@ using namespace boost;
 using namespace std;
 
 //If LATLONG_DEG2INT is changed. Then ROUND_BEFORE_DEG2INT must also
-//be changed so the rounding shall be correct
+//be changed for the rounding to be correct
 #define LATLONG_DEG2INT 10000000
 #define ROUND_BEFORE_DEG2INT 0.00000005
 
@@ -52,7 +52,7 @@ const string reFloat = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
 
 void decodeLocationList( const std::string &toDecode, wdb2ts::LocationPointList &points )
 {
-   cerr << "decodeLocationList: '" << toDecode << "'" << endl;
+   //cerr << "decodeLocationList: '" << toDecode << "'" << endl;
    static regex re("^\\s*"+reFloat+"\\s+"+reFloat+"\\s*(,\\s*"+reFloat+"\\s+"+reFloat+"\\s*)*" );
 
    smatch match;
