@@ -45,7 +45,6 @@ namespace wdb2ts {
 
 
 
-
 class SymbolHolder
 {
    SymbolHolder(const SymbolHolder &);
@@ -219,7 +218,9 @@ private:
 std::ostream& 
 operator<<(std::ostream &o, SymbolHolder &sh );
 
-typedef std::list<boost::shared_ptr<SymbolHolder> > SymbolHolderList;
+typedef boost::shared_ptr<SymbolHolder> SymbolHolderPtr;
+typedef std::list<SymbolHolderPtr> SymbolHolderList;
+
 
 class  ProviderSymbolHolderList :
 	public std::map<std::string, SymbolHolderList >
