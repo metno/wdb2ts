@@ -25,6 +25,8 @@ requestHandlerFactory( const std::string &id,
 			return new LocationForecastGmlHandler( ver.majorVer, ver.minorVer );
 	else if( id == "LocationForecast4" )
 		return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "3" );
+	else if( id == "LocationForecast5" )
+			return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "4" );
 	else
 		return 0;
 }
