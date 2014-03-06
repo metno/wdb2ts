@@ -35,6 +35,7 @@
 #include <LocationElem.h>
 #include <Logger4cpp.h>
 
+
 namespace {
    float sumVector( const std::vector<float> &v ) {
       float sum=0.0;
@@ -299,12 +300,12 @@ temperatureCorrected( bool tryHard )const
 
 void
 LocationElem::
-temperatureCorrected( float temperature, const std::string &provider_ )
+temperatureCorrected( float temperature, const std::string &provider_, bool all )
 {
 	string provider(provider_);
 	WEBFW_USE_LOGGER( "encode" );
 
-	if( provider.empty() ) {
+	if( provider.empty() && ! all ) {
 		if( forecastProvider.empty() )
 			return;
 		else
@@ -316,13 +317,25 @@ temperatureCorrected( float temperature, const std::string &provider_ )
 	if( itFrom == itTimeSerie->second.end() )
 		return;
 
-	ProviderPDataList::iterator itProvider = itFrom->second.find( provider );
+	if( all ) {
+		for( ProviderPDataList::iterator itProvider = itFrom->second.begin();
+			itProvider !=  itFrom->second.end() ; ++itProvider )
+		{
 
-	if( itProvider == itFrom->second.end() )
-		return;
+			if( itProvider->second.temperatureCorrected == FLT_MAX ) {
+				WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected (all): Set to: " << temperature << " '" << itProvider->first << "'.'");
+				itProvider->second.temperatureCorrected = temperature;
+			}
+		}
+	} else {
+		ProviderPDataList::iterator itProvider = itFrom->second.find( provider );
 
-	WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
-	itProvider->second.temperatureCorrected = temperature;
+		if( itProvider == itFrom->second.end() )
+			return;
+
+		WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
+		itProvider->second.temperatureCorrected = temperature;
+	}
 }
 
 float

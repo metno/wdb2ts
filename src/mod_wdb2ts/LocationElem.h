@@ -313,10 +313,11 @@ public:
    float T2M_LAND( bool tryHard=false )const;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard=false )const;
    float temperatureCorrected( bool tryHard = false )const;
-   void  temperatureCorrected( float temperature, const std::string &provider = "" );
+   void  temperatureCorrected( float temperature, const std::string &provider = "", bool all=false);
    float wetBulbTemperature( bool tryHard = false )const;
    float UU( bool tryHard=false )const;
    
+
    bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                              float &minOut, float &maxOut, float &meanOut, float probOut,
                              bool tryHard=false )const;
