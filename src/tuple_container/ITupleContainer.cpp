@@ -13,7 +13,12 @@ using namespace std;
 namespace miutil {
 namespace container {
 
-
+IIteratorPtr
+ITupleContainer::
+iteratorPtr()const
+{
+	return IIteratorPtr( iterator() );
+}
 
 //template <>
 //boost::posix_time::ptime

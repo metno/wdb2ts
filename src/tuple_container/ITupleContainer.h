@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <boost/lexical_cast.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <ptimeutil.h>
@@ -132,6 +133,8 @@ public:
 	virtual ITuple& next()const=0;
 };
 
+typedef boost::shared_ptr<IIterator> IIteratorPtr;
+
 
 class ITupleContainer {
 public:
@@ -145,6 +148,8 @@ public:
 	}
 
 	virtual IIterator* iterator()const =0;
+
+	IIteratorPtr iteratorPtr()const;
 
 };
 }
