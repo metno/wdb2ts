@@ -167,6 +167,11 @@ CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
 LDFLAGS="$log4cpp_LIBS $LDFLAGS"
 
 
+PKG_CHECK_MODULES( [weather_symbol], [libweather-symbol])
+CPPFLAGS="$weather_symbol_CFLAGS $CPPFLAGS"
+LDFLAGS="$weather_symbol_LIBS $LDFLAGS"
+
+
 # CppUnit
 AM_PATH_CPPUNIT(1.12.0,, [echo WARNING: CppUnit not found - you will not be able to run all tests])
 AC_MSG_CHECKING(for CPPUNIT_CFLAGS)

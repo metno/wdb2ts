@@ -59,7 +59,8 @@ AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
 			  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
 			  -DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
               -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
-              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\""
+              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
+              -DSRCDIR="\""$(top_srcdir)"\""
 
  
 #-----------------------------------------------------------------------------

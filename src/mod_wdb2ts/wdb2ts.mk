@@ -38,6 +38,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler3.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler3.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
@@ -46,6 +48,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast2.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast3.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast3.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.cpp \
 					  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
 	                  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
                       src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
@@ -116,12 +120,16 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/SymbolHolder.cpp \
                       src/mod_wdb2ts/SymbolConf.h \
                       src/mod_wdb2ts/SymbolConf.cpp \
+                      src/mod_wdb2ts/SymbolConfConfigure.h \
+                      src/mod_wdb2ts/SymbolConfConfigure.cpp \
                       src/mod_wdb2ts/MetaModelConf.h \
                       src/mod_wdb2ts/MetaModelConf.cpp \
                       src/mod_wdb2ts/SymbolContext.h \
                       src/mod_wdb2ts/SymbolContext.cpp \
                       src/mod_wdb2ts/ProjectionHelper.h\
                       src/mod_wdb2ts/ProjectionHelper.cpp \
+                      src/mod_wdb2ts/ProjectionHelperConfigure.h \
+					  		 src/mod_wdb2ts/ProjectionHelperConfigure.cpp \
                       src/mod_wdb2ts/probabilityCode.h \
                       src/mod_wdb2ts/probabilityCode.cpp \
                       src/mod_wdb2ts/WebQuery.h \
@@ -145,7 +153,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/RequestIterator.h \
 					  src/mod_wdb2ts/RequestIterator.cpp \
 					  src/mod_wdb2ts/QueryMaker.h \
-					  src/mod_wdb2ts/QueryMaker.cpp
+					  src/mod_wdb2ts/QueryMaker.cpp \
+					  src/mod_wdb2ts/WeatherSymbolDataBuffer.h \
+					  src/mod_wdb2ts/WeatherSymbolDataBuffer.cpp 
+					  
 
 
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp

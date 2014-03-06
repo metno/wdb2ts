@@ -11,9 +11,13 @@ libminimal_la_SOURCES= \
 	src/mod_wdb2ts/LocationElem.cpp src/mod_wdb2ts/LocationElem.h \
 	src/mod_wdb2ts/configdata.cpp src/mod_wdb2ts/configdata.h \
 	src/mod_wdb2ts/LocationData.cpp src/mod_wdb2ts/LocationData.h \
+	src/mod_wdb2ts/SymbolConf.cpp src/mod_wdb2ts/SymbolConf.h \
 	src/mod_wdb2ts/SymbolHolder.cpp src/mod_wdb2ts/SymbolHolder.h \
 	src/mod_wdb2ts/ConfigUtils.cpp src/mod_wdb2ts/ConfigUtils.h \
-	src/mod_wdb2ts/SymbolGenerator.cpp src/mod_wdb2ts/SymbolGenerator.h
+	src/mod_wdb2ts/SymbolGenerator.cpp src/mod_wdb2ts/SymbolGenerator.h \
+	src/mod_wdb2ts/probabilityCode.h src/mod_wdb2ts/probabilityCode.cpp \
+	src/mod_wdb2ts/ProjectionHelper.h src/mod_wdb2ts/ProjectionHelper.cpp \
+	src/mod_wdb2ts/WeatherSymbolDataBuffer.h	src/mod_wdb2ts/WeatherSymbolDataBuffer.cpp
 	 
 libminimal_la_LDFLAGS=
 libminimal_la_LIBADD= 
@@ -30,10 +34,14 @@ wdb2cvs_LDADD = libtuplecontainer.la libwdb2tsconfigparser.la   libminimal.la li
 wdb2symbols_SOURCES = src/util/wdb2symbols.cpp
 wdb2symbols_LDADD = libtuplecontainer.la \
                     libwdb2tsconfigparser.la \
-                    libminimal.la libWciWebQuery.la \
+                    libWciWebQuery.la \
+                    libXML_locationforecast.la \
+                    libminimal.la \
                     libwebFW.la \
                     libmiutil.la \
-                    $(pumet_LIBS)
+                    $(pumet_LIBS)\
+                    $(milib_LIBS)
+                    
 EXTRA_DIST+= src/util/wdb2ts.mk   \
 			 src/util/Makefile.am \
 			 src/util/Makefile.in
