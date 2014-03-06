@@ -59,6 +59,9 @@ struct ProviderItem {
 		: provider( pi.provider ), placename( pi.placename )
 		{}
 	
+	static ProviderItem decode( const std::string &providerWithPlacename );
+	static ProviderItem decodeFromWdb( const std::string &provider, const std::string &placename );
+
 	ProviderItem& operator=( const ProviderItem &rhs ) {
 		if( this != &rhs ) {
 			provider = rhs.provider;
@@ -79,6 +82,10 @@ struct ProviderItem {
 				return false;
 			}
 
+	bool operator<( const ProviderItem &rhs ) const {
+		return providerWithPlacename() < rhs.providerWithPlacename();
+	}
+
 	std::string providerWithPlacename() const {
 		if( placename.empty() )
 			return provider;
@@ -92,6 +99,12 @@ class ProviderList : public std::vector<ProviderItem>
 public:
    ProviderList(){};
 	
+   /**
+    * Add a provider item to the list if it do not exist in the list.
+    * The element is added to the end.
+    */
+   void addProvider( const ProviderItem &item );
+
 	/**
 	 * Find a provider/placename definition.
 	 * 

@@ -32,6 +32,7 @@
 #include <sstream>
 #include <replace.h>
 #include <splitstr.h>
+#include <boost/algorithm/string.hpp>
 #include <trimstr.h>
 #include <transactor/ProviderRefTime.h>
 #include <RequestConf.h>
@@ -138,6 +139,56 @@ decode_( const std::string &toDecode_, std::string &provider, bool  toDecodeMayB
 
 namespace wdb2ts {
 
+
+ProviderItem
+ProviderItem::
+decode( const std::string &providerWithPlacename )
+{
+	ProviderItem pi;
+	string::size_type i = providerWithPlacename.find( "[" );
+
+	if( i != string::npos ) {
+		string::size_type ii = providerWithPlacename.find( "]", i );
+		pi.provider = providerWithPlacename.substr(0, i );
+		boost::algorithm::trim( pi.provider );
+
+		if( ii != string::npos ) {
+			pi.placename = providerWithPlacename.substr( i+1, ii-i-1 );
+			boost::algorithm::trim( pi.placename );
+		}
+	} else {
+		pi.provider = providerWithPlacename;
+	}
+	return pi;
+}
+
+ProviderItem
+ProviderItem::
+decodeFromWdb( const std::string &provider_, const std::string &pointPlacename )
+{
+	string provider = provider_;
+	string placename;
+	string::size_type i = pointPlacename.find_last_of( ")" );
+
+	if( i != string::npos ) {
+		++i;
+		if( i<pointPlacename.length() ) {
+			i = pointPlacename.find_first_not_of( " ", i );
+
+			if( i != string::npos )
+				placename = pointPlacename.substr( i );
+		}
+	}
+
+
+	boost::algorithm::trim( provider );
+	boost::algorithm::trim( placename );
+
+	return ProviderItem( provider, placename );
+}
+
+
+
 ProviderList
 ProviderList::
 decode( const std::string &toDecode_, std::string &provider )
@@ -181,6 +232,14 @@ findProvider( const std::string &providerWithPlacename )const
 	return end();
 }
 
+void
+ProviderList::
+addProvider( const ProviderItem &item )
+{
+	ProviderList::const_iterator it = findProvider( item.providerWithPlacename() );
+	if( it == end() )
+		push_back( item );
+}
 
 ProviderList::const_iterator 
 ProviderList::
@@ -188,44 +247,27 @@ findProvider( const std::string &provider,
 			  const std::string &pointPlacename_,
 			  std::string &providerWithplacename)const
 {
-	string placename;
-	string::size_type i = pointPlacename_.find_last_of( ")" );
-	
-	if( i != string::npos ) {
-		++i;
-		if( i<pointPlacename_.length() ) {
-			i = pointPlacename_.find_first_not_of( " ", i );
-		
-			if( i != string::npos ) 
-				placename = pointPlacename_.substr( i );
-		}
-	}
-
+	ProviderItem item( ProviderItem::decodeFromWdb( provider, pointPlacename_ ) );
 	const_iterator itFound=end();
 	
-   for( const_iterator it = begin(); it != end(); ++it ) {
-   	if( it->provider == provider ) {
-   		if( placename.empty() ) { 
-   			itFound = it;
-   			break;
-   		} else if( it->placename == placename ) {
-   			itFound = it;
-   			break;
-   		} 
-   	}
-   }
+	for( const_iterator it = begin(); it != end(); ++it ) {
+		if( it->provider == item.provider ) {
+			if( item.placename.empty() ) {
+				itFound = it;
+				break;
+			} else if( it->placename == item.placename ) {
+				itFound = it;
+				break;
+			}
+		}
+	}
    	
-   if( itFound != end() )
-    	providerWithplacename = itFound->providerWithPlacename();
-   else {
-	   if( ! placename.empty() )
-		   providerWithplacename = provider +" [" + placename +"]";
-	   else
-		   providerWithplacename = provider;
-
-   }
+	if( itFound != end() )
+		providerWithplacename = itFound->providerWithPlacename();
+	else
+		providerWithplacename = item.providerWithPlacename();
    
-   return itFound;
+	return itFound;
 }
 
 std::list<std::string>
