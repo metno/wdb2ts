@@ -39,6 +39,8 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <boost/assign.hpp>
+#include "../webFW/Logger4cpp.h"
 #include "../miutil/ptimeutil.h"
 #include "../mod_wdb2ts/configparser/ConfigParser.h"
 #include "../mod_wdb2ts/PointDataHelper.h"
@@ -46,6 +48,8 @@
 #include "../tuple_container/PqTupleContainer.h"
 #include "../miutil/gettimeofday.h"
 #include "../tuple_container/CSV.h"
+#include "../mod_wdb2ts/WeatherSymbolDataBuffer.h"
+#include "../mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags1.h"
 
 //./wdb2cvs -p "arome_2500m" -p "arome_2500m_temperature_corrected" --port 5432 -h staging-wdb-arome -r 2014-02-07T12:00:00
 using namespace std;
@@ -349,13 +353,109 @@ loadData( const std::string &file )
 	return readCSV( fin );
 }
 
+/**
+ * Generate configuration information from the dataset.
+ */
+void
+initFromData( wdb2ts::ProviderList &providerList, wdb2ts::ProviderRefTimeList &reftimes, wdb2ts::SymbolConfProvider &symbolConf, const tc::ITupleContainer &con )
+{
+	typedef map<string, pt::ptime> RefTimes;
+	struct Hours{
+		map<string, pt::ptime> prevTime;
+		map<string, map<int, int> > hours;
+		typedef map<string, map<int, int> >::value_type ProviderHoursCount;
+		typedef map<int, int>::value_type HoursCount;
+		int diffHours( const pt::ptime &t, const string &provider ) {
+			pt::ptime pt = prevTime[provider];
+			if( pt.is_special() ) {
+				prevTime[provider] = t;
+				return 0;
+			}
+
+			if( pt == t )
+				return 0;
+
+			prevTime[provider] = t;
+			return ( t - pt ).hours();
+		}
+		void operator()( const pt::ptime &t, const string &provider ) {
+			hours[provider][diffHours(t, provider)]++;
+		}
+	} hours;
+	RefTimes providerReftimes;
+
+	for( tc::IIteratorPtr it = con.iteratorPtr(); it->hasNext(); ) {
+		tc::ITuple &row=it->next();
+		wdb2ts::ProviderItem provider=wdb2ts::ProviderItem::decodeFromWdb( row.at("dataprovidername").c_str(), row.at("placename").c_str() );
+		providerList.addProvider( provider );
+
+		if( row.at("validtimefrom").as<pt::ptime>() == row.at("validtimeto").as<pt::ptime>() )
+			hours( row.at("validtimefrom").as<pt::ptime>(), provider.providerWithPlacename() );
+
+		providerReftimes[ provider.providerWithPlacename() ] = row.at("referencetime").as<pt::ptime>();
+	}
+
+	BOOST_FOREACH( Hours::ProviderHoursCount &provider, hours.hours ){
+		BOOST_FOREACH( Hours::HoursCount &val, provider.second ) {
+			if( val.first == 1 )
+				symbolConf.add( provider.first, boost::assign::list_of(wdb2ts::SymbolConf(0,0,1))(wdb2ts::SymbolConf(2,0,1))
+						(wdb2ts::SymbolConf(3,0,1))(wdb2ts::SymbolConf(6,0,1)) );
+			else if( val.first == 3 )
+				symbolConf.add(provider.first, boost::assign::list_of(wdb2ts::SymbolConf(3,0,3))(wdb2ts::SymbolConf(6,0,6)) );
+			else if( val.first == 6 )
+				symbolConf.add(provider.first, boost::assign::list_of(wdb2ts::SymbolConf(6,0,6)) );
+		}
+	}
+
+	BOOST_FOREACH( RefTimes::value_type &v, providerReftimes ){
+		reftimes[v.first]= wdb2ts::ProviderTimes( v.second );
+	}
+}
+
+void
+setTemperatureCorrected( wdb2ts::LocationData  &theData,
+		                 const std::string &temperatureCorrectedProvider )
+{
+	string provider( temperatureCorrectedProvider );
+	theData.init( pt::ptime(), temperatureCorrectedProvider );
+
+	bool tryHard = provider.empty();
+
+	while( theData.hasNext() ) {
+		float val;
+		wdb2ts::LocationElem &elem = *theData.next();
+		val = elem.T2M_NO_ADIABATIC_HIGHT_CORRECTION( tryHard );
+		if( val != FLT_MAX ) {
+			tryHard = false;
+			if( provider.empty() )
+				provider = elem.lastUsedProvider();
+
+			elem.temperatureCorrected( val, provider, true );
+		}
+	}
+}
+
+void
+setLogLevel()
+{
+	{	WEBFW_USE_LOGGER( "symbols" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::ERROR ); }
+	{	WEBFW_USE_LOGGER( "main" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::ERROR ); }
+	{	WEBFW_USE_LOGGER( "encode" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::ERROR ); }
+}
+
 
 int
 main( int argn, char *argv[] )
 {
+	setLogLevel();
 	string file("wdb-data-2014-02-12T00:00:00.cvs");
 	wdb2ts::SymbolGenerator symbolGenerator;
 	Options opt;
+
+	symbolGenerator.readConf( string(SRCDIR) + "/etc/qbSymbols.def.in");
 
 	opt.parse( argn, argv );
 
@@ -389,16 +489,149 @@ main( int argn, char *argv[] )
 	}
 
 
-	Data d;
-	int n=0;
-	for( boost::shared_ptr<tc::IIterator> ri( wdbData->iterator() ); ri->hasNext() /*&& n<10*/;  ++n ) {
-		d = Data( ri->next() );
-		cerr <<  d << endl;
-	}
+//	Data d;
+//	int n=0;
+//	for( boost::shared_ptr<tc::IIterator> ri( wdbData->iterator() ); ri->hasNext() /*&& n<10*/;  ++n ) {
+//		d = Data( ri->next() );
+//		cerr <<  d << endl;
+//	}
 
 	wdb2ts::ProviderList providerList;
 	wdb2ts::ProviderRefTimeList refTimes;
+	wdb2ts::SymbolConfProvider symbolConf;
 	wdb2ts::LocationPointData locationpointData;
+	wdb2ts::TopoProviderMap modelTopoProviders;
+	list<string> topoProviders;
 
-	wdb2ts::decodePData( parDefs, providerList, refTimes, *wdbData, false, locationpointData );
+
+	initFromData( providerList, refTimes, symbolConf, *wdbData );
+
+
+
+
+
+
+
+
+
+	cerr << "Configuration: " << endl;
+	cerr << "  providers: "<< endl;
+	BOOST_FOREACH( wdb2ts::ProviderItem &provider, providerList )
+		cerr << "    "   << provider.providerWithPlacename() << endl;
+	cerr << "  reftimes: " << endl;
+	BOOST_FOREACH( wdb2ts::ProviderRefTimeList::value_type &v, refTimes )
+		cerr << "    " << v.first << ":  " << v.second.refTime  << endl;
+	cerr << "  SymbolConf: " << endl;
+	for( wdb2ts::SymbolConfProvider::const_iterator it = symbolConf.begin();
+		it != symbolConf.end(); ++it ){
+		cerr << "    " << it->first << endl;
+		for( wdb2ts::SymbolConfList::const_iterator cit = it->second.begin();
+				cit != it->second.end(); ++cit )
+			cerr << "      " << *cit << endl;
+	}
+
+ 	wdb2ts::decodePData( parDefs, providerList, refTimes, *wdbData, false, locationpointData );
+
+	if( locationpointData.empty() ) {
+		cerr << "--- NO data decoded from file <" << file << ">.\n";
+		return 1;
+	}
+
+	string error;
+	wdb2ts::LocationData  theData( locationpointData.begin()->second,
+								   opt.getLongitude(), opt.getLatitude(), 10,
+								   providerList, modelTopoProviders, topoProviders );
+
+	setTemperatureCorrected( theData, "" );
+
+	ostringstream xml;
+	wdb2ts::WeatherSymbolDataBuffer dataBuffer( 6 );
+	wdb2ts::WeatherSymbolDataBuffer::slice_iterator slice;
+	int timestep;
+	float precip, precipMin, precipMax, precipProb;
+	boost::posix_time::ptime precipFrom;
+	theData.init( pt::ptime() );
+
+	while( theData.hasNext() ) {
+		float val;
+		wdb2ts::SymbolDataElement symData;
+		wdb2ts::LocationElem &elem = *theData.next();
+
+		xml.str("");
+		wdb2ts::MomentTags1 moment( elem, symData );
+		moment.output( xml, "      " );
+		if( elem.PRECIP_MIN_MAX_MEAN( 3, precipFrom, precipMin, precipMax, precip, precipProb, false ) ) {
+			symData.precipitation = precip;
+			symData.maxPrecipitation = precipMax;
+			symData.minPrecipitation = precipMin;
+			symData.from = precipFrom;
+		} else {
+			cerr << "  WARNING: NO PRECIP DATA: " << elem.time() << endl;
+		}
+
+		dataBuffer.add( elem.time(), symData );
+		symData = wdb2ts::computeWeatherSymbol( dataBuffer, 3 );
+//		//cerr << elem.time() << " " << symData << endl;
+//		cerr << " ------ " << elem.time() << " ---------------" << endl;
+//		cerr << xml.str();
+//		slice = dataBuffer.slice( 3, timestep);
+//		cerr << " ------ " << elem.time() << " (" << timestep << ") ---------------" << endl;
+//		dataBuffer.print( cerr, slice ) << endl;
+//		//cerr << dataBuffer << endl;
+	}
+
+
+//	wdb2ts::symbol::SymbolDataContainer baseData;
+//	//wdb2ts::symbol::SymbolDataContainer symbolData;
+//	wdb2ts::symbol::SymbolContainer symbolData;
+//	BOOST_FOREACH(wdb2ts::SymbolConfProvider::value_type &v, symbolConf ) {
+//		cerr << "================== BEGIN (" << v.first << ") =================== \n";
+//		BOOST_FOREACH( wdb2ts::SymbolConf &sv, v.second ) {
+//			wdb2ts::symbol::loadBaseData( baseData, theData, v.first, sv.precipHours() );
+//
+//			BOOST_FOREACH(wdb2ts::symbol::SymbolDataContainer::value_type &v, baseData ) {
+//				cerr << v.second.from << " - "  << v.first << ": " << v.second << endl;
+//			}
+//
+//			symbolData.clear();
+//			cerr << "\n ----- compute 1 (begin) --------------------\n";
+//			wdb2ts::symbol::computeSymbolData( baseData, symbolData, 1 );
+//			cerr << "\n ----- compute 1 (end) --------------------\n";
+//
+//			cerr << "\n ----- compute 2 (begin) --------------------\n";
+//			wdb2ts::symbol::computeSymbolData( baseData, symbolData, 2 );
+//			cerr << "\n ----- compute 1 (end) --------------------\n";
+//
+//			cerr << "\n ----- compute 3 (begin) --------------------\n";
+//			wdb2ts::symbol::computeSymbolData( baseData, symbolData, 3 );
+//			cerr << "\n ----- compute 3 (end) --------------------\n";
+//
+//
+//			cerr << "\n ----- compute 6 (begin) --------------------\n";
+//			wdb2ts::symbol::computeSymbolData( baseData, symbolData, 6 );
+//			cerr << "\n ----- compute 6 (end) --------------------\n";
+//
+//			cerr << "\n ---- SYMBOL DATA  (" << sv.precipHours() << ") ---- \n";
+//			BOOST_FOREACH(wdb2ts::symbol::SymbolContainer::value_type &v, symbolData ) {
+//				BOOST_FOREACH( wdb2ts::symbol::SymbolContainerElement::value_type & sym, v.second )  {
+//					cerr << sym.first << " - " << v.first << "  #" << (v.first-sym.first).hours() << " (" << sym.second.count <<") " << sym.second.symbolData << endl;
+//				}
+//				cerr << "   ---------------------------------------------------  \n";
+//			}
+//
+//		}
+//
+//		cerr << "================== END (" << v.first << ") =================== \n";
+//	}
+
+
+//	wdb2ts::ProviderSymbolHolderList symbols;
+//
+//	symbols = wdb2ts::SymbolGenerator::computeSymbols ( theData, symbolConf, true, error );
+//
+//	BOOST_FOREACH( wdb2ts::ProviderSymbolHolderList::value_type &val, symbols ) {
+//		BOOST_FOREACH( wdb2ts::SymbolHolderPtr symbol, val.second ) {
+//			cerr << *symbol << endl;
+//		}
+//	}
 }
