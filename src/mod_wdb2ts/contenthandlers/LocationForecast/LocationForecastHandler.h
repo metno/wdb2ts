@@ -37,10 +37,10 @@
 #include <UpdateProviderReftimes.h>
 #include <INoteUpdateListener.h>
 #include <LocationData.h>
-#include <SymbolConf.h>
+#include <SymbolConfConfigure.h>
 #include <SymbolGenerator.h>
 #include <MetaModelConf.h>
-#include <ProjectionHelper.h>
+#include <ProjectionHelperConfigure.h>
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
 #include <NearestHeight.h>

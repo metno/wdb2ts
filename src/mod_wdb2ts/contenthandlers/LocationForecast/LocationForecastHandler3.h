@@ -25,8 +25,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
-#ifndef __LOCATION_FORECAST_HANDLER_2_H__
-#define __LOCATION_FORECAST_HANDLER_2_H__
+#ifndef __LOCATION_FORECAST_HANDLER_3_H__
+#define __LOCATION_FORECAST_HANDLER_3_H__
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
@@ -60,20 +60,20 @@ class Wdb2TsApp;
  * The LocationForecastHandler takes care of requests on the form:
  * \em http://server/metno-wdb2ts/locationforecast
  */
-class LocationForecastHandler2 :
+class LocationForecastHandler3 :
 	public HandlerBase,
 	public INoteUpdateListener
 { 
 public:
 	/** Default Constructor */
-	LocationForecastHandler2();
+	LocationForecastHandler3();
 	/** Constructor 
 	 * @param	major
 	 * @param	minor 
 	 */
-	LocationForecastHandler2( int major, int minor, const std::string &note="" );
+	LocationForecastHandler3( int major, int minor, const std::string &note="" );
 	/** Destructor */
-	~LocationForecastHandler2();
+	~LocationForecastHandler3();
 	/** Identify the RequestHandler
 	 * @returns	The name of the Request Handler
      */
