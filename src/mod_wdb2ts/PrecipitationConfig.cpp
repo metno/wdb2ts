@@ -121,9 +121,19 @@ get( const std::string &provider )const
 {
 	std::map<std::string, PrecipConfigElement >::const_iterator it = providerPrecipitationList.find( provider );
 
-	if( it != providerPrecipitationList.end() )
+	if( it != providerPrecipitationList.end() ) {
 		return &it->second;
+	}
 
+	ProviderItem item=ProviderItem::decode( provider );
+	it = providerPrecipitationList.find( item.provider );
+
+	if( it != providerPrecipitationList.end() ) {
+		const_cast<ProviderPrecipitationConfig*>(this)->providerPrecipitationList[provider]=it->second;
+		return &it->second;
+	}
+
+	const_cast<ProviderPrecipitationConfig*>(this)->providerPrecipitationList[provider]=defaultConfig;
 	return &defaultConfig;
 }
 
