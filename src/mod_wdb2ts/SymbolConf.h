@@ -62,22 +62,74 @@ public:
 	bool operator!=( const SymbolConf &rhs );
 	
 	static bool parse( const std::string &buf, SymbolConfList &conf );
+	friend std::ostream &operator<<( std::ostream &ost, const SymbolConf &conf );
 };
 
-typedef std::map<std::string, SymbolConfList> SymbolConfProvider;
+std::ostream &operator<<( std::ostream &ost, const SymbolConf &conf );
+
+class SymbolConfProvider :
+		protected std::map<std::string, SymbolConfList>
+{
+public:
+
+	typedef std::map<std::string, SymbolConfList> Conf;
+	typedef Conf::value_type value_type;
+	typedef Conf::key_type key_type;
+	typedef Conf::const_pointer const_pointer;
+	typedef Conf::const_reference const_reference;
+	typedef std::map<std::string, SymbolConfList>::iterator iterator;
+	typedef std::map<std::string, SymbolConfList>::const_iterator const_iterator;
+
+	SymbolConfProvider();
+//	SymbolConfProvider( const SymbolConfProvider &conf )
+//		: defaultConf( conf.defaultConf), maxHours_( conf.maxHours_){}
+//
+//	SymbolConfProvider& operator=( const SymbolConfProvider &rhs ) {
+//		if( this != &rhs ) {
+//			defaultConf = rhs.defaultConf;
+//			maxHours_ = rhs.maxHours_;
+//			*static_cast<Conf*>(this) = static_cast<const Conf&>(rhs);
+//		}
+//		return *this;
+//	}
+
+
+	void setDefaultConf( const SymbolConfList &conf ) { defaultConf = conf; }
+	SymbolConfList getDefaultConf( const SymbolConfList &conf ) { return defaultConf; }
+
+
+	void clear(){ maxHours_ = 0; Conf::clear(); }
+	void add( const std::string &provider, const SymbolConfList &conf );
+
+	/**
+	 * get try to find a symbol configuration for the provider. If
+	 * it do not find the configuration and the provider has a placename,
+	 * the placename is stripped from the provider, and it is searched for
+	 * a configuration without the placename. If no configuration is
+	 * found the default configuration is returned.
+	 */
+	SymbolConfList get( const std::string &provider )const;
+
+	const_iterator begin()const { return Conf::begin(); }
+	const_iterator end()const { return Conf::end(); }
+
+	const_iterator find( const std::string &provider )const { return Conf::find( provider); }
+	/**
+	 * Return the maximum numbers of hours we generate a symbol over
+	 * independent of providers.
+	 */
+	int maxHours() const { return maxHours_; }
+
+private:
+	SymbolConfList defaultConf;
+	int maxHours_;
+};
+
+
 
 void
 configureSymbolconf( const wdb2ts::config::ActionParam &params, 
 		               SymbolConfProvider &symbolConfProvider );
-
-SymbolConfProvider
-symbolConfProviderSetPlacename( const SymbolConfProvider &symbolConfProvider, 
-		                          WciConnectionPtr wciConnection );
-
-SymbolConfProvider
-symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
-		                           const std::string &wdbDB,
-		                           Wdb2TsApp *app);
 }
 
 #endif 
