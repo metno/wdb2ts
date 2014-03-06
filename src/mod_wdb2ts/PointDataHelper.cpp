@@ -35,6 +35,7 @@
 #include <wdb2tsProfiling.h>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <Logger4cpp.h>
+#include <boost/foreach.hpp>
 
 
 DEFINE_MI_PROFILE;
@@ -172,79 +173,81 @@ merge( const PData &other )
 
 void
 PData::
-print( std::ostream &o )const
+print( std::ostream &o, const std::string &space )const
 {
-   if( windV10m != FLT_MAX ) o << "windV10m: " << windV10m << endl;
-   if( windU10m != FLT_MAX ) o << "windU10m: " << windU10m << endl;
-   if( PP != FLT_MAX ) o << "PP: " << PP << endl;;
-   if( PR != FLT_MAX ) o << "PR: " << PR << endl;;
-   if( TA != FLT_MAX ) o << "TA: " << TA << endl;;
-   if( T2M != FLT_MAX ) o << "T2M: " << T2M << endl;;
-   if( T2M_LAND  != FLT_MAX ) o << "T2M_LAND: " << T2M_LAND << endl;;
-   if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) o << "T2M_NO_ADIABATIC_HIGHT_CORRECTION: " << T2M_NO_ADIABATIC_HIGHT_CORRECTION << endl;
-   if( temperatureCorrected != FLT_MAX ) o << "temperatureCorrected: " << temperatureCorrected << endl;
-   if( dewPointTemperature != FLT_MAX ) o << "dewPointTemperature: " << dewPointTemperature << endl;
-   if( UU != FLT_MAX ) o << "UU: " << UU << endl;
-   if( PRECIP_PROBABILITY != FLT_MAX ) o << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;;
-   if( PRECIP_MIN != FLT_MAX ) o << "PRECIP_MIN: " << PRECIP_MIN << endl;;
-   if( PRECIP_MAX != FLT_MAX ) o << "PRECIP_MAX: " << PRECIP_MAX << endl;;
-   if( PRECIP_MEAN != FLT_MAX ) o << "PRECIP_MEAN: " << PRECIP_MEAN << endl;;
-   if( PRECIP != FLT_MAX ) o << "PRECIP: " << PRECIP << endl;;
-   if( PRECIP_ACCUMULATED != FLT_MAX ) o << "PRECIP_ACCUMULATED: " << PRECIP_ACCUMULATED << endl;;
-   if( PRECIP_1T != FLT_MAX ) o << "PRECIP_1T: " << PRECIP_1T << endl;
-   if( PRECIP_3T != FLT_MAX ) o << "PRECIP_3T: " << PRECIP_3T << endl;
-   if( PRECIP_6T != FLT_MAX ) o << "PRECIP_6T: " << PRECIP_6T << endl;
-   if( PRECIP_12T != FLT_MAX ) o << "PRECIP_12T: " << PRECIP_12T << endl;
-   if( PRECIP_24T != FLT_MAX ) o << "PRECIP_24T: " << PRECIP_24T << endl;
-   if( significantSwellWaveHeight != FLT_MAX ) o << "seaTotalSwellWaveHeight: " << significantSwellWaveHeight << endl;
-   if( meanSwellWavePeriode != FLT_MAX) o << "seaMeanSwellWavePeriode: " << meanSwellWavePeriode << endl;
-   if( meanSwellWaveDirection != FLT_MAX ) o << "seaMeanSwellWaveDirection: " << meanSwellWaveDirection << endl;
-   if( peakSwellWavePeriode != FLT_MAX ) o << "seaPeakSwellWavePeriode: " << peakSwellWavePeriode << endl;
-   if( peakSwellWaveDirection != FLT_MAX ) o << "seaPeakSwellWaveDirection: " << peakSwellWaveDirection << endl;
-   if( seaCurrentVelocityV != FLT_MAX ) o << "seaCurrentVelocityV: " << seaCurrentVelocityV << endl;
-   if( seaCurrentVelocityU != FLT_MAX ) o << "seaCurrentVelocityU: " << seaCurrentVelocityU << endl;
-   if( seaSalinity != FLT_MAX ) o << "seaSalinity: " << seaSalinity << endl;
-   if( seaSurfaceHeight != FLT_MAX ) o << "seaSurfaceHeight: " << seaSurfaceHeight << endl;
-   if( seaTemperature != FLT_MAX ) o << "seaTemperature: " << seaTemperature << endl;
-   if( meanTotalWavePeriode != FLT_MAX) o << "meanTotalWavePeriode: " << meanTotalWavePeriode << endl;
-   if( meanTotalWaveDirection != FLT_MAX ) o << "meanTotalWaveDirection: " << meanTotalWaveDirection << endl;
-   if( maximumTotalWaveHeight != FLT_MAX ) o << "maximumTotalWaveHeight: " << maximumTotalWaveHeight << endl;
-   if( significantTotalWaveHeight != FLT_MAX ) o << "significantTotalWaveHeight: " << significantTotalWaveHeight << endl;
-   if( seaIcePresence != FLT_MAX )o << "seaIcePresence: " << seaIcePresence << endl;
-   if( iceingIndex != FLT_MAX ) o << "iceingIndex: " << iceingIndex << endl;
-   if( NN != FLT_MAX ) o << "NN: " << NN << endl;
-   if( visibility != FLT_MAX ) o << "visibility: " << visibility << endl;
-   if( fog != FLT_MAX ) o << "fog: " << fog << endl;
-   if( highCloud != FLT_MAX )o << "highCloud: " << highCloud << endl;
-   if( mediumCloud != FLT_MAX ) o << "mediumCloud: " << mediumCloud << endl;
-   if( lowCloud != FLT_MAX ) o << "lowCloud: " << lowCloud << endl;
-   if( RH2M != FLT_MAX ) o << "RH2M: " << RH2M << endl;
-   if( thunderProability != FLT_MAX ) o << "thunderProability: " << thunderProability << endl;
-   if( fogProability != FLT_MAX ) o << "fogProability: " << fogProability << endl;
-   if( WIND_PROBABILITY != FLT_MAX ) o << "WIND_PROBABILITY: " << WIND_PROBABILITY << endl;
-   if( T2M_PROBABILITY_1 != FLT_MAX ) o << "T2M_PROBABILITY_1: " << T2M_PROBABILITY_1 << endl;
-   if( T2M_PROBABILITY_2 != FLT_MAX ) o << "T2M_PROBABILITY_2: " << T2M_PROBABILITY_2 << endl;
-   if( T2M_PROBABILITY_3 != FLT_MAX ) o << "T2M_PROBABILITY_3: " << T2M_PROBABILITY_3 << endl;
-   if( T2M_PROBABILITY_4 != FLT_MAX ) o << "T2M_PROBABILITY_4: " << T2M_PROBABILITY_4 << endl;
-   if( T2M_PERCENTILE_10 != FLT_MAX ) o << "T2M_PERCENTILE_10: " << T2M_PERCENTILE_10 << endl;
-   if( T2M_PERCENTILE_25 != FLT_MAX ) o << "T2M_PERCENTILE_25: " << T2M_PERCENTILE_25 << endl;
-   if( T2M_PERCENTILE_50 != FLT_MAX ) o << "T2M_PERCENTILE_50: " << T2M_PERCENTILE_50 << endl;
-   if( T2M_PERCENTILE_75 != FLT_MAX ) o << "T2M_PERCENTILE_75: " << T2M_PERCENTILE_75 << endl;
-   if( T2M_PERCENTILE_90 != FLT_MAX ) o << "T2M_PERCENTILE_90: " << T2M_PERCENTILE_90 << endl;
-   if( PRECIP_PERCENTILE_10 != FLT_MAX ) o << "PRECIP_PERCENTILE_10: " << PRECIP_PERCENTILE_10 << endl;
-   if( PRECIP_PERCENTILE_25 != FLT_MAX )  o << "PRECIP_PERCENTILE_25: " << PRECIP_PERCENTILE_25 << endl;
-   if( PRECIP_PERCENTILE_50 != FLT_MAX )  o << "PRECIP_PERCENTILE_50: " << PRECIP_PERCENTILE_50 << endl;
-   if( PRECIP_PERCENTILE_75 != FLT_MAX )  o << "PRECIP_PERCENTILE_75: " << PRECIP_PERCENTILE_75 << endl;
-   if( PRECIP_PERCENTILE_90 != FLT_MAX )  o << "PRECIP_PERCENTILE_90: " << PRECIP_PERCENTILE_90 << endl;
-   if( PRECIP_PROBABILITY_0_1MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_1MM: " << PRECIP_PROBABILITY_0_1MM << endl;
-   if( PRECIP_PROBABILITY_0_2MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_2MM: " << PRECIP_PROBABILITY_0_2MM << endl;
-   if( PRECIP_PROBABILITY_0_5MM != FLT_MAX )  o << "PRECIP_PROBABILITY_0_5MM: " << PRECIP_PROBABILITY_0_5MM << endl;
-   if( PRECIP_PROBABILITY_1_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_1_0MM: " << PRECIP_PROBABILITY_1_0MM << endl;
-   if( PRECIP_PROBABILITY_2_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_2_0MM: " << PRECIP_PROBABILITY_2_0MM << endl;
-   if( PRECIP_PROBABILITY_5_0MM != FLT_MAX )  o << "PRECIP_PROBABILITY_5_0MM: " << PRECIP_PROBABILITY_5_0MM << endl;
-   if( symbol != FLT_MAX )  o << "symbol: " << symbol << endl;
-   if( symbol_PROBABILITY != FLT_MAX ) o << "symbol_PROBABILITY: " << symbol_PROBABILITY << endl;
-   if( LANDCOVER != FLT_MAX ) o << "LANDCOVER: " << LANDCOVER << endl;
+   if( windV10m != FLT_MAX ) o << space << "windV10m: " << windV10m << endl;
+   if( windU10m != FLT_MAX ) o << space << "windU10m: " << windU10m << endl;
+   if( PP != FLT_MAX ) o << space << "PP: " << PP << endl;;
+   if( PR != FLT_MAX ) o << space << "PR: " << PR << endl;;
+   if( TA != FLT_MAX ) o << space << "TA: " << TA << endl;;
+   if( T2M != FLT_MAX ) o << space << "T2M: " << T2M << endl;;
+   if( T2M_LAND  != FLT_MAX ) o << space << "T2M_LAND: " << T2M_LAND << endl;;
+   if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) o<< space  << "T2M_NO_ADIABATIC_HIGHT_CORRECTION: " << T2M_NO_ADIABATIC_HIGHT_CORRECTION << endl;
+   if( temperatureCorrected != FLT_MAX ) o << space << "temperatureCorrected: " << temperatureCorrected << endl;
+   if( dewPointTemperature != FLT_MAX ) o << space << "dewPointTemperature: " << dewPointTemperature << endl;
+   if( UU != FLT_MAX ) o << space << "UU: " << UU << endl;
+   if( PRECIP_PROBABILITY != FLT_MAX ) o << space << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;;
+   if( PRECIP_MIN != FLT_MAX ) o << space << "PRECIP_MIN: " << PRECIP_MIN << endl;;
+   if( PRECIP_MAX != FLT_MAX ) o << space << "PRECIP_MAX: " << PRECIP_MAX << endl;;
+   if( PRECIP_MEAN != FLT_MAX ) o << space << "PRECIP_MEAN: " << PRECIP_MEAN << endl;;
+   if( PRECIP != FLT_MAX ) o << space << "PRECIP: " << PRECIP << endl;;
+   if( PRECIP_ACCUMULATED != FLT_MAX ) o << space << "PRECIP_ACCUMULATED: " << PRECIP_ACCUMULATED << endl;;
+   if( PRECIP_1T != FLT_MAX ) o << space << "PRECIP_1T: " << PRECIP_1T << endl;
+   if( PRECIP_3T != FLT_MAX ) o << space << "PRECIP_3T: " << PRECIP_3T << endl;
+   if( PRECIP_6T != FLT_MAX ) o << space << "PRECIP_6T: " << PRECIP_6T << endl;
+   if( PRECIP_12T != FLT_MAX ) o << space << "PRECIP_12T: " << PRECIP_12T << endl;
+   if( PRECIP_24T != FLT_MAX ) o << space << "PRECIP_24T: " << PRECIP_24T << endl;
+   if( significantSwellWaveHeight != FLT_MAX ) o << space << "seaTotalSwellWaveHeight: " << significantSwellWaveHeight << endl;
+   if( meanSwellWavePeriode != FLT_MAX) o << space << "seaMeanSwellWavePeriode: " << meanSwellWavePeriode << endl;
+   if( meanSwellWaveDirection != FLT_MAX ) o << space << "seaMeanSwellWaveDirection: " << meanSwellWaveDirection << endl;
+   if( peakSwellWavePeriode != FLT_MAX ) o << space << "seaPeakSwellWavePeriode: " << peakSwellWavePeriode << endl;
+   if( peakSwellWaveDirection != FLT_MAX ) o << space << "seaPeakSwellWaveDirection: " << peakSwellWaveDirection << endl;
+   if( seaCurrentVelocityV != FLT_MAX ) o << space << "seaCurrentVelocityV: " << seaCurrentVelocityV << endl;
+   if( seaCurrentVelocityU != FLT_MAX ) o << space << "seaCurrentVelocityU: " << seaCurrentVelocityU << endl;
+   if( seaSalinity != FLT_MAX ) o << space << "seaSalinity: " << seaSalinity << endl;
+   if( seaSurfaceHeight != FLT_MAX ) o << space << "seaSurfaceHeight: " << seaSurfaceHeight << endl;
+   if( seaTemperature != FLT_MAX ) o << space << "seaTemperature: " << seaTemperature << endl;
+   if( meanTotalWavePeriode != FLT_MAX) o << space << "meanTotalWavePeriode: " << meanTotalWavePeriode << endl;
+   if( meanTotalWaveDirection != FLT_MAX ) o << space << "meanTotalWaveDirection: " << meanTotalWaveDirection << endl;
+   if( maximumTotalWaveHeight != FLT_MAX ) o << space << "maximumTotalWaveHeight: " << maximumTotalWaveHeight << endl;
+   if( significantTotalWaveHeight != FLT_MAX ) o << space << "significantTotalWaveHeight: " << significantTotalWaveHeight << endl;
+   if( seaIcePresence != FLT_MAX )o << space << "seaIcePresence: " << seaIcePresence << endl;
+   if( iceingIndex != FLT_MAX ) o << space << "iceingIndex: " << iceingIndex << endl;
+   if( NN != FLT_MAX ) o << space << "NN: " << NN << endl;
+   if( visibility != FLT_MAX ) o << space << "visibility: " << visibility << endl;
+   if( fog != FLT_MAX ) o << space << "fog: " << fog << endl;
+   if( highCloud != FLT_MAX )o << space << "highCloud: " << highCloud << endl;
+   if( mediumCloud != FLT_MAX ) o << space << "mediumCloud: " << mediumCloud << endl;
+   if( lowCloud != FLT_MAX ) o << space << "lowCloud: " << lowCloud << endl;
+   if( RH2M != FLT_MAX ) o << space << "RH2M: " << RH2M << endl;
+   if( thunderProability != FLT_MAX ) o << space << "thunderProability: " << thunderProability << endl;
+   if( fogProability != FLT_MAX ) o << space << "fogProability: " << fogProability << endl;
+   if( WIND_PROBABILITY != FLT_MAX ) o << space << "WIND_PROBABILITY: " << WIND_PROBABILITY << endl;
+   if( T2M_PROBABILITY_1 != FLT_MAX ) o << space << "T2M_PROBABILITY_1: " << T2M_PROBABILITY_1 << endl;
+   if( T2M_PROBABILITY_2 != FLT_MAX ) o << space << "T2M_PROBABILITY_2: " << T2M_PROBABILITY_2 << endl;
+   if( T2M_PROBABILITY_3 != FLT_MAX ) o << space << "T2M_PROBABILITY_3: " << T2M_PROBABILITY_3 << endl;
+   if( T2M_PROBABILITY_4 != FLT_MAX ) o << space << "T2M_PROBABILITY_4: " << T2M_PROBABILITY_4 << endl;
+   if( T2M_PERCENTILE_10 != FLT_MAX ) o << space << "T2M_PERCENTILE_10: " << T2M_PERCENTILE_10 << endl;
+   if( T2M_PERCENTILE_25 != FLT_MAX ) o << space << "T2M_PERCENTILE_25: " << T2M_PERCENTILE_25 << endl;
+   if( T2M_PERCENTILE_50 != FLT_MAX ) o << space << "T2M_PERCENTILE_50: " << T2M_PERCENTILE_50 << endl;
+   if( T2M_PERCENTILE_75 != FLT_MAX ) o << space << "T2M_PERCENTILE_75: " << T2M_PERCENTILE_75 << endl;
+   if( T2M_PERCENTILE_90 != FLT_MAX ) o << space << "T2M_PERCENTILE_90: " << T2M_PERCENTILE_90 << endl;
+   if( PRECIP_PERCENTILE_10 != FLT_MAX ) o << space << "PRECIP_PERCENTILE_10: " << PRECIP_PERCENTILE_10 << endl;
+   if( PRECIP_PERCENTILE_25 != FLT_MAX )  o << space << "PRECIP_PERCENTILE_25: " << PRECIP_PERCENTILE_25 << endl;
+   if( PRECIP_PERCENTILE_50 != FLT_MAX )  o << space << "PRECIP_PERCENTILE_50: " << PRECIP_PERCENTILE_50 << endl;
+   if( PRECIP_PERCENTILE_75 != FLT_MAX )  o << space << "PRECIP_PERCENTILE_75: " << PRECIP_PERCENTILE_75 << endl;
+   if( PRECIP_PERCENTILE_90 != FLT_MAX )  o << space << "PRECIP_PERCENTILE_90: " << PRECIP_PERCENTILE_90 << endl;
+   if( PRECIP_PROBABILITY_0_1MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_0_1MM: " << PRECIP_PROBABILITY_0_1MM << endl;
+   if( PRECIP_PROBABILITY_0_2MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_0_2MM: " << PRECIP_PROBABILITY_0_2MM << endl;
+   if( PRECIP_PROBABILITY_0_5MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_0_5MM: " << PRECIP_PROBABILITY_0_5MM << endl;
+   if( PRECIP_PROBABILITY_1_0MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_1_0MM: " << PRECIP_PROBABILITY_1_0MM << endl;
+   if( PRECIP_PROBABILITY_2_0MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_2_0MM: " << PRECIP_PROBABILITY_2_0MM << endl;
+   if( PRECIP_PROBABILITY_5_0MM != FLT_MAX )  o << space << "PRECIP_PROBABILITY_5_0MM: " << PRECIP_PROBABILITY_5_0MM << endl;
+   if( symbol != FLT_MAX )  o << space << "symbol: " << symbol << endl;
+   if( symbol_PROBABILITY != FLT_MAX ) o << space << "symbol_PROBABILITY: " << symbol_PROBABILITY << endl;
+   if( modeltopography != FLT_MAX ) o << space << "modeltopography: " << modeltopography << endl;
+   if( topography != FLT_MAX ) o << space << "topography: " << topography << endl;
+   if( LANDCOVER != FLT_MAX ) o << space << "LANDCOVER: " << LANDCOVER << endl;
 }
 
 
@@ -400,366 +403,6 @@ windDirectionName(float dd)
       return "NW";
 }
 
-#if 0
-void 
-decodePData( const ParamDefList &paramDefs, 
-			 const ProviderList &providers,
-			 const ProviderRefTimeList &refTimeList,
-			 int   protocol,
-		     const pqxx::result &result,
-		     const bool isPolygonRequest,
-		     LocationPointData &locationPointData )
-{
-	using namespace boost::posix_time;
-	using namespace miutil;
-	
-	ptime from;
-	ptime to;
-	ptime reftime;
-	ParamDefPtr paramDef;
-	IFromTimeSerie itTimeSerie;
-//	string alias;
-	ProviderList::const_iterator itProvider;
-	string provider;
-	string providerWithPlacename;
-	string newProviderWithPlacename;
-	string providerGroup;
-	float value;
-	int dataversion;
-	LocationPoint locationPoint;
-	LocationPointData::iterator itLpd;
-	
-	USE_MI_PROFILE;
-	WEBFW_USE_LOGGER( "decode" );
-	
-	try {
-		START_MARK_MI_PROFILE("db::it");
-		pqxx::result::const_iterator it=result.begin();
-		STOP_MARK_MI_PROFILE("db::it");
-		
-		while( it != result.end() ) {
-			START_MARK_MI_PROFILE("db::decode");
-			
-			START_MARK_MI_PROFILE("findParam");
-
-//			//DEBUG
-//			string provider_dbg = it.at("dataprovidername").c_str();
-////			if( provider_dbg.find("ecmwf atmo") != string::npos )
-////			      provider_dbg.clear();
-//			//DEBUGEND
-
-			if( ! paramDefs.findParam( it, paramDef, providerGroup ) ) {
-				++it;
-
-				//WEBFW_LOG_DEBUG("Cant find paramdef. " << it.at("valueparametername").c_str() );
-//				//DEBUG
-//				if( ! provider_dbg.empty() )
-//				   cerr << "Cant find param: " << provider_dbg << "\n";
-//				//DEBUGEND
-
-				STOP_MARK_MI_PROFILE("findParam");
-				STOP_MARK_MI_PROFILE("db::decode");
-				continue;
-			}
-			
-		   STOP_MARK_MI_PROFILE("findParam");
-			
-
-			START_MARK_MI_PROFILE("db::it");
-			reftime = ptimeFromIsoString( it.at("referencetime").c_str() );
-			
-			if( protocol > 2 ) {
-				from = ptimeFromIsoString( it.at("validtimefrom").c_str() );
-				to = ptimeFromIsoString( it.at("validtimeto").c_str() );
-			} else {
-				from = ptimeFromIsoString( it.at("validfrom").c_str() );
-				to = ptimeFromIsoString( it.at("validto").c_str() );
-			}
-			
-			STOP_MARK_MI_PROFILE("db::it");
-			
-			START_MARK_MI_PROFILE("timeSerie");
-			
-			itProvider = providers.findProvider( it.at("dataprovidername").c_str(), 
-					                               it.at("placename").c_str(), 
-					                               providerWithPlacename );
-
-			if( itProvider == providers.end() ) {
-				if( paramDef->alias() == "TOPOGRAPHY" ) {
-					if( providerWithPlacename.empty() )
-						providerWithPlacename = it.at("dataprovidername").c_str();
-				}else  if( providerWithPlacename.empty() ){
-					++it;
-					continue;
-				}
-			}
-
-			dataversion = refTimeList.getDataversion( providerWithPlacename );
-			
-			if( dataversion > -1 ) {
-				if( it.at("dataversion").as<int>() != dataversion  ) {
-					++it;
-					continue;
-				}
-			}
-
-			if( !decodePoint( it.at("point").c_str(), locationPoint ) ) {
-				++it;
-				continue;
-			}
-			
-			itLpd = locationPointData.find( locationPoint );
-
-			if( itLpd == locationPointData.end() ) {
-				if( ! isPolygonRequest &&  ! locationPointData.empty() )
-					itLpd = locationPointData.begin();
-
-				if( itLpd == locationPointData.end() ) {
-					//WEBFW_LOG_DEBUG( "decodePData: new location point: " << locationPoint.iLatitude() << "/" << locationPoint.iLongitude() );
-					locationPointData[locationPoint] = TimeSeriePtr( new TimeSerie() );
-					itLpd = locationPointData.find( locationPoint );
-
-					if( itLpd == locationPointData.end() ) {
-						WEBFW_LOG_ERROR( "decodePData: Unexpected serious error. Problem to lookup newly inserted TimeSerie." );
-						++it;
-						continue;
-					}
-				}
-			}
-
-//			//DBUG
-//			string oldProviderWithPlacename = providerWithPlacename;
-//			if( !provider_dbg.empty() )
-//			   cerr << "Decode: provider: " << provider_dbg << " withPlacename: " << providerWithPlacename << endl;
-//			//DBUGEND
-
-			renameProvider( providerWithPlacename, providerGroup  );
-			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
-
- 			STOP_MARK_MI_PROFILE("timeSerie");
-	
- 			if( it.at("value").is_null() ) {
- 			//   WEBFW_LOG_DEBUG("<NULL> - " << paramDef->alias() << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
- 				++it;
- 				continue;
- 			}
-
-			value = it.at("value").as<float>();
-			
-			//Check if it is a null value. Most relevant to fields
-			//that has invalid values. ex ocean fields that has invalid
-			//values on land. The value that identifies a null value is
-			//defined in the paramdef section for the parameter in the
-			//configuration file.
-			if( paramDef->isNullValue( value ) ) {
-				//WEBFW_LOG_DEBUG( "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" << "  " << *paramDef );
-				++it;
-				continue;
-			}
-			
-			value = value*paramDef->scale()+paramDef->offset();
-			
-			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
-			
-
-//			//DBUG
-//			if( ! provider_dbg.empty()  )
-//			   cerr << "Decode: provider: " << provider_dbg << " Group: " << providerGroup
-//                 << " nwPlacename: '" << providerWithPlacename << "' (" << oldProviderWithPlacename << ") Param: "
-//                 << paramDef->alias() << " value: " << value << endl;
-//			//DBUGEND
-
-			if ( paramDef->alias() == "WIND.U10M" )
-				pd.windU10m = value;
-			else if( paramDef->alias() == "WIND.V10M")
-				pd.windV10m = value;
-			else if( paramDef->alias() == "PP" )
-				pd.PP = value;
-			else if( paramDef->alias() == "MSLP" )
-			   pd.PR = value;
-			else if( paramDef->alias() == "T.2M" ) {
-				//WEBFW_LOG_DEBUG( "decode: T.2M: " << value );
-				pd.T2M = value;
-			} else if( paramDef->alias() == "T.2M.LAND" )
-				pd.T2M_LAND = value;
-			else if( paramDef->alias() == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
-				pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION = value;
-			else if( paramDef->alias() == "UU" )
-				pd.UU = value;
-			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
-				pd.PRECIP_ACCUMULATED = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY" )  {
-			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to << ")");
-			   pd.PRECIP_PROBABILITY = value;
-			} else if( paramDef->alias() == "PRECIP.MIN" ) {
-			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.MIN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MIN = value;
-			} else if( paramDef->alias() == "PRECIP.MAX" ) {
-				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MAX: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MAX = value;
-			} else if( paramDef->alias() == "PRECIP.MEAN" )  {
-				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MEAN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MEAN = value;
-			} else if( paramDef->alias() == "PRECIP" )
-				pd.PRECIP = value;	
-			else if( paramDef->alias() == "PRECIP.1H" )
-				pd.PRECIP_1T = value;
-			else if( paramDef->alias() == "PRECIP.3H" )
-				pd.PRECIP_3T = value;
-			else if( paramDef->alias() == "PRECIP.6H")
-				pd.PRECIP_6T = value;
-			else if( paramDef->alias() == "PRECIP.12H")
-				pd.PRECIP_12T = value;
-			else if( paramDef->alias() == "PRECIP.24H" )
-				pd.PRECIP_24T = value;
-			else if( paramDef->alias() == "significantSwellWaveHeight")
-			   pd.significantSwellWaveHeight = value;
-			else if( paramDef->alias() == "meanSwellWavePeriode" ) {
-			   //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWavePeriode: " << value );
-			   pd.meanSwellWavePeriode = value;
-			}else if( paramDef->alias() == "meanSwellWaveDirection") {
-            //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWaveDirection: " << value );
-			   pd.meanSwellWaveDirection = value;
-			}else if( paramDef->alias() == "peakSwellWavePeriode")
-			   pd.peakSwellWavePeriode = value;
-			else if( paramDef->alias() == "peakSwellWaveDirection" )
-			   pd.peakSwellWaveDirection = value;
-			else if( paramDef->alias() == "seaCurrentVelocityV" )
-				pd.seaCurrentVelocityV = value;
-			else if( paramDef->alias() == "seaCurrentVelocityU" )
-				pd.seaCurrentVelocityU = value;
-			else if( paramDef->alias() == "seaSalinity" )
-				pd.seaSalinity = value;
-			else if( paramDef->alias() == "seaSurfaceHeight" )
-				pd.seaSurfaceHeight = value;
-			else if( paramDef->alias() == "seaTemperature" )
-				pd.seaTemperature = value;
-			else if( paramDef->alias() == "meanTotalWavePeriode")
-			   pd.meanTotalWavePeriode = value;
-			else if( paramDef->alias() == "meanTotalWaveDirection" ) {
-				//WEBFW_LOG_DEBUG( "decode: waveDirection: " << value );
-				pd.meanTotalWaveDirection = value;
-			} else if( paramDef->alias() == "maximumTotalWaveHeight" ) {
-			   pd.maximumTotalWaveHeight = value;
-			}else if( paramDef->alias() == "significantTotalWaveHeight" ) {
-				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
-				pd.significantTotalWaveHeight = value;
-			}else if( paramDef->alias() == "seaBottomTopography" ) {
-				ptime seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
-						                         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
-			}else if( paramDef->alias() == "seaIcePresence" ) {
-				ptime iceTime( boost::gregorian::date(1970, 1, 1),
-						         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
-			}else if( paramDef->alias() == "iceingIndex" ) {
-				pd.iceingIndex = value;
-			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
-				string topo=providerWithPlacename+string("__MODEL_TOPO__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						          boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].modeltopography = value;
-			} else if( paramDef->alias() == "TOPOGRAPHY" ) {
-				string topo=providerWithPlacename+string("__TOPOGRAPHY__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
-			} else if( paramDef->alias() == "LANDCOVER" ) {
-				ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
-                                     boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
-			}else if( paramDef->alias() == "TOTAL.CLOUD" )
-				pd.NN = value;
-			else if( paramDef->alias() == "visibility" )
-				pd.visibility = value;
-			else if( paramDef->alias() == "FOG" )
-				pd.fog = value;
-			else if( paramDef->alias() == "LOW.CLOUD" )
-				pd.lowCloud = value;
-			else if( paramDef->alias() == "MEDIUM.CLOUD" )
-				pd.mediumCloud = value;
-			else if( paramDef->alias() == "HIGH.CLOUD" )
-				pd.highCloud = value;
-			else if( paramDef->alias() == "RH.2M" )
-				pd.RH2M = value;
-			else if( paramDef->alias() == "T.DEWPOINT" )
-			   pd.dewPointTemperature = value;
-			else if( paramDef->alias() == "SYMBOL") 
-				pd.symbol = value;
-			else if( paramDef->alias() == "SYMBOL.PROBABILITY")
-				pd.symbol_PROBABILITY = value;
-			else if( paramDef->alias() == "THUNDER.PROBABILITY" )
-				pd.thunderProability = value;
-			else if( paramDef->alias() == "FOG.PROBABILITY" )
-				pd.fogProability = value;
-			else if( paramDef->alias() == "WIND.PROBABILITY")
-				pd.WIND_PROBABILITY = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.1")
-				pd.T2M_PROBABILITY_1 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.2")
-				pd.T2M_PROBABILITY_2 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.3")
-				pd.T2M_PROBABILITY_3 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.4")
-				pd.T2M_PROBABILITY_4 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.10")
-				pd.T2M_PERCENTILE_10 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.25")
-				pd.T2M_PERCENTILE_25 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.50")
-				pd.T2M_PERCENTILE_50 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.75")
-				pd.T2M_PERCENTILE_75 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.90")
-				pd.T2M_PERCENTILE_90 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.10")
-				pd.PRECIP_PERCENTILE_10 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.25")
-				pd.PRECIP_PERCENTILE_25 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.50")
-				pd.PRECIP_PERCENTILE_50 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.75")
-				pd.PRECIP_PERCENTILE_75 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.90")
-				pd.PRECIP_PERCENTILE_90 = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,1MM")
-				pd.PRECIP_PROBABILITY_0_1MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,2MM")
-				pd.PRECIP_PROBABILITY_0_2MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,5MM")
-				pd.PRECIP_PROBABILITY_0_5MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.1,0MM")
-				pd.PRECIP_PROBABILITY_1_0MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.2,0MM")
-				pd.PRECIP_PROBABILITY_2_0MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.5,0MM")
-				pd.PRECIP_PROBABILITY_5_0MM = value;
-
-			STOP_MARK_MI_PROFILE("db::decode");
-			START_MARK_MI_PROFILE("db::it");
-			++it;
-			STOP_MARK_MI_PROFILE("db::it");
-		}
-	}
-	catch( const std::ios_base::failure &ex ) {
-		throw;
-	}
-	catch( const std::runtime_error &ex ) {
-		throw std::logic_error( ex.what() );
-	}
-	catch( const std::logic_error &ex ) {
-		throw;
-	}
-	catch( ... ) {
-		throw std::logic_error( "Unknown error while decoding the result set." );
-	}
-}
-#endif
 
 
 
@@ -916,7 +559,7 @@ decodePData( const ParamDefList &paramDefs,
 
 			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
 
-			cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
+			//cerr << "decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]\n";
 
 
 //			//DBUG
@@ -1120,366 +763,6 @@ decodePData( const ParamDefList &paramDefs,
 
 
 
-#if 0
-void
-setPData( const ParamDefList &paramDefs,
-		  const ProviderList &providers,
-		  const ProviderRefTimeList &refTimeList,
-		  int   protocol,
-		  const pqxx::result &result,
-		  const bool isPolygonRequest,
-		  LocationPointData &locationPointData )
-{
-	using namespace boost::posix_time;
-	using namespace miutil;
-
-	ptime from;
-	ptime to;
-	ptime reftime;
-	ParamDefPtr paramDef;
-	IFromTimeSerie itTimeSerie;
-//	string alias;
-	ProviderList::const_iterator itProvider;
-	string provider;
-	string providerWithPlacename;
-	string newProviderWithPlacename;
-	string providerGroup;
-	float value;
-	int dataversion;
-	LocationPoint locationPoint;
-	LocationPointData::iterator itLpd;
-
-	USE_MI_PROFILE;
-	WEBFW_USE_LOGGER( "decode" );
-
-	try {
-		START_MARK_MI_PROFILE("db::it");
-		pqxx::result::const_iterator it=result.begin();
-		STOP_MARK_MI_PROFILE("db::it");
-
-		while( it != result.end() ) {
-			START_MARK_MI_PROFILE("db::decode");
-
-			START_MARK_MI_PROFILE("findParam");
-
-//			//DEBUG
-//			string provider_dbg = it.at("dataprovidername").c_str();
-////			if( provider_dbg.find("ecmwf atmo") != string::npos )
-////			      provider_dbg.clear();
-//			//DEBUGEND
-
-			if( ! paramDefs.findParam( it, paramDef, providerGroup ) ) {
-				++it;
-
-				//WEBFW_LOG_DEBUG("Cant find paramdef. " << it.at("valueparametername").c_str() );
-//				//DEBUG
-//				if( ! provider_dbg.empty() )
-//				   cerr << "Cant find param: " << provider_dbg << "\n";
-//				//DEBUGEND
-
-				STOP_MARK_MI_PROFILE("findParam");
-				STOP_MARK_MI_PROFILE("db::decode");
-				continue;
-			}
-
-		   STOP_MARK_MI_PROFILE("findParam");
-
-
-			START_MARK_MI_PROFILE("db::it");
-			reftime = ptimeFromIsoString( it.at("referencetime").c_str() );
-
-			if( protocol > 2 ) {
-				from = ptimeFromIsoString( it.at("validtimefrom").c_str() );
-				to = ptimeFromIsoString( it.at("validtimeto").c_str() );
-			} else {
-				from = ptimeFromIsoString( it.at("validfrom").c_str() );
-				to = ptimeFromIsoString( it.at("validto").c_str() );
-			}
-
-			STOP_MARK_MI_PROFILE("db::it");
-
-			START_MARK_MI_PROFILE("timeSerie");
-
-			itProvider = providers.findProvider( it.at("dataprovidername").c_str(),
-					                               it.at("placename").c_str(),
-					                               providerWithPlacename );
-
-			if( itProvider == providers.end() ) {
-				if( paramDef->alias() == "TOPOGRAPHY" ) {
-					if( providerWithPlacename.empty() )
-						providerWithPlacename = it.at("dataprovidername").c_str();
-				}else  if( providerWithPlacename.empty() ){
-					++it;
-					continue;
-				}
-			}
-
-			dataversion = refTimeList.getDataversion( providerWithPlacename );
-
-			if( dataversion > -1 ) {
-				if( it.at("dataversion").as<int>() != dataversion  ) {
-					++it;
-					continue;
-				}
-			}
-
-			if( !decodePoint( it.at("point").c_str(), locationPoint ) ) {
-				++it;
-				continue;
-			}
-
-			itLpd = locationPointData.find( locationPoint );
-
-			if( itLpd == locationPointData.end() ) {
-				if( ! isPolygonRequest &&  ! locationPointData.empty() )
-					itLpd = locationPointData.begin();
-
-				if( itLpd == locationPointData.end() ) {
-					//WEBFW_LOG_DEBUG( "decodePData: new location point: " << locationPoint.iLatitude() << "/" << locationPoint.iLongitude() );
-					locationPointData[locationPoint] = TimeSeriePtr( new TimeSerie() );
-					itLpd = locationPointData.find( locationPoint );
-
-					if( itLpd == locationPointData.end() ) {
-						WEBFW_LOG_ERROR( "decodePData: Unexpected serious error. Problem to lookup newly inserted TimeSerie." );
-						++it;
-						continue;
-					}
-				}
-			}
-
-//			//DBUG
-//			string oldProviderWithPlacename = providerWithPlacename;
-//			if( !provider_dbg.empty() )
-//			   cerr << "Decode: provider: " << provider_dbg << " withPlacename: " << providerWithPlacename << endl;
-//			//DBUGEND
-
-			renameProvider( providerWithPlacename, providerGroup  );
-			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
-
- 			STOP_MARK_MI_PROFILE("timeSerie");
-
- 			if( it.at("value").is_null() ) {
- 			//   WEBFW_LOG_DEBUG("<NULL> - " << paramDef->alias() << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
- 				++it;
- 				continue;
- 			}
-
-			value = it.at("value").as<float>();
-
-			//Check if it is a null value. Most relevant to fields
-			//that has invalid values. ex ocean fields that has invalid
-			//values on land. The value that identifies a null value is
-			//defined in the paramdef section for the parameter in the
-			//configuration file.
-			if( paramDef->isNullValue( value ) ) {
-				//WEBFW_LOG_DEBUG( "decode (null): " << paramDef->alias() << " value: " << value << " (" << providerWithPlacename << ")" << "  " << *paramDef );
-				++it;
-				continue;
-			}
-
-			value = value*paramDef->scale()+paramDef->offset();
-
-			//WEBFW_LOG_DEBUG("decode: '" << paramDef->alias() << "'=" << value << " timeSerie[" << to << "]["<<from <<"][" << providerWithPlacename <<"]" );
-
-
-//			//DBUG
-//			if( ! provider_dbg.empty()  )
-//			   cerr << "Decode: provider: " << provider_dbg << " Group: " << providerGroup
-//                 << " nwPlacename: '" << providerWithPlacename << "' (" << oldProviderWithPlacename << ") Param: "
-//                 << paramDef->alias() << " value: " << value << endl;
-//			//DBUGEND
-
-			if ( paramDef->alias() == "WIND.U10M" )
-				pd.windU10m = value;
-			else if( paramDef->alias() == "WIND.V10M")
-				pd.windV10m = value;
-			else if( paramDef->alias() == "PP" )
-				pd.PP = value;
-			else if( paramDef->alias() == "MSLP" )
-			   pd.PR = value;
-			else if( paramDef->alias() == "T.2M" ) {
-				//WEBFW_LOG_DEBUG( "decode: T.2M: " << value );
-				pd.T2M = value;
-			} else if( paramDef->alias() == "T.2M.LAND" )
-				pd.T2M_LAND = value;
-			else if( paramDef->alias() == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
-				pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION = value;
-			else if( paramDef->alias() == "UU" )
-				pd.UU = value;
-			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
-				pd.PRECIP_ACCUMULATED = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY" )  {
-			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to << ")");
-			   pd.PRECIP_PROBABILITY = value;
-			} else if( paramDef->alias() == "PRECIP.MIN" ) {
-			   //WEBFW_LOG_DEBUG( "decodePData: PRECIP.MIN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MIN = value;
-			} else if( paramDef->alias() == "PRECIP.MAX" ) {
-				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MAX: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MAX = value;
-			} else if( paramDef->alias() == "PRECIP.MEAN" )  {
-				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.MEAN: " << value << " (" << providerWithPlacename << " ["<<  from << " - " << to<< ")");
-			   pd.PRECIP_MEAN = value;
-			} else if( paramDef->alias() == "PRECIP" )
-				pd.PRECIP = value;
-			else if( paramDef->alias() == "PRECIP.1H" )
-				pd.PRECIP_1T = value;
-			else if( paramDef->alias() == "PRECIP.3H" )
-				pd.PRECIP_3T = value;
-			else if( paramDef->alias() == "PRECIP.6H")
-				pd.PRECIP_6T = value;
-			else if( paramDef->alias() == "PRECIP.12H")
-				pd.PRECIP_12T = value;
-			else if( paramDef->alias() == "PRECIP.24H" )
-				pd.PRECIP_24T = value;
-			else if( paramDef->alias() == "significantSwellWaveHeight")
-			   pd.significantSwellWaveHeight = value;
-			else if( paramDef->alias() == "meanSwellWavePeriode" ) {
-			   //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWavePeriode: " << value );
-			   pd.meanSwellWavePeriode = value;
-			}else if( paramDef->alias() == "meanSwellWaveDirection") {
-            //WEBFW_LOG_DEBUG( "decode: seaMeanSwellWaveDirection: " << value );
-			   pd.meanSwellWaveDirection = value;
-			}else if( paramDef->alias() == "peakSwellWavePeriode")
-			   pd.peakSwellWavePeriode = value;
-			else if( paramDef->alias() == "peakSwellWaveDirection" )
-			   pd.peakSwellWaveDirection = value;
-			else if( paramDef->alias() == "seaCurrentVelocityV" )
-				pd.seaCurrentVelocityV = value;
-			else if( paramDef->alias() == "seaCurrentVelocityU" )
-				pd.seaCurrentVelocityU = value;
-			else if( paramDef->alias() == "seaSalinity" )
-				pd.seaSalinity = value;
-			else if( paramDef->alias() == "seaSurfaceHeight" )
-				pd.seaSurfaceHeight = value;
-			else if( paramDef->alias() == "seaTemperature" )
-				pd.seaTemperature = value;
-			else if( paramDef->alias() == "meanTotalWavePeriode")
-			   pd.meanTotalWavePeriode = value;
-			else if( paramDef->alias() == "meanTotalWaveDirection" ) {
-				//WEBFW_LOG_DEBUG( "decode: waveDirection: " << value );
-				pd.meanTotalWaveDirection = value;
-			} else if( paramDef->alias() == "maximumTotalWaveHeight" ) {
-			   pd.maximumTotalWaveHeight = value;
-			}else if( paramDef->alias() == "significantTotalWaveHeight" ) {
-				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
-				pd.significantTotalWaveHeight = value;
-			}else if( paramDef->alias() == "seaBottomTopography" ) {
-				ptime seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
-						                         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
-			}else if( paramDef->alias() == "seaIcePresence" ) {
-				ptime iceTime( boost::gregorian::date(1970, 1, 1),
-						         boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
-			}else if( paramDef->alias() == "iceingIndex" ) {
-				pd.iceingIndex = value;
-			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
-				string topo=providerWithPlacename+string("__MODEL_TOPO__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						          boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].modeltopography = value;
-			} else if( paramDef->alias() == "TOPOGRAPHY" ) {
-				string topo=providerWithPlacename+string("__TOPOGRAPHY__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
-			} else if( paramDef->alias() == "LANDCOVER" ) {
-				ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
-                                     boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
-			}else if( paramDef->alias() == "TOTAL.CLOUD" )
-				pd.NN = value;
-			else if( paramDef->alias() == "visibility" )
-				pd.visibility = value;
-			else if( paramDef->alias() == "FOG" )
-				pd.fog = value;
-			else if( paramDef->alias() == "LOW.CLOUD" )
-				pd.lowCloud = value;
-			else if( paramDef->alias() == "MEDIUM.CLOUD" )
-				pd.mediumCloud = value;
-			else if( paramDef->alias() == "HIGH.CLOUD" )
-				pd.highCloud = value;
-			else if( paramDef->alias() == "RH.2M" )
-				pd.RH2M = value;
-			else if( paramDef->alias() == "T.DEWPOINT" )
-			   pd.dewPointTemperature = value;
-			else if( paramDef->alias() == "SYMBOL")
-				pd.symbol = value;
-			else if( paramDef->alias() == "SYMBOL.PROBABILITY")
-				pd.symbol_PROBABILITY = value;
-			else if( paramDef->alias() == "THUNDER.PROBABILITY" )
-				pd.thunderProability = value;
-			else if( paramDef->alias() == "FOG.PROBABILITY" )
-				pd.fogProability = value;
-			else if( paramDef->alias() == "WIND.PROBABILITY")
-				pd.WIND_PROBABILITY = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.1")
-				pd.T2M_PROBABILITY_1 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.2")
-				pd.T2M_PROBABILITY_2 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.3")
-				pd.T2M_PROBABILITY_3 = value;
-			else if( paramDef->alias() == "T.2M.PROBABILITY.4")
-				pd.T2M_PROBABILITY_4 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.10")
-				pd.T2M_PERCENTILE_10 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.25")
-				pd.T2M_PERCENTILE_25 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.50")
-				pd.T2M_PERCENTILE_50 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.75")
-				pd.T2M_PERCENTILE_75 = value;
-			else if( paramDef->alias() == "T.2M.PERCENTILE.90")
-				pd.T2M_PERCENTILE_90 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.10")
-				pd.PRECIP_PERCENTILE_10 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.25")
-				pd.PRECIP_PERCENTILE_25 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.50")
-				pd.PRECIP_PERCENTILE_50 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.75")
-				pd.PRECIP_PERCENTILE_75 = value;
-			else if( paramDef->alias() == "PRECIP.PERCENTILE.90")
-				pd.PRECIP_PERCENTILE_90 = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,1MM")
-				pd.PRECIP_PROBABILITY_0_1MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,2MM")
-				pd.PRECIP_PROBABILITY_0_2MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.0,5MM")
-				pd.PRECIP_PROBABILITY_0_5MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.1,0MM")
-				pd.PRECIP_PROBABILITY_1_0MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.2,0MM")
-				pd.PRECIP_PROBABILITY_2_0MM = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY.5,0MM")
-				pd.PRECIP_PROBABILITY_5_0MM = value;
-
-			STOP_MARK_MI_PROFILE("db::decode");
-			START_MARK_MI_PROFILE("db::it");
-			++it;
-			STOP_MARK_MI_PROFILE("db::it");
-		}
-	}
-	catch( const std::ios_base::failure &ex ) {
-		throw;
-	}
-	catch( const std::runtime_error &ex ) {
-		throw std::logic_error( ex.what() );
-	}
-	catch( const std::logic_error &ex ) {
-		throw;
-	}
-	catch( ... ) {
-		throw std::logic_error( "Unknown error while decoding the result set." );
-	}
-}
-#endif
 
 
 
@@ -1698,5 +981,21 @@ symbolidToName(int id) {
       return "";         //Unknown symbol
    }
 }
+
+std::ostream&
+operator<<(std::ostream &o, const TimeSerie &ts )
+{
+	BOOST_FOREACH( TimeSerie::value_type toTime, ts ) {
+		BOOST_FOREACH( FromTimeSerie::value_type &fromTime, toTime.second ){
+			o << "[" << fromTime.first << " - " << toTime.first << "]" << endl;
+			BOOST_FOREACH( ProviderPDataList::value_type &pdata, fromTime.second ) {
+				o << "   [" << pdata.first << "]" << endl;
+				pdata.second.print( o, "      ");
+			}
+		}
+	}
+	return o;
+}
+
 
 }

@@ -34,11 +34,9 @@
 #include <string>
 #include <string>
 #include <ostream>
-//#include <pqxx/pqxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
 #include <ParamDef.h>
-//#include <ProviderList.h>
 #include <ProviderReftimes.h>
 #include <LocationPoint.h>
 #include <ITupleContainer.h>
@@ -317,7 +315,7 @@ struct PData{
       return *this;
    }
 
-   void print( std::ostream &o )const;
+   void print( std::ostream &o, const std::string &space="" )const;
    void merge( const PData &other );
    int count()const;
 };
@@ -354,6 +352,10 @@ typedef boost::shared_ptr<TimeSerie> TimeSeriePtr;
 
 typedef std::map<LocationPoint, TimeSeriePtr> LocationPointData;
 typedef boost::shared_ptr<LocationPointData> LocationPointDataPtr;
+
+std::ostream&
+operator<<(std::ostream &o, const TimeSerie &ts );
+
 
 std::string
 toBeaufort( float mps, std::string &description );
