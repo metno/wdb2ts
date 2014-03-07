@@ -25,23 +25,205 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
+#include <math.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <map>
+#include <boost/foreach.hpp>
 #include <stlContainerUtil.h>
 #include <puMet/symbolMaker.h>
 #include <puMet/paramet.h>
 #include <SymbolGenerator.h>
 #include "LocationElem.h"
 #include <Logger4cpp.h>
+#include <mathalgo.h>
+#include <weather_symbol/WeatherSymbol.h>
 
+namespace pt=boost::posix_time;
 
 using namespace std;
 
 namespace wdb2ts {
-
 symbolMaker SymbolGenerator::sm;
+
+
+namespace symbol {
+void
+loadBaseData( SymbolDataContainer &dataContainer,
+		            LocationData& data,
+			        const std::string &provider,
+			        int dataTimeStep )
+{
+	pt::ptime startAt;
+	float     val;
+
+	dataContainer.clear();
+	WEBFW_USE_LOGGER( "symbols" );
+
+	WEBFW_LOG_DEBUG("loadSymbolBaseData: " << provider << " dataTimeStep: " << dataTimeStep << ".");
+	data.init( startAt, provider );
+
+	while( data.hasNext() ) {
+		SymbolData symData;
+		LocationElem &elem = *data.next();
+
+		//Must have a temperature element
+		val = elem.TA();
+		if( val == FLT_MAX )
+			continue;
+		symData.temperature = val;
+
+		val = elem.wetBulbTemperature();
+		if( val != FLT_MAX )
+			symData.wetBulbTemperature = val;
+
+		symData.temperature = val;
+
+		//Must have total cloud cover.
+		val = elem.NN();
+		if( val == FLT_MAX )
+			continue;
+		symData.totalCloudCover = val;
+
+		//Must have precipitation.
+		val = elem.PRECIP( dataTimeStep, symData.from );
+		if( val == FLT_MAX )
+			continue;
+		symData.precipitation = val;
+
+		val = elem.PRECIP( dataTimeStep, symData.from );
+		if( val != FLT_MAX )
+			symData.maxPrecipitation = val;
+
+		val = elem.highCloud();
+		if( val != FLT_MAX )
+			symData.highCloudCover = val;
+
+		val = elem.mediumCloud();
+		if( val != FLT_MAX )
+			symData.mediumCloudCover = val;
+
+		val = elem.lowCloud();
+		if( val != FLT_MAX )
+			symData.lowCloudCover = val;
+
+		//Thunder probability
+		val = elem.thunderProbability();
+		if( val != FLT_MAX )
+			symData.thunderProbability = val;
+
+		//Fog probability
+		val = elem.fog();
+		if( val != FLT_MAX )
+			symData.fogCover = val;
+
+		dataContainer[elem.time()] = symData;
+	}
+
+}
+
+
+struct Greater {
+	float n;
+	Greater( float n ): n( n ) {}
+	Greater( const Greater &g ): n( g.n ) {}
+	bool operator()( float v )const { return v>n; }
+};
+
+void
+computeSymbolData( const SymbolDataContainer &baseData,
+		           SymbolContainer &data,
+		           int hours )
+{
+	pt::ptime fromTime;
+	Greater greater( 25 );
+	miutil::algorithm::Average<float> totCloud;
+	miutil::algorithm::Average<float> mediumCloud;
+	miutil::algorithm::Average<float> lowCloud;
+	miutil::algorithm::Average<float> precip;
+	miutil::algorithm::MinMax<float> thunder;
+	miutil::algorithm::Count<float, Greater> fog( greater );
+	int  possibleFogCount = ceil( hours/2 );
+
+	SymbolDataContainer::const_reverse_iterator foundIt;
+	WEBFW_USE_LOGGER( "symbols" );
+
+	WEBFW_LOG_DEBUG("computeSymbolData:  hours: " << hours << ".");
+
+	for( SymbolDataContainer::const_reverse_iterator rit=baseData.rbegin(); rit != baseData.rend(); ++rit ) {
+		totCloud.clear();
+		thunder.clear();
+		fog.clear();
+		precip.clear();
+
+		fromTime = rit->first - pt::hours( hours );
+		SymbolDataContainer::const_reverse_iterator ritTmp = rit;
+		foundIt = baseData.rend();
+
+		while( ritTmp != baseData.rend() && ritTmp->second.from >= fromTime ) {
+			totCloud( ritTmp->second.totalCloudCover );
+			lowCloud( ritTmp->second.lowCloudCover );
+			mediumCloud( ritTmp->second.mediumCloudCover );
+			thunder( ritTmp->second.thunderProbability );
+			fog( ritTmp->second.fogCover );
+			precip( ritTmp->second.precipitation );
+			foundIt = ritTmp;
+			++ritTmp;
+		}
+
+		if( foundIt != baseData.rend() ) {
+			if( foundIt->second.from == fromTime ) {
+				try {
+					SymbolData sym = rit->second;
+					sym.precipitation = precip.avg();
+					sym.totalCloudCover = totCloud.avg();
+					sym.lowCloudCover = lowCloud.avg();
+					sym.mediumCloudCover = mediumCloud.avg();
+
+					if( thunder.max() > 0.5 )
+						sym.thunder = true;
+
+					if( fog.count() >= possibleFogCount  )
+						sym.fog = true;
+
+					sym.from = fromTime;
+					data[rit->first][fromTime] = sym;
+					cerr << foundIt->second.from << " - " << rit->first << "  (" << foundIt->first << ")" << endl;
+				}
+				catch( const std::exception &ex ) {
+					cerr << "   EXCEPTION: " << rit->first <<  "  " << ex.what() << "." << endl;
+				}
+			}
+
+		} else {
+			cerr << " END " << rit->first << endl;
+		}
+	}
+}
+
+
+std::ostream&
+operator<<( std::ostream &o, const SymbolData &data)
+{
+	if( data.totalCloudCover != FLT_MAX )
+		o << "NN: " << data.totalCloudCover << " ";
+	if( data.lowCloudCover != FLT_MAX )
+		o << "lowClouds: " << data.lowCloudCover << " ";
+	if( data.mediumCloudCover != FLT_MAX )
+		o << "mediumClouds: " << data.mediumCloudCover << " ";
+	if( data.highCloudCover != FLT_MAX )
+		o << "highClouds: " << data.highCloudCover << " ";
+	if( data.precipitation != FLT_MAX )
+		o << "precip: " << data.precipitation << " ";
+	if( data.thunderProbability != FLT_MAX )
+		o << "thunder: " << data.thunderProbability << " (" << (data.thunder?"T":"F") << ") ";
+	if( data.fogCover != FLT_MAX )
+		o << "fog: " << data.fogCover << " (" << (data.fog?"T":"F") << ") ";
+	return o;
+}
+
+}
 
 SymbolGenerator::
 SymbolGenerator()
@@ -166,6 +348,133 @@ correctSymbol( SymbolHolder::Symbol &symbol,
    correctSymbol( symbol, PartialData( data ), precip );
 }
 
+
+
+void
+SymbolGenerator::
+computeSymbolBaseData( LocationData& data,
+		               const std::string &provider,
+	                   int hours, int dataTimeStep, std::string &error )
+{
+//	//stringstream ost;
+//	symbolMaker sm;
+//	ostringstream smLog;
+//	boost::posix_time::ptime startAt;
+//	boost::posix_time::ptime pTime;
+//	boost::gregorian::date  date;
+//	boost::posix_time::time_duration time;
+//	boost::posix_time::ptime precipFromtime;
+//	miutil::miTime  mitime;
+//	vector<miSymbol> symbols;
+//	vector<miSymbol> tmpSymbols;
+//	map< int, map<miutil::miTime,float> > allParameters;
+//	vector<paramet>        parameters;
+//	vector<miutil::miTime> times;
+//	float                  val;
+//
+//	WEBFW_USE_LOGGER( "symbols" );
+//	min--;
+//
+//	if( min < 0 )
+//		min = 0;
+//
+//	WEBFW_LOG_DEBUG("computeSymbols: " << provider << " min: " << min << " max: " << max
+//	             << " precipHours: " << precipHours
+//	             << " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f"));
+//
+//	cerr << "computeSymbols: " << provider << " min: " << min << " max: " << max
+//			<< " precipHours: " << precipHours
+//			<< " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f") << endl;
+//	data.init( startAt, provider );
+//
+//	while( data.hasNext() ) {
+//
+//		//ost.str("");
+//		LocationElem &elem = *data.next();
+//
+//		val = elem.TA();
+//
+//		//Must allways have a temperature element
+//		if( val == FLT_MAX )
+//			continue;
+//
+//		pTime = elem.time();
+//		date = pTime.date();
+//		time = pTime.time_of_day();
+//		mitime = miutil::miTime( date.year(), date.month(), date.day(),
+//            			         time.hours(), time.minutes(), time.seconds() );
+//
+//		//ost << mitime << "(31): " << val;
+//		times.push_back( mitime );
+//
+//		//Temperature
+//		allParameters[31][mitime] = val;
+//
+//		//MSLP - mean sea level pressure
+//		val = elem.PR();
+//
+//		if( val != FLT_MAX ) {
+//			//ost << " (58): " << val;
+//			allParameters[58][mitime] = val;
+//		}
+//
+//		//Total cloud cover.
+//		val = elem.NN();
+//
+//		if( val != FLT_MAX ) {
+//			//ost << " (25): " << val;
+//			allParameters[25][mitime] = val;
+//		}
+//
+//		//Thunder index
+//		val = elem.thunderProbability();
+//
+//		//DEBUG (BEGIN)
+//		//if( min == 0 )
+//		//   val = 1;
+//		//DEBUG (END)
+//
+//		if( val != FLT_MAX ) {
+//			//Must make an garanti that this can be read as an int
+//			//in symbolmaker.
+//			//This is an on/off switch, valid values 0 and 1;
+//			allParameters[661][mitime] = int( val+0.5 );
+//		}
+//
+//		//Fog index
+//		val = elem.fogProbability();
+//
+//		if( val != FLT_MAX ) {
+//			//Must make an garanti that this can be read as an int
+//			//in symbolmaker.
+//			//This is an on/off switch, valid values 0 and 1;
+//			allParameters[665][mitime] = int( val+0.5 );
+//		}
+//
+//		//Precip agregated over precipHours.
+//		if( ( mitime.hour() % precipHours ) == 0 ) {
+//			val = elem.PRECIP( precipHours, precipFromtime );
+//
+//			//DEBUG (BEGIN)
+//			//if( min == 0 )
+//			//   val = 0.4;
+//			//DEBUG (END)
+//
+//			WEBFW_LOG_DEBUG( "computeSymbols: hour: " << precipHours << " from: " << precipFromtime << " to: " << mitime << " lprovider: " << elem.lastUsedProvider() << " val: " << val );
+//
+//			if( val != FLT_MAX ) {
+//				//ost << " (17): " << val;
+//				allParameters[17][mitime] = val;
+//			}
+//		}
+//		//ost << endl;
+//
+//		//cerr << ost.str();
+//	}
+
+}
+
+
 SymbolHolder*
 SymbolGenerator::
 computeSymbols( LocationData& data,
@@ -197,9 +506,14 @@ computeSymbols( LocationData& data,
 	WEBFW_LOG_DEBUG("computeSymbols: " << provider << " min: " << min << " max: " << max
 	             << " precipHours: " << precipHours
 	             << " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f"));
+
+	cerr << "computeSymbols: " << provider << " min: " << min << " max: " << max
+			<< " precipHours: " << precipHours
+			<< " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f") << endl;
 	data.init( startAt, provider );
 	
 	while( data.hasNext() ) {
+
 		//ost.str("");
 		LocationElem &elem = *data.next();
 		
@@ -400,7 +714,6 @@ computeSymbolsWithPuMet( LocationData& data,
                          std::string &error )
 {
    std::string myerror;
-
    SymbolHolder *sh = computeSymbols( data, provider,
                                       symbolConf.min(), symbolConf.max(), symbolConf.precipHours(),
                                       withoutStateOfAgregate,
@@ -440,6 +753,7 @@ getSymbolsFromData( LocationData& data,
       if( ! elem )
          continue;
 
+      cerr << "getSymbolsFromData:  " << fromTime << "\n";
       symNumber = elem->symbol( fromTime );
 
       if( symNumber == INT_MAX ) {
