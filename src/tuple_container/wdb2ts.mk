@@ -9,7 +9,7 @@ iterator1_LDADD=libtuplecontainer.la libmiutil.la
 libtuplecontainer_la_SOURCES= \
 	src/tuple_container/CSV.cpp \
 	src/tuple_container/CSV.h \
-	src/tuple_container/TupleContainer.h \
+	src/tuple_container/ITupleContainer.h \
 	src/tuple_container/ITupleContainer.cpp \
 	src/tuple_container/PqTupleContainer.h \
 	src/tuple_container/PqTupleContainer.cpp \
