@@ -156,7 +156,7 @@ output( std::ostream &out, const std::string &indent )
 		}
 
 		nForecast++;
-		tmpout << indent << "<temperature id=\"TTT\" unit=\"celcius\" value=\""<< tempUsed << "\"/>\n";
+		tmpout << indent << "<temperature id=\"TTT\" unit=\"celsius\" value=\""<< tempUsed << "\"/>\n";
 	}
 
 	//If we only have a temperature for the no "height correction" choice we need
@@ -292,7 +292,7 @@ output( std::ostream &out, const std::string &indent )
 		   }
 
 		   if( myDewPoint != FLT_MAX )
-		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celcius\" value=\""<< myDewPoint << "\"/>\n";
+		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""<< myDewPoint << "\"/>\n";
 
 		}
 
@@ -316,7 +316,7 @@ output( std::ostream &out, const std::string &indent )
 		
 		value += tempCorrection;	
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"10\" unit=\"celcius\" value=\"" << value << "\"/>\n";
+		    << " percentile=\"10\" unit=\"celsius\" value=\"" << value << "\"/>\n";
 	}
 	
 	value = pd->T2M_PERCENTILE_25();
@@ -328,7 +328,7 @@ output( std::ostream &out, const std::string &indent )
 	
 		value += tempCorrection;;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"25\" unit=\"celcius\" value=\"" << value << "\"/>\n";
+		    << " percentile=\"25\" unit=\"celsius\" value=\"" << value << "\"/>\n";
 	}
 	
 	value = pd->T2M_PERCENTILE_50(); 
@@ -340,7 +340,7 @@ output( std::ostream &out, const std::string &indent )
 
 		value += tempCorrection;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"50\" unit=\"celcius\" value=\"" << value << "\"/>\n";
+		    << " percentile=\"50\" unit=\"celsius\" value=\"" << value << "\"/>\n";
 	}
 	
 	value = pd->T2M_PERCENTILE_75(); 
@@ -352,7 +352,7 @@ output( std::ostream &out, const std::string &indent )
 
 		value += tempCorrection;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"75\" unit=\"celcius\" value=\"" << value << "\"/>\n";
+		    << " percentile=\"75\" unit=\"celsius\" value=\"" << value << "\"/>\n";
 	}
 	
 	value = pd->T2M_PERCENTILE_90();
@@ -364,7 +364,7 @@ output( std::ostream &out, const std::string &indent )
 
 		value += tempCorrection;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"90\" unit=\"celcius\" value=\"" << value << "\"/>\n";
+		    << " percentile=\"90\" unit=\"celsius\" value=\"" << value << "\"/>\n";
 	}
 	
 	out.precision( oldPrec );
