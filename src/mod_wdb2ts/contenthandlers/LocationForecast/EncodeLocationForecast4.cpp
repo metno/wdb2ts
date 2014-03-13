@@ -401,7 +401,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 	dataFrom = from - boost::posix_time::hours( symbolConf.maxHours() );
 
 	currentTime = dataFrom;
-	//We must collect data from 'from'-time
+	//We must collect data from 'from' - time
 	//to fill up symbolDataBuffer with data so
 	//we can generate Symbols from the first
 	//dataset in the output, but we shall not
@@ -442,7 +442,8 @@ encodeMoment( const boost::posix_time::ptime &from,
 			hasMomentData = false;
 			if( ! momentOst.str().empty() ) {
 				symbolDataBuffer.add( location.time(), symbolData );
-				updateBreakTimes( location.forecastprovider(), location.time() );
+				if( currentTime >= from )
+					updateBreakTimes( location.forecastprovider(), location.time() );
 				tmpOst << momentOst.str();
 				hasMomentData = true;
 			}
