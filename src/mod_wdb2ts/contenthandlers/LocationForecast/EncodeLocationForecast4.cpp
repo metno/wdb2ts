@@ -380,6 +380,7 @@ encodeMoment( const boost::posix_time::ptime &from,
     WEBFW_USE_LOGGER( "encode" );
     log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 
+    int countProviderChange=0; //used to stop endless loops.
 	CIProviderPDataList itPData;
 	CIFromTimeSerie itFromTimeserie;
 	ostringstream tmpOst;
@@ -389,7 +390,9 @@ encodeMoment( const boost::posix_time::ptime &from,
 	PrecipConfigElement precip;
 	SymbolConfList symbolConfList;
 	boost::posix_time::ptime dataFrom;
-	boost::posix_time::ptime currentTime;;
+	boost::posix_time::ptime currentTime;
+	boost::posix_time::ptime currentFrom( from );
+	string prevForecastprovider;
 	bool hasMomentData;
 		
 	tmpOst.flags( ost.flags() );
@@ -417,7 +420,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 		LocationElem &location = *locationData->next();
 		location.config = config_;
 		
-		if( currentTime >= from && ! momentOst.str().empty() ) {
+		if( currentTime >= currentFrom && ! momentOst.str().empty() ) {
 		   ++nElements;
 			ost << tmpOst.str();
 			momentOst.str("");
@@ -426,7 +429,8 @@ encodeMoment( const boost::posix_time::ptime &from,
 		currentTime = location.time();
 		tmpOst.str("");
 		momentOst.str("");
-		{
+
+		{ //Begin Block
 			IndentLevel level3( indent );
 			TimeTag timeTag( location.time(), location.time() );
 			timeTag.output( tmpOst, level3.indent() );
@@ -441,15 +445,40 @@ encodeMoment( const boost::posix_time::ptime &from,
 		
 			hasMomentData = false;
 			if( ! momentOst.str().empty() ) {
-				symbolDataBuffer.add( location.time(), symbolData );
-				if( currentTime >= from )
-					updateBreakTimes( location.forecastprovider(), location.time() );
-				tmpOst << momentOst.str();
 				hasMomentData = true;
-			}
-		}
 
-		if( hasMomentData && currentTime >= from   ) {
+				if( currentTime >= currentFrom )
+					updateBreakTimes( location.forecastprovider(), location.time() );
+
+				if( prevForecastprovider.empty() )
+					prevForecastprovider = location.forecastprovider();
+				else if( prevForecastprovider != location.forecastprovider()
+						 && countProviderChange < 10) {
+					++countProviderChange;
+					if( loglevel >= log4cpp::Priority::DEBUG ) {
+						ost << "<!-- Change provider: " <<  prevForecastprovider<< " -> " << location.forecastprovider()
+							<< " (" << location.time() << ") -->\n";
+					}
+					prevForecastprovider = location.forecastprovider();
+					currentFrom =  location.time();
+					dataFrom =  currentFrom - boost::posix_time::hours( symbolConf.maxHours() );
+					locationData->init( dataFrom, location.forecastprovider() );
+					hasMomentData = false;
+					momentOst.str("");
+					symbolDataBuffer.clear();
+				}
+
+				if( hasMomentData ) {
+//					ost << "<!-- Add symboldata: " << location.time() << " ("  << location.forecastprovider()
+//					       << ") -->\n";
+					symbolDataBuffer.add( location.time(), symbolData );
+					tmpOst << momentOst.str();
+				}
+
+			}
+		} //End Block
+
+		if( hasMomentData && currentTime >= currentFrom   ) {
 			symbolConfList = symbolConf.get( location.forecastprovider() );
 
 			if( loglevel >= log4cpp::Priority::DEBUG ) {
@@ -468,7 +497,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 	}
 
 	//May have one leftover.
-	if( ! momentOst.str().empty() && currentTime >= from) {
+	if( ! momentOst.str().empty() && currentTime >= currentFrom) {
 	   ++nElements;
 		ost << tmpOst.str();
 	}
