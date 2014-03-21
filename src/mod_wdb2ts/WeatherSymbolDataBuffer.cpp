@@ -31,6 +31,13 @@ WeatherSymbolDataBuffer( int size )
 
 void
 WeatherSymbolDataBuffer::
+clear()
+{
+	data_.clear();
+}
+
+void
+WeatherSymbolDataBuffer::
 add( const boost::posix_time::ptime &time, const SymbolDataElement &data )
 {
 	if( time.is_special() )
