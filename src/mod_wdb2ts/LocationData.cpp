@@ -356,6 +356,7 @@ init( const boost::posix_time::ptime &startAtToTime,  const std::string &provide
 			if( itTimeSerie == timeSerie->end() )
 				continue;
 			
+			locationElem.startAtProvider( "" );
 			locationElem.forecastProvider = it->providerWithPlacename();
 			provider_ = it->providerWithPlacename();
 			return true;
@@ -370,6 +371,11 @@ init( const boost::posix_time::ptime &startAtToTime,  const std::string &provide
 	if( itTimeSerie == timeSerie->end() )
 		return false;
 		
+	if( ! locationElem.startAtProvider( provider_ ) ) {
+		WEBFW_USE_LOGGER( "encode" );
+		WEBFW_LOG_DEBUG( "LocationElem::init: provider: '" << provider_ << "' NOT found." );
+	}
+
 	locationElem.forecastProvider = provider_;
 		
 	return true;
