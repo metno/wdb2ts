@@ -81,6 +81,7 @@ output( std::ostream &out, const std::string &indent )
 	float tempAdiabatic;
 	float tempUsed=FLT_MAX;
 	float dd, ff;
+	string savedProvider;
 	string provider;
 	string tempNoAdiabaticProvider;
 	float tempCorrection;
@@ -99,6 +100,9 @@ output( std::ostream &out, const std::string &indent )
 	}
 	
 
+	if( ! pd->forecastprovider().empty() )
+		savedProvider = pd->forecastprovider();
+
 	out.precision(1);
 	tmpout.setf( ios::fixed, ios::floatfield );
 	tmpout.precision(1);
@@ -109,16 +113,20 @@ output( std::ostream &out, const std::string &indent )
 	 * temperature is corrected the difference between the model height and
 	 * real height is used to do a adiabatic height correction.
 	 *
-	 * We decide if we shall do a height correction or not on the avalable
+	 * We decide if we shall do a height correction or not on the available
 	 * temperatures. If the parameter pd->T2M_NO_ADIABATIC_HIGHT_CORRECTION
-	 * has a value we do not do height correction, if no we do. ie. the no
+	 * has a value we do no height correction. ie. the no
 	 * height correction has priority.
 	 */
 
 	tempNoAdiabatic = pd->T2M_NO_ADIABATIC_HIGHT_CORRECTION( true );
 
 	if( tempNoAdiabatic != FLT_MAX )
-		tempNoAdiabaticProvider = provider = pd->forecastprovider();
+		tempNoAdiabaticProvider = pd->forecastprovider();
+
+	//Reset the provider back to the provider before the call to
+	//pd->T2M_NO_ADIABATIC_HIGHT_CORRECTION( true );
+	pd->forecastprovider( savedProvider );
 
 	value = pd->TA( true );
 	tempAdiabatic = value;
