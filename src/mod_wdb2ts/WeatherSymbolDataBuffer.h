@@ -55,6 +55,8 @@ public:
 	WeatherSymbolDataBuffer();
 	WeatherSymbolDataBuffer( int size );
 
+	void clear();
+
 	void add( const boost::posix_time::ptime &time, const SymbolDataElement &data );
 	slice_iterator slice( const boost::posix_time::ptime &from,  boost::posix_time::ptime &to, int &timestep )const;
 	slice_iterator slice( int hours, int &timestep )const;
