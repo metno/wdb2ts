@@ -73,6 +73,7 @@ class LocationElem {
 	TimeSerie *timeSerie;
 	ITimeSerie itTimeSerie;
 	ProviderList providerPriority;
+	ProviderList::const_iterator itProviderPriorityBegin;
 	TopoProviderMap modelTopoProviders;
 	std::list<std::string>  topographyProviders;
 	std::string forecastProvider;
@@ -94,6 +95,21 @@ class LocationElem {
 			      float longitude, float latitude, int hight  );
 	
 	void init( ITimeSerie itTimeSerie, TimeSerie *timeSerie );
+
+	/**
+	 * startAtProviderWithPlacename, set the itProviderPriorityBegin
+	 * to the element in the providerPriority list where we shall
+	 * start to look for data.
+	 *
+	 * @providerWithPlaceName empty the iterator is set to the
+	 * beginning of the providerPriority list. If NOT empty search up this
+	 * provider and set the iterator to this element.
+	 *
+	 * @return true if the provider is found and the iterator is set.
+	 * Return false if the provider is NOT found, and set the iterator
+	 * to the beginning.
+	 */
+	bool startAtProvider( const std::string &providerWithPlaceName );
 	
 	std::string topoProvider( const std::string &provider_, TopoProviderMap &topoProviders );
 
@@ -155,7 +171,7 @@ class LocationElem {
 		
 		if( provider.empty() ) {
 			if( ! fromTime.is_special() ) {
-				for( itProvider = providerPriority.begin();
+				for( itProvider = itProviderPriorityBegin;
 				     itProvider != providerPriority.end();
 			        ++itProvider ) {
 					itProviderPDataList = itFromTimeSerie->second.find( itProvider->providerWithPlacename() );
@@ -172,7 +188,7 @@ class LocationElem {
 				}
 			} else {
 				for( ;itFromTimeSerie != fromTimeSerie.end(); ++itFromTimeSerie ) {
-					for( itProvider = providerPriority.begin();
+					for( itProvider = itProviderPriorityBegin;
 					     itProvider != providerPriority.end();
 					     ++itProvider ) {
 						itProviderPDataList = itFromTimeSerie->second.find( itProvider->providerWithPlacename() );
@@ -249,7 +265,7 @@ class LocationElem {
 		      prefix = provider;
 		   }
 
-		   for( ProviderList::const_iterator pit=providerPriority.begin();
+		   for( ProviderList::const_iterator pit=itProviderPriorityBegin;
 		        pit != providerPriority.end(); ++pit ) {
 		      if( pit->provider != prefix )
 		         continue;

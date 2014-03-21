@@ -108,6 +108,7 @@ LocationElem():
    modeltopoSearched(false),
    config( new ConfigData() )
 {
+	itProviderPriorityBegin = providerPriority.begin();
 }
 
 LocationElem::
@@ -130,7 +131,7 @@ LocationElem( const ProviderList &providerPriority_,
      height_( hight ), topoHeight_( INT_MIN ), modeltopoSearched( false ),
      config( new ConfigData() )
 {
-	
+	itProviderPriorityBegin = providerPriority.begin();
 }
 
 void
@@ -141,9 +142,29 @@ init( ITimeSerie itTimeSerie, TimeSerie *timeSerie )
 	this->timeSerie = timeSerie;
 	
 	lastUsedProvider_.erase();
+
+
 	//forecastProvider.erase();
    //percentileProvider.erase();
 	//precipRefTime = ptime();
+}
+
+bool
+LocationElem::
+startAtProvider( const std::string &providerWithPlacename )
+{
+	if( providerWithPlacename.empty() ) {
+		itProviderPriorityBegin = providerPriority.begin();
+	} else {
+		itProviderPriorityBegin = providerPriority.findProvider( providerWithPlacename );
+
+		if( itProviderPriorityBegin == providerPriority.end() ) {
+			itProviderPriorityBegin = providerPriority.begin();
+			return false;
+		}
+	}
+
+	return true;
 }
 
 const double HEIGHT_CORRECTION_PER_METER = 0.006;
