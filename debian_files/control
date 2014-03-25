@@ -28,7 +28,7 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
 #               metlibs-putools-dev
 Standards-Version: 3.6.2
 
-Package: metno-wdb2ts
+Package: metno-wdb2ts-1.2
 Architecture: any
 Depends: ${shlibs:Depends},
          debconf, dbconfig-common, 
@@ -45,6 +45,8 @@ Depends: ${shlibs:Depends},
          liblog4cpp5 (>= 1.0),
 	     gzip (>=1.3.5),
          libcurl3 (>= 7.15.5)
+Provides: metno-wdb2ts
+Conflicts: metno-wdb2ts
 Description: wdb2ts is an apache module that return a timeserie of meteorological data.
  metno-wdb2ts is a front end to wdb that returns a timeserie of 
  meteorological data in xml and CSV format for a given position 

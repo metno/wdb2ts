@@ -25,6 +25,16 @@ WDB2TS_DIRS="/var/lib/metno-wdb2ts
 
 case "$1" in
   configure)
+ 
+    #Fix owner, group and permission.
+    #www-data must have read and write access to /var/lib/metno-wdb2ts and /var/log/metno-wdb2ts.
+    for i in $WDB2TS_DIRS; do
+      # only do something when no setting exists
+      if ! dpkg-statoverride --list $i >/dev/null 2>&1
+      then
+         dpkg-statoverride --update --add www-data www-data 774 $i
+      fi
+    done
     ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

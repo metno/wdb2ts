@@ -24,6 +24,9 @@ case "$1" in
     ;;
 
   purge)
+    for i in "/var/lib/metno-wdb2ts"; do
+        dpkg-statoverride --remove $i
+     done
    ;;
 
     *)

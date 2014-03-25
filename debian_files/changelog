@@ -1,3 +1,9 @@
+metno-wdb2ts (1.2.3-1) unstable; urgency=low
+  * New release.
+  * Use metno name schema for package naming.
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 25 Mar 2014 09:30:00 +0100
+
 metno-wdb2ts (1.2.2-1) unstable; urgency=low
   * New release.
   * Fix dewpoint tempereture.
