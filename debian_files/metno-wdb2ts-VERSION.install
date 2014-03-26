@@ -1,0 +1,4 @@
+usr/bin/*
+usr/lib/apache2/modules/mod_metno_wdb2ts.so
+usr/share/man/man1/*
+etc/metno-wdb2ts/*

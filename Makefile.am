@@ -66,7 +66,6 @@ AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
 #-----------------------------------------------------------------------------
 # Source Makefiles
 #-----------------------------------------------------------------------------
-
 include src/miutil/wdb2ts.mk
 include src/util/wdb2ts.mk
 include src/tuple_container/wdb2ts.mk
@@ -181,27 +180,59 @@ DEBIAN_PACKAGE_NAME = `head -n1 $(top_srcdir)/debian_files/changelog | sed "s/ (
 debian-name:
 	@echo $(DEBIAN_PACKAGE_NAME)
 
-debian:	dist clean-debian 
+debian:	dist clean-debian
 	tar xvzf $(PKG_DIR).tar.gz
-	(test -d $(DEBIAN_DIR) && rm -rf $(DEBIAN_DIR)) || true
-	mkdir -p $(DEBIAN_DIR)
-	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
-	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
+	@if [ -f cp_debian_dir.sh -a ! -x cp_debian_dir.sh ]; then \
+		chmod +x cp_debian_dir.sh ; \
+	fi
+	./cp_debian_dir.sh $(PKG_DIR)
+#	cp $(PKG_DIR).tar.gz $(PKG_DIR).orig.tar.gz
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
+	
+	dpkg-buildpackage -rfakeroot -us -uc
 #	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
-update-debian:
-	rm -rf $(DEBIAN_DIR)/*
-	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
-	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
-#	lintian --info $(DEBIAN_PACKAGE_NAME)
-#	linda $(DEBIAN_PACKAGE_NAME)
+#update-debian:
+#	rm -rf $(DEBIAN_DIR)/*
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
 
 
 
 clean-debian:
 	debclean
-	rm -rf $(PKG_DIR) $(DEBIAN_PACKAGE)*
+	rm -rf $(PKG_DIR)
+
+#.PHONY: debian debian-name clean-debian 
+
+
+#debian-name:
+#	@echo $(DEBIAN_PACKAGE_NAME)
+#
+#debian:	dist clean-debian 
+#	tar xvzf $(PKG_DIR).tar.gz
+#	(test -d $(DEBIAN_DIR) && rm -rf $(DEBIAN_DIR)) || true
+#	mkdir -p $(DEBIAN_DIR)
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
+#
+#update-debian:
+#	rm -rf $(DEBIAN_DIR)/*
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
+#
+#
+#
+#clean-debian:
+#	debclean
+#	rm -rf $(PKG_DIR) $(DEBIAN_PACKAGE)*
 
 

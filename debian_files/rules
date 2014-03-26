@@ -116,7 +116,7 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples
-#	dh_install
+	dh_install --sourcedir=debian/metno-wdb2ts
 #	dh_installmenu
 #	dh_installdebconf	
 #	dh_installlogrotate

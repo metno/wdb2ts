@@ -1,0 +1,49 @@
+#!/bin/dash
+
+srcdir=@top_srcdir@
+builddir=@abs_top_builddir@
+debian_dir="${srcdir}/debian_files"
+#version=@VERSION@
+version=`echo @VERSION@ | sed -e 's/~.*$//'`
+major_version=`echo ${version} | cut -d. -f1`
+minor_version=`echo ${version} | cut -d. -f2`
+patch_version=`echo ${version} | cut -d. -f3`
+the_version="${major_version}.${minor_version}"
+mydir="$1"
+
+echo "version: '$version'"
+echo "the_version: '${the_version}'"
+echo "ARG: '${mydir}'"
+
+if [ "${mydir}z" = "z" ]; then
+   echo "Must give a buildir argument."
+   exit 1
+fi
+
+builddir="${builddir}/${mydir}"
+echo "builddir: '${builddir}'"
+
+if [ ! -d ${debian_dir} ]; then
+   echo "Cant locate the debian files directory '${debian_dir}'"
+   exit 1
+fi
+
+if [ -d "${builddir}/debian" ]; then
+   rm -rf ${builddir}/debian
+fi
+
+mkdir ${builddir}/debian || (echo "Can't make directory '${builddir}/debian'"; exit 1)
+
+(cd ${debian_dir}; tar cpf - * ) | (cd  ${builddir}/debian; tar xpf -) 
+   
+
+all_files=`find ${builddir}/debian -type f -exec echo {} \;`
+
+for file in ${all_files}; do
+   new_name=`echo ${file} | sed -e "s/VERSION/${the_version}/"`
+   if [ "${new_name}" != "${file}" ]; then
+      mv $file  ${new_name}
+   fi
+done
+
+

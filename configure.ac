@@ -7,13 +7,13 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts-1.3, 1.3.0~rc1, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.3.0~rc1, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([wdb2ts_config.h.in])
 AC_CONFIG_HEADER([wdb2ts_config.h])
-
+METNO_PVERSION
 
 #-----------------------------------------------------------------------------
 # Source & Build Directories
@@ -226,6 +226,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 #-----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile \
+                 cp_debian_dir.sh \
                  src/tuple_container/Makefile \
                  src/miutil/Makefile \
                  src/util/Makefile \

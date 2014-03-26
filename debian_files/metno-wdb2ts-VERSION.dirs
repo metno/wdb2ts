@@ -1,0 +1,3 @@
+var/lib/metno-wdb2ts
+var/lib/metno-wdb2ts/tmp
+var/log/metno-wdb2ts
