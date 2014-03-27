@@ -226,7 +226,6 @@ AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 #-----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile \
-                 cp_debian_dir.sh \
                  src/tuple_container/Makefile \
                  src/miutil/Makefile \
                  src/util/Makefile \

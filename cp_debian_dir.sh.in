@@ -1,10 +1,8 @@
 #!/bin/dash
 
-srcdir=@top_srcdir@
-builddir=@abs_top_builddir@
-debian_dir="${srcdir}/debian_files"
-#version=@VERSION@
-version=`echo @VERSION@ | sed -e 's/~.*$//'`
+srcdir=__SRCDIR__
+builddir=__BUILDDIR__
+version=`echo "__VERSION__" | sed -e 's/~.*$//'`
 major_version=`echo ${version} | cut -d. -f1`
 minor_version=`echo ${version} | cut -d. -f2`
 patch_version=`echo ${version} | cut -d. -f3`
@@ -15,35 +13,66 @@ echo "version: '$version'"
 echo "the_version: '${the_version}'"
 echo "ARG: '${mydir}'"
 
+debian_src_dirs="debian_files"
+
+lsb_release_prog=`which lsb_release`
+
+if [ "${lsb_release_prog}z" != "z" ]; then
+   dist_name=`${lsb_release_prog} -s -c`
+   debian_src_dirs="${debian_src_dirs} debian_${dist_name}"
+fi
+
+echo "possible debian directorys: '${debian_src_dirs}'"
+
 if [ "${mydir}z" = "z" ]; then
    echo "Must give a buildir argument."
    exit 1
 fi
 
+debiandir="${builddir}/${mydir}/debian"
+if [ -d "${debiandir}" ]; then
+   rm -rf ${debiandir} || (echo "Cant remove directory: ${debiandir}"; exit 1)
+fi
+
+mkdir ${debiandir} || (echo "Can't make directory '${debiandir}'"; exit 1)
+
 builddir="${builddir}/${mydir}"
 echo "builddir: '${builddir}'"
+tmp_debian_src_dirs=""
 
-if [ ! -d ${debian_dir} ]; then
-   echo "Cant locate the debian files directory '${debian_dir}'"
-   exit 1
-fi
-
-if [ -d "${builddir}/debian" ]; then
-   rm -rf ${builddir}/debian
-fi
-
-mkdir ${builddir}/debian || (echo "Can't make directory '${builddir}/debian'"; exit 1)
-
-(cd ${debian_dir}; tar cpf - * ) | (cd  ${builddir}/debian; tar xpf -) 
-   
-
-all_files=`find ${builddir}/debian -type f -exec echo {} \;`
-
-for file in ${all_files}; do
-   new_name=`echo ${file} | sed -e "s/VERSION/${the_version}/"`
-   if [ "${new_name}" != "${file}" ]; then
-      mv $file  ${new_name}
-   fi
+for dir in ${debian_src_dirs}; do
+   if [ ! -d "${srcdir}/${dir}" ]; then
+      echo "No debian directory '${dir}'"
+   else
+      if [ -d "${builddir}/${dir}" ]; then 
+         echo "Removing directory: ${builddir}/${dir}."
+         rm -rf ${builddir}/${dir}
+      fi  
+      echo "Copy directory: ${srcdir}/${dir} to ${builddir}/${dir}"
+      (cd ${srcdir}; tar cpf - ${dir}/* ) | (cd  ${builddir}; tar xpf -)
+      tmp_debian_src_dirs="${tmp_debian_src_dirs} ${dir}" 
+  fi
 done
+debian_src_dirs=${tmp_debian_src_dirs}
 
+echo "debian_src_dirs: '${debian_src_dirs}'"
 
+cd ${builddir} || (echo "Can't change directory back to '${builddir}'"; exit 1)
+
+for dir in ${debian_src_dirs}; do
+   cd ${builddir}/${dir} || (echo "Can't change directory back to '${builddir}/${dir}'"; exit 1)
+   all_files=`find . -type f -exec echo {} \;`
+   for file in ${all_files}; do
+      new_name=`echo ${file} | sed -e "s/VERSION/${the_version}/"`
+      #echo "`pwd`/${file}  -> ${debiandir}/${new_name}"
+      thedir=`dirname ${new_name}`
+         
+      #Create the directory part of the name if it do not exist.
+      if [ "${thedir}z" != "z" -a "${thedir}" != "." -a ! -d "${debiandir}/${thedir}" ]; then
+         echo "Creating thedir: '${debiandir}/${thedir}'"
+         mkdir -p ${debiandir}/${thedir} || (echo "Cant create the directory 'debian/${thedir}'"; exit 1)
+      fi
+      #echo "sed: `pwd`/$file > ${debiandir}/${new_name}"
+      sed -e "s/@VERSION@/${the_version}/g" $file > ${debiandir}/${new_name}
+   done
+done

@@ -156,20 +156,20 @@ clean-local:
 # Debian stuff
 #-----------------------------------------------------------------------------
 
-EXTRA_DIST += \
-	debian_files/changelog \
-	debian_files/compat \
-	debian_files/conffiles \
-   debian_files/config \
-   debian_files/control \
-   debian_files/copyright \
-   debian_files/dirs \
-   debian_files/docs \
-   debian_files/postinst \
-   debian_files/postrm \
-   debian_files/README.Debian \
-   debian_files/rules \
-   debian_files/templates
+#EXTRA_DIST += \
+#	debian_files/changelog \
+#	debian_files/compat \
+#	debian_files/conffiles \
+#   debian_files/config \
+#   debian_files/control \
+#   debian_files/copyright \
+#   debian_files/dirs \
+#   debian_files/docs \
+#   debian_files/postinst \
+#   debian_files/postrm \
+#   debian_files/README.Debian \
+#   debian_files/rules \
+#   debian_files/templates
    
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian
@@ -180,17 +180,17 @@ DEBIAN_PACKAGE_NAME = `head -n1 $(top_srcdir)/debian_files/changelog | sed "s/ (
 debian-name:
 	@echo $(DEBIAN_PACKAGE_NAME)
 
-debian:	dist clean-debian
+debian-prepare:
+	sed -e "s|__VERSION__|$(VERSION)|g" $(top_srcdir)/cp_debian_dir.sh.in | \
+	   sed -e "s|__SRCDIR__|$(top_srcdir)|g" | \
+	   sed -e "s|__BUILDDIR__|$(abs_top_builddir)|g" > cp_debian_dir.sh 
+	chmod +x cp_debian_dir.sh
+
+debian:	debian-prepare dist clean-debian
 	tar xvzf $(PKG_DIR).tar.gz
-	@if [ -f cp_debian_dir.sh -a ! -x cp_debian_dir.sh ]; then \
-		chmod +x cp_debian_dir.sh ; \
-	fi
 	./cp_debian_dir.sh $(PKG_DIR)
-#	cp $(PKG_DIR).tar.gz $(PKG_DIR).orig.tar.gz
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
-	
-	dpkg-buildpackage -rfakeroot -us -uc
-#	lintian --info $(DEBIAN_PACKAGE_NAME)
+	#	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
 #update-debian:

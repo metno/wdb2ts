@@ -28,7 +28,7 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
 #               metlibs-putools-dev
 Standards-Version: 3.6.2
 
-Package: metno-wdb2ts-1.3
+Package: metno-wdb2ts-@VERSION@
 Architecture: any
 Depends: ${shlibs:Depends},
          debconf, dbconfig-common, 
