@@ -1,4 +1,4 @@
-#!/bin/dash
+#!/bin/sh
 
 srcdir=__SRCDIR__
 builddir=__BUILDDIR__
