@@ -1,3 +1,16 @@
+metno-wdb2ts (1.3.1-1) unstable; urgency=low
+  * New release (RC2).
+  * Add a status request.
+      
+ -- Borge Moe <borge.moe@met.no>  Tue, 01 Apr 2014 16:30:00 +0200
+
+metno-wdb2ts (1.3.0-1) unstable; urgency=low
+  * New release (RC1).
+  * New symbol algorithm, "1-2-3 droplets".
+  * New xml-encoder for "1-2-3 droplets".
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 31 Mar 2014 13:30:00 +0200
+
 metno-wdb2ts (1.3.0~rc1) unstable; urgency=low
   * New RC.
   * New symbol algorithm, "1-2-3 droplets".
