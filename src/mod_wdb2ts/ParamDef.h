@@ -142,6 +142,7 @@ public:
    ParamDefList operator=(const ParamDefList &rhs );
 
    void setProviderList( const std::list<std::string> &providerList ){ providerListFromConfig = providerList; }
+   std::list<std::string> getProviderList()const { return providerListFromConfig; }
 
    bool
    findParam( const miutil::container::ITuple &it,
