@@ -156,20 +156,25 @@ clean-local:
 # Debian stuff
 #-----------------------------------------------------------------------------
 
-#EXTRA_DIST += \
-#	debian_files/changelog \
-#	debian_files/compat \
-#	debian_files/conffiles \
-#   debian_files/config \
-#   debian_files/control \
-#   debian_files/copyright \
-#   debian_files/dirs \
-#   debian_files/docs \
-#   debian_files/postinst \
-#   debian_files/postrm \
-#   debian_files/README.Debian \
-#   debian_files/rules \
-#   debian_files/templates
+EXTRA_DIST += \
+   debian_files/changelog \
+	debian_files/compat\
+	debian_files/conffiles\
+	debian_files/config\
+	debian_files/control\
+	debian_files/copyright\
+	debian_files/dirs\
+	debian_files/docs\
+	debian_files/metno-wdb2ts-VERSION.dirs\
+	debian_files/metno-wdb2ts-VERSION.install\
+	debian_files/metno-wdb2ts-VERSION.postinst\
+	debian_files/metno-wdb2ts-VERSION.postrm\
+	debian_files/postinst\
+	debian_files/postrm\
+	debian_files/README.Debian\
+	debian_files/rules\
+	debian_files/templates \
+	cp_debian_dir.sh.in
    
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian
@@ -190,7 +195,7 @@ debian:	debian-prepare dist clean-debian
 	tar xvzf $(PKG_DIR).tar.gz
 	./cp_debian_dir.sh $(PKG_DIR)
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
-	#	lintian --info $(DEBIAN_PACKAGE_NAME)
+#	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
 #update-debian:
