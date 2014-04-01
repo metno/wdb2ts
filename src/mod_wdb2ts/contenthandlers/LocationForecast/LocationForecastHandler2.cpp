@@ -365,6 +365,53 @@ getProviderReftimes()
 	return providerReftimes;	
 }
 
+void
+LocationForecastHandler2::
+doStatus( Wdb2TsApp *app,
+		  webfw::Response &response, ConfigDataPtr config,
+		  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+		  ParamDefListPtr paramdef )
+{
+	ostringstream out;
+	response.contentType("text/xml");
+	response.directOutput( false );
+
+	out << "<status>\n";
+	out << "   <updateid>" << updateid << "</updateid>\n";
+
+	list<string> defProviders=paramdef->getProviderList();
+
+	out << "   <defined_providers>\n";
+	for( list<string>::const_iterator it=defProviders.begin(); it != defProviders.end(); ++it ) {
+		if( !it->empty())
+			out << "      <provider>" << *it << "</provider>\n";
+	}
+	out << "   </defined_providers>\n";
+
+
+	out << "   <resolved_providers>\n";
+	for( ProviderList::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
+		out << "      <provider>" << it->providerWithPlacename() << "</provider>\n";
+	}
+	out << "   </resolved_providers>\n";
+
+	out << "   <reftimes>\n";
+	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
+	  out << "      <provider>\n";
+	  out << "         <name>" << rit->first << "</name>\n";
+	  out << "         <reftime>"<< rit->second.refTime << "</reftime>\n";
+	  out << "         <updated>"<< rit->second.updatedTime << "</updated>\n";
+	  out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
+	  out << "         <version>" << rit->second.dataversion << "</version>\n";
+	  out << "      </provider>\n";
+	}
+	out << "   </reftimes>\n";
+
+	out << "</status>\n";
+
+	response.out() << out.str();
+}
+
 
 
 void 
@@ -418,6 +465,15 @@ get( webfw::Request  &req,
 	extraConfigure( actionParams, app );
 	app->notes.checkForUpdatedPersistentNotes();
 	
+	refTimes = getProviderReftimes();
+	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
+	removeDisabledProviders( providerPriority, *refTimes );
+
+	if( webQuery.isStatusRequest() ) {
+		doStatus( app, response, configData, refTimes, providerPriority, paramDefsPtr );
+		return;
+	}
+
 	if( altitude == INT_MIN ) {
 		try {
 			MARK_ID_MI_PROFILE("getHight");
@@ -444,11 +500,7 @@ get( webfw::Request  &req,
     	}
 	}
 	
-	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
 	
-	removeDisabledProviders( providerPriority, *refTimes );
-
 	std::ostringstream logMsg;
 	logMsg << "RefTimes:\n";
 	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit )

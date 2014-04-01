@@ -106,6 +106,10 @@ public:
 	virtual void noteUpdated( const std::string &noteName, 
                              boost::shared_ptr<NoteTag> note );
 	
+	void doStatus( Wdb2TsApp *app,
+				   webfw::Response &response, ConfigDataPtr config,
+			       PtrProviderRefTimes refTimes, const ProviderList &providerList,
+			       ParamDefListPtr paramdef );
 private:
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
