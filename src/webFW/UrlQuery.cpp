@@ -164,12 +164,23 @@ decode( const std::string &urlQuery_, bool withPath )
    	paramList.push_back( urlQuery ); 
     
    for( vector<string>::size_type i=0; i<paramList.size(); ++i ) {
-   	if( paramList[i].length() == 0 )
+	   string val;
+	   string key;
+	   if( paramList[i].length() == 0 )
    		continue;
    	
        keyVal = miutil::splitstr( paramList[i], '=');
+
+       if( keyVal.size() == 0 )
+    	   continue;
+
+       key = unescape( keyVal[0] );
        
-       if( keyVal.size()!=2 ) {
+       if( keyVal.size() <= 2 ) {
+    	   if( keyVal.size() == 2 ) {
+    		   val = unescape( keyVal[1] );
+    	   }
+       } else {
       	 ostringstream ost;
       	 
       	 ost << "Invalid key=val spec: " << paramList[i] << ". Number of '=' "; 
@@ -183,7 +194,7 @@ decode( const std::string &urlQuery_, bool withPath )
       	 throw logic_error( ost.str() );
        }
 
-       params[ unescape( keyVal[0] ) ] = unescape( keyVal[1] );
+       params[ key ] = val;
    }
 }
 	
