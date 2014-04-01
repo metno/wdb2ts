@@ -74,5 +74,8 @@ for dir in ${debian_src_dirs}; do
       fi
       #echo "sed: `pwd`/$file > ${debiandir}/${new_name}"
       sed -e "s/@VERSION@/${the_version}/g" $file > ${debiandir}/${new_name}
+      if [ -x $file ]; then
+         chmod +x ${debiandir}/${new_name}
+      fi
    done
 done
