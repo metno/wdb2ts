@@ -14,17 +14,19 @@ using namespace std;
 
 namespace wdb2ts {
 
-WebQuery
-::WebQuery( const std::string &queryToDecode )
+WebQuery::
+WebQuery( const std::string &queryToDecode )
+	: statusRequest( false )
 {
 	*this = decodeQuery( queryToDecode );
 }
 
 WebQuery::
 WebQuery( )
-	: altitude_(INT_MIN)
+	: altitude_(INT_MIN), statusRequest( false )
 {
 }
+
 
 WebQuery::
 WebQuery( const LocationPointList &locationPoints, int altitude,
@@ -38,7 +40,8 @@ WebQuery( const LocationPointList &locationPoints, int altitude,
 		  bool nearestLand )
 	: altitude_( altitude ),
 	  from_( from ), to_( to ), reftime_( reftime ), dataprovider_( dataprovider ),
-	  isPolygon_( isPolygon ), nearestLand_( nearestLand ), skip_( skip ), level_(level)
+	  isPolygon_( isPolygon ), nearestLand_( nearestLand ), skip_( skip ), level_(level),
+	  statusRequest( false )
 {
 	points = locationPoints;
 }
@@ -163,6 +166,12 @@ decodeQuery( const std::string &queryToDecode, const std::string &urlPath )
 		list<string> mustHaveParams;
 		string  param;
 		
+		if( urlQuery.hasParam( "status") ) {
+			WebQuery webQury;
+			webQury.statusRequest = true;
+			return webQury;
+		}
+
 		boost::assign::push_back( mustHaveParams )("long")("lat");
 	  
 		param = urlQuery.hasParams( mustHaveParams );
@@ -229,6 +238,10 @@ decodeQuery( const std::string &queryToDecode, const std::string &urlPath )
 
       WebQuery webQury(myPoints, alt, from, to, refTime, dataprovider, level, isPolygon,
                        skip, urlQuery.asBool( "nearest_land", false ) );
+
+      if( urlQuery.hasParam( "status") )
+    	  webQury.statusRequest = true;
+
       if( urlPath.empty() )
          webQury.urlQuery_=queryToDecode;
       else
