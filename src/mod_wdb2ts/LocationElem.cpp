@@ -363,11 +363,15 @@ float
 LocationElem::
 wetBulbTemperature( bool tryHard )const
 {
-   WEBFW_USE_LOGGER( "main" );
-   //WEBFW_USE_LOGGER( "+wetbulb" );
+   //WEBFW_USE_LOGGER( "main" );
+   WEBFW_USE_LOGGER( "+wetbulb" );
+   log4cpp::Priority::Value logLevel=WEBFW_GET_LOGLEVEL();
+   bool doLog = logLevel >= log4cpp::Priority::DEBUG;
 
-   if( config && !config->outputParam("symbol:T.WB") )
+   if( config && !config->outputParam("symbol:T.WB") ) {
+	   WEBFW_LOG_INFO("WetBulb is not configured to be used.");
       return FLT_MAX;
+   }
 
    float tUhc; //Model temperature without height correction.
    float tHc;  //Model temperature with height correction.
@@ -383,7 +387,7 @@ wetBulbTemperature( bool tryHard )const
        h == INT_MIN || h == INT_MAX ) {
       ostringstream ost;
 
-      ost << "wetBulbTemperature: MISSING data for parameter(s): ";
+      ost << "t: " << time() << " MISSING data for parameter(s): ";
       if( tUhc == FLT_MAX )
          ost << "tUhc";
       if( tHc == FLT_MAX )
@@ -398,25 +402,30 @@ wetBulbTemperature( bool tryHard )const
       return FLT_MAX;
    }
 
-   ostringstream ost;
-   ost << "wetBulbTemperature: h: " << h  << " RH: " << rh
-       << " T.UHC: " << tUhc
-       << " T.HC: " << tHc;
-
    float e = (rh/100)*0.611*exp( (17.63 * tUhc) / (tUhc + 243.04) );
    float td = (116.9 + 243.04 * log( e ))/(16.78-log( e ));
    float gamma = 0.00066*101300*exp(-1.21e-4*h)*0.001;
    float rho = (4098*e)/pow(td+243.04, 2);
    float tw = (gamma*tHc+rho*td)/(gamma+rho);
+   float prevTw = tw;
 
-   if( tw > tHc) {
-      ost << " [T.WB: " << tw <<" > T.HC: "<< tHc << " => T.WB=T.HC]";
+   if( tw > tHc)
       tw = tHc;
+
+   if( doLog ) {
+	   ostringstream ost;
+
+	   ost << "t: " << this->time() << " h: " << h  << " RH: " << rh
+		   << " T.UHC: " << tUhc
+	       << " T.HC: " << tHc;
+
+	   if( prevTw != tw )
+		   ost << " T.WB: " << prevTw <<" [T.WB: " << tw <<" > T.HC: "<< tHc << " => T.WB=T.HC]";
+	   else
+		   ost << " T.WB: " << tw;
+
+	   WEBFW_LOG_DEBUG( ost.str() );
    }
-
-   ost << " T.WB: " << tw;
-
-   WEBFW_LOG_DEBUG( ost.str() );
 
    return tw;
 }
