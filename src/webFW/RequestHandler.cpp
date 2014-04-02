@@ -200,7 +200,7 @@ setupLogger( const std::string &name_,
 
 	if( !name.empty() && name[0]=='+' ) {
 	   name.erase(0, 1);
-	   filenameExtra = "-" + name;
+	   filenameExtra = "_" + name;
 	}
 
 	if( prefix.empty() )

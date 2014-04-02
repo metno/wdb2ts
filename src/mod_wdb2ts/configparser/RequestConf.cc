@@ -288,12 +288,28 @@ operator()()const
 	return ost.str();
 }
 
+std::string
+Version::
+asString()const
+{
+	ostringstream ost;
+	ost << "v";
+	if( majorVer==-1 && minorVer==-1)
+		ost << "Highest";
+	else if( majorVer==0 && minorVer==0)
+		return "";
+	else
+		ost << majorVer <<"_" << minorVer;
+
+	return ost.str();
+}
+
 std::ostream& 
 operator<<(std::ostream& out,
            const Version& v)
 {
 	if( v.majorVer==-1 && v.minorVer==-1)
-		out << " (higest) ";
+		out << " (highest) ";
 	else if( v.majorVer==0 && v.minorVer==0)
 		out << " (invalid) ";
 	else

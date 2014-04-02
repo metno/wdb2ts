@@ -100,7 +100,6 @@ LocationForecastHandler2( int major, int minor, const std::string &note_ )
 		if( sscanf( note.c_str(), "%d", &n) == 1  )
 			subversion = n;
 	}
-	//NOOP
 }
 
 LocationForecastHandler2::
@@ -200,6 +199,8 @@ configure( const wdb2ts::config::ActionParam &params,
 	//Create a logger file for the wetbulb logger.
 	WEBFW_CREATE_LOGGER_FILE("wetbulb");
 
+	//create a logfile for update.
+	WEBFW_CREATE_LOGGER_FILE("update");
 	WEBFW_USE_LOGGER( "handler" );
 	
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
@@ -300,6 +301,14 @@ noteUpdated( const std::string &noteName,
 
 
 }
+
+std::string
+LocationForecastHandler2::
+noteListenerId()
+{
+	return getLogprefix();
+}
+
 
 void 
 LocationForecastHandler2::

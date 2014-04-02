@@ -293,6 +293,13 @@ noteUpdated( const std::string &noteName,
 	}
 }
 
+std::string
+LocationForecastHandler::
+noteListenerId()
+{
+	return getLogprefix();
+}
+
 void 
 LocationForecastHandler::
 getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList, ParamDefListPtr &paramDefsPtr )

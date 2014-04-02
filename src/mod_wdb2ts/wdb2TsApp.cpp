@@ -220,8 +220,6 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 				logger.warning( log.str() );
 			}
 			
-			toConfigure->doConfigure( *itVer, query );
-			
 			std::string logprefix = it->second->path.asString();
 			miutil::replaceString( logprefix, " ", "_");
 			miutil::replaceString( logprefix, "/", ".");
@@ -229,7 +227,11 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			if( ! logprefix.empty() && logprefix[0]=='.' )
 				logprefix.erase( 0, 1 );
 
-			handler->setLogprefix( logprefix );
+			logprefix += "_" + (*itVer)->version.asString();
+			toConfigure->setLogprefix( logprefix );
+
+			toConfigure->doConfigure( *itVer, query );
+
 			reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() );
 		}
 		

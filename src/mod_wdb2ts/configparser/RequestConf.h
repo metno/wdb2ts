@@ -163,6 +163,7 @@ struct Version
 	
 	Version& operator=(const Version& rhs );
 	
+	std::string asString()const;
 	
 	bool operator<( const Version &rhs );
 	bool operator==( const Version &rhs );

@@ -103,6 +103,8 @@ public:
 	///Overide INoteUpdateListener::noteUpdated
 	virtual void noteUpdated( const std::string &noteName, 
                              boost::shared_ptr<NoteTag> note );
+	///Overide INoteUpdateListener::noteListenerId
+	virtual std::string noteListenerId();
 	
 private:
 	SymbolGenerator     symbolGenerator;

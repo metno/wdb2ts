@@ -279,6 +279,14 @@ noteUpdated( const std::string &noteName,
 	}
 }
 
+std::string
+LocationForecastGmlHandler::
+noteListenerId()
+{
+	return getLogprefix();
+}
+
+
 
 void 
 LocationForecastGmlHandler::
