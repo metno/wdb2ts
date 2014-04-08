@@ -38,8 +38,6 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.cpp \
-	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler3.h \
-	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler3.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast.h \
