@@ -95,6 +95,13 @@ public:
 			                  const wdb2ts::config::Config::Query &query,
 						         const std::string &wdbDB);
 	
+	void
+	doStatus( Wdb2TsApp *app,
+			  webfw::Response &response, ConfigDataPtr config,
+			  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+			  ParamDefListPtr paramdef );
+
+
 	///Overide webfw::RequestHandler::get
 	virtual void get( webfw::Request  &req, 
                      webfw::Response &response, 
@@ -111,6 +118,7 @@ private:
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;
 	std::string         wdbDB;
+	bool                noteIsUpdated;
    //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;
    wdb2ts::config::ActionParam actionParams;
