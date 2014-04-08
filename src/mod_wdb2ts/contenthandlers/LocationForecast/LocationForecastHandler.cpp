@@ -75,6 +75,7 @@ namespace wdb2ts {
 LocationForecastHandler::
 LocationForecastHandler()
 	: subversion( 0 ),
+	  noteIsUpdated( false ),
       providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
 	  precipitationConfig( 0 ),
@@ -87,6 +88,7 @@ LocationForecastHandler::
 LocationForecastHandler( int major, int minor, const std::string &note_ )
 	: HandlerBase( major, minor), note( note_ ),
 	  subversion( 0 ),
+	  noteIsUpdated( false ),
 	  providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
@@ -164,6 +166,16 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
       symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
    }
 
+   if( noteIsUpdated ) {
+   	   WEBFW_USE_LOGGER( "update" );
+   	   noteIsUpdated = false;
+   	   std::ostringstream logMsg;
+   	   logMsg << "\nProviderReftimes: " << noteListenerId() << "\n";
+   	   for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
+   		   logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
+   	   WEBFW_LOG_INFO( logMsg.str() );
+   }
+
    return noteProviderList;
 }
 
@@ -194,6 +206,12 @@ configure( const wdb2ts::config::ActionParam &params,
 
 	//Create a logger file for the wetbulb logger.
 	WEBFW_CREATE_LOGGER_FILE("wetbulb");
+	//create a logfile for update.
+	WEBFW_CREATE_LOGGER_FILE("+update");
+	{
+		WEBFW_USE_LOGGER( "update" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::INFO );
+	}
 
 	WEBFW_USE_LOGGER( "handler" );
 	
@@ -262,18 +280,24 @@ LocationForecastHandler::
 noteUpdated( const std::string &noteName, 
              boost::shared_ptr<NoteTag> note )
 {
+	WEBFW_USE_LOGGER( "+update" );
+
 	if( updateid.empty() )
 		return;
 
 	string testId( updateid+".LocationProviderReftimeList" );
 	boost::mutex::scoped_lock lock( mutex );
 	
+	WEBFW_LOG_INFO("My updateid: '" << testId << "' incomming updateid: '" << noteName << "'");
+
 	if( noteName == testId ) {
 		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
 	
-		if( ! refTimes )
+		if( ! refTimes ){
+			WEBFW_LOG_INFO("FAILED: dynamic cast.");
 			return;
-	
+		}
+		noteIsUpdated = true;
 		providerReftimes.reset( new  ProviderRefTimeList( *refTimes ) );
 
 		//Read in the projection data again. It may have come new models.
@@ -283,13 +307,7 @@ noteUpdated( const std::string &noteName,
 		providerPriorityIsInitialized = false;
 
 		paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
-
-		WEBFW_USE_LOGGER( "handler" );
-		std::ostringstream logMsg;
-		logMsg << "noteUpdated: ProviderReftimes:\n";
-		for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
-			logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
-		WEBFW_LOG_DEBUG(logMsg.str());
+		WEBFW_LOG_INFO( "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "'." );
 	}
 }
 
@@ -455,9 +473,9 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
+	app->notes.checkForUpdatedPersistentNotes();
 	extraConfigure( actionParams, app );
 	
-	app->notes.checkForUpdatedPersistentNotes();
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
 	removeDisabledProviders( providerPriority, *refTimes );

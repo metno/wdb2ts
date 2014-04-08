@@ -119,6 +119,7 @@ private:
 	std::string         note;
 	int                 subversion;
 	std::string         wdbDB;
+	bool                noteIsUpdated;
    //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;
    wdb2ts::config::ActionParam actionParams;
