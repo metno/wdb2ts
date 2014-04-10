@@ -521,6 +521,7 @@ encodePeriods( LocationElem &location,
 	float precipMax;
 	float precipProb;
 	SymbolDataElement symbolData;
+	ptime tmpFromTime;
 	ptime fromTime;
 	ptime toTime = location.time();
 	string provider = location.forecastprovider();
@@ -540,16 +541,20 @@ encodePeriods( LocationElem &location,
 	   precipProb = FLT_MAX;
 	   symbolCode = weather_symbol::Error;
 
-	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precip, precipProb ) )
-	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), fromTime);
+	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), tmpFromTime, precipMin, precipMax, precip, precipProb ) )
+	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), tmpFromTime);
 
+	   if( tmpFromTime.is_special() )
+		   continue;
 
-	   symbolCode = location.symbol( fromTime );
-	   symbolProbability = location.symbol_PROBABILITY( fromTime );
+	   fromTime = tmpFromTime;
+
+	   symbolCode = location.symbol( tmpFromTime );
+	   symbolProbability = location.symbol_PROBABILITY( tmpFromTime );
 
 	   if( precip == FLT_MAX && symbolCode == INT_MAX ) {
 			WEBFW_LOG_DEBUG( "encodePeriods: Missing precipitation. ( "
-			                  << fromTime << " - " << location.time() << ")" );
+			                  << tmpFromTime << " - " << location.time() << ")" );
 
 		   continue;
 	   }
