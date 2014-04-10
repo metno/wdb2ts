@@ -224,7 +224,7 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 	if( slice.first != slice.second )
 		return SymbolDataElement();
 
-	//We should be no elements between first and second
+//	//It should be no elements between first and second
 //	for( WeatherSymbolDataBuffer::const_iterator it = slice.first; it != slice.second; ++it)
 //		++count;
 //
@@ -233,6 +233,7 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 	try {
 		weather_symbol::WeatherSymbol symbol( hours, weatherCode, wd );
 		wd.weatherCode = symbol.code();
+		wd.from	= slice.second->first - boost::posix_time::hours( hours );
 
 		if( wd.weatherCode != weatherCode )
 			cerr << "computeWeatherSymbol (code): " << weather_symbol::name( weatherCode )
