@@ -547,8 +547,12 @@ encodePeriods( LocationElem &location,
 	   symbolCode = location.symbol( fromTime );
 	   symbolProbability = location.symbol_PROBABILITY( fromTime );
 
-	   if( precip == FLT_MAX && symbolCode == INT_MAX )
+	   if( precip == FLT_MAX && symbolCode == INT_MAX ) {
+			WEBFW_LOG_DEBUG( "encodePeriods: Missing precipitation. ( "
+			                  << fromTime << " - " << location.time() << ")" );
+
 		   continue;
+	   }
 
 	   if( symbolCode != INT_MAX )
 		   symbolData = computeWeatherSymbol(
@@ -564,13 +568,11 @@ encodePeriods( LocationElem &location,
 		   			       << " ) " << fromTime <<  " - " << location.time() << " '" <<
 		   			       provider << "' " <<  symbolData
 		   			       );
-		   	continue;
-
 	   }
 
 	   hasData = true;
 	   IndentLevel level3( indent );
-	   TimeTag timeTag( symbolData.from, toTime );
+	   TimeTag timeTag( fromTime, toTime );
 	   timeTag.output( ost, level3.indent() );
 
 	   IndentLevel level4( indent );
@@ -582,11 +584,13 @@ encodePeriods( LocationElem &location,
 		   PrecipitationTags precipitationTag( precip, precipMin, precipMax, FLT_MAX );
 		   precipitationTag.output( ost, level5.indent() );
 	   }
-	   ost << "<symbol id=\"" << weather_symbol::name( symbolData.weatherCode ) <<"\" number=\"" << symbolData.weatherCode << "\"/>\n";
 
-	   if( symbolProbability != FLT_MAX )
-		   ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbolProbability ) << "\"/>\n";
+	   if( symbolData.weatherCode != weather_symbol::Error ) {
+		   ost << "<symbol id=\"" << weather_symbol::name( symbolData.weatherCode ) <<"\" number=\"" << symbolData.weatherCode << "\"/>\n";
 
+	   	   if( symbolProbability != FLT_MAX )
+	   		   ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbolProbability ) << "\"/>\n";
+	   }
 	}
 	location.symbolprovider( oldSymbolProvider );
 	return hasData;
