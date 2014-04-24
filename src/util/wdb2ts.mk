@@ -17,7 +17,7 @@ libminimal_la_SOURCES= \
 	src/mod_wdb2ts/SymbolGenerator.cpp src/mod_wdb2ts/SymbolGenerator.h \
 	src/mod_wdb2ts/probabilityCode.h src/mod_wdb2ts/probabilityCode.cpp \
 	src/mod_wdb2ts/ProjectionHelper.h src/mod_wdb2ts/ProjectionHelper.cpp \
-	src/mod_wdb2ts/WeatherSymbolDataBuffer.h	src/mod_wdb2ts/WeatherSymbolDataBuffer.cpp
+	src/mod_wdb2ts/WeatherSymbol.h	src/mod_wdb2ts/WeatherSymbol.cpp
 	 
 libminimal_la_LDFLAGS=
 libminimal_la_LIBADD= 

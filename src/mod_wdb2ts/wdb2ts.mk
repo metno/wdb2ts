@@ -152,8 +152,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/RequestIterator.cpp \
 					  src/mod_wdb2ts/QueryMaker.h \
 					  src/mod_wdb2ts/QueryMaker.cpp \
-					  src/mod_wdb2ts/WeatherSymbolDataBuffer.h \
-					  src/mod_wdb2ts/WeatherSymbolDataBuffer.cpp 
+					  src/mod_wdb2ts/WeatherSymbol.h \
+					  src/mod_wdb2ts/WeatherSymbol.cpp 
 					  
 
 
