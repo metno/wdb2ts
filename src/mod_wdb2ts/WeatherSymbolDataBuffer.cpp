@@ -176,7 +176,7 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	wd.mediumCloudCover = mediumCloud.avg( FLT_MAX );
 	wd.lowCloudCover = lowCloud.avg( FLT_MAX  );
 	wd.precipitation = precip.sum( FLT_MAX );
-	wd.thunder = thunder.max( 0 ) > 0.9;
+	wd.thunder = thunder.max( 0 ) > 0.05;
 	wd.fog = fog.countAbove() >= possibleFogCount;
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
 
