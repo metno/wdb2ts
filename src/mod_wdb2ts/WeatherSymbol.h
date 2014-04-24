@@ -5,13 +5,13 @@
  *      Author: borgem
  */
 
-#ifndef __WEATHERSYMBOLDATABUFFER_H__
-#define __WEATHERSYMBOLDATABUFFER_H__
+#ifndef __WEATHERSYMBOL_H__
+#define __WEATHERSYMBOL_H__
 
 #include <map>
 #include <float.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <weather_symbol/WeatherSymbol.h>
+#include <weather_symbol/Factory.h>
 
 namespace wdb2ts {
 
@@ -82,18 +82,6 @@ private:
 	SymbolData data_;
 };
 
-SymbolDataElement
-computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours );
-
-
-SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float precip=FLT_MAX, float precipMin=FLT_MAX, float precipMax=FLT_MAX );
-
-SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode );
-
-
-
 std::ostream&
 operator<<( std::ostream &o, const wdb2ts::WeatherSymbolDataBuffer &data);
 
@@ -101,6 +89,25 @@ std::ostream&
 operator<<( std::ostream &o, const wdb2ts::WeatherSymbolDataBuffer::slice_iterator &it );
 
 
+namespace  WeatherSymbolGenerator {
+
+void init();
+
+std::string symbolName( weather_symbol::Code code );
+
+SymbolDataElement
+computeWeatherSymbolData( const WeatherSymbolDataBuffer &data, int hours );
+
+SymbolDataElement
+computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float precip=FLT_MAX, float precipMin=FLT_MAX, float precipMax=FLT_MAX );
+
+SymbolDataElement
+computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode );
+
 }
 
-#endif /* WEATHERSYMBOLDATABUFFER_H_ */
+
+
+}
+
+#endif /* WEATHERSYMBOL_H_ */

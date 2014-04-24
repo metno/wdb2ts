@@ -6,12 +6,73 @@
  */
 
 #include <ios>
+#include <boost/thread/mutex.hpp>
 #include "../miutil/mathalgo.h"
-#include "WeatherSymbolDataBuffer.h"
+#include "WeatherSymbol.h"
 
 using namespace std;
-namespace wdb2ts {
 
+namespace {
+struct MyFactories
+{
+	boost::mutex mutex;
+	bool isInit;
+	weather_symbol::Factory *factories[6];
+	weather_symbol::Interpretor *interpretor;
+	MyFactories():
+		isInit( false ), interpretor( 0 ){
+		for( int i=0; i<6; ++i )
+			factories[i] = 0;
+	}
+
+	~MyFactories() {
+		boost::mutex::scoped_lock lock( mutex );
+
+		if( ! isInit )
+			return;
+
+		delete interpretor;
+		isInit = false;
+
+		for( int i=0; i<6; ++i )
+			delete factories[i];
+	}
+
+	void init() {
+		boost::mutex::scoped_lock lock( mutex );
+
+		if( isInit )
+			return;
+
+		isInit = true;
+		interpretor = new weather_symbol::Interpretor();
+
+		for( int i = 1; i <= 6; ++i )
+			factories[i-1] = new weather_symbol::Factory( i );
+	}
+
+	weather_symbol::Factory* get( int hours ) {
+		if( hours<1 || hours > 6)
+			return 0;
+
+		return factories[hours-1];
+	}
+
+	std::string name( weather_symbol::Code code) {
+		if( interpretor )
+			return interpretor->name( code );
+		else
+			return "";
+	}
+
+
+};
+static weather_symbol::Interpretor *interpretor=0;
+static MyFactories factories;
+
+}
+
+namespace wdb2ts {
 
 
 
@@ -139,6 +200,18 @@ struct Greater {
 };
 
 
+namespace WeatherSymbolGenerator {
+
+void init() {
+	factories.init();
+}
+
+std::string symbolName( weather_symbol::Code code )
+{
+	return factories.name( code );
+}
+
+
 SymbolDataElement
 computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 {
@@ -188,6 +261,7 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 {
 
 	SymbolDataElement wd = computeWeatherSymbolData( data, hours );
+	wd.weatherCode = weather_symbol::Error;
 
 	try {
 		if( precip != FLT_MAX)
@@ -199,11 +273,13 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 		if( precipMax != FLT_MAX)
 			wd.maxPrecipitation = precipMax;
 
-		weather_symbol::WeatherSymbol symbol( hours, wd );
-		wd.weatherCode = symbol.code();
+		weather_symbol::Factory *factory = factories.get( hours );
+
+		if( factory )
+			wd.weatherCode = factory->getSymbol( wd );
 	}
 	catch( const std::exception &ex ) {
-		cerr <<  "computeWeatherSymbol EXCEPTION: (" << ex.what() << ") " << wd << "\n";
+		//cerr <<  "computeWeatherSymbol EXCEPTION: (" << ex.what() << ") " << wd << "\n";
 		wd.weatherCode = weather_symbol::Error;
 	}
 	return wd;
@@ -229,25 +305,29 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 //		++count;
 //
 	SymbolDataElement wd = slice.second->second;
+	wd.weatherCode = weather_symbol::Error;
 
 	try {
-		weather_symbol::WeatherSymbol symbol( hours, weatherCode, wd );
-		wd.weatherCode = symbol.code();
-		wd.from	= slice.second->first - boost::posix_time::hours( hours );
+		weather_symbol::Factory *factory = factories.get( hours );
 
-		if( wd.weatherCode != weatherCode )
-			cerr << "computeWeatherSymbol (code): " << weather_symbol::name( weatherCode )
-			     << " " << slice.first->first << " - " << slice.second->first
-			     << " -> " << wd << endl;
+		if( factory ) {
+			wd.weatherCode = factory->getSymbol( weatherCode, wd );
+			wd.from	= slice.second->first - boost::posix_time::hours( hours );
+
+//		if( wd.weatherCode != weatherCode )
+//			cerr << "computeWeatherSymbol (code): " << weather_symbol::name( weatherCode )
+//			     << " " << slice.first->first << " - " << slice.second->first
+//			     << " -> " << wd << endl;
+		}
 
 	}
 	catch( const std::exception &ex ) {
-		cerr <<  "computeWeatherSymbol (code) EXCEPTION: (" << ex.what() << ") " << wd << "\n";
+		//cerr <<  "computeWeatherSymbol (code) EXCEPTION: (" << ex.what() << ") " << wd << "\n";
 		wd.weatherCode = weather_symbol::Error;
 	}
 	return wd;
 }
-
+}
 
 std::ostream&
 operator<<( std::ostream &o, const wdb2ts::SymbolDataElement &data)
@@ -258,7 +338,7 @@ operator<<( std::ostream &o, const wdb2ts::SymbolDataElement &data)
 	o.setf( ios::fixed );
 	o.precision( 2 );
 
-	o << weather_symbol::name( data.weatherCode ) << " ";
+	o << WeatherSymbolGenerator::symbolName( data.weatherCode ) << " ";
 
 	if( data.temperature != FLT_MAX )
 		o << "TA: " << data.temperature << " ";
