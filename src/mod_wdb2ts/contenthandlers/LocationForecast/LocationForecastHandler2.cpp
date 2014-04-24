@@ -66,6 +66,7 @@
 #include <ConfigUtils.h>
 #include <ProviderGroupsResolve.h>
 #include <ProviderListConfigure.h>
+#include <WeatherSymbol.h>
 
 DECLARE_MI_PROFILE;
 
@@ -205,6 +206,8 @@ configure( const wdb2ts::config::ActionParam &params,
 {
 	const string MODEL_TOPO_PROVIDER_KEY("model_topo_provider-");
 		
+	//Initialize the symbolgenerator.
+	WeatherSymbolGenerator::init();
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	actionParams = params;
 
@@ -456,7 +459,7 @@ get( webfw::Request  &req,
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	    << "Query: " << req.urlQuery() << " subversion: " << subversion << endl;
 
-	cerr << ost.str() <<"\n";
+	//cerr << ost.str() <<"\n";
 	WEBFW_LOG_DEBUG( ost.str() );
 
 	try { 
