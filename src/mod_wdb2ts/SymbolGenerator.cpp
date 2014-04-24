@@ -38,7 +38,7 @@
 #include "LocationElem.h"
 #include <Logger4cpp.h>
 #include <mathalgo.h>
-#include <weather_symbol/WeatherSymbol.h>
+//#include <weather_symbol/WeatherSymbol.h>
 
 namespace pt=boost::posix_time;
 

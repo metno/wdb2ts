@@ -560,12 +560,12 @@ encodePeriods( LocationElem &location,
 	   }
 
 	   if( symbolCode != INT_MAX )
-		   symbolData = computeWeatherSymbol(
+		   symbolData = WeatherSymbolGenerator::computeWeatherSymbol(
 				   weatherData, symbolConf[symbolIndex].precipHours(),
 				   weather_symbol::Code( symbolCode )
 		   	   );
 	   else
-		   symbolData = computeWeatherSymbol( weatherData, symbolConf[symbolIndex].precipHours(),
+		   symbolData = WeatherSymbolGenerator::computeWeatherSymbol( weatherData, symbolConf[symbolIndex].precipHours(),
 			                              precip, precipMin, precipMax );
 
 	   if( symbolData.weatherCode == weather_symbol::Error ) {
@@ -591,7 +591,7 @@ encodePeriods( LocationElem &location,
 	   }
 
 	   if( symbolData.weatherCode != weather_symbol::Error ) {
-		   ost << "<symbol id=\"" << weather_symbol::name( symbolData.weatherCode ) <<"\" number=\"" << symbolData.weatherCode << "\"/>\n";
+		   ost << "<symbol id=\"" << WeatherSymbolGenerator::symbolName( symbolData.weatherCode ) <<"\" number=\"" << symbolData.weatherCode << "\"/>\n";
 
 	   	   if( symbolProbability != FLT_MAX )
 	   		   ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbolProbability ) << "\"/>\n";

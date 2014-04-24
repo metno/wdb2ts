@@ -36,7 +36,7 @@
 #include <LocationData.h>
 #include <SymbolContext.h>
 #include <ProjectionHelper.h>
-#include <WeatherSymbolDataBuffer.h>
+#include <WeatherSymbol.h>
 
 namespace {
 wdb2ts::SymbolDataElement dummy;

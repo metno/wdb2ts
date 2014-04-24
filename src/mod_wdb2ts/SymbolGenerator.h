@@ -40,7 +40,7 @@
 #include <LocationData.h>
 #include <SymbolHolder.h>
 #include <SymbolConf.h>
-#include <weather_symbol/WeatherSymbol.h>
+#include <weather_symbol/Factory.h>
 #include "Precipitation.h"
 
 

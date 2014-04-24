@@ -42,7 +42,7 @@
 #include <PrecipitationConfig.h>
 #include <Precipitation.h>
 #include <SymbolConf.h>
-#include <WeatherSymbolDataBuffer.h>
+#include <WeatherSymbol.h>
 
 /**
  * @addtogroup wdb2ts

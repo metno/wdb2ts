@@ -48,7 +48,7 @@
 #include "../tuple_container/PqTupleContainer.h"
 #include "../miutil/gettimeofday.h"
 #include "../tuple_container/CSV.h"
-#include "../mod_wdb2ts/WeatherSymbolDataBuffer.h"
+#include "../mod_wdb2ts/WeatherSymbol.h"
 #include "../mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags1.h"
 
 //./wdb2cvs -p "arome_2500m" -p "arome_2500m_temperature_corrected" --port 5432 -h staging-wdb-arome -r 2014-02-07T12:00:00
@@ -450,6 +450,7 @@ setLogLevel()
 int
 main( int argn, char *argv[] )
 {
+	wdb2ts::WeatherSymbolGenerator::init();
 	setLogLevel();
 	string file("wdb-data-2014-02-12T00:00:00.cvs");
 	wdb2ts::SymbolGenerator symbolGenerator;
@@ -570,7 +571,7 @@ main( int argn, char *argv[] )
 		}
 
 		dataBuffer.add( elem.time(), symData );
-		symData = wdb2ts::computeWeatherSymbol( dataBuffer, 3 );
+		symData = wdb2ts::WeatherSymbolGenerator::computeWeatherSymbol( dataBuffer, 3 );
 //		//cerr << elem.time() << " " << symData << endl;
 //		cerr << " ------ " << elem.time() << " ---------------" << endl;
 //		cerr << xml.str();
