@@ -402,29 +402,41 @@ doStatus( Wdb2TsApp *app,
 
 	list<string> defProviders=paramdef->getProviderList();
 
-	out << "   <defined_providers>\n";
+	out << "   <defined_dataproviders>\n";
 	for( list<string>::const_iterator it=defProviders.begin(); it != defProviders.end(); ++it ) {
-		if( !it->empty())
-			out << "      <provider>" << *it << "</provider>\n";
+		if( !it->empty()) {
+			ProviderItem item = ProviderItem::decode( *it );
+			out << "      <dataprovider>\n";
+			out << "         <name>" << item.provider << "</name>\n";
+			if( ! item.placename.empty() )
+				out << "         <placename>" << item.placename << "</placename>\n";
+			out << "      </dataprovider>\n";
+		}
 	}
-	out << "   </defined_providers>\n";
+	out << "   </defined_dataproviders>\n";
 
 
-	out << "   <resolved_providers>\n";
+	out << "   <resolved_dataproviders>\n";
 	for( ProviderList::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
-		out << "      <provider>" << it->providerWithPlacename() << "</provider>\n";
+		out << "      <dataprovider>\n";
+		out << "         <name>" <<		   it->provider << "</name>\n";
+		out << "         <placename>" <<		   it->placename << "</placename>\n";
+		out << "      </dataprovider>\n";
+		//out << "      <dataprovider>" << it->providerWithPlacename() << "</dataprovider>\n";
 	}
-	out << "   </resolved_providers>\n";
+	out << "   </resolved_dataproviders>\n";
 
 	out << "   <reftimes>\n";
 	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
-	  out << "      <provider>\n";
-	  out << "         <name>" << rit->first << "</name>\n";
-	  out << "         <reftime>"<< rit->second.refTime << "</reftime>\n";
-	  out << "         <updated>"<< rit->second.updatedTime << "</updated>\n";
-	  out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
-	  out << "         <version>" << rit->second.dataversion << "</version>\n";
-	  out << "      </provider>\n";
+		ProviderItem item = ProviderItem::decode( rit->first );
+		out << "      <dataprovider>\n";
+		out << "         <name>" << item.provider <<  "</name>\n";
+		out << "         <placename>" << item.placename << "</placename>\n";
+		out << "         <reftime>"<< rit->second.refTime << "Z" << "</reftime>\n";
+		out << "         <updated>"<< rit->second.updatedTime << "Z" << "</updated>\n";
+		out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
+		out << "         <version>" << rit->second.dataversion << "</version>\n";
+		out << "      </dataprovider>\n";
 	}
 	out << "   </reftimes>\n";
 
