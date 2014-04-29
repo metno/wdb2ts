@@ -15,41 +15,19 @@ using namespace std;
 namespace {
 struct MyFactories
 {
-	boost::mutex mutex;
-	bool isInit;
 	weather_symbol::Factory *factories[6];
-	weather_symbol::Interpretor *interpretor;
-	MyFactories():
-		isInit( false ), interpretor( 0 ){
-		for( int i=0; i<6; ++i )
-			factories[i] = 0;
+	weather_symbol::Interpretor interpretor;
+	MyFactories()
+	{
+		for( int i = 1; i <= 6; ++i )
+			factories[i-1] = new weather_symbol::Factory( i );
 	}
 
 	~MyFactories() {
-		boost::mutex::scoped_lock lock( mutex );
-
-		if( ! isInit )
-			return;
-
-		delete interpretor;
-		isInit = false;
-
 		for( int i=0; i<6; ++i )
 			delete factories[i];
 	}
 
-	void init() {
-		boost::mutex::scoped_lock lock( mutex );
-
-		if( isInit )
-			return;
-
-		isInit = true;
-		interpretor = new weather_symbol::Interpretor();
-
-		for( int i = 1; i <= 6; ++i )
-			factories[i-1] = new weather_symbol::Factory( i );
-	}
 
 	weather_symbol::Factory* get( int hours ) {
 		if( hours<1 || hours > 6)
@@ -59,16 +37,14 @@ struct MyFactories
 	}
 
 	std::string name( weather_symbol::Code code) {
-		if( interpretor )
-			return interpretor->name( code );
-		else
-			return "";
+			return interpretor.name( code );
 	}
 
 
 };
-static weather_symbol::Interpretor *interpretor=0;
-static MyFactories factories;
+
+boost::mutex mutex;
+MyFactories *factories=0;
 
 }
 
@@ -190,6 +166,63 @@ print( std::ostream &o, const WeatherSymbolDataBuffer::slice_iterator &it )const
 	return o;
 }
 
+
+std::ostream&
+operator<<( std::ostream &o, const wdb2ts::SymbolDataElement &data)
+{
+	ios_base::fmtflags oldflags = o.flags();
+	streamsize oldprec=o.precision();
+
+	o.setf( ios::fixed );
+	o.precision( 2 );
+
+	o << WeatherSymbolGenerator::symbolName( data.weatherCode ) << " ";
+
+	if( data.temperature != FLT_MAX )
+		o << "TA: " << data.temperature << " ";
+	if( data.wetBulbTemperature != FLT_MAX )
+		o << "TA.WetBulb: " << data.wetBulbTemperature << " ";
+	if( data.totalCloudCover != FLT_MAX )
+		o << "NN: " << data.totalCloudCover << " ";
+	if( data.lowCloudCover != FLT_MAX )
+		o << "lowClouds: " << data.lowCloudCover << " ";
+	if( data.mediumCloudCover != FLT_MAX )
+		o << "mediumClouds: " << data.mediumCloudCover << " ";
+	if( data.highCloudCover != FLT_MAX )
+		o << "highClouds: " << data.highCloudCover << " ";
+	if( data.precipitation != FLT_MAX )
+		o << "precip: " << data.precipitation << " ";
+	if( data.minPrecipitation != FLT_MAX )
+		o << "minPrecip: " << data.minPrecipitation << " ";
+	if( data.maxPrecipitation != FLT_MAX )
+		o << "maxPrecip: " << data.maxPrecipitation << " ";
+	if( data.thunderProbability != FLT_MAX )
+		o << "thunder: " << data.thunderProbability << " (" << (data.thunder?"T":"F") << ") ";
+	else
+		o << "thunder: " << (data.thunder?"T":"F") << " ";
+	if( data.fogCover != FLT_MAX )
+		o << "fog: " << data.fogCover << " (" << (data.fog?"T":"F") << ") ";
+	else
+		o << "maybeFog: " << (data.fog?"T":"F") << " ";
+
+	o.flags( oldflags );
+	o.precision( oldprec );
+	return o;
+}
+
+
+std::ostream&
+operator<<( std::ostream &o, const wdb2ts::WeatherSymbolDataBuffer &data)
+{
+	for( WeatherSymbolDataBuffer::SymbolData::const_iterator it = data.data_.begin();
+		it != data.data_.end(); ++it )
+		o << it->first << ": " << it->second << endl;
+	return o;
+}
+
+
+namespace WeatherSymbolGenerator {
+
 struct Greater {
 	float n;
 	Greater( float n ): n( n ) {}
@@ -200,15 +233,17 @@ struct Greater {
 };
 
 
-namespace WeatherSymbolGenerator {
-
 void init() {
-	factories.init();
+	boost::mutex::scoped_lock lock( mutex );
+	if( factories )
+		return;
+
+	factories = new MyFactories();
 }
 
 std::string symbolName( weather_symbol::Code code )
 {
-	return factories.name( code );
+	return factories->name( code );
 }
 
 
@@ -273,7 +308,7 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 		if( precipMax != FLT_MAX)
 			wd.maxPrecipitation = precipMax;
 
-		weather_symbol::Factory *factory = factories.get( hours );
+		weather_symbol::Factory *factory = factories->get( hours );
 
 		if( factory )
 			wd.weatherCode = factory->getSymbol( wd );
@@ -308,7 +343,7 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 	wd.weatherCode = weather_symbol::Error;
 
 	try {
-		weather_symbol::Factory *factory = factories.get( hours );
+		weather_symbol::Factory *factory = factories->get( hours );
 
 		if( factory ) {
 			wd.weatherCode = factory->getSymbol( weatherCode, wd );
@@ -329,58 +364,6 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 }
 }
 
-std::ostream&
-operator<<( std::ostream &o, const wdb2ts::SymbolDataElement &data)
-{
-	ios_base::fmtflags oldflags = o.flags();
-	streamsize oldprec=o.precision();
-
-	o.setf( ios::fixed );
-	o.precision( 2 );
-
-	o << WeatherSymbolGenerator::symbolName( data.weatherCode ) << " ";
-
-	if( data.temperature != FLT_MAX )
-		o << "TA: " << data.temperature << " ";
-	if( data.wetBulbTemperature != FLT_MAX )
-		o << "TA.WetBulb: " << data.wetBulbTemperature << " ";
-	if( data.totalCloudCover != FLT_MAX )
-		o << "NN: " << data.totalCloudCover << " ";
-	if( data.lowCloudCover != FLT_MAX )
-		o << "lowClouds: " << data.lowCloudCover << " ";
-	if( data.mediumCloudCover != FLT_MAX )
-		o << "mediumClouds: " << data.mediumCloudCover << " ";
-	if( data.highCloudCover != FLT_MAX )
-		o << "highClouds: " << data.highCloudCover << " ";
-	if( data.precipitation != FLT_MAX )
-		o << "precip: " << data.precipitation << " ";
-	if( data.minPrecipitation != FLT_MAX )
-		o << "minPrecip: " << data.minPrecipitation << " ";
-	if( data.maxPrecipitation != FLT_MAX )
-		o << "maxPrecip: " << data.maxPrecipitation << " ";
-	if( data.thunderProbability != FLT_MAX )
-		o << "thunder: " << data.thunderProbability << " (" << (data.thunder?"T":"F") << ") ";
-	else
-		o << "thunder: " << (data.thunder?"T":"F") << " ";
-	if( data.fogCover != FLT_MAX )
-		o << "fog: " << data.fogCover << " (" << (data.fog?"T":"F") << ") ";
-	else
-		o << "maybeFog: " << (data.fog?"T":"F") << " ";
-
-	o.flags( oldflags );
-	o.precision( oldprec );
-	return o;
-}
-
-
-std::ostream&
-operator<<( std::ostream &o, const wdb2ts::WeatherSymbolDataBuffer &data)
-{
-	for( WeatherSymbolDataBuffer::SymbolData::const_iterator it = data.data_.begin();
-		it != data.data_.end(); ++it )
-		o << it->first << ": " << it->second << endl;
-	return o;
-}
 
 
 }
