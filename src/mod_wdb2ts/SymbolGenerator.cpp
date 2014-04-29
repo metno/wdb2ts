@@ -189,15 +189,13 @@ computeSymbolData( const SymbolDataContainer &baseData,
 
 					sym.from = fromTime;
 					data[rit->first][fromTime] = sym;
-					cerr << foundIt->second.from << " - " << rit->first << "  (" << foundIt->first << ")" << endl;
+					//cerr << foundIt->second.from << " - " << rit->first << "  (" << foundIt->first << ")" << endl;
 				}
 				catch( const std::exception &ex ) {
 					cerr << "   EXCEPTION: " << rit->first <<  "  " << ex.what() << "." << endl;
 				}
 			}
 
-		} else {
-			cerr << " END " << rit->first << endl;
 		}
 	}
 }
@@ -507,9 +505,9 @@ computeSymbols( LocationData& data,
 	             << " precipHours: " << precipHours
 	             << " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f"));
 
-	cerr << "computeSymbols: " << provider << " min: " << min << " max: " << max
-			<< " precipHours: " << precipHours
-			<< " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f") << endl;
+//	cerr << "computeSymbols: " << provider << " min: " << min << " max: " << max
+//			<< " precipHours: " << precipHours
+//			<< " withoutStateOfAgregate: " << (withoutStateOfAgregate?"t":"f") << endl;
 	data.init( startAt, provider );
 	
 	while( data.hasNext() ) {
@@ -753,7 +751,7 @@ getSymbolsFromData( LocationData& data,
       if( ! elem )
          continue;
 
-      cerr << "getSymbolsFromData:  " << fromTime << "\n";
+      //cerr << "getSymbolsFromData:  " << fromTime << "\n";
       symNumber = elem->symbol( fromTime );
 
       if( symNumber == INT_MAX ) {
