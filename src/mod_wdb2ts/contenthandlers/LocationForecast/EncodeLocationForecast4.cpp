@@ -504,6 +504,29 @@ encodeMoment( const boost::posix_time::ptime &from,
 }
 
 
+/*
+ * Getting the symbol probability is a bit tricky since
+ * it may be taken from another provider than we generate/take
+ * the symbol from and we want to preserve the dataprovider
+ *
+ */
+float
+EncodeLocationForecast4::
+getSymbolProbability( LocationElem &location,
+		           const ptime &fromTime_ )const
+{
+	ptime fromTime( fromTime_ );
+	return location.symbol_PROBABILITY( fromTime, true );
+}
+
+int
+EncodeLocationForecast4::
+getSymbol( LocationElem &location, const ptime &fromTime_ )const
+{
+	ptime fromTime( fromTime_ );
+	return location.symbol( fromTime );
+}
+
 
 bool
 EncodeLocationForecast4::
@@ -521,7 +544,6 @@ encodePeriods( LocationElem &location,
 	float precipMax;
 	float precipProb;
 	SymbolDataElement symbolData;
-	ptime tmpFromTime;
 	ptime fromTime;
 	ptime toTime = location.time();
 	string provider = location.forecastprovider();
@@ -541,20 +563,19 @@ encodePeriods( LocationElem &location,
 	   precipProb = FLT_MAX;
 	   symbolCode = weather_symbol::Error;
 
-	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), tmpFromTime, precipMin, precipMax, precip, precipProb ) )
-	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), tmpFromTime);
+	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precip, precipProb ) )
+	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), fromTime);
 
-	   if( tmpFromTime.is_special() )
+	   if( fromTime.is_special() )
 		   continue;
 
-	   fromTime = tmpFromTime;
 
-	   symbolCode = location.symbol( tmpFromTime );
-	   symbolProbability = location.symbol_PROBABILITY( tmpFromTime );
+	   symbolCode = getSymbol( location, fromTime );
+	   symbolProbability = getSymbolProbability( location, fromTime );
 
 	   if( precip == FLT_MAX && symbolCode == INT_MAX ) {
 			WEBFW_LOG_DEBUG( "encodePeriods: Missing precipitation. ( "
-			                  << tmpFromTime << " - " << location.time() << ")" );
+			                  << fromTime << " - " << location.time() << ")" );
 
 		   continue;
 	   }
