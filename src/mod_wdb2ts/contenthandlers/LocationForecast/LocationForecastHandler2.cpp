@@ -426,19 +426,19 @@ doStatus( Wdb2TsApp *app,
 	}
 	out << "   </resolved_dataproviders>\n";
 
-	out << "   <reftimes>\n";
+	out << "   <referencetimes>\n";
 	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
 		ProviderItem item = ProviderItem::decode( rit->first );
 		out << "      <dataprovider>\n";
 		out << "         <name>" << item.provider <<  "</name>\n";
 		out << "         <placename>" << item.placename << "</placename>\n";
-		out << "         <reftime>"<< rit->second.refTime << "Z" << "</reftime>\n";
-		out << "         <updated>"<< rit->second.updatedTime << "Z" << "</updated>\n";
+		out << "         <referencetime>"<< miutil::isotimeString( rit->second.refTime, true, true )  << "</referencetime>\n";
+		out << "         <updated>"<< miutil::isotimeString( rit->second.updatedTime, true, true ) << "</updated>\n";
 		out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
 		out << "         <version>" << rit->second.dataversion << "</version>\n";
 		out << "      </dataprovider>\n";
 	}
-	out << "   </reftimes>\n";
+	out << "   </referencetimes>\n";
 
 	out << "</status>\n";
 
