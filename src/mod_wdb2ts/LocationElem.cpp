@@ -1300,11 +1300,25 @@ PRECIP_PROBABILITY_5_0_MM( int hoursBack, bool tryHard)const
 float 
 LocationElem::
 symbol_PROBABILITY( boost::posix_time::ptime &fromTime,bool tryHard )const
-{                                   
-	return   getValue( &PData::symbol_PROBABILITY,
-			             itTimeSerie->second,
-			             fromTime,
-			             const_cast<string&>(symbolProvider), FLT_MAX, tryHard );	
+{
+	string provider(symbolProbabilityProvider);
+
+	if( provider.empty() ) {
+		if( ! symbolProvider.empty() )
+			provider = symbolProvider;
+		else
+			provider = forecastProvider;
+	}
+
+	float p = getValue( &PData::symbol_PROBABILITY,
+			            itTimeSerie->second,
+			            fromTime,
+			            provider, FLT_MAX, tryHard );
+
+	if( p != FLT_MAX )
+		const_cast<string&>( symbolProbabilityProvider ) = provider;
+
+	return p;
 }
 
 int   

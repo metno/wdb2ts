@@ -81,6 +81,7 @@ class LocationElem {
 	std::string percentileProvider;
 	std::string modelTopoProvider;
 	std::string symbolProvider;
+	std::string symbolProbabilityProvider;
 	std::string lastUsedProvider_;
 	boost::posix_time::ptime precipRefTime;
 	float       latitude_;
@@ -310,8 +311,10 @@ public:
 	std::string oceanProvider() const { return oceanProvider_; }
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
+	std::string symbolProbabilityprovider() const { return symbolProbabilityProvider; }
 	
 	void symbolprovider(const std::string &provider ){ symbolProvider = provider; }
+	void symbolProbabilityprovider(const std::string &provider ){  symbolProbabilityProvider = provider; }
 	void forecastprovider( const std::string &provider ) { forecastProvider=provider; }
 
 	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;
