@@ -140,62 +140,68 @@ decode( const std::string &urlQuery_, bool withPath )
 	vector<string> paramList;
 	vector<string> keyVal;
 	string urlQuery( urlQuery_ );
-	
+
 	if( withPath ) {
 		path.erase();
 		string::size_type iPath = urlQuery.find("?");
-	
+
 		if( iPath != string::npos ) {
 			path = urlQuery.substr(0, iPath );
 			miutil::trimstr( path );
-			
+
 			if( ! path.empty() && path[ path.length() -1 ] == '/' )
 				path.erase( path.length() - 1 );
-			
+
 			urlQuery.erase( 0, iPath + 1 );
+		} else {
+			path = urlQuery;
+			urlQuery.erase();
 		}
 	}
-	
-   seperator = getParamSeparator( urlQuery );
-   
-   if( seperator > 0 )
-   	paramList = miutil::splitstr( urlQuery, seperator );
-   else
-   	paramList.push_back( urlQuery ); 
-    
-   for( vector<string>::size_type i=0; i<paramList.size(); ++i ) {
-	   string val;
-	   string key;
-	   if( paramList[i].length() == 0 )
-   		continue;
-   	
-       keyVal = miutil::splitstr( paramList[i], '=');
 
-       if( keyVal.size() == 0 )
-    	   continue;
+	if( urlQuery.empty() )
+		return;
 
-       key = unescape( keyVal[0] );
-       
-       if( keyVal.size() <= 2 ) {
-    	   if( keyVal.size() == 2 ) {
-    		   val = unescape( keyVal[1] );
-    	   }
-       } else {
-      	 ostringstream ost;
-      	 
-      	 ost << "Invalid key=val spec: " << paramList[i] << ". Number of '=' "; 
-      	 if( keyVal.size() == 1)
-      		 ost << "0";
-      	 else
-      		 ost << keyVal.size()-1;
-      	 
-      	 ost << ".";
-      		 
-      	 throw logic_error( ost.str() );
-       }
+	seperator = getParamSeparator( urlQuery );
 
-       params[ key ] = val;
-   }
+	if( seperator > 0 )
+		paramList = miutil::splitstr( urlQuery, seperator );
+	else
+		paramList.push_back( urlQuery );
+
+	for( vector<string>::size_type i=0; i<paramList.size(); ++i ) {
+		string val;
+		string key;
+		if( paramList[i].length() == 0 )
+			continue;
+
+		keyVal = miutil::splitstr( paramList[i], '=');
+
+		if( keyVal.size() == 0 )
+			continue;
+
+		key = unescape( keyVal[0] );
+
+		if( keyVal.size() <= 2 ) {
+			if( keyVal.size() == 2 ) {
+				val = unescape( keyVal[1] );
+			}
+		} else {
+			ostringstream ost;
+
+			ost << "Invalid key=val spec: " << paramList[i] << ". Number of '=' ";
+			if( keyVal.size() == 1)
+				ost << "0";
+			else
+				ost << keyVal.size()-1;
+
+			ost << ".";
+
+			throw logic_error( ost.str() );
+		}
+
+		params[ key ] = val;
+	}
 }
 	
 bool
