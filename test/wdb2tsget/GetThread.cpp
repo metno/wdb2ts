@@ -12,8 +12,6 @@ using namespace std;
 
 namespace wdb2ts {
 
-
-
 void 
 GetThread::
 nextLatLong( float &lat_, float &lon_ )
