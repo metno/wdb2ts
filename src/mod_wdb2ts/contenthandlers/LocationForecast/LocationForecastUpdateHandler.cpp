@@ -29,6 +29,7 @@
 #include <limits.h>
 #include <vector>
 #include <stlContainerUtil.h>
+#include <algorithm>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/assign/list_inserter.hpp>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>
@@ -74,7 +75,7 @@ LocationForecastUpdateHandler::
 
 bool 
 LocationForecastUpdateHandler::
-decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
+decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime, bool &debug )const
 {
 	using namespace miutil;
 	using namespace boost::posix_time;
@@ -91,6 +92,8 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 	bool              doDataversion=false;
 	webfw::UrlQuery     urlQuery;
 	
+	debug=false;
+
 	newRefTime.clear();
 	
 	if( query.empty() )
@@ -106,6 +109,11 @@ decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime )const
 
 	keys = urlQuery.keys();
 	
+	if( std::count( keys.begin(), keys.end(), "debug" ) > 0 ) {
+		debug = true;
+		return true;
+	}
+
 	for( std::list<std::string>::const_iterator iKey=keys.begin(); iKey != keys.end(); ++iKey ) {
 		string key = *iKey ;
 		string val = urlQuery.asString( *iKey, "");
@@ -565,6 +573,8 @@ get( webfw::Request  &req,
 	ProviderRefTimeList requestedProviders;
 	ProviderList providerPriorityList;
 	int wciProtocol_;
+	bool debug;
+	WciConnectionPtr wciConnection;
 	
 
 	//Only allow one update at a time.
@@ -579,7 +589,7 @@ get( webfw::Request  &req,
    
 	WEBFW_LOG_DEBUG( ost.str() );
    
-	if( ! decodeQuery( req.urlQuery(), requestedProviders ) ) {
+	if( ! decodeQuery( req.urlQuery(), requestedProviders, debug ) ) {
 		WEBFW_LOG_ERROR( ost.str() );
 		response.errorDoc( ost.str() );
 		response.status( webfw::Response::INVALID_QUERY );
@@ -608,7 +618,25 @@ get( webfw::Request  &req,
 		ProviderRefTimeList newRefTime( oldRefTime );
 		string myWdbID = getWdbId( app );
 
-		getProviderPriorityList( app, myWdbID, providerPriorityList );
+		if( debug ) {
+			app->notes.setNote( updateid + ".LocationProviderReftimeList", new NoteProviderReftimes( oldRefTime ) );
+			WEBFW_LOG_DEBUG("LocationForecastUpdateHandler: (debug) note updated: '" << updateid + ".LocationProviderReftimeList." );
+			app->notes.checkForUpdatedPersistentNotes();
+			std::string xml;
+			xml="<?xml version=\"1.0\" ?>\n<status>Updated</status>\n";
+			response.out() << xml;
+			return;
+		}
+
+
+		if( ! getProviderPriorityList( app, myWdbID, providerPriorityList ) ) {
+			std::string xml;
+			xml="<?xml version=\"1.0\" ?>\n<status>Error: Missing provider priority list!</status>\n";
+			response.errorDoc( xml );
+			response.status( webfw::Response::INTERNAL_ERROR );
+			WEBFW_LOG_ERROR( "LocationForecatUpdate: " << ost.str() << ". Missing: provider priority list!" );
+			return;
+		}
 	
 		checkProviders( providerPriorityList, oldRefTime, requestedProviders );
 		
@@ -626,8 +654,17 @@ get( webfw::Request  &req,
 			wciProtocol_ = wciProtocol;
 		}
 			
-		
-		WciConnectionPtr wciConnection = app->newWciConnection( myWdbID );
+		try {
+			wciConnection = app->newWciConnection( myWdbID );
+		}
+		catch( const std::exception &ex ) {
+			std::string xml;
+			xml="<?xml version=\"1.0\" ?>\n<status>Error: Db error!</status>\n";
+			response.errorDoc( xml );
+			response.status( webfw::Response::INTERNAL_ERROR );
+			WEBFW_LOG_ERROR( "LocationForecatUpdate: " << ost.str() << ". Db error: '"  << ex.what() << "'" );
+			return;
+		}
 	
 		ost.str("");
 		ost << "*** oldRefTime: "<< oldRefTime.size() << endl;
