@@ -367,17 +367,18 @@ std::string
 symbolidToName( int id );
 
 
-#if 0
+
 void 
 decodePData( const ParamDefList &paramDefs,
 		     const ProviderList &providers,
 		     const ProviderRefTimeList &refTimeList,
-		     int   protocol,
 		     const pqxx::result &result,
 		     const bool isPolygonRequest,
-		     LocationPointData &timeSerie );
-#endif
+		     LocationPointData &timeSerie,
+		     int   protocol = 3);
 
+
+#if 0
 void
 decodePData( const ParamDefList &paramDefs,
 		     const ProviderList &providers,
@@ -386,7 +387,7 @@ decodePData( const ParamDefList &paramDefs,
 		     const bool isPolygonRequest,
 		     LocationPointData &timeSerie,
 		     int   protocol = 3);
-
+#endif
 
 }
 

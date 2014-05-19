@@ -249,7 +249,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	if( ! updateid.empty() ) {
 		string noteName = updateid+".LocationProviderReftimeList";
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
-		app->notes.registerNoteListener( updateid+".LocationProviderReftimeList", this );
+		app->notes.registerNoteListener( noteName, this );
 
 		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
 
@@ -295,8 +295,7 @@ noteUpdated( const std::string &noteName,
 
 	string testId( updateid+".LocationProviderReftimeList" );
 	boost::mutex::scoped_lock lock( mutex );
-	
-	WEBFW_LOG_INFO(noteListenerId() << ": updateid: '" << testId << "' incomming updateid: '" << noteName << "'");
+
 	if( noteName == testId ) {
 		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
 
@@ -314,8 +313,11 @@ noteUpdated( const std::string &noteName,
 		//Resolve the priority list again.
 		providerPriorityIsInitialized = false;
 
-		paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
-		queryMaker.reset(  qmaker::QueryMaker::create( *(paramDefsPtr_->idDefsParams), wciProtocol ) );
+		if( paramDefsPtr_ ) {
+			paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
+			queryMaker.reset(  qmaker::QueryMaker::create( *(paramDefsPtr_->idDefsParams), wciProtocol ) );
+		}
+
 		WEBFW_LOG_INFO( "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "'." );
 	}
 }
@@ -455,6 +457,8 @@ get( webfw::Request  &req,
 {
 	using namespace boost::posix_time;
 	WEBFW_USE_LOGGER( "handler" );
+	ConfigData *tmpConfigData=0;
+	ConfigDataPtr configData;
 	ostringstream ost;
 	int   altitude;
 	PtrProviderRefTimes refTimes;
@@ -487,7 +491,17 @@ get( webfw::Request  &req,
 		return;
 	}
 
-	ConfigDataPtr configData( new ConfigData() );
+	try {
+		tmpConfigData = new ConfigData();
+	}
+	catch( ... ) {
+		tmpConfigData = 0;
+	}
+
+	if( ! tmpConfigData )
+		throw NoData();
+
+	configData.reset( tmpConfigData );
 	configData->url = webQuery.urlQuery();
 	configData->parameterMap = doNotOutputParams;
 	configData->throwNoData = noDataResponse.doThrow();
@@ -496,6 +510,7 @@ get( webfw::Request  &req,
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	app->notes.checkForUpdatedPersistentNotes();
+
 	extraConfigure( actionParams, app );
 	
 	refTimes = getProviderReftimes();
@@ -638,17 +653,21 @@ get( webfw::Request  &req,
 	catch( const NoData &ex ) {
 	   using namespace boost::posix_time;
 
-	   if( noDataResponse.response == NoDataResponse::ServiceUnavailable ) {
+	   if( !tmpConfigData ||
+		   noDataResponse.response == NoDataResponse::ServiceUnavailable ) {
 	       ptime retryAfter( second_clock::universal_time() );
 	       retryAfter += seconds( 10 );
 	       response.serviceUnavailable( retryAfter );
 	       response.status( webfw::Response::SERVICE_UNAVAILABLE );
+
+	       if( !tmpConfigData )
+	    	   cerr << "ServiceUnavailable: Url: '" <<webQuery.urlQuery()<< "' NOMEM\n";
 	       WEBFW_LOG_INFO( "ServiceUnavailable: Url: " << webQuery.urlQuery() );
 	   } else if( noDataResponse.response == NoDataResponse::NotFound ) {
 	       response.status( webfw::Response::NOT_FOUND );
 	       WEBFW_LOG_INFO( "NotFound: Url: " <<  webQuery.urlQuery()  );
 	   } else {
-	       response.status( webfw::Response::NO_ERROR );
+	       //response.status( webfw::Response::NO_ERROR );
 	       WEBFW_LOG_INFO( "Unexpected NoData exception: Url: " <<  webQuery.urlQuery()  );
 	       response.status( webfw::Response::NOT_FOUND );
 	   }

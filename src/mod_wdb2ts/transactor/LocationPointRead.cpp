@@ -130,8 +130,8 @@ operator () ( argument_type &t )
 		WEBFW_LOG_DEBUG( "LocationPointRead: transactor: SQL ["	<< q.str() << "]" );
 		pqxx::result  res = t.exec( q.str() );
 
-		miutil::container::PqContainer container( res );
-		decodePData( paramDefs_, providers_, refTimeList_, container, false, *locationPointData_, wciProtocol_ );
+		//miutil::container::PqContainer container( res );
+		decodePData( paramDefs_, providers_, refTimeList_, res, false, *locationPointData_, wciProtocol_ );
 	}
 }
 

@@ -98,8 +98,14 @@ LocationForecastHandler( int major, int minor, const std::string &note_ )
 	if( ! note.empty() ) {
 		int n;
 
-		if( sscanf( note.c_str(), "%d", &n) == 1  )
+		try {
+			n = boost::lexical_cast<int>( note );
 			subversion = n;
+		}
+		catch( ... ) {}
+
+//		if( sscanf( note.c_str(), "%d", &n) == 1  )
+//			subversion = n;
 	}
 	//NOOP
 }
@@ -280,15 +286,16 @@ LocationForecastHandler::
 noteUpdated( const std::string &noteName, 
              boost::shared_ptr<NoteTag> note )
 {
-	WEBFW_USE_LOGGER( "+update" );
+	//WEBFW_USE_LOGGER( "+update" );
+	WEBFW_USE_LOGGER( "handler" );
 
 	if( updateid.empty() )
 		return;
 
 	string testId( updateid+".LocationProviderReftimeList" );
+
+
 	boost::mutex::scoped_lock lock( mutex );
-	
-	WEBFW_LOG_INFO("My updateid: '" << testId << "' incomming updateid: '" << noteName << "'");
 
 	if( noteName == testId ) {
 		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );

@@ -127,8 +127,8 @@ operator () ( argument_type &t )
 			
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 
-			miutil::container::PqContainer container( res );
-			decodePData( paramDefs, providerPriority, *refTimes, container, isPloygon, *locationPointData, wciProtocol );
+			//miutil::container::PqContainer container( res );
+			decodePData( paramDefs, providerPriority, *refTimes, res, isPloygon, *locationPointData, wciProtocol );
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 
 			if( stopIfQueryHasData && !res.empty() )
