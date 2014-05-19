@@ -288,146 +288,185 @@ bool
 FileLockHelper::
 write( const std::string &buf, bool wait, bool &wasLocked )
 {
-    boost::mutex::scoped_lock mylock( mutex );
-    wasLocked = false;
+	boost::mutex::scoped_lock mylock( mutex );
+	ofstream fd;
 
-    if( filename_.empty() )
-        return false;
+	wasLocked = false;
 
-    ofstream fdTmp;
-    fdTmp.open( filename_.c_str() );
+	if( filename_.empty() )
+		return false;
 
-    if( ! fdTmp.is_open() ) {
-        cerr << "FileLockHelper::write: Cant open '" << filename_ << "' for writing." << endl;
-        return false;
-    }
+	ofstream fdTmp;
+	fdTmp.open( filename_.c_str() );
 
-    ip::file_lock flock( filename_.c_str() );
+	if( ! fdTmp.is_open() ) {
+//		cerr << "FileLockHelper::write: Cant open '" << filename_ << "' for writing." << endl;
+		return false;
+	}
 
-    try {
-        if( wait ) {
-            flock.lock();
-        }else {
-            if( ! flock.try_lock() )
-                wasLocked = true;
-        }
-    }
-    catch( const ip::interprocess_exception &ex ) {
-        fdTmp.close();
-        cerr << "FileLockHelper::write: lock failed '" << filename_
-              << "'. Reason: " << ex.what() << endl;
-        return false;
-    }
+	try {
+		ip::file_lock flock( filename_.c_str() );
 
-    if( wasLocked ) {
-        cerr << "FileLockHelper::write: Cant lock '" << filename_
-             << "'. Already locked." <<  endl;
+		try {
+			if( wait ) {
+				flock.lock();
+			}else {
+				if( ! flock.try_lock() )
+					wasLocked = true;
+			}
+		}
+		catch( const ip::interprocess_exception &ex ) {
+			fdTmp.close();
+//			cerr << "FileLockHelper::write: lock failed '" << filename_
+//					<< "'. Reason: " << ex.what() << endl;
+			return false;
+		}
 
-        fdTmp.close();
-        return false;
-    }
+		if( wasLocked ) {
+//			cerr << "FileLockHelper::write: Cant lock '" << filename_
+//					<< "'. Already locked." <<  endl;
 
-    ofstream fd;
-    fd.open( filename_.c_str(), ios_base::out | ios_base::trunc | ios_base::ate );
+			fdTmp.close();
+			return false;
+		}
 
-    if( ! fd.is_open() )  {
-        cerr << "FileLockHelper::write: Cant truncate the file '" << filename_ << "'." << endl;
-        try {
-            flock.unlock();
-        }
-        catch( ... ) {
-        }
-        fdTmp.close();
-    }
 
-    cerr << "FileLockHelper::write: buf[" << buf << "]" << endl;
+		fd.open( filename_.c_str(), ios_base::out | ios_base::trunc | ios_base::ate );
 
-    fd.write( buf.c_str(), buf.size() );
-    fd.flush();
+		if( ! fd.is_open() )  {
+//			cerr << "FileLockHelper::write: Cant truncate the file '" << filename_ << "'." << endl;
+			try {
+				flock.unlock();
+			}
+			catch( ... ) {
+			}
+			fdTmp.close();
+			return false;
+		}
 
-    try {
-        flock.unlock();
-    }
-    catch( const ip::interprocess_exception &ex ) {
-        cerr << "FileLockHelper::write: unlock failed '" << filename_
-             << "'. Reason: " << ex.what() << endl;
-    }
+//		cerr << "FileLockHelper::write: buf[" << buf << "]" << endl;
 
-    fdTmp.close();
-    fd.close();
+		fd.write( buf.c_str(), buf.size() );
+		fd.flush();
 
-    return true;
+		try {
+			flock.unlock();
+		}
+		catch( const ip::interprocess_exception &ex ) {
+//			cerr << "FileLockHelper::write: unlock failed '" << filename_
+//					<< "'. Reason: " << ex.what() << endl;
+		}
+
+		fdTmp.close();
+		fd.close();
+
+	}
+	catch( ... ) {
+		if( fdTmp.is_open() )
+			fdTmp.close();
+		if( fd.is_open() )
+			fd.close();
+		return false;
+	}
+	return true;
 }
 
 bool
 FileLockHelper::
 read( std::string &buf, bool wait, bool &wasLocked )
 {
-    boost::mutex::scoped_lock mylock( mutex );
-    int n;
+	boost::mutex::scoped_lock mylock( mutex );
+	int n;
+	char *tmp;
 
-    wasLocked = false;
+	wasLocked = false;
 
-    if( filename_.empty() )
-        return false;
+	if( filename_.empty() )
+		return false;
 
-    ifstream fd( filename_.c_str() );
+	ifstream fd( filename_.c_str() );
 
-    if( ! fd.is_open() ) {
-        cerr << "FileLockHelper::read: Cant open '" << filename_ << "' for reading." << endl;
-        return false;
-    }
+	if( ! fd.is_open() ) {
+		//cerr << "FileLockHelper::read: Cant open '" << filename_ << "' for reading." << endl;
+		return false;
+	}
 
-    ip::file_lock flock( filename_.c_str() );
+	try {
+		ip::file_lock flock( filename_.c_str() );
 
-    try {
-        if( wait ) {
-            flock.lock_sharable();
-        }else {
-            if( ! flock.try_lock_sharable() )
-                wasLocked = true;
-            }
-        }
-    catch( const ip::interprocess_exception &ex ) {
-        fd.close();
-        cerr << "FileLockHelper::read: lock failed '" << filename_
-             << "'. Reason: " << ex.what() << endl;
-        return false;
-    }
+		try {
+			if( wait ) {
+				flock.lock_sharable();
+			}else {
+				if( ! flock.try_lock_sharable() )
+					wasLocked = true;
+			}
+		}
+		catch( const ip::interprocess_exception &ex ) {
+			fd.close();
+			//        cerr << "FileLockHelper::read: lock failed '" << filename_
+			//             << "'. Reason: " << ex.what() << endl;
+			return false;
+		}
+		catch( ... ) {
+			fd.close();
+			return false;
+		}
 
-    if( wasLocked ) {
-        cerr << "FileLockHelper::read: Cant lock '" << filename_
-             << "'. Already locked." <<  endl;
+		if( wasLocked ) {
+			//        cerr << "FileLockHelper::read: Cant lock '" << filename_
+			//             << "'. Already locked." <<  endl;
 
-        fd.close();
-        return false;
-    }
+			fd.close();
+			return false;
+		}
 
-    fd.seekg (0, fd.end);
-    n = fd.tellg();
-    fd.seekg (0, fd.beg);
+		fd.seekg (0, fd.end);
+		n = fd.tellg();
 
-    char *tmp = new char [n+1];
+		if( n < 0 ) {
+			fd.close();
+			return false;
+		}
 
-    std::cout << "FileLockHelper::read: Reading " << n << " characters from file '"
-              << filename_ << "'." <<endl;
+		fd.seekg (0, fd.beg);
 
-    fd.read( tmp, n );
-    tmp[n]='\0';
+		try {
+			tmp = new char [n+2];
+		}
+		catch( ... ) {
+			tmp = 0;
+		}
 
-    buf = tmp;
-    delete[] tmp;
+		if( !tmp ) {
+			fd.close();
+			return false;
+		}
 
-    try {
-        flock.unlock_sharable();
-    }
-    catch( const ip::interprocess_exception &ex ) {
-        cerr << "FileLockHelper::read: unlock failed '" << filename_
-             << "'. Reason: " << ex.what() << endl;
-    }
+		//    cerr << "FileLockHelper::read: Reading " << n << " characters from file '"
+		//              << filename_ << "'." <<endl;
 
+		fd.read( tmp, n );
+		tmp[n]='\0';
 
-    return true;
+		buf = tmp;
+		delete[] tmp;
+
+		try {
+			flock.unlock_sharable();
+		}
+		catch( const ip::interprocess_exception &ex ) {
+			//        cerr << "FileLockHelper::read: unlock failed '" << filename_
+			//             << "'. Reason: " << ex.what() << endl;
+		}
+	}
+	catch( ... ) {
+		if( fd.is_open() )
+			fd.close();
+		return false;
+	}
+
+	return true;
 }
 
 
