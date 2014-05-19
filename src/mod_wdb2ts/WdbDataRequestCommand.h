@@ -49,8 +49,8 @@ class WdbDataRequestCommand {
 	WciConnectionPtr connection_;
 	const webfw::RequestHandler *reqHandler;
 	std::string query_;
-	const ParamDefList &paramDefs;
-	const ProviderList  &providerPriority;
+	const ParamDefList paramDefs;
+	const ProviderList  providerPriority;
 	PtrProviderRefTimes refTimes;
 	const int wciProtocol;
 	bool isPolygon;

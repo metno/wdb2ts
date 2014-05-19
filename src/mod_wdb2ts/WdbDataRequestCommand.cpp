@@ -67,8 +67,8 @@ public:
 	void clear() { data.clear(); }
 
 	void doRead( pqxx::result &result ) {
-		miutil::container::PqContainer container( result );
-		decodePData( paramDefs, providerPriority, *refTimes, container, isPolygon, data, wciProtocol );
+		//miutil::container::PqContainer container( result );
+		decodePData( paramDefs, providerPriority, *refTimes, result, isPolygon, data, wciProtocol );
 	}
 };
 

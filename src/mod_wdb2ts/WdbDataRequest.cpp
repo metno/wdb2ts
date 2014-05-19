@@ -49,13 +49,17 @@ operator()()
       //NOOP. No exceptions is allowed to escape.
    }
 
-   readyQueue.push( id );
+   readyQueue->push( id );
 }
 
 WdbDataRequestManager::
 WdbDataRequestManager()
 : nParalell(1), nextThreadId( 0 )
 {
+	try {
+		readyQueue.reset( new miutil::queuemt<int>() );
+	}
+	catch( ... ){}
 }
 
 /**
@@ -121,6 +125,7 @@ populateThreadInfos( const std::string &wdbidDefault,
                                                 mustHaveData,
                                                 stopIfQueryHasData )
          );
+
          threadInfos.push_back( threadInfo );
       }
    }
@@ -168,8 +173,8 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 									mustHaveData,
 									stopIfQueryHasData )
 			);
-			threadInfos.push_back( threadInfo );
 
+			threadInfos.push_back( threadInfo );
 		}
 	}
 }
@@ -243,9 +248,9 @@ waitForCompleted( int waitForAtLeast )
    while( ! runningThreads.empty() ) {
       if( waitForAtLeast==0
             || ( waitForAtLeast > 0 && n<waitForAtLeast ) ) {
-         readyQueue.waitAndPop( tid );
+         readyQueue->waitAndPop( tid );
       }else {
-         if( ! readyQueue.tryPop( tid ) )
+         if( ! readyQueue->tryPop( tid ) )
             return n;
       }
 
@@ -280,6 +285,12 @@ runRequests( Wdb2TsApp &app )
    time_t waitUntil;
    time_t now;
    time_t prevTime;
+
+
+   if( ! readyQueue ) {
+       WEBFW_LOG_ERROR("runRequests: No memory to run the requests." );
+       throw ResourceLimit("No memory to run the request.");
+   }
 
    try {
       while( nextToStart != threadInfos.end() && !stop) {
