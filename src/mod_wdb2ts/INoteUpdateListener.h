@@ -1,6 +1,8 @@
 #ifndef __INOTEUPDATELISTENER_H__
 #define __INOTEUPDATELISTENER_H__
 
+#include <NoteTag.h>
+
 namespace wdb2ts {
 
 class INoteUpdateListener
