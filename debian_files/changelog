@@ -1,3 +1,12 @@
+metno-wdb2ts (1.3.6-1) unstable; urgency=low
+  * New RC.
+  * Performance: Revert to old db wrapper.
+  * Fix: Segfault under heavy load in db request threads.
+  * Fix: Segfault when duplicate versions is defined for a path.
+  * Fix: some potential error when "note" files is deleted whitout stopping wdb2ts.
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 19 May 2014 18:30:00 +0200
+
 metno-wdb2ts (1.3.5-1) unstable; urgency=low
   * New RC.
   * Use iso times in the status response.
