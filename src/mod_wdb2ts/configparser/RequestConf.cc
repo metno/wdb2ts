@@ -244,14 +244,18 @@ bool
 Version::
 operator<( const Version &rhs )
 {
-	if( (majorVer==-1 && minorVer==-1) ||
-		 (majorVer==0 && minorVer==0)      )
-		return false;
+	int major =  majorVer;
+	int minor = minorVer;
+
+	if( majorVer==-1 && minorVer==-1 ) {
+		 major = 0;
+		 minor = 0;
+	}
 	
-	if( majorVer < rhs.majorVer)
+	if( major < rhs.majorVer)
 		return true;
 	
-	if( majorVer == rhs.majorVer && minorVer < rhs.minorVer )
+	if( major == rhs.majorVer && minor < rhs.minorVer )
 		return true;
 	
 	return false;
@@ -407,9 +411,9 @@ resolve( )
 	}
 	
 	if( requestDefault.version.defaultVersionHighest() ) {
-		RequestVersions::reverse_iterator it=requestVersions.rbegin();
+		RequestVersions::iterator it=requestVersions.begin();
 		
-		if( it != requestVersions.rend() )
+		if( it != requestVersions.end() )
 			requestDefault.version = (*it)->version;
 		else 
 			requestDefault.version = Version();
