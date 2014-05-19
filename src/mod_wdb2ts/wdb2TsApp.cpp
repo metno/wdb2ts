@@ -230,9 +230,17 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			logprefix += "_" + (*itVer)->version.asString();
 			toConfigure->setLogprefix( logprefix );
 
-			toConfigure->doConfigure( *itVer, query );
+			if( ! reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() ) ) {
+				log.str("");
+				log << "Failed to add request handler: '" << it->second->path.asString()
+					<< "' <" << (*itVer)->action.asString() << "> version: "
+					<< (*itVer)->version << ".";
+				logger.error( log.str() );
+				delete handler;
+				continue;
+			}
 
-			reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() );
+			toConfigure->doConfigure( *itVer, query );
 		}
 		
 		if( ! it->second->requestDefault.version.invalid() ) {
@@ -242,10 +250,13 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			    << ver;
 			
 			if( ver.majorVer>=0 && ver.minorVer>=0 ) {
-				reqHandlerMgr.setDefaultRequestHandler( it->second->path.asString(),
-						                                  ver.majorVer, ver.minorVer  );
+				if( ! reqHandlerMgr.setDefaultRequestHandler( it->second->path.asString(),
+						                                       ver.majorVer, ver.minorVer  ) ) {
+					log << " Failed!";
+				}
 			}
 			
+			logger.info( log.str() );
 		}
 	}
 }
