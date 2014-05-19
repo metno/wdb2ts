@@ -33,6 +33,10 @@ bool
 renamefileImpl( const std::string &from, const std::string &to )
 {
     boost::system::error_code ec;
+
+    if( from.empty() || to.empty() )
+    	return false;
+
     fs::rename( from, to, ec);
 
     return ec.value() == s::errc::success;
@@ -42,6 +46,10 @@ bool
 removefileImpl( const std::string &path )
 {
     boost::system::error_code ec;
+
+    if( path.empty() )
+    	return false;
+
     fs::remove( path.c_str(), ec);
 
     return ec.value() == s::errc::success;
@@ -61,6 +69,9 @@ bool
 setmtimeImpl( const std::string &file,
               const boost::posix_time::ptime &newModificationTime )
 {
+	if( newModificationTime.is_special() )
+		return false;
+
     try {
         boost::system::error_code ec;
         time_t t = miutil::to_time_t( newModificationTime );
@@ -70,6 +81,9 @@ setmtimeImpl( const std::string &file,
     }
     catch( const std::range_error &er ) {
         return false;
+    }
+    catch( ... ) {
+    	return false;
     }
 }
 
