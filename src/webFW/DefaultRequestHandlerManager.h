@@ -28,6 +28,7 @@
 #ifndef __TESTREQUESTHANDLERMANAGER_H__
 #define __TESTREQUESTHANDLERMANAGER_H__
 
+#include <boost/thread.hpp>
 #include <string>
 #include <map>
 #include <set>
@@ -57,7 +58,8 @@ class DefaultRequestHandlerManager : public RequestHandlerManager
    };
 
 
-   miutil::thread::RWMutex rwMutex;   
+   //miutil::thread::RWMutex rwMutex;
+   boost::mutex mutex;
    std::map<std::string, std::map<Version, RequestHandlerPtr> > handlers;  
 
    protected:
@@ -67,13 +69,13 @@ class DefaultRequestHandlerManager : public RequestHandlerManager
    public:
       DefaultRequestHandlerManager();
    
-      void addRequestHandler( RequestHandler *reqHandler,
+      bool addRequestHandler( RequestHandler *reqHandler,
                               const std::string &path );
       
       
-      void removeRequestHandler( const std::string &path, int major, int minor );
+      bool removeRequestHandler( const std::string &path, int major, int minor );
       
-      void setDefaultRequestHandler( const std::string &path, int major, int minor );
+      bool setDefaultRequestHandler( const std::string &path, int major, int minor );
 };
 
 }

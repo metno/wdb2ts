@@ -112,11 +112,13 @@ findRequestHandlerPathImpl( const std::string &path,
    	}
    }
 #endif
-   
+  // miutil::thread::RWReadLock lock( rwMutex );
+   boost::mutex::scoped_lock lock( mutex );
    std::map<std::string, std::map<Version, RequestHandlerPtr> >::iterator it = handlers.find( path );
   
-   if( it == handlers.end() )
+   if( it == handlers.end() ) {
       return RequestHandlerPtr();
+   }
     
    std::map<Version, RequestHandlerPtr>::iterator hit = it->second.find( Version( major, minor ) ); 
    
@@ -126,7 +128,7 @@ findRequestHandlerPathImpl( const std::string &path,
    return RequestHandlerPtr();            
 }      
 
-void 
+bool
 webfw::
 DefaultRequestHandlerManager::
 addRequestHandler( RequestHandler *reqHandler,
@@ -135,23 +137,30 @@ addRequestHandler( RequestHandler *reqHandler,
    int major, minor;
    
    reqHandler->version( major, minor );
-   miutil::thread::RWWriteLock lock( rwMutex );
+   //miutil::thread::RWWriteLock lock( rwMutex );
+   boost::mutex::scoped_lock lock( mutex );
+   std::map<Version, RequestHandlerPtr>::iterator it;
+   it = handlers[path].find( Version( major, minor ) );
    
-   
+   if( it != handlers[path].end() ) {
+	   return false;
+   }
+
    handlers[path][ Version( major, minor ) ] = RequestHandlerPtr( reqHandler );
+   return true;
 }
       
-void 
+bool
 webfw::
 DefaultRequestHandlerManager::
 removeRequestHandler( const std::string &path, int major, int minor)
 {
-   miutil::thread::RWWriteLock lock( rwMutex );
- 
+   //miutil::thread::RWWriteLock lock( rwMutex );
+	boost::mutex::scoped_lock lock( mutex );
    std::map<std::string, std::map<Version, RequestHandlerPtr> >::iterator it = handlers.find( path );
   
    if( it == handlers.end() )
-      return;
+      return false;
 
    std::map<Version, RequestHandlerPtr>::iterator hit = it->second.find( Version( major, minor ) ); 
    
@@ -175,25 +184,42 @@ removeRequestHandler( const std::string &path, int major, int minor)
       } 
       
       it->second.erase( hit );
+      return true;
    }
+
+   return false;
 }
  
       
-void 
+bool
 webfw::
 DefaultRequestHandlerManager::
 setDefaultRequestHandler( const std::string &path, int major, int minor )
 {
-   miutil::thread::RWWriteLock lock( rwMutex );
-   
+   //miutil::thread::RWWriteLock lock( rwMutex );
+
    RequestHandlerPtr reqHandler = findRequestHandlerPathImpl( path, major, minor );
    
    if( ! reqHandler ) {
       ostringstream ost;
       ost << path << " ( " << major << " , " << minor << " )";
-      throw NotFound( ost.str() );
+      cerr << "RequestHandler: '"<< path << " verions " << major << "." << minor
+    	   << " do not exist.\n";
+
+      return false;
    }
    
+   boost::mutex::scoped_lock lock( mutex );
+   std::map<Version, RequestHandlerPtr>::iterator it;
+   it = handlers[path].find( Version( 0, 0 ) );
+
+
+   if( it != handlers[path].end() ) {
+
+	   return false;
+   }
+
    handlers[path][ Version( 0, 0 ) ] = reqHandler;
+   return true;
 }
 
