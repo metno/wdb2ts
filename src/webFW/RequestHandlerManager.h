@@ -73,20 +73,20 @@ class RequestHandlerManager
       /**
        * @exceptions webfw::ResourceError
        */      
-      virtual void addRequestHandler( RequestHandler *reqHandler,
+      virtual bool addRequestHandler( RequestHandler *reqHandler,
                                       const std::string &path )=0;
       
       
       /**
        * @exceptions webfw::ResourceError
        */                       
-      virtual void removeRequestHandler( const std::string &path, int major, int minor )=0;
+      virtual bool removeRequestHandler( const std::string &path, int major, int minor )=0;
            
       
       /**
        * @exceptions webfw::ResourceError, miServerPage::NotFound
        */
-      virtual void setDefaultRequestHandler( const std::string &path, int major, int minor )=0;
+      virtual bool setDefaultRequestHandler( const std::string &path, int major, int minor )=0;
 
       /**
        * Search for a request handler given a path. 
