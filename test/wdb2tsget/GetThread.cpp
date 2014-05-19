@@ -131,6 +131,17 @@ operator()()
 
 				}
 			} else {
+				ostringstream fname;
+				ofstream f;
+
+				fname << "tmp/base-" << id << "-" << nRuns << ".txt";
+				f.open( fname.str().c_str() );
+
+				if( f ) {
+					f << path << endl << result << endl;
+					f.close();
+				}
+
 				crcResults[ request ] = crcValue;
 			}
 					
