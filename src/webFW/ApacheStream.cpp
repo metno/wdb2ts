@@ -26,7 +26,7 @@
     MA  02110-1301, USA
 */
 #include <stdio.h>
-//#include <unistd.h>
+#include <unistd.h>
 #include <iostream>
 #include <ApacheStream.h>
 #include <apr_file_io.h>
