@@ -1,4 +1,5 @@
-noinst_PROGRAMS += shape2wdb2ts wdb2cvs wdb2symbols
+noinst_PROGRAMS += shape2wdb2ts 
+#wdb2symbols wdb2cvs 
 noinst_LTLIBRARIES += libminimal.la
 
 libminimal_la_SOURCES= \
@@ -26,21 +27,21 @@ libminimal_la_LIBADD=
 shape2wdb2ts_SOURCES = src/util/shape2wdb2ts.cpp 
 shape2wdb2ts_LDFLAGS= -lmiutil 
 
-wdb2cvs_SOURCES = \
-	src/util/wdb2cvs.cpp 
-#wdb2cvs_la_LDFLAGS =
-wdb2cvs_LDADD = libtuplecontainer.la libwdb2tsconfigparser.la   libminimal.la libWciWebQuery.la  libmiutil.la
+#wdb2cvs_SOURCES = \
+#	src/util/wdb2cvs.cpp 
+##wdb2cvs_la_LDFLAGS =
+#wdb2cvs_LDADD = libtuplecontainer.la libwdb2tsconfigparser.la   libminimal.la libWciWebQuery.la  libmiutil.la
 
-wdb2symbols_SOURCES = src/util/wdb2symbols.cpp
-wdb2symbols_LDADD = libtuplecontainer.la \
-                    libwdb2tsconfigparser.la \
-                    libWciWebQuery.la \
-                    libXML_locationforecast.la \
-                    libminimal.la \
-                    libwebFW.la \
-                    libmiutil.la \
-                    $(pumet_LIBS)\
-                    $(milib_LIBS)
+#wdb2symbols_SOURCES = src/util/wdb2symbols.cpp
+#wdb2symbols_LDADD = libtuplecontainer.la \
+#                    libwdb2tsconfigparser.la \
+#                    libWciWebQuery.la \
+#                    libXML_locationforecast.la \
+#                    libminimal.la \
+#                    libwebFW.la \
+#                    libmiutil.la \
+#                    $(pumet_LIBS)\
+#                    $(milib_LIBS)
                     
 EXTRA_DIST+= src/util/wdb2ts.mk   \
 			 src/util/Makefile.am \
