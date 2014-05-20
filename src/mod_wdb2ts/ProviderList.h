@@ -150,6 +150,7 @@ public:
 	std::list<std::string> providerWithoutPlacename() const;
 };
 
+typedef boost::shared_ptr<ProviderList> ProviderListPtr;
 
 ProviderList
 providerListFromConfig( const wdb2ts::config::ActionParam &params );
