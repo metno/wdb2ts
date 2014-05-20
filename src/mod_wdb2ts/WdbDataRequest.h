@@ -98,12 +98,12 @@ class WdbDataRequestManager {
 
    void
    populateThreadInfos( const std::string &wdbid,
-                        const ParamDefList &paramDefs,
+                        ParamDefListPtr paramDefs,
                         const LocationPointList &locationPoints,
                         const boost::posix_time::ptime &toTime,
                         bool isPloygon,
                         PtrProviderRefTimes refTimes,
-                        const ProviderList  &providerPriority,
+                        ProviderListPtr  providerPriority,
                         const wdb2ts::config::Config::Query &urlQuerys,
                         int wciProtocol );
 

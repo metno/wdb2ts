@@ -85,7 +85,7 @@ operator()()
 	//Register the requesthandler in this thread.
 	WEBFW_USE_LOGGER_REQUESTHANDLER( "wdb", reqHandler );
 	try {
-		ReadHelper	readHelper( *data_, query_, paramDefs, providerPriority,
+		ReadHelper	readHelper( *data_, query_, *paramDefs, *providerPriority,
 								refTimes, wciProtocol, isPolygon );
 
 		WciRead transactor( &readHelper );
