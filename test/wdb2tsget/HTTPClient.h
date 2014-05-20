@@ -48,7 +48,6 @@ public:
 	 */
 	std::ostream *outStream(){ return out; }
 	
-	
 	/**
 	 * Initalize the library.
 	 * In threaded application this must be called before any other

@@ -35,7 +35,6 @@ size_t write_function( void *ptr, size_t size, size_t nmemb, void *stream);
 }
 
 namespace miutil {
-
 using namespace std;
 
 HTTPClient::
