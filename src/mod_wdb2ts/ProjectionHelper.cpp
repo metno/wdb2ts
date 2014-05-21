@@ -1159,6 +1159,12 @@ convertToDirectionAndLength( const MiProjection &srcProj,
 	if( u == HUGE_VAL || v == HUGE_VAL )
 		return false;
 
+	if( u == 0 && v == 0 ) {
+		direction = 0;
+		length = 0;
+		return true;
+	}
+
 	if( loglevel >= log4cpp::Priority::DEBUG )
 		log << " MiProjection::convertToDirectionAndLength IN: u: " << u << " v: " << v << endl;
 
@@ -1626,6 +1632,13 @@ operator<<(std::ostream &o, const MiProjection &proj )
 {
 	string grid;
 
+	if( proj.gridType == MiProjection::undefined_projection ) {
+		if( ! proj.proj )
+			o << "MiProjection[] proj: 'undefined'";
+		o << "MiProjection[] proj: '" << proj.projString << "'";
+		return o;
+	}
+
 	switch( proj.gridType ) {
 	case MiProjection::undefined_projection:  grid="undefined_projection"; break;
 	case MiProjection::polarstereographic_60: grid="polarstereographic_60"; break;
@@ -1637,6 +1650,7 @@ operator<<(std::ostream &o, const MiProjection &proj )
 	default:
 		grid="UNKNOWN grid type"; break;
 	}
+
 
 	o << "MiProjection[" << grid << "," 
 	  << proj.gridSpec[0] << ","
