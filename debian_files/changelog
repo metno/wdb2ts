@@ -1,3 +1,9 @@
+metno-wdb2ts (1.3.7-2) unstable; urgency=low
+  * New RC.
+  * Relink against new version weather_symbol, New limits maxPrecipitation.
+      
+ -- Borge Moe <borge.moe@met.no>  Thu, 22 May 2014 14:00:00 +0200
+
 metno-wdb2ts (1.3.7-1) unstable; urgency=low
   * New RC.
   * Fix reprojection of vector fields when U=0 and V=0.
