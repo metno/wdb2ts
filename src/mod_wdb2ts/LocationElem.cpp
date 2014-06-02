@@ -1728,9 +1728,9 @@ modeltopography( const std::string &provider_ )const
 
 				if( it3 == it2->second.end() ) {
 					if( provider_ != provider ) {
-						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+						WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
 					}else {
-						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+						WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<">." );
 					}
 
 					return INT_MIN;
@@ -1741,9 +1741,9 @@ modeltopography( const std::string &provider_ )const
 			}
 		} else {
 			if( provider_ != provider ) {
-				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+				WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
 			}else {
-				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+				WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<">." );
 			}
 
 			return INT_MIN;
@@ -1822,7 +1822,7 @@ topography( const std::string &provider_ )const
 					break;
 			}
 		} else {
-			WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
+			WEBFW_LOG_INFO( "topography: No topo data for provider <" << provider_ <<">." );
 
 			return INT_MIN;
 		}
