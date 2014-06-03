@@ -220,9 +220,9 @@ output( std::ostream &out, const std::string &indent )
 			}
 		}
 
-		dewpoint = pd->dewPointTemperature();
+		dewpoint = pd->dewPointTemperature( true );
 
-		value = pd->RH2M( );
+		value = pd->RH2M( true );
 
 		if( value == FLT_MAX && dewpoint != FLT_MAX) {
 		   if( dewpoint != FLT_MAX )
@@ -234,13 +234,13 @@ output( std::ostream &out, const std::string &indent )
 			nForecast++;
 		}
 
-		value = pd->PR( );
+		value = pd->PR( true );
 		if( value != FLT_MAX ) {
 			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
 			nForecast++;
 		}
 	
-		value = pd->NN(  );
+		value = pd->NN(  true );
 		if( value != FLT_MAX ) {
 			symData->totalCloudCover = value;
 			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
@@ -296,7 +296,7 @@ output( std::ostream &out, const std::string &indent )
 
 		   if( myDewPoint == FLT_MAX ){
 		       //myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
-			   myDewPoint = miutil::dewPointTemperature( tempUsed, pd->RH2M() );
+			   myDewPoint = miutil::dewPointTemperature( tempUsed, pd->RH2M( true ) );
 		   }
 
 		   if( myDewPoint != FLT_MAX )
