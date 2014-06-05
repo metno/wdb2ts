@@ -32,7 +32,7 @@
 #include <Logger4cpp.h>
 #include <transactor/LocationPointRead.h>
 #include <wciHelper.h>
-
+#include <PqTupleContainer.h>
 
 using namespace std;
 
@@ -130,7 +130,8 @@ operator () ( argument_type &t )
 		WEBFW_LOG_DEBUG( "LocationPointRead: transactor: SQL ["	<< q.str() << "]" );
 		pqxx::result  res = t.exec( q.str() );
 
-		decodePData( paramDefs_, providers_, refTimeList_, wciProtocol_, res, false, *locationPointData_ );
+		//miutil::container::PqContainer container( res );
+		decodePData( paramDefs_, providers_, refTimeList_, res, false, *locationPointData_, wciProtocol_ );
 	}
 }
 

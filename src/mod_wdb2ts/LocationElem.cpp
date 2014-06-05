@@ -35,6 +35,7 @@
 #include <LocationElem.h>
 #include <Logger4cpp.h>
 
+
 namespace {
    float sumVector( const std::vector<float> &v ) {
       float sum=0.0;
@@ -107,6 +108,7 @@ LocationElem():
    modeltopoSearched(false),
    config( new ConfigData() )
 {
+	itProviderPriorityBegin = providerPriority.begin();
 }
 
 LocationElem::
@@ -129,7 +131,7 @@ LocationElem( const ProviderList &providerPriority_,
      height_( hight ), topoHeight_( INT_MIN ), modeltopoSearched( false ),
      config( new ConfigData() )
 {
-	
+	itProviderPriorityBegin = providerPriority.begin();
 }
 
 void
@@ -140,9 +142,29 @@ init( ITimeSerie itTimeSerie, TimeSerie *timeSerie )
 	this->timeSerie = timeSerie;
 	
 	lastUsedProvider_.erase();
+
+
 	//forecastProvider.erase();
    //percentileProvider.erase();
 	//precipRefTime = ptime();
+}
+
+bool
+LocationElem::
+startAtProvider( const std::string &providerWithPlacename )
+{
+	if( providerWithPlacename.empty() ) {
+		itProviderPriorityBegin = providerPriority.begin();
+	} else {
+		itProviderPriorityBegin = providerPriority.findProvider( providerWithPlacename );
+
+		if( itProviderPriorityBegin == providerPriority.end() ) {
+			itProviderPriorityBegin = providerPriority.begin();
+			return false;
+		}
+	}
+
+	return true;
 }
 
 const double HEIGHT_CORRECTION_PER_METER = 0.006;
@@ -299,12 +321,12 @@ temperatureCorrected( bool tryHard )const
 
 void
 LocationElem::
-temperatureCorrected( float temperature, const std::string &provider_ )
+temperatureCorrected( float temperature, const std::string &provider_, bool all )
 {
 	string provider(provider_);
 	WEBFW_USE_LOGGER( "encode" );
 
-	if( provider.empty() ) {
+	if( provider.empty() && ! all ) {
 		if( forecastProvider.empty() )
 			return;
 		else
@@ -316,24 +338,40 @@ temperatureCorrected( float temperature, const std::string &provider_ )
 	if( itFrom == itTimeSerie->second.end() )
 		return;
 
-	ProviderPDataList::iterator itProvider = itFrom->second.find( provider );
+	if( all ) {
+		for( ProviderPDataList::iterator itProvider = itFrom->second.begin();
+			itProvider !=  itFrom->second.end() ; ++itProvider )
+		{
 
-	if( itProvider == itFrom->second.end() )
-		return;
+			if( itProvider->second.temperatureCorrected == FLT_MAX ) {
+				WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected (all): Set to: " << temperature << " '" << itProvider->first << "'.'");
+				itProvider->second.temperatureCorrected = temperature;
+			}
+		}
+	} else {
+		ProviderPDataList::iterator itProvider = itFrom->second.find( provider );
 
-	WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
-	itProvider->second.temperatureCorrected = temperature;
+		if( itProvider == itFrom->second.end() )
+			return;
+
+		WEBFW_LOG_DEBUG( "LocationElem::temperaturCorrected: Set to: " << temperature << " '" << provider << "'.'");
+		itProvider->second.temperatureCorrected = temperature;
+	}
 }
 
 float
 LocationElem::
 wetBulbTemperature( bool tryHard )const
 {
-   WEBFW_USE_LOGGER( "main" );
-   //WEBFW_USE_LOGGER( "+wetbulb" );
+   //WEBFW_USE_LOGGER( "main" );
+   WEBFW_USE_LOGGER( "+wetbulb" );
+   log4cpp::Priority::Value logLevel=WEBFW_GET_LOGLEVEL();
+   bool doLog = logLevel >= log4cpp::Priority::DEBUG;
 
-   if( config && !config->outputParam("symbol:T.WB") )
+   if( config && !config->outputParam("symbol:T.WB") ) {
+	   WEBFW_LOG_INFO("WetBulb is not configured to be used.");
       return FLT_MAX;
+   }
 
    float tUhc; //Model temperature without height correction.
    float tHc;  //Model temperature with height correction.
@@ -349,7 +387,7 @@ wetBulbTemperature( bool tryHard )const
        h == INT_MIN || h == INT_MAX ) {
       ostringstream ost;
 
-      ost << "wetBulbTemperature: MISSING data for parameter(s): ";
+      ost << "t: " << time() << " MISSING data for parameter(s): ";
       if( tUhc == FLT_MAX )
          ost << "tUhc";
       if( tHc == FLT_MAX )
@@ -364,25 +402,30 @@ wetBulbTemperature( bool tryHard )const
       return FLT_MAX;
    }
 
-   ostringstream ost;
-   ost << "wetBulbTemperature: h: " << h  << " RH: " << rh
-       << " T.UHC: " << tUhc
-       << " T.HC: " << tHc;
-
    float e = (rh/100)*0.611*exp( (17.63 * tUhc) / (tUhc + 243.04) );
    float td = (116.9 + 243.04 * log( e ))/(16.78-log( e ));
    float gamma = 0.00066*101300*exp(-1.21e-4*h)*0.001;
    float rho = (4098*e)/pow(td+243.04, 2);
    float tw = (gamma*tHc+rho*td)/(gamma+rho);
+   float prevTw = tw;
 
-   if( tw > tHc) {
-      ost << " [T.WB: " << tw <<" > T.HC: "<< tHc << " => T.WB=T.HC]";
+   if( tw > tHc)
       tw = tHc;
+
+   if( doLog ) {
+	   ostringstream ost;
+
+	   ost << "t: " << this->time() << " h: " << h  << " RH: " << rh
+		   << " T.UHC: " << tUhc
+	       << " T.HC: " << tHc;
+
+	   if( prevTw != tw )
+		   ost << " T.WB: " << prevTw <<" [T.WB: " << tw <<" > T.HC: "<< tHc << " => T.WB=T.HC]";
+	   else
+		   ost << " T.WB: " << tw;
+
+	   WEBFW_LOG_DEBUG( ost.str() );
    }
-
-   ost << " T.WB: " << tw;
-
-   WEBFW_LOG_DEBUG( ost.str() );
 
    return tw;
 }
@@ -1257,11 +1300,25 @@ PRECIP_PROBABILITY_5_0_MM( int hoursBack, bool tryHard)const
 float 
 LocationElem::
 symbol_PROBABILITY( boost::posix_time::ptime &fromTime,bool tryHard )const
-{                                   
-	return   getValue( &PData::symbol_PROBABILITY,
-			             itTimeSerie->second,
-			             fromTime,
-			             const_cast<string&>(symbolProvider), FLT_MAX, tryHard );	
+{
+	string provider(symbolProbabilityProvider);
+
+	if( provider.empty() ) {
+		if( ! symbolProvider.empty() )
+			provider = symbolProvider;
+		else
+			provider = forecastProvider;
+	}
+
+	float p = getValue( &PData::symbol_PROBABILITY,
+			            itTimeSerie->second,
+			            fromTime,
+			            provider, FLT_MAX, tryHard );
+
+	if( p != FLT_MAX )
+		const_cast<string&>( symbolProbabilityProvider ) = provider;
+
+	return p;
 }
 
 int   
@@ -1671,9 +1728,9 @@ modeltopography( const std::string &provider_ )const
 
 				if( it3 == it2->second.end() ) {
 					if( provider_ != provider ) {
-						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+						WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
 					}else {
-						WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+						WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<">." );
 					}
 
 					return INT_MIN;
@@ -1684,9 +1741,9 @@ modeltopography( const std::string &provider_ )const
 			}
 		} else {
 			if( provider_ != provider ) {
-				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
+				WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<"> with alias <" <<  provider << ">" );
 			}else {
-				WEBFW_LOG_WARN( "modeltopography: No topo data for provider <" << provider_ <<">." );
+				WEBFW_LOG_INFO( "modeltopography: No topo data for provider <" << provider_ <<">." );
 			}
 
 			return INT_MIN;
@@ -1765,7 +1822,7 @@ topography( const std::string &provider_ )const
 					break;
 			}
 		} else {
-			WEBFW_LOG_WARN( "topography: No topo data for provider <" << provider_ <<">." );
+			WEBFW_LOG_INFO( "topography: No topo data for provider <" << provider_ <<">." );
 
 			return INT_MIN;
 		}

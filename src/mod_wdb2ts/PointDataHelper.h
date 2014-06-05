@@ -34,13 +34,12 @@
 #include <string>
 #include <string>
 #include <ostream>
-#include <pqxx/pqxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/shared_ptr.hpp>
 #include <ParamDef.h>
-//#include <ProviderList.h>
-#include <UpdateProviderReftimes.h>
+#include <ProviderReftimes.h>
 #include <LocationPoint.h>
+#include <ITupleContainer.h>
 
 namespace wdb2ts {
 
@@ -316,7 +315,7 @@ struct PData{
       return *this;
    }
 
-   void print( std::ostream &o )const;
+   void print( std::ostream &o, const std::string &space="" )const;
    void merge( const PData &other );
    int count()const;
 };
@@ -354,6 +353,10 @@ typedef boost::shared_ptr<TimeSerie> TimeSeriePtr;
 typedef std::map<LocationPoint, TimeSeriePtr> LocationPointData;
 typedef boost::shared_ptr<LocationPointData> LocationPointDataPtr;
 
+std::ostream&
+operator<<(std::ostream &o, const TimeSerie &ts );
+
+
 std::string
 toBeaufort( float mps, std::string &description );
 
@@ -364,14 +367,27 @@ std::string
 symbolidToName( int id );
 
 
+
 void 
 decodePData( const ParamDefList &paramDefs,
 		     const ProviderList &providers,
 		     const ProviderRefTimeList &refTimeList,
-		     int   protocol,
 		     const pqxx::result &result,
 		     const bool isPolygonRequest,
-		     LocationPointData &timeSerie );
+		     LocationPointData &timeSerie,
+		     int   protocol = 3);
+
+
+#if 0
+void
+decodePData( const ParamDefList &paramDefs,
+		     const ProviderList &providers,
+		     const ProviderRefTimeList &refTimeList,
+		     const miutil::container::ITupleContainer &result,
+		     const bool isPolygonRequest,
+		     LocationPointData &timeSerie,
+		     int   protocol = 3);
+#endif
 
 }
 

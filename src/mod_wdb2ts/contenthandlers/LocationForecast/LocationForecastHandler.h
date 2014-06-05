@@ -37,10 +37,10 @@
 #include <UpdateProviderReftimes.h>
 #include <INoteUpdateListener.h>
 #include <LocationData.h>
-#include <SymbolConf.h>
+#include <SymbolConfConfigure.h>
 #include <SymbolGenerator.h>
 #include <MetaModelConf.h>
-#include <ProjectionHelper.h>
+#include <ProjectionHelperConfigure.h>
 #include <PrecipitationConfig.h>
 #include <TopoProvider.h>
 #include <NearestHeight.h>
@@ -104,12 +104,21 @@ public:
 	virtual void noteUpdated( const std::string &noteName, 
                              boost::shared_ptr<NoteTag> note );
 	
+	///Overide INoteUpdateListener::noteListenerId
+	virtual std::string noteListenerId();
+
+	void doStatus( Wdb2TsApp *app,
+				   webfw::Response &response, ConfigDataPtr config,
+				   PtrProviderRefTimes refTimes, const ProviderList &providerList,
+				   ParamDefListPtr paramdef );
+
 private:
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;
 	int                 subversion;
 	std::string         wdbDB;
+	bool                noteIsUpdated;
    //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;
    wdb2ts::config::ActionParam actionParams;

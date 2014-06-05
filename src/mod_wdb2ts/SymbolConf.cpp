@@ -111,6 +111,7 @@ parse( const std::string &buf_, SymbolConfList &conf )
       
       vector<string> vals=miutil::splitstr(buf, ',');
    
+      precipHours = INT_MAX;
       if ( vals.size() == 3 ) {
          miutil::trimstr(vals[0]);
          miutil::trimstr(vals[1]);
@@ -153,6 +154,57 @@ parse( const std::string &buf_, SymbolConfList &conf )
    return true;
 }
 
+
+SymbolConfProvider::
+SymbolConfProvider()
+	: maxHours_( 0 )
+{
+}
+
+SymbolConfList
+SymbolConfProvider::
+get( const std::string &provider )const
+{
+	const_iterator it = find( provider );
+
+	if( it != end() )
+		return it->second;
+
+	ProviderItem item( ProviderItem::decode( provider ) );
+	it = find( item.provider );
+
+	if( it != end() ) {
+		const_cast<SymbolConfProvider&>(*this)[provider] = it->second;
+		return it->second;
+	}
+
+	const_cast<SymbolConfProvider&>(*this)[provider] = defaultConf;
+
+	return const_cast<SymbolConfProvider&>(*this)[provider];
+}
+
+void
+SymbolConfProvider::
+add( const std::string &provider, const SymbolConfList &conf )
+{
+	int h;
+	for( SymbolConfList::const_iterator it = conf.begin();
+		 it != conf.end(); ++it ) {
+		h=0;
+		if( it->min() != INT_MAX && it->max() != INT_MAX ) {
+			h = it->min() + it->max();
+			if( h == 0 ) h=1;
+		} else if( it->precipHours() != INT_MAX ) {
+			h = it->precipHours();
+		}
+
+		if( h > maxHours_ )
+			maxHours_ = h;
+	}
+
+	(*this)[provider] = conf;
+}
+
 void
 configureSymbolconf( const wdb2ts::config::ActionParam &params, 
 		               SymbolConfProvider &symbolConfProvider )
@@ -177,95 +229,15 @@ configureSymbolconf( const wdb2ts::config::ActionParam &params,
 			ProviderItem pi = ProviderList::decodeItem( provider );
 			
 			if( SymbolConf::parse(it->second.asString(), symList ) )
-				symbolConfProvider[ pi.providerWithPlacename() ] = symList;
+				symbolConfProvider.add( pi.providerWithPlacename(), symList );
 		}
 	}
 }
-
-SymbolConfProvider
-symbolConfProviderSetPlacename( const SymbolConfProvider &symbolConfProvider, 
-		                          WciConnectionPtr wciConnection )
+std::ostream&
+operator<<( std::ostream &ost, const SymbolConf &conf )
 {
-	WEBFW_USE_LOGGER( "handler" );
-
-	SymbolConfProvider resList;
-		
-	for( SymbolConfProvider::const_iterator it=symbolConfProvider.begin(); 
-	     it != symbolConfProvider.end(); 
-	     ++it ) 
-	{
-		ProviderItem pi = ProviderList::decodeItem( it->first );
-		
-		if( ! pi.placename.empty() ) {
-			resList[pi.providerWithPlacename()] = it->second;
-			continue;
-		}
-		
-		try {
-			ProviderRefTimeList dummyRefTimeList;
-			ProviderRefTime providerReftimeTransactor( dummyRefTimeList, 
-					                                     pi.provider, 
-					                                     "NULL" );
-
-			wciConnection->perform( providerReftimeTransactor, 3 );
-			PtrProviderRefTimes res = providerReftimeTransactor.result();
-			
-			if( ! res )
-				continue;
-			
-			for( ProviderRefTimeList::iterator pit = res->begin(); 
-			     pit != res->end(); 
-			     ++pit ) {
-				ProviderList tmp = ProviderList::decode( pit->first );
-				
-				for( ProviderList::size_type i=0; i < tmp.size(); ++i )
-					resList[tmp[i].providerWithPlacename()] = it->second;
-			}
-		}
-		catch( const std::ios_base::failure &ex ) {
-			WEBFW_LOG_ERROR( "std::ios_base::failure: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
-		}
-		catch( const std::runtime_error &ex ) {
-			WEBFW_LOG_ERROR( "std::runtime_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
-		}
-		catch( const std::logic_error &ex ) {
-			WEBFW_LOG_ERROR( "std::logic_error: LocationForecastHandler::providerPrioritySetPlacename: " << ex.what() );
-		}
-		catch( ... ) {
-			WEBFW_LOG_ERROR( "unknown: LocationForecastHandler::providerPrioritySetPlacename" );
-		}
-	}
-		
-	return resList;			
+	ost << "min: " << conf.min_ << " max: " << conf.max_ << " precipHours: " << conf.precipHours_;
+	return ost;
 }
-
-SymbolConfProvider
-symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params, 
-											const std::string &wdbDB,                           
-											Wdb2TsApp *app
-                               )
-{
-	WciConnectionPtr wciConnection;
-	SymbolConfProvider tmpList;
-
-	WEBFW_USE_LOGGER( "handler" );
-		
-	try {
-		wciConnection = app->newWciConnection( wdbDB );
-	}
-	catch( exception &ex ) {
-		WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. " << ex.what() );
-		return tmpList;
-	}
-	catch( ... ) {
-		WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. unknown exception " );
-		return tmpList;
-	}
-
-	configureSymbolconf( params, tmpList );
-
-	return symbolConfProviderSetPlacename( tmpList, wciConnection );
-}
-
 }
 

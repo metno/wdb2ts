@@ -220,8 +220,6 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 				logger.warning( log.str() );
 			}
 			
-			toConfigure->doConfigure( *itVer, query );
-			
 			std::string logprefix = it->second->path.asString();
 			miutil::replaceString( logprefix, " ", "_");
 			miutil::replaceString( logprefix, "/", ".");
@@ -229,8 +227,20 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			if( ! logprefix.empty() && logprefix[0]=='.' )
 				logprefix.erase( 0, 1 );
 
-			handler->setLogprefix( logprefix );
-			reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() );
+			logprefix += "_" + (*itVer)->version.asString();
+			toConfigure->setLogprefix( logprefix );
+
+			if( ! reqHandlerMgr.addRequestHandler( handler, it->second->path.asString() ) ) {
+				log.str("");
+				log << "Failed to add request handler: '" << it->second->path.asString()
+					<< "' <" << (*itVer)->action.asString() << "> version: "
+					<< (*itVer)->version << ".";
+				logger.error( log.str() );
+				delete handler;
+				continue;
+			}
+
+			toConfigure->doConfigure( *itVer, query );
 		}
 		
 		if( ! it->second->requestDefault.version.invalid() ) {
@@ -240,10 +250,13 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 			    << ver;
 			
 			if( ver.majorVer>=0 && ver.minorVer>=0 ) {
-				reqHandlerMgr.setDefaultRequestHandler( it->second->path.asString(),
-						                                  ver.majorVer, ver.minorVer  );
+				if( ! reqHandlerMgr.setDefaultRequestHandler( it->second->path.asString(),
+						                                       ver.majorVer, ver.minorVer  ) ) {
+					log << " Failed!";
+				}
 			}
 			
+			logger.info( log.str() );
 		}
 	}
 }

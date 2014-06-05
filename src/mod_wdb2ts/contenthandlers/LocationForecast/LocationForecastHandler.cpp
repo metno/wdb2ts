@@ -63,6 +63,8 @@
 #include <LocationData.h>
 #include <configdata.h>
 #include <ConfigUtils.h>
+#include <ProviderGroupsResolve.h>
+#include <ProviderListConfigure.h>
 
 DECLARE_MI_PROFILE;
 
@@ -73,6 +75,7 @@ namespace wdb2ts {
 LocationForecastHandler::
 LocationForecastHandler()
 	: subversion( 0 ),
+	  noteIsUpdated( false ),
       providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
 	  precipitationConfig( 0 ),
@@ -85,6 +88,7 @@ LocationForecastHandler::
 LocationForecastHandler( int major, int minor, const std::string &note_ )
 	: HandlerBase( major, minor), note( note_ ),
 	  subversion( 0 ),
+	  noteIsUpdated( false ),
 	  providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
@@ -94,8 +98,14 @@ LocationForecastHandler( int major, int minor, const std::string &note_ )
 	if( ! note.empty() ) {
 		int n;
 
-		if( sscanf( note.c_str(), "%d", &n) == 1  )
+		try {
+			n = boost::lexical_cast<int>( note );
 			subversion = n;
+		}
+		catch( ... ) {}
+
+//		if( sscanf( note.c_str(), "%d", &n) == 1  )
+//			subversion = n;
 	}
 	//NOOP
 }
@@ -158,8 +168,18 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 
    if( ! providerPriorityIsInitialized ) {
       noteProviderList = configureProviderPriority( params, app );
-      paramDefsPtr_->resolveProviderGroups( *app, wdbDB );
+      paramDefListRresolveProviderGroups( *app, *paramDefsPtr_, wdbDB );
       symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
+   }
+
+   if( noteIsUpdated ) {
+   	   WEBFW_USE_LOGGER( "update" );
+   	   noteIsUpdated = false;
+   	   std::ostringstream logMsg;
+   	   logMsg << "\nProviderReftimes: " << noteListenerId() << "\n";
+   	   for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
+   		   logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
+   	   WEBFW_LOG_INFO( logMsg.str() );
    }
 
    return noteProviderList;
@@ -192,6 +212,12 @@ configure( const wdb2ts::config::ActionParam &params,
 
 	//Create a logger file for the wetbulb logger.
 	WEBFW_CREATE_LOGGER_FILE("wetbulb");
+	//create a logfile for update.
+	WEBFW_CREATE_LOGGER_FILE("+update");
+	{
+		WEBFW_USE_LOGGER( "update" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::INFO );
+	}
 
 	WEBFW_USE_LOGGER( "handler" );
 	
@@ -260,18 +286,25 @@ LocationForecastHandler::
 noteUpdated( const std::string &noteName, 
              boost::shared_ptr<NoteTag> note )
 {
+	//WEBFW_USE_LOGGER( "+update" );
+	WEBFW_USE_LOGGER( "handler" );
+
 	if( updateid.empty() )
 		return;
 
 	string testId( updateid+".LocationProviderReftimeList" );
+
+
 	boost::mutex::scoped_lock lock( mutex );
-	
+
 	if( noteName == testId ) {
 		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
 	
-		if( ! refTimes )
+		if( ! refTimes ){
+			WEBFW_LOG_INFO("FAILED: dynamic cast.");
 			return;
-	
+		}
+		noteIsUpdated = true;
 		providerReftimes.reset( new  ProviderRefTimeList( *refTimes ) );
 
 		//Read in the projection data again. It may have come new models.
@@ -281,14 +314,15 @@ noteUpdated( const std::string &noteName,
 		providerPriorityIsInitialized = false;
 
 		paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
-
-		WEBFW_USE_LOGGER( "handler" );
-		std::ostringstream logMsg;
-		logMsg << "noteUpdated: ProviderReftimes:\n";
-		for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
-			logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
-		WEBFW_LOG_DEBUG(logMsg.str());
+		WEBFW_LOG_INFO( "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "'." );
 	}
+}
+
+std::string
+LocationForecastHandler::
+noteListenerId()
+{
+	return getLogprefix();
 }
 
 void 
@@ -353,6 +387,65 @@ getProviderReftimes()
 	return providerReftimes;	
 }
 
+void
+LocationForecastHandler::
+doStatus( Wdb2TsApp *app,
+		  webfw::Response &response, ConfigDataPtr config,
+		  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+		  ParamDefListPtr paramdef )
+{
+	ostringstream out;
+	response.contentType("text/xml");
+	response.directOutput( false );
+
+	out << "<status>\n";
+	out << "   <updateid>" << updateid << "</updateid>\n";
+
+	list<string> defProviders=paramdef->getProviderList();
+
+	out << "   <defined_dataproviders>\n";
+	for( list<string>::const_iterator it=defProviders.begin(); it != defProviders.end(); ++it ) {
+		if( !it->empty()) {
+			ProviderItem item = ProviderItem::decode( *it );
+			out << "      <dataprovider>\n";
+			out << "         <name>" << item.provider << "</name>\n";
+			if( ! item.placename.empty() )
+				out << "         <placename>" << item.placename << "</placename>\n";
+			out << "      </dataprovider>\n";
+		}
+	}
+	out << "   </defined_dataproviders>\n";
+
+
+	out << "   <resolved_dataproviders>\n";
+	for( ProviderList::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
+		out << "      <dataprovider>\n";
+		out << "         <name>" <<		   it->provider << "</name>\n";
+		out << "         <placename>" <<		   it->placename << "</placename>\n";
+		out << "      </dataprovider>\n";
+		//out << "      <dataprovider>" << it->providerWithPlacename() << "</dataprovider>\n";
+	}
+	out << "   </resolved_dataproviders>\n";
+
+	out << "   <referencetimes>\n";
+	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
+		ProviderItem item = ProviderItem::decode( rit->first );
+		out << "      <dataprovider>\n";
+		out << "         <name>" << item.provider <<  "</name>\n";
+		out << "         <placename>" << item.placename << "</placename>\n";
+		out << "         <referencetime>"<< miutil::isotimeString( rit->second.refTime, true, true )  << "</referencetime>\n";
+		out << "         <updated>"<< miutil::isotimeString( rit->second.updatedTime, true, true )<< "</updated>\n";
+		out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
+		out << "         <version>" << rit->second.dataversion << "</version>\n";
+		out << "      </dataprovider>\n";
+	}
+	out << "   </referencetimes>\n";
+
+	out << "</status>\n";
+
+	response.out() << out.str();
+
+}
 
 
 void 
@@ -400,9 +493,17 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
+	app->notes.checkForUpdatedPersistentNotes();
 	extraConfigure( actionParams, app );
 	
-	app->notes.checkForUpdatedPersistentNotes();
+	refTimes = getProviderReftimes();
+	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
+	removeDisabledProviders( providerPriority, *refTimes );
+
+	if( webQuery.isStatusRequest() ) {
+		doStatus( app, response, configData, refTimes, providerPriority, paramDefsPtr );
+		return;
+	}
 	
 	if( altitude == INT_MIN ) {
 		try {
@@ -429,19 +530,6 @@ get( webfw::Request  &req,
     		return;
     	}
 	}
-	
-	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
-	
-	removeDisabledProviders( providerPriority, *refTimes );
-
-	std::ostringstream logMsg;
-	logMsg << "RefTimes:\n";
-	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit )
-		logMsg << "  " << rit->first << " " << rit->second.refTime << " disabled: "
-		       << (rit->second.disabled?"true":"false") << '\n';
-	WEBFW_LOG_DEBUG(logMsg.str());
-	
     
 	try{
 		if( altitude == INT_MAX || altitude==INT_MIN ) {

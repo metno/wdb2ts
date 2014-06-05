@@ -268,6 +268,57 @@ findParam( pqxx::result::const_iterator it,
 
 bool
 ParamDefList::
+findParam( const miutil::container::ITuple &it,
+		     ParamDefPtr &paramDef,
+		     std::string &providerGroup )const
+{
+	string valueparametername( it.at("valueparametername").c_str() );
+	string valueparameterunit;
+	string levelparametername( it.at("levelparametername").c_str() );
+	int    levelfrom( it.at("levelfrom").as<int>() );
+	int    levelto( it.at("levelto").as<int>() );
+	string levelunitname;
+
+	providerGroup = providerGroups_.lookUpGroupName( it.at("dataprovidername").c_str() );
+
+	if( ! it.at("valueparameterunit").is_null() )
+		valueparameterunit = it.at("valueparameterunit").c_str();
+
+	if( ! it.at("levelunitname").is_null() )
+		levelunitname = it.at("levelunitname").c_str();
+
+	ParamDefList::iterator pit = const_cast<ParamDefList*>(this)->find( providerGroup );
+
+	if( pit == const_cast<ParamDefList*>(this)->end() )
+		pit = const_cast<ParamDefList*>(this)->find( defaultProvider );
+
+	if( pit == const_cast<ParamDefList*>(this)->end() )
+		return false;
+
+	do {
+		for( paramDef = pit->second.begin();
+		     paramDef != pit->second.end();
+		     ++paramDef ) {
+			if( valueparametername == paramDef->valueparametername() &&
+				 valueparameterunit == paramDef->valueparameterunit() &&
+			    levelparametername == paramDef->levelparametername() &&
+			    levelfrom == paramDef->levelfrom() &&
+			    levelto == paramDef->levelto() &&
+			    levelunitname == paramDef->levelunitname() )
+				return true;
+		}
+		if( pit->first != defaultProvider )
+			pit = const_cast<ParamDefList*>(this)->find( defaultProvider );
+		else
+			pit = const_cast<ParamDefList*>(this)->end();
+	}while( pit !=  const_cast<ParamDefList*>(this)->end() );
+	return false;
+}
+
+
+
+bool
+ParamDefList::
 hasParam(  const std::string &alias,
 		     const std::string &provider_ )const
 {
@@ -375,13 +426,20 @@ lookupGroupName( const std::string &providerName )const
    return providerGroups_.lookUpGroupName( providerName );
 }
 
-void
-ParamDefList::
-resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid )
-{
-   providerGroups_.clear();
+//void
+//ParamDefList::
+//resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid )
+//{
+//   providerGroups_.clear();
+//
+//   providerGroups_.resolve( app, wdbid, providerListFromConfig );
+//}
 
-   providerGroups_.resolve( app, wdbid, providerListFromConfig );
+bool
+ParamDefList::
+isDefaultProvider( const std::string & providerName  )
+{
+	return providerName == defaultProvider;
 }
 
 void
@@ -417,5 +475,18 @@ renameProvider( std::string &providerWithPlacename, const std::string &newProvid
       providerWithPlacename.replace( 0, i, newProvider );
 }
 
+std::ostream&
+operator<<( std::ostream &o, const ParamDefList &par )
+{
+	for( ParamDefList::const_iterator provIt=par.begin();
+		 provIt != par.end(); ++provIt	) {
+		o << "[" <<  provIt->first << "]" << endl;
+		for(std::list<wdb2ts::ParamDef>::const_iterator parIt = provIt->second.begin();
+			parIt != provIt->second.end(); ++parIt )
+			o << "  " << parIt->alias() << ", " << parIt->valueparametername() << endl;
+	}
+
+	return o;
+}
 
 } // namespace wdb2ts

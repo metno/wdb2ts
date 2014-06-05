@@ -60,6 +60,11 @@ void
 NoteManager::
 registerPersistentNote( const std::string &noteName, NoteTag *note )
 {
+	if( ! note ) {
+		cerr << "FATAL: registerPersistentNote: note == 0 '" << noteName << "'!!!\n";
+		return;
+	}
+
 	boost::mutex::scoped_lock lock( notesMutex );
 	
 	std::map<std::string, PersistentNote>::iterator it = persistentNotes.find( noteName );
@@ -95,6 +100,10 @@ checkForUpdatedPersistentNotes()
 			}
 			catch( std::exception &ex ) {
 				WEBFW_LOG_ERROR( "checkForUpdatedPersistentNotes:Exception: " << ex.what() );
+				continue;
+			}
+			catch( ... ) {
+				WEBFW_LOG_ERROR( "checkForUpdatedPersistentNotes:Exception: Unexpected exception!" );
 				continue;
 			}
 
@@ -144,7 +153,6 @@ checkForUpdatedPersistentNotes()
 		for( list<INoteUpdateListener*>::iterator itl=it->second.begin();
 		     itl != it->second.end();
 		     ++itl ) {
-//			WEBFW_LOG_DEBUG( "update: send '"<< updIt->first  << "'" );
 			(*itl)->noteUpdated( updIt->first, updIt->second );
 		}
 	}

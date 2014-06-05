@@ -46,6 +46,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast2.cpp \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast3.h \
 	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast3.cpp \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.h \
+	                  src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.cpp \
 					  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
 	                  src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
                       src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
@@ -73,6 +75,8 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/ConfigUtils.cpp \
 	                  src/mod_wdb2ts/ProviderGroups.h \
 	                  src/mod_wdb2ts/ProviderGroups.cpp \
+	                  src/mod_wdb2ts/ProviderGroupsResolve.h \
+	                  src/mod_wdb2ts/ProviderGroupsResolve.cpp \
 	                  src/mod_wdb2ts/ParamDef.h \
 	                  src/mod_wdb2ts/ParamDef.cpp \
 	                  src/mod_wdb2ts/PointDataHelper.cpp \
@@ -85,6 +89,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 	                  src/mod_wdb2ts/preprocessdata.cpp \
 	                  src/mod_wdb2ts/ProviderList.h \
 	                  src/mod_wdb2ts/ProviderList.cpp \
+	                  src/mod_wdb2ts/ProviderListConfigure.h \
+	                  src/mod_wdb2ts/ProviderListConfigure.cpp \
+	                  src/mod_wdb2ts/ProviderReftimes.h \
+	                  src/mod_wdb2ts/ProviderReftimes.cpp \
 	                  src/mod_wdb2ts/UpdateProviderReftimes.h \
 	                  src/mod_wdb2ts/UpdateProviderReftimes.cpp \
 	                  src/mod_wdb2ts/wdb2TsApp.cpp \
@@ -110,12 +118,16 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
                       src/mod_wdb2ts/SymbolHolder.cpp \
                       src/mod_wdb2ts/SymbolConf.h \
                       src/mod_wdb2ts/SymbolConf.cpp \
+                      src/mod_wdb2ts/SymbolConfConfigure.h \
+                      src/mod_wdb2ts/SymbolConfConfigure.cpp \
                       src/mod_wdb2ts/MetaModelConf.h \
                       src/mod_wdb2ts/MetaModelConf.cpp \
                       src/mod_wdb2ts/SymbolContext.h \
                       src/mod_wdb2ts/SymbolContext.cpp \
                       src/mod_wdb2ts/ProjectionHelper.h\
                       src/mod_wdb2ts/ProjectionHelper.cpp \
+                      src/mod_wdb2ts/ProjectionHelperConfigure.h \
+					  		 src/mod_wdb2ts/ProjectionHelperConfigure.cpp \
                       src/mod_wdb2ts/probabilityCode.h \
                       src/mod_wdb2ts/probabilityCode.cpp \
                       src/mod_wdb2ts/WebQuery.h \
@@ -139,7 +151,10 @@ libwdb2ts_la_SOURCES= src/mod_wdb2ts/transactor/WciTransactor.h \
 					  src/mod_wdb2ts/RequestIterator.h \
 					  src/mod_wdb2ts/RequestIterator.cpp \
 					  src/mod_wdb2ts/QueryMaker.h \
-					  src/mod_wdb2ts/QueryMaker.cpp
+					  src/mod_wdb2ts/QueryMaker.cpp \
+					  src/mod_wdb2ts/WeatherSymbol.h \
+					  src/mod_wdb2ts/WeatherSymbol.cpp 
+					  
 
 
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
@@ -150,12 +165,13 @@ mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 							 -avoid-version
 								
 mod_metno_wdb2ts_la_LIBADD= \
-                           -lwebFW  \
+                        -lwebFW  \
                     	   -lWciWebQuery	\
                     	   -lwdb2tsconfigparser \
                     	   -lXML_locationforecast \
                     	   -lwdb2ts \
                     	   -lmiutil \
+                    	   -ltuplecontainer \
                     	   -lgfortran
 
 noinst_PROGRAMS+= TestWdb2Ts
@@ -169,6 +185,7 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 					-lXML_locationforecast \
 					-lmiutil \
 					$(LIBPQXX_LIBS) \
+					-ltuplecontainer \
 					-lgfortran
 
 

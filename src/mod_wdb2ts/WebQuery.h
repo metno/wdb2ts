@@ -27,6 +27,7 @@ class WebQuery {
 	int skip_;
 	std::string urlQuery_;
 	Level       level_;
+	bool statusRequest;
 
 	static boost::posix_time::ptime
 	decodeTimeduration( const std::string &timeduration, const boost::posix_time::ptime &valueOnError );
@@ -66,6 +67,7 @@ public:
 	int skip()const{ return skip_; }
 	bool nearestLand()const { return nearestLand_; }
 	Level getLevel()const { return level_; }
+	bool isStatusRequest()const { return statusRequest; }
 };
 
 

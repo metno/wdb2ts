@@ -59,15 +59,16 @@ AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
 			  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
 			  -DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
               -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
-              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\""
+              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
+              -DSRCDIR="\""$(top_srcdir)"\""
 
  
 #-----------------------------------------------------------------------------
 # Source Makefiles
 #-----------------------------------------------------------------------------
-
 include src/miutil/wdb2ts.mk
 include src/util/wdb2ts.mk
+include src/tuple_container/wdb2ts.mk
 include src/webFW/wdb2ts.mk
 include src/mod_wdb2ts/WciWebQuery/wdb2ts.mk
 include src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/wdb2ts.mk
@@ -156,19 +157,24 @@ clean-local:
 #-----------------------------------------------------------------------------
 
 EXTRA_DIST += \
-	debian_files/changelog \
-	debian_files/compat \
-	debian_files/conffiles \
-   debian_files/config \
-   debian_files/control \
-   debian_files/copyright \
-   debian_files/dirs \
-   debian_files/docs \
-   debian_files/postinst \
-   debian_files/postrm \
-   debian_files/README.Debian \
-   debian_files/rules \
-   debian_files/templates
+   debian_files/changelog \
+	debian_files/compat\
+	debian_files/conffiles\
+	debian_files/config\
+	debian_files/control\
+	debian_files/copyright\
+	debian_files/dirs\
+	debian_files/docs\
+	debian_files/metno-wdb2ts-VERSION.dirs\
+	debian_files/metno-wdb2ts-VERSION.install\
+	debian_files/metno-wdb2ts-VERSION.postinst\
+	debian_files/metno-wdb2ts-VERSION.postrm\
+	debian_files/postinst\
+	debian_files/postrm\
+	debian_files/README.Debian\
+	debian_files/rules\
+	debian_files/templates \
+	cp_debian_dir.sh.in
    
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian
@@ -179,27 +185,59 @@ DEBIAN_PACKAGE_NAME = `head -n1 $(top_srcdir)/debian_files/changelog | sed "s/ (
 debian-name:
 	@echo $(DEBIAN_PACKAGE_NAME)
 
-debian:	dist clean-debian 
+debian-prepare:
+	sed -e "s|__VERSION__|$(VERSION)|g" $(top_srcdir)/cp_debian_dir.sh.in | \
+	   sed -e "s|__SRCDIR__|$(top_srcdir)|g" | \
+	   sed -e "s|__BUILDDIR__|$(abs_top_builddir)|g" > cp_debian_dir.sh 
+	chmod +x cp_debian_dir.sh
+
+debian:	debian-prepare dist clean-debian
 	tar xvzf $(PKG_DIR).tar.gz
-	(test -d $(DEBIAN_DIR) && rm -rf $(DEBIAN_DIR)) || true
-	mkdir -p $(DEBIAN_DIR)
-	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
-	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
+	./cp_debian_dir.sh $(PKG_DIR)
 	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
 #	lintian --info $(DEBIAN_PACKAGE_NAME)
 #	linda $(DEBIAN_PACKAGE_NAME)
 
-update-debian:
-	rm -rf $(DEBIAN_DIR)/*
-	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
-	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
-#	lintian --info $(DEBIAN_PACKAGE_NAME)
-#	linda $(DEBIAN_PACKAGE_NAME)
+#update-debian:
+#	rm -rf $(DEBIAN_DIR)/*
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
 
 
 
 clean-debian:
 	debclean
-	rm -rf $(PKG_DIR) $(DEBIAN_PACKAGE)*
+	rm -rf $(PKG_DIR)
+
+#.PHONY: debian debian-name clean-debian 
+
+
+#debian-name:
+#	@echo $(DEBIAN_PACKAGE_NAME)
+#
+#debian:	dist clean-debian 
+#	tar xvzf $(PKG_DIR).tar.gz
+#	(test -d $(DEBIAN_DIR) && rm -rf $(DEBIAN_DIR)) || true
+#	mkdir -p $(DEBIAN_DIR)
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cp $(PKG_DIR).tar.gz $(DEBIAN_PACKAGE).orig.tar.gz
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
+#
+#update-debian:
+#	rm -rf $(DEBIAN_DIR)/*
+#	cp -r $(top_srcdir)/debian_files/* $(DEBIAN_DIR)
+#	cd $(PKG_DIR) && dpkg-buildpackage -rfakeroot -us -uc -nc
+##	lintian --info $(DEBIAN_PACKAGE_NAME)
+##	linda $(DEBIAN_PACKAGE_NAME)
+#
+#
+#
+#clean-debian:
+#	debclean
+#	rm -rf $(PKG_DIR) $(DEBIAN_PACKAGE)*
 
 

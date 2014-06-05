@@ -12,8 +12,6 @@ using namespace std;
 
 namespace wdb2ts {
 
-
-
 void 
 GetThread::
 nextLatLong( float &lat_, float &lon_ )
@@ -50,8 +48,9 @@ operator()()
 	// Simulate CRC-CCITT
 	boost::crc_basic<16>  crc_ccitt1( 0x1021, 0xFFFF, 0, false, false );
 	bool crcFail;
-	
-	//cerr << "URL: '" << url << "'" << endl;
+	int errorCode;
+	cerr << "URL: '" << url << "'" << endl;
+
 	
 	query->decode( url, true );
 
@@ -81,11 +80,13 @@ operator()()
 		query->setValue( "lat", tmpLat );
 		query->setValue( sLon, tmpLon );
 		
+		cerr << "Path:    '" << path << "'\n";
 		request = query->encode( path ); //   url << "/?from=all;lat=" << lat <<";long=" << lon;
+		cerr << "Request: '" << request << "'\n";
 		out.str("");
 		
-		if( ! http.get( request, out ) ) {
-			cout << "FAILED: t: " << id << " : " << request << endl;
+		if( ! http.get( request, out, errorCode ) ) {
+			cout << "FAILED: t: " << id << " curl retcode(" << errorCode <<")  : " << request << endl;
 			results->nFailed++;
 		} else if( http.returnCode() == 503 ) {
 		   cout << "UNAVAILABLE t: " << id << " : code: " << http.returnCode() << " req: " << request << endl;
@@ -128,6 +129,17 @@ operator()()
 
 				}
 			} else {
+				ostringstream fname;
+				ofstream f;
+
+				fname << "tmp/base-" << id << "-" << nRuns << ".txt";
+				f.open( fname.str().c_str() );
+
+				if( f ) {
+					f << path << endl << result << endl;
+					f.close();
+				}
+
 				crcResults[ request ] = crcValue;
 			}
 					

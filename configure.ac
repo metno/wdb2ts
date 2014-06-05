@@ -7,13 +7,13 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.2.3, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.3.8, wdb@met.no)
 
 # Config
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([wdb2ts_config.h.in])
 AC_CONFIG_HEADER([wdb2ts_config.h])
-
+METNO_PVERSION
 
 #-----------------------------------------------------------------------------
 # Source & Build Directories
@@ -21,7 +21,8 @@ AC_CONFIG_HEADER([wdb2ts_config.h])
 
 # Source Directories
 # - All directories that need to be linked into AM_FLAGS
-src_subdirs="	src/mod_wdb2ts \
+src_subdirs=" src/tuple_container \
+            src/mod_wdb2ts \
 				src/mod_wdb2ts/WciWebQuery \
 				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 				src/miutil \
@@ -41,7 +42,8 @@ test_subdirs="	test/unit \
 
 # Build Directories
 # - All directories that building can occur in
-build_subdirs="	src/mod_wdb2ts/WciWebQuery \
+build_subdirs=" src/tuple_container \
+         	src/mod_wdb2ts/WciWebQuery \
 				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 				src/mod_wdb2ts \
 				src/mod_wdb2ts/configparser \
@@ -165,6 +167,11 @@ CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
 LDFLAGS="$log4cpp_LIBS $LDFLAGS"
 
 
+PKG_CHECK_MODULES( [weather_symbol], [libweather-symbol])
+CPPFLAGS="$weather_symbol_CFLAGS $CPPFLAGS"
+LDFLAGS="$weather_symbol_LIBS $LDFLAGS"
+
+
 # CppUnit
 AM_PATH_CPPUNIT(1.12.0,, [echo WARNING: CppUnit not found - you will not be able to run all tests])
 AC_MSG_CHECKING(for CPPUNIT_CFLAGS)
@@ -219,6 +226,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 #-----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile \
+                 src/tuple_container/Makefile \
                  src/miutil/Makefile \
                  src/util/Makefile \
                  src/webFW/Makefile \

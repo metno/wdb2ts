@@ -31,6 +31,7 @@
 
 #include <exception>
 #include <string>
+#include <boost/shared_ptr.hpp>
 #include <queuemt.h>
 #include <WdbDataRequestCommand.h>
 #include <PointDataHelper.h>
@@ -42,15 +43,17 @@
 
 namespace wdb2ts {
 
-
+typedef boost::shared_ptr< miutil::queuemt<int> > ReadyQue;
 
 class WdbDataRequest {
    WdbDataRequestCommandPtr request;
-   miutil::queuemt<int> &readyQueue;
+   ReadyQue readyQueue;
+   //miutil::queuemt<int> &readyQueue;
    int id;
 public:
    WdbDataRequest( WdbDataRequestCommandPtr request_,
-                   miutil::queuemt<int> &readyQueue_,
+                   //miutil::queuemt<int> &readyQueue_,
+		   	        ReadyQue readyQueue_,
                    int id_ )
    : request( request_ ), readyQueue( readyQueue_ ), id( id_ )
    {
@@ -83,7 +86,8 @@ class WdbDataRequestManager {
 
 
    int nParalell;
-   miutil::queuemt<int> readyQueue;
+   ReadyQue readyQueue;
+   //miutil::queuemt<int> readyQueue;
    std::list< boost::shared_ptr<ThreadInfo> > threadInfos;
    std::list< boost::shared_ptr<ThreadInfo> >::iterator nextToStart;
    std::list< boost::shared_ptr<ThreadInfo> >::iterator lastStarted;
@@ -94,12 +98,12 @@ class WdbDataRequestManager {
 
    void
    populateThreadInfos( const std::string &wdbid,
-                        const ParamDefList &paramDefs,
+                        ParamDefListPtr paramDefs,
                         const LocationPointList &locationPoints,
                         const boost::posix_time::ptime &toTime,
                         bool isPloygon,
                         PtrProviderRefTimes refTimes,
-                        const ProviderList  &providerPriority,
+                        ProviderListPtr  providerPriority,
                         const wdb2ts::config::Config::Query &urlQuerys,
                         int wciProtocol );
 

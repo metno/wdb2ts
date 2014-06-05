@@ -71,13 +71,15 @@ public:
     */
    std::string lookUpGroupName( const std::string &providerName )const;
 
-   /**
-    * Use wdbs wci.getdataproviderto build the reverse lookup table.
-    *
-    * @param app The wdb2ts Application class. We need this to get a db connection.
-    * @param wdbid The database to use.
-    */
-   void resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
+//   /**
+//    * Use wdbs wci.getdataproviderto build the reverse lookup table.
+//    *
+//    * @param app The wdb2ts Application class. We need this to get a db connection.
+//    * @param wdbid The database to use.
+//    */
+//   void resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
+
+   friend ProviderGroups providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
 };
 
 

@@ -40,10 +40,12 @@ namespace wdb2ts {
 
 class WciReadHelper
 {
+
 public:
 	WciReadHelper();
 	virtual ~WciReadHelper();
 	
+	pqxx::transaction_base *transaction;
 	///id return an id to use in logging.
 	virtual std::string id();
 	virtual std::string query()=0; 

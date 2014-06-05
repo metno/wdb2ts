@@ -31,7 +31,6 @@
 #include <ProviderGroups.h>
 #include <ProviderList.h>
 #include <transactor/ResolveProviderGroups.h>
-#include <wdb2TsApp.h>
 #include <Logger4cpp.h>
 
 
@@ -71,6 +70,7 @@ lookUpGroupName( const std::string &providerName )const
       return providerName;
 }
 
+#if 0
 void
 ProviderGroups::
 resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList )
@@ -127,6 +127,6 @@ resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> 
 
 
 }
-
+#endif
 }
 

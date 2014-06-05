@@ -49,13 +49,17 @@ operator()()
       //NOOP. No exceptions is allowed to escape.
    }
 
-   readyQueue.push( id );
+   readyQueue->push( id );
 }
 
 WdbDataRequestManager::
 WdbDataRequestManager()
 : nParalell(1), nextThreadId( 0 )
 {
+	try {
+		readyQueue.reset( new miutil::queuemt<int>() );
+	}
+	catch( ... ){}
 }
 
 /**
@@ -65,12 +69,12 @@ WdbDataRequestManager()
 void
 WdbDataRequestManager::
 populateThreadInfos( const std::string &wdbidDefault,
-                     const ParamDefList &paramDefs,
+                     ParamDefListPtr paramDefs,
                      const LocationPointList &locationPoints ,
                      const boost::posix_time::ptime &toTime ,
                      bool isPolygon ,
                      PtrProviderRefTimes refTimes,
-                     const ProviderList  &providerPriority,
+                     ProviderListPtr  providerPriority,
                      const wdb2ts::config::Config::Query &urlQuerys,
                      int wciProtocol )
 {
@@ -91,7 +95,7 @@ populateThreadInfos( const std::string &wdbidDefault,
    WdbQueryHelper wdbQueryHelper( urlQuerys, wciProtocol );
 
    try {
-      wdbQueryHelper.init( locationPoints, toTime, isPolygon, *refTimes, providerPriority );
+      wdbQueryHelper.init( locationPoints, toTime, isPolygon, *refTimes, *providerPriority );
 
       while ( wdbQueryHelper.hasNext() ) {
          try {
@@ -121,6 +125,7 @@ populateThreadInfos( const std::string &wdbidDefault,
                                                 mustHaveData,
                                                 stopIfQueryHasData )
          );
+
          threadInfos.push_back( threadInfo );
       }
    }
@@ -149,28 +154,35 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 		throw logic_error( "EXCEPTION: QueryMaker: No querys is generated." );
 	}
 
-	for( std::list<qmaker::Query*>::const_iterator qit = querys->querys.begin();
-			qit != querys->querys.end(); ++qit ) {
-		list<string> qs = (*qit)->getQuerys( querys->wciProtocol );
+	try {
+		for( std::list<qmaker::Query*>::const_iterator qit = querys->querys.begin();
+				qit != querys->querys.end(); ++qit ) {
+			list<string> qs = (*qit)->getQuerys( querys->wciProtocol );
+			ParamDefListPtr params( new ParamDefList( querys->params ) );
+			ProviderListPtr providerPriority( new ProviderList( querys->providerPriority ) );
 
-		for( list<string>::iterator it=qs.begin(); it != qs.end(); ++it ) {
-			boost::shared_ptr<ThreadInfo> threadInfo(
-					new ThreadInfo(
-							new WdbDataRequestCommand( WciConnectionPtr(),
-									webfw::RequestHandler::getRequestHandler(),
-									*it,
-									querys->params,
-									querys->providerPriority,
-									querys->referenceTimes,
-									querys->wciProtocol,
-									isPolygon ),
-									wdbid,
-									mustHaveData,
-									stopIfQueryHasData )
-			);
-			threadInfos.push_back( threadInfo );
+			for( list<string>::iterator it=qs.begin(); it != qs.end(); ++it ) {
+				boost::shared_ptr<ThreadInfo> threadInfo(
+						new ThreadInfo(
+								new WdbDataRequestCommand( WciConnectionPtr(),
+										webfw::RequestHandler::getRequestHandler(),
+										*it,
+										params,
+										providerPriority,
+										querys->referenceTimes,
+										querys->wciProtocol,
+										isPolygon ),
+										wdbid,
+										mustHaveData,
+										stopIfQueryHasData )
+				);
 
+				threadInfos.push_back( threadInfo );
+			}
 		}
+	}
+	catch( const std::bad_alloc &ex ) {
+		throw ResourceLimit("WdbDataRequestManager::populateThreadInfos: No memory.");
 	}
 }
 
@@ -243,9 +255,9 @@ waitForCompleted( int waitForAtLeast )
    while( ! runningThreads.empty() ) {
       if( waitForAtLeast==0
             || ( waitForAtLeast > 0 && n<waitForAtLeast ) ) {
-         readyQueue.waitAndPop( tid );
+         readyQueue->waitAndPop( tid );
       }else {
-         if( ! readyQueue.tryPop( tid ) )
+         if( ! readyQueue->tryPop( tid ) )
             return n;
       }
 
@@ -281,6 +293,12 @@ runRequests( Wdb2TsApp &app )
    time_t now;
    time_t prevTime;
 
+
+   if( ! readyQueue ) {
+       WEBFW_LOG_ERROR("runRequests: No memory to run the requests." );
+       throw ResourceLimit("No memory to run the request.");
+   }
+
    try {
       while( nextToStart != threadInfos.end() && !stop) {
          startThreads( app );
@@ -312,7 +330,8 @@ runRequests( Wdb2TsApp &app )
             if( runningThreads.size()>0 )
                waitForCompleted( 1 );
             else
-               usleep( 1000 ); //For now use usleep in one millisecond, should use nanosleep
+            	boost::this_thread::sleep( boost::posix_time::milliseconds( 1 ) );
+               //usleep( 1000 ); //For now use usleep in one millisecond, should use nanosleep
 
             continue;
          }
@@ -446,9 +465,17 @@ requestData( Wdb2TsApp *app,
              int wciProtocol )
 {
    nParalell = urlQuerys.dbRequestsInParalells();
+   ProviderListPtr providerPriorityPtr;
 
-   populateThreadInfos( wdbid, *paramDefs, locationPoints, toTime,
-                        isPolygon, refTimes, providerPriority, urlQuerys,
+   try {
+	  providerPriorityPtr.reset( new ProviderList( providerPriority ) );
+   }
+   catch( ... ) {
+	   throw ResourceLimit("WdbDataRequestManager::requestData: No memory.");
+   }
+
+   populateThreadInfos( wdbid, paramDefs, locationPoints, toTime,
+                        isPolygon, refTimes, providerPriorityPtr, urlQuerys,
                         wciProtocol );
 
    runRequests( *app );

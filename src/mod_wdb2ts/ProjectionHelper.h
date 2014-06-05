@@ -39,6 +39,7 @@
 #include <pqxx/pqxx>
 #include <Config.h>
 #include <boost/thread/thread.hpp>
+#include <boost/shared_ptr.hpp>
 #include <ProviderList.h>
 
 namespace wdb2ts {
@@ -244,8 +245,8 @@ private:
 	void init();
 	std::string projString;
 	projPJ proj;
-	projPJ geoproj;
 	ProjectionType gridType;
+	projPJ geoproj;
 	GridSpec gridSpec;
 };
 
@@ -269,50 +270,27 @@ private:
 	
 	///A geographic projection
 	MiProjection  geographic;
-	
-	bool isInitialized;
+
 	int wciProtocol;
-	boost::mutex        mutex;
-	
+	mutable boost::mutex mutex;
 
 protected:
 	
 	ProjectionMap::const_iterator
 			findProjection( const std::string &provider );
 
-	bool loadFromDBWciProtocol_1( pqxx::connection& con, 
-			                      const wdb2ts::config::ActionParam &params );
-	
-	bool loadFromDBWciProtocol_2( pqxx::connection& con, 
-				                  const wdb2ts::config::ActionParam &params );
-
-	bool loadFromDBWciProtocol_4( pqxx::connection& con,
-			                      const wdb2ts::config::ActionParam &params,
-			                      int protocol );
-
-
 public:
-	
 	ProjectionHelper();
+	ProjectionHelper(int wciProtocol);
 	
+	void add( const std::string &provider, const MiProjection &projection );
 
 	static MiProjection createProjection( float startx, float starty,
 				  	  	  	  	  	  	  float incrementx, float incrementy,
 				  	  	  	  	  	  	  const std::string &projDefinition );
 
+	ProjectionHelper& operator=( const ProjectionHelper &rhs );
 
-	/**
-	 * Load the projection data in projectionMap from wdb.
-	 * Which projection that is associated with each providername is defined
-	 * by the actionparam wdb.projection in the configuration file.
-	 * The value of wdb.projection is a ';' separated list of providername=placename.
-	 * 
-	 * Ex.
-	 * 	value="probability_forecast=ec ensemble;proff=proff;hirlam 10=hirlam 10"
-	 */
-	bool loadFromDB( pqxx::connection& con, 
-			           const wdb2ts::config::ActionParam &params,
-			           int wciProtocol );
 	
 	/**
 	 * Compute to direction and length (speed) from vector
@@ -344,13 +322,8 @@ public:
 									   float &direction, float &length, bool turn=false )const;
 };
 
-bool 
-configureWdbProjection( ProjectionHelper &projectionHelper,
-		                  const wdb2ts::config::ActionParam &params,
-		                  int wciProtocol,
-		                  const std::string &wdbDB,
-		                  Wdb2TsApp *app );
 
+typedef boost::shared_ptr<ProjectionHelper> ProjectionHelperPtr;
 
 std::ostream& 
 operator<<(std::ostream &o, const MiProjection &proj );

@@ -67,7 +67,7 @@ doThrow()const
 }
 
 std::ostream&
-operator<<( std::ostream o, const NoDataResponse &re )
+operator<<( std::ostream &o, const NoDataResponse &re )
 {
     switch( re.response ) {
     case NoDataResponse::NotDefined: o << "NotDefined"; break;

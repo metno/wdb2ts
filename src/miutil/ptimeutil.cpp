@@ -190,8 +190,11 @@ isotimeString(const boost::posix_time::ptime &pt, bool useTseparator, bool markA
    char buf[32];
    char sep=' '; 
       
-   if( pt.is_special() )
-      return "";
+   if( pt.is_special() ) {
+	   if( pt.is_neg_infinity() ) return "-infinity";
+	   else if( pt.is_pos_infinity() ) return "infinity";
+	   else  return "";
+   }
    
    if( useTseparator )
       sep = 'T';

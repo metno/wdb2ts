@@ -93,6 +93,9 @@ tearDown()
 
 
 
+
+
+
 void
 MiProjectionTest::
 testLambert()
@@ -389,4 +392,41 @@ testAtThePoles()
 	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
 
 
+}
+
+void
+MiProjectionTest::
+testPolarStero()
+{
+	const char  *stero_proj="+proj=stere +lat_0=90 +lon_0=58 +lat_ts=60 +a=6371000 +units=m +no_defs";
+	MiProjection geographic;
+	MiProjection polarStereoProj( stero_proj );
+	double dV, dU;
+	double dlat, dlon;
+	double direction, length;
+
+	geographic.makeGeographic();
+
+	dlat=63.65825;
+	dlon=5.83059;
+	dV=0.259999990463257; //x
+	dU=0.100000001490116; //y
+
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( polarStereoProj, dlat, dlon, dU, dV,direction, length) );
+	CPPUNIT_ASSERT( equals( 148.868, direction, 2 ) );
+	CPPUNIT_ASSERT( equals(0.278568 , length, 3 ) );
+
+	dV=0; //x
+	dU=0; //y
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( polarStereoProj, dlat, dlon, dU, dV, direction, length) );
+	CPPUNIT_ASSERT( equals( 0, direction, 2 ) );
+	CPPUNIT_ASSERT( equals( 0, length, 3 ) );
+
+	dlat=72.33712;
+	dlon= 5.12818;
+	dV=0.189999997615814; //x
+	dU=0.0499999970197678; //y
+	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( polarStereoProj, dlat, dlon, dU, dV, direction, length) );
+	CPPUNIT_ASSERT( equals( 141.872, direction, 2 ) );
+	CPPUNIT_ASSERT( equals(0.196469, length, 3 ) );
 }

@@ -128,6 +128,31 @@ paramDefs( const std::string paramdefsId_ ) const
 		return wdb2ts::ParamDefList();
 }
 
+wdb2ts::ParamDefList
+ParamDefConfig::
+getParamDefs( const std::list<std::string> &providers )
+{
+	ParamDefList defs;
+	for( ParamDefs::const_iterator it = idParamDefs.begin(); it != idParamDefs.end(); ++it ) {
+		for( ParamDefList::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit ) {
+			if( ParamDefList::isDefaultProvider( pit->first ) ) {
+				for( list<wdb2ts::ParamDef>::const_iterator par=pit->second.begin();  par !=  pit->second.end(); ++par )
+					defs.addParamDef( *par, pit->first, false );
+			} else {
+				list<string>::const_iterator p;
+				for( p = providers.begin(); p != providers.end() && *p != pit->first; ++p );
+
+				if( p == providers.end() )
+					continue;
+
+				for( list<wdb2ts::ParamDef>::const_iterator par=pit->second.begin();  par !=  pit->second.end(); ++par )
+					defs.addParamDef( *par, pit->first, false );
+			}
+		}
+	}
+	return defs;
+}
+
 void
 ParamDefConfig::
 merge( ParamDefConfig *other, bool replace )
@@ -219,14 +244,18 @@ bool
 Version::
 operator<( const Version &rhs )
 {
-	if( (majorVer==-1 && minorVer==-1) ||
-		 (majorVer==0 && minorVer==0)      )
-		return false;
+	int major =  majorVer;
+	int minor = minorVer;
+
+	if( majorVer==-1 && minorVer==-1 ) {
+		 major = 0;
+		 minor = 0;
+	}
 	
-	if( majorVer < rhs.majorVer)
+	if( major < rhs.majorVer)
 		return true;
 	
-	if( majorVer == rhs.majorVer && minorVer < rhs.minorVer )
+	if( major == rhs.majorVer && minor < rhs.minorVer )
 		return true;
 	
 	return false;
@@ -263,12 +292,28 @@ operator()()const
 	return ost.str();
 }
 
+std::string
+Version::
+asString()const
+{
+	ostringstream ost;
+	ost << "v";
+	if( majorVer==-1 && minorVer==-1)
+		ost << "Highest";
+	else if( majorVer==0 && minorVer==0)
+		return "";
+	else
+		ost << majorVer <<"_" << minorVer;
+
+	return ost.str();
+}
+
 std::ostream& 
 operator<<(std::ostream& out,
            const Version& v)
 {
 	if( v.majorVer==-1 && v.minorVer==-1)
-		out << " (higest) ";
+		out << " (highest) ";
 	else if( v.majorVer==0 && v.minorVer==0)
 		out << " (invalid) ";
 	else
@@ -366,9 +411,9 @@ resolve( )
 	}
 	
 	if( requestDefault.version.defaultVersionHighest() ) {
-		RequestVersions::reverse_iterator it=requestVersions.rbegin();
+		RequestVersions::iterator it=requestVersions.begin();
 		
-		if( it != requestVersions.rend() )
+		if( it != requestVersions.end() )
 			requestDefault.version = (*it)->version;
 		else 
 			requestDefault.version = Version();

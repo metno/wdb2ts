@@ -35,7 +35,6 @@ size_t write_function( void *ptr, size_t size, size_t nmemb, void *stream);
 }
 
 namespace miutil {
-
 using namespace std;
 
 HTTPClient::
@@ -93,7 +92,7 @@ close()
 	
 bool 
 HTTPClient::
-get( const std::string &url, std::ostream &content )
+get( const std::string &url, std::ostream &content, int &error_code )
 {
 	CURLcode ret;
 	
@@ -114,7 +113,7 @@ get( const std::string &url, std::ostream &content )
 	out = &content;
 	ret = curl_easy_perform( curl );
 	out = 0;
-	
+	error_code = ret;
 	return ret == CURLE_OK;
 }
 	

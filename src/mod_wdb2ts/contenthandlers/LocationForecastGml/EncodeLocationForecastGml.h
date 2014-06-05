@@ -38,10 +38,10 @@
 #include <SymbolHolder.h>
 #include <MetaModelConf.h>
 #include <SymbolContext.h>
-#include <ProjectionHelper.h>
+#include <ProjectionHelperConfigure.h>
 #include <contenthandlers/LocationForecastGml/GMLContext.h>
 #include <PrecipitationConfig.h>
-#include <SymbolConf.h>
+#include <SymbolConfConfigure.h>
 #include <wdb2TsApp.h>
 #include <Precipitation.h>
 

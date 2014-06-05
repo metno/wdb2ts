@@ -24,6 +24,9 @@
 /* define if the Boost::System library is available */
 #undef HAVE_BOOST_SYSTEM
 
+/* define if the Boost::System library is available */
+#undef HAVE_BOOST_SYSTEM
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
@@ -195,8 +198,38 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* package prefix */
+#undef PREFIX
+
+/* program suffix */
+#undef PSUFFIX
+
+/* program version "major.minor-suffix" (suffix only if specified) */
+#undef PVERSION
+
+/* program major version */
+#undef PVERSION_MAJOR
+
+/* program version "major.minor" */
+#undef PVERSION_MAJOR_DOT_MINOR
+
+/* program minor version */
+#undef PVERSION_MINOR
+
+/* program version number 1000*major+minor */
+#undef PVERSION_NUMBER_MAJOR_MINOR
+
+/* program version number 1000000*major+1000*minor+patch */
+#undef PVERSION_NUMBER_MAJOR_MINOR_PATCH
+
+/* program patch level */
+#undef PVERSION_PATCH
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* package config dir (usually /etc or /usr/local/etc) */
+#undef SYSCONFDIR
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME

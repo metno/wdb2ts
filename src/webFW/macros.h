@@ -27,10 +27,11 @@
 */
 
 #include <trimstr.h>
-
+#include <boost/thread.hpp>
 
 #define MISP_DECLARE_APP( AppClass ) \
    private:                          \
+      static boost::mutex mutex##AppClass; \
       static AppClass *app##AppClass;\
    public:                           \
       static AppClass* app();        \
@@ -40,11 +41,13 @@
 
 #define MISP_IMPL_APP( AppClass )         \
    AppClass *AppClass::app##AppClass = 0; \
+   boost::mutex AppClass::mutex##AppClass; \
                                           \
 AppClass*                                 \
 AppClass::                                \
 app()                                     \
 {                                         \
+   boost::mutex::scoped_lock lock(mutex##AppClass); \
    if( ! app##AppClass )                  \
       app##AppClass = new AppClass();     \
                                           \
@@ -210,7 +213,7 @@ Name##_handler(request_rec *r)                     \
          return DECLINED;                                \
       case webfw::Response::NOT_FOUND:                   \
          if( error.empty() )                             \
-            ost << "Path NOT found: " << request.urlPath();\
+            ost << "Path NOT found: '" << request.urlPath() << "'";\
          else                                            \
             ost << error;                                \
                                                          \

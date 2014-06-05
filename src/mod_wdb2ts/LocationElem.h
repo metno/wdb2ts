@@ -73,6 +73,7 @@ class LocationElem {
 	TimeSerie *timeSerie;
 	ITimeSerie itTimeSerie;
 	ProviderList providerPriority;
+	ProviderList::const_iterator itProviderPriorityBegin;
 	TopoProviderMap modelTopoProviders;
 	std::list<std::string>  topographyProviders;
 	std::string forecastProvider;
@@ -80,6 +81,7 @@ class LocationElem {
 	std::string percentileProvider;
 	std::string modelTopoProvider;
 	std::string symbolProvider;
+	std::string symbolProbabilityProvider;
 	std::string lastUsedProvider_;
 	boost::posix_time::ptime precipRefTime;
 	float       latitude_;
@@ -94,6 +96,21 @@ class LocationElem {
 			      float longitude, float latitude, int hight  );
 	
 	void init( ITimeSerie itTimeSerie, TimeSerie *timeSerie );
+
+	/**
+	 * startAtProviderWithPlacename, set the itProviderPriorityBegin
+	 * to the element in the providerPriority list where we shall
+	 * start to look for data.
+	 *
+	 * @providerWithPlaceName empty the iterator is set to the
+	 * beginning of the providerPriority list. If NOT empty search up this
+	 * provider and set the iterator to this element.
+	 *
+	 * @return true if the provider is found and the iterator is set.
+	 * Return false if the provider is NOT found, and set the iterator
+	 * to the beginning.
+	 */
+	bool startAtProvider( const std::string &providerWithPlaceName );
 	
 	std::string topoProvider( const std::string &provider_, TopoProviderMap &topoProviders );
 
@@ -155,7 +172,7 @@ class LocationElem {
 		
 		if( provider.empty() ) {
 			if( ! fromTime.is_special() ) {
-				for( itProvider = providerPriority.begin();
+				for( itProvider = itProviderPriorityBegin;
 				     itProvider != providerPriority.end();
 			        ++itProvider ) {
 					itProviderPDataList = itFromTimeSerie->second.find( itProvider->providerWithPlacename() );
@@ -172,7 +189,7 @@ class LocationElem {
 				}
 			} else {
 				for( ;itFromTimeSerie != fromTimeSerie.end(); ++itFromTimeSerie ) {
-					for( itProvider = providerPriority.begin();
+					for( itProvider = itProviderPriorityBegin;
 					     itProvider != providerPriority.end();
 					     ++itProvider ) {
 						itProviderPDataList = itFromTimeSerie->second.find( itProvider->providerWithPlacename() );
@@ -249,7 +266,7 @@ class LocationElem {
 		      prefix = provider;
 		   }
 
-		   for( ProviderList::const_iterator pit=providerPriority.begin();
+		   for( ProviderList::const_iterator pit=itProviderPriorityBegin;
 		        pit != providerPriority.end(); ++pit ) {
 		      if( pit->provider != prefix )
 		         continue;
@@ -294,8 +311,10 @@ public:
 	std::string oceanProvider() const { return oceanProvider_; }
 	std::string modeltopoprovider() const { return modelTopoProvider; }
 	std::string symbolprovider() const { return symbolProvider; }
+	std::string symbolProbabilityprovider() const { return symbolProbabilityProvider; }
 	
 	void symbolprovider(const std::string &provider ){ symbolProvider = provider; }
+	void symbolProbabilityprovider(const std::string &provider ){  symbolProbabilityProvider = provider; }
 	void forecastprovider( const std::string &provider ) { forecastProvider=provider; }
 
 	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;
@@ -313,10 +332,11 @@ public:
    float T2M_LAND( bool tryHard=false )const;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard=false )const;
    float temperatureCorrected( bool tryHard = false )const;
-   void  temperatureCorrected( float temperature, const std::string &provider = "" );
+   void  temperatureCorrected( float temperature, const std::string &provider = "", bool all=false);
    float wetBulbTemperature( bool tryHard = false )const;
    float UU( bool tryHard=false )const;
    
+
    bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                              float &minOut, float &maxOut, float &meanOut, float probOut,
                              bool tryHard=false )const;

@@ -52,6 +52,8 @@
 #include <WebQuery.h>
 #include <Logger4cpp.h>
 #include <RequestIterator.h>
+#include <ProviderGroupsResolve.h>
+#include <ProviderListConfigure.h>
 
 DECLARE_MI_PROFILE;
 
@@ -61,7 +63,8 @@ namespace wdb2ts {
 
 LocationForecastGmlHandler::
 LocationForecastGmlHandler()
-	:projectionHelperIsInitialized( false),
+	:noteIsUpdated( false ),
+     projectionHelperIsInitialized( false),
 	 precipitationConfig( 0 ),
 	 expireRand( 120 )
 {
@@ -70,7 +73,8 @@ LocationForecastGmlHandler()
 
 LocationForecastGmlHandler::
 LocationForecastGmlHandler( int major, int minor, const std::string &note_ )
-	: HandlerBase( major, minor), note( note_ ), 
+	: HandlerBase( major, minor), note( note_ ),
+	  noteIsUpdated( false ),
 	  providerPriorityIsInitialized( false ),	
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
@@ -138,8 +142,18 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 
    if( ! providerPriorityIsInitialized ) {
       noteProviderList = configureProviderPriority( params, app );
-      paramDefsPtr_->resolveProviderGroups( *app, wdbDB );
+      paramDefListRresolveProviderGroups(*app, *paramDefsPtr_, wdbDB );
       symbolConf_ = symbolConfProviderWithPlacename( params, wdbDB, app);
+   }
+
+   if( noteIsUpdated ) {
+   	   WEBFW_USE_LOGGER( "update" );
+   	   noteIsUpdated = false;
+   	   std::ostringstream logMsg;
+   	   logMsg << "\nProviderReftimes: " << noteListenerId() << "\n";
+   	   for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
+   		   logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
+   	   WEBFW_LOG_INFO( logMsg.str() );
    }
 
    return noteProviderList;
@@ -171,6 +185,14 @@ configure( const wdb2ts::config::ActionParam &params,
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	actionParams = params;
 	
+	//create a logfile for update.
+	WEBFW_CREATE_LOGGER_FILE("+update");
+	{
+		WEBFW_USE_LOGGER( "update" );
+		WEBFW_SET_LOGLEVEL( log4cpp::Priority::INFO );
+	}
+
+
 	WEBFW_USE_LOGGER( "handler" );
 	
 	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
@@ -257,7 +279,8 @@ noteUpdated( const std::string &noteName,
 			WEBFW_LOG_ERROR( "LocationForecastGmlHandler::noteUpdated: Not a note we are expecting." );
 			return;
 		}
-	
+
+		noteIsUpdated = true;
 		providerReftimes.reset( new  ProviderRefTimeList( *refTimes ) );
 		
 		//Read in the projection data again. It may have come new models.
@@ -268,14 +291,17 @@ noteUpdated( const std::string &noteName,
 		
 		paramDefsPtr_.reset( new ParamDefList( *paramDefsPtr_ ) );
 
-		std::ostringstream logMsg;
-		logMsg << "noteUpdated: ProviderReftimes:\n";
-		for( ProviderRefTimeList::iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it ) {
-			logMsg << "        " <<  it->first << ": " << it->second.refTime  << '\n';
-		}
-		WEBFW_LOG_DEBUG(logMsg.str());
+		WEBFW_LOG_INFO( "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "'." );
 	}
 }
+
+std::string
+LocationForecastGmlHandler::
+noteListenerId()
+{
+	return getLogprefix();
+}
+
 
 
 void 
@@ -346,6 +372,66 @@ getProviderReftimes()
 	return providerReftimes;	
 }
 
+void
+LocationForecastGmlHandler::
+doStatus( Wdb2TsApp *app,
+		  webfw::Response &response, ConfigDataPtr config,
+		  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+		  ParamDefListPtr paramdef )
+{
+	ostringstream out;
+	response.contentType("text/xml");
+	response.directOutput( false );
+
+	out << "<status>\n";
+	out << "   <updateid>" << updateid << "</updateid>\n";
+
+	list<string> defProviders=paramdef->getProviderList();
+
+	out << "   <defined_dataproviders>\n";
+	for( list<string>::const_iterator it=defProviders.begin(); it != defProviders.end(); ++it ) {
+		if( !it->empty()) {
+			ProviderItem item = ProviderItem::decode( *it );
+			out << "      <dataprovider>\n";
+			out << "         <name>" << item.provider << "</name>\n";
+			if( ! item.placename.empty() )
+				out << "         <placename>" << item.placename << "</placename>\n";
+			out << "      </dataprovider>\n";
+		}
+	}
+	out << "   </defined_dataproviders>\n";
+
+
+	out << "   <resolved_dataproviders>\n";
+	for( ProviderList::const_iterator it=providerList.begin(); it != providerList.end(); ++it ) {
+		out << "      <dataprovider>\n";
+		out << "         <name>" <<		   it->provider << "</name>\n";
+		out << "         <placename>" <<		   it->placename << "</placename>\n";
+		out << "      </dataprovider>\n";
+		//out << "      <dataprovider>" << it->providerWithPlacename() << "</dataprovider>\n";
+	}
+	out << "   </resolved_dataproviders>\n";
+
+	out << "   <referencetimes>\n";
+	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
+		ProviderItem item = ProviderItem::decode( rit->first );
+		out << "      <dataprovider>\n";
+		out << "         <name>" << item.provider <<  "</name>\n";
+		out << "         <placename>" << item.placename << "</placename>\n";
+		out << "         <referencetime>"<< miutil::isotimeString( rit->second.refTime, true, true ) << "</referencetime>\n";
+		out << "         <updated>"<< miutil::isotimeString( rit->second.updatedTime, true, true ) << "</updated>\n";
+		out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
+		out << "         <version>" << rit->second.dataversion << "</version>\n";
+		out << "      </dataprovider>\n";
+	}
+	out << "   </referencetimes>\n";
+
+	out << "</status>\n";
+
+	response.out() << out.str();
+}
+
+
 
 void 
 LocationForecastGmlHandler::
@@ -398,9 +484,19 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	extraConfigure( actionParams, app );
 	app->notes.checkForUpdatedPersistentNotes();
-	
+	extraConfigure( actionParams, app );
+
+	refTimes = getProviderReftimes();
+	getProtectedData( symbolConf, providerPriority, paramDefPtr );
+	removeDisabledProviders( providerPriority, *refTimes );
+
+
+	if( webQuery.isStatusRequest() ) {
+		doStatus( app, response, configData, refTimes, providerPriority, paramDefPtr );
+		return;
+	}
+
 	if( altitude == INT_MIN ) {
 		try {
 			MARK_ID_MI_PROFILE("getHight");
@@ -426,10 +522,9 @@ get( webfw::Request  &req,
     		return;
     	}
 	}
+
+
 	
-	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority, paramDefPtr );
-	removeDisabledProviders( providerPriority, *refTimes );
     
 	try{
 

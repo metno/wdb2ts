@@ -108,6 +108,7 @@ operator () ( argument_type &t )
 		MARK_ID_MI_PROFILE( "WciRead::"+helper->id() +"::data" );
 				
 		MARK_ID_MI_PROFILE( "WciRead::"+helper->id() +"::doRead" );
+		helper->transaction = & t;
 		helper->doRead( res );
 		MARK_ID_MI_PROFILE(  "WciRead::"+helper->id() +"::doRead"  );
 	}

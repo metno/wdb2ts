@@ -30,7 +30,7 @@
 #define __SymbolTest_H__
 
 #include <cppunit/extensions/HelperMacros.h>
-
+#include "../LocationData.h"
 /**
  * Testsuite for MiProjection.
  */
@@ -41,6 +41,10 @@ class SymbolTest : public CppUnit::TestFixture
 	//CPPUNIT_TEST( testNullQuery );
 	CPPUNIT_TEST( testRain );
 	CPPUNIT_TEST_SUITE_END();
+
+	std::string testdir;
+ wdb2ts::LocationData* loadDataFromFile( const std::string &filename );
+
 public:
 	
 	SymbolTest();

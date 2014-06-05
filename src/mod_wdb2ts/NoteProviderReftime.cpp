@@ -31,6 +31,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #endif
 
+#include <boost/lexical_cast.hpp>
 #include <NoteProviderReftime.h>
 #include <ptimeutil.h>
 #include <splitstr.h>
@@ -95,8 +96,16 @@ loadNote( std::istream &in )
 			dataversion = -1;
 			disabled = false;
 
-			if( sscanf( data[3].c_str(), "%d", &n ) == 1)
-				dataversion = n;
+			try {
+				dataversion = boost::lexical_cast<int>( data[3] );
+			}
+			catch( ... ) {
+				delete note;
+				return 0;
+			}
+
+//			if( sscanf( data[3].c_str(), "%d", &n ) == 1)
+//				dataversion = n;
 			
 			if( data.size() > 4 ) {
 				buf = data[4];

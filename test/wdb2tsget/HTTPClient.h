@@ -48,7 +48,6 @@ public:
 	 */
 	std::ostream *outStream(){ return out; }
 	
-	
 	/**
 	 * Initalize the library.
 	 * In threaded application this must be called before any other
@@ -59,7 +58,7 @@ public:
 	bool open();
 	void close();
 	
-	bool get( const std::string &url, std::ostream &content );
+	bool get( const std::string &url, std::ostream &content, int &error_code );
 	
 	long contenlLength()const;
 	std::string contentType()const;

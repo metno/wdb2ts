@@ -33,15 +33,106 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <puTools/miTime.h>
 #include <puMet/miSymbol.h>
 #include <puMet/symbolMaker.h>
 #include <LocationData.h>
 #include <SymbolHolder.h>
 #include <SymbolConf.h>
+#include <weather_symbol/Factory.h>
 #include "Precipitation.h"
 
+
 namespace wdb2ts {
+
+namespace symbol {
+struct SymbolData
+		: virtual public weather_symbol::WeatherData
+{
+	float thunderProbability;
+	float fogCover;
+	boost::posix_time::ptime from;
+
+	SymbolData()
+		: thunderProbability( FLT_MAX ), fogCover( FLT_MAX ){}
+
+	bool valid() const {
+		return precipitation != FLT_MAX && totalCloudCover != FLT_MAX && temperature != FLT_MAX;
+	}
+};
+
+
+//struct SymbolData
+//{
+//	float precip;
+//	float totalClouds;
+//	float highClouds;
+//	float mediumClouds;
+//	float lowClouds;
+//	float fog;
+//	float thunderProbability;
+//	float temperature;
+//	boost::posix_time::ptime from;
+//	SymbolData():
+//		precip( FLT_MAX ), totalClouds( FLT_MAX ), highClouds( FLT_MAX ), mediumClouds( FLT_MAX ), lowClouds( FLT_MAX ),
+//		fog( 0 ),	thunderProbability( 0 ), temperature( FLT_MAX ){}
+//
+//	bool valid() const {
+//		return precip != FLT_MAX && totalClouds != FLT_MAX && temperature != FLT_MAX;
+//	}
+//};
+
+
+std::ostream&
+operator<<( std::ostream &o, const SymbolData &data);
+
+typedef std::map<boost::posix_time::ptime, SymbolData> SymbolDataContainer;
+
+void
+loadBaseData( SymbolDataContainer &dataContainer,
+		            LocationData& data,
+			        const std::string &provider,
+			        int dataTimeStep );
+
+void
+computeSymbolData( const SymbolDataContainer &baseData,
+		           SymbolDataContainer &data,
+		           int hours );
+
+struct SymbolDataExtra {
+	SymbolData symbolData;
+	int count;
+	SymbolDataExtra(): count( 0 ) {}
+	SymbolDataExtra( const SymbolDataExtra &s )
+		: symbolData( s.symbolData ),count( s.count ) {}
+	SymbolDataExtra& operator=(const SymbolDataExtra &rhs ) {
+		if( this != &rhs ) {
+			count = rhs.count;
+			symbolData = rhs.symbolData;
+		}
+		return *this;
+	}
+
+	SymbolDataExtra& operator=(const SymbolData &rhs ) {
+		if( &this->symbolData != &rhs ) {
+			++count;
+			symbolData = rhs;
+		}
+		return *this;
+	}
+};
+
+typedef std::map<boost::posix_time::ptime, SymbolDataExtra> SymbolContainerElement;
+typedef std::map<boost::posix_time::ptime, SymbolContainerElement > SymbolContainer;
+
+void
+computeSymbolData( const SymbolDataContainer &baseData,
+		           SymbolContainer &data,
+		           int hours );
+
+
+}
 
 class SymbolGenerator 
 {
@@ -73,6 +164,13 @@ public:
 	                    const std::string &provider,
 	                    std::string &error );
 
+
+
+	static
+	void
+	computeSymbolBaseData( LocationData& data,
+			               const std::string &provider,
+		                   int hors, int dataTimeStep, std::string &error );
 
 	
 	static

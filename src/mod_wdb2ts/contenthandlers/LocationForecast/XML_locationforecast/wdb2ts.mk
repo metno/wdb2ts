@@ -5,6 +5,8 @@ libXML_locationforecast_la_SOURCES= \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/LocationTag.h \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags.h \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags.cpp \
+                       src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags1.h \
+                       src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/MomentTags1.cpp \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/ProductTag.h \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/PrecipitationTags.h \
                        src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/PrecipitationTags.cpp \

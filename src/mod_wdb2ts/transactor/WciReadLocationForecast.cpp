@@ -30,6 +30,7 @@
 #include <WdbQueryHelper.h>
 #include <wdb2tsProfiling.h>
 #include <Logger4cpp.h>
+#include <PqTupleContainer.h>
 
 DECLARE_MI_PROFILE;
 
@@ -125,7 +126,9 @@ operator () ( argument_type &t )
 			}
 			
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
-			decodePData( paramDefs, providerPriority, *refTimes, wciProtocol, res, isPloygon, *locationPointData );
+
+			//miutil::container::PqContainer container( res );
+			decodePData( paramDefs, providerPriority, *refTimes, res, isPloygon, *locationPointData, wciProtocol );
 			MARK_ID_MI_PROFILE( decodeProfileProvider__ );
 
 			if( stopIfQueryHasData && !res.empty() )
