@@ -232,6 +232,24 @@ findProvider( const std::string &providerWithPlacename )const
 	return end();
 }
 
+ProviderList::const_iterator
+ProviderList::
+findProviderWithoutPlacename( const std::string &provider )const
+{
+	ProviderItem pi=ProviderItem::decode( provider );
+
+	for( const_iterator it = begin(); it != end(); ++it ) {
+		if( it->provider == pi.provider ) {
+			return it;
+		}
+	}
+
+	return end();
+}
+
+
+
+
 void
 ProviderList::
 addProvider( const ProviderItem &item )

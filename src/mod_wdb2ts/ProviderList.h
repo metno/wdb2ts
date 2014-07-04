@@ -132,7 +132,9 @@ public:
 			                       std::string &providerWithplacename )const; 
 
 	const_iterator findProvider( const std::string &providerWithPlacename )const; 
-			                        
+
+	const_iterator findProviderWithoutPlacename( const std::string &provider )const;
+
 
 	/**
 	 * Decode a string on the form 'provider [placename0, placename1, .., placenameN]'
