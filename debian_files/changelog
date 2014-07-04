@@ -1,3 +1,9 @@
+metno-wdb2ts (1.3.9-1) unstable; urgency=low
+  * Reimplement NotaManager hofully this will fix the racecondition between updates and forecast handlers.
+  * Fix devpointtemperature and humidity.
+      
+ -- Borge Moe <borge.moe@met.no>  Fri, 4 Jul 2014 14:00:00 +0200
+
 metno-wdb2ts (1.3.8-1) unstable; urgency=low
   * Topoprovider: change loglevel from warning to info.
   * Fix devpointtemperature and humidity.
