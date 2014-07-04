@@ -247,7 +247,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	if( ! updateid.empty() ) {
 		string noteName = updateid+".LocationProviderReftimeList";
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
-		app->notes.registerNoteListener( updateid+".LocationProviderReftimeList", this );
+		noteHelper.addNoteListener( updateid+".LocationProviderReftimeList", this );
 
 		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
 
@@ -493,7 +493,7 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	app->notes.checkForUpdatedPersistentNotes();
+	app->notes.checkForUpdatedNotes( &noteHelper );
 	extraConfigure( actionParams, app );
 	
 	refTimes = getProviderReftimes();

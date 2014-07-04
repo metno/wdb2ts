@@ -114,6 +114,7 @@ public:
 			       PtrProviderRefTimes refTimes, const ProviderList &providerList,
 			       ParamDefListPtr paramdef );
 private:
+	NoteHelper          noteHelper;
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;

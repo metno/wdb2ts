@@ -88,7 +88,8 @@ LocationForecastHandler2()
 
 LocationForecastHandler2::
 LocationForecastHandler2( int major, int minor, const std::string &note_ )
-	: HandlerBase( major, minor), note( note_ ),
+	: HandlerBase( major, minor),
+	  note( note_ ),
 	  subversion( 0 ),
 	  noteIsUpdated( false ),
 	  providerPriorityIsInitialized( false ),
@@ -249,7 +250,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	if( ! updateid.empty() ) {
 		string noteName = updateid+".LocationProviderReftimeList";
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
-		app->notes.registerNoteListener( noteName, this );
+		noteHelper.addNoteListener( noteName, this );
 
 		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
 
@@ -319,6 +320,8 @@ noteUpdated( const std::string &noteName,
 		}
 
 		WEBFW_LOG_INFO( "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "'." );
+		cerr << "NoteUpdated ( " << noteListenerId() << "): '" << noteName << "' version: "
+			 << note->version()  << "." << endl;
 	}
 }
 
@@ -509,7 +512,7 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	app->notes.checkForUpdatedPersistentNotes();
+	app->notes.checkForUpdatedNotes( &noteHelper );
 
 	extraConfigure( actionParams, app );
 	

@@ -113,6 +113,7 @@ public:
 				   ParamDefListPtr paramdef );
 
 private:
+	NoteHelper          noteHelper;
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;

@@ -610,7 +610,7 @@ get( webfw::Request  &req,
 
 	//We must call checkForUpdatedPersistentNotes to ensure that
 	//all notes saved to disk is read in from disk at start up.
-	app->notes.checkForUpdatedPersistentNotes();
+	app->notes.checkForUpdatedNotes( 0 );
 	
 	try {
 		ProviderRefTimeList exitingProviders;
@@ -621,7 +621,6 @@ get( webfw::Request  &req,
 		if( debug ) {
 			app->notes.setNote( updateid + ".LocationProviderReftimeList", new NoteProviderReftimes( oldRefTime ) );
 			WEBFW_LOG_DEBUG("LocationForecastUpdateHandler: (debug) note updated: '" << updateid + ".LocationProviderReftimeList." );
-			app->notes.checkForUpdatedPersistentNotes();
 			std::string xml;
 			xml="<?xml version=\"1.0\" ?>\n<status>Updated</status>\n";
 			response.out() << xml;
@@ -724,7 +723,6 @@ get( webfw::Request  &req,
 			checkAgainstExistingProviders( exitingProviders, newRefTime );
 			app->notes.setNote( updateid + ".LocationProviderReftimeList", new NoteProviderReftimes( newRefTime ) );
 			WEBFW_LOG_DEBUG("LocationForecastUpdateHandler: note updated: '" << updateid + ".LocationProviderReftimeList." );
-			app->notes.checkForUpdatedPersistentNotes();
 		}
    		
 		status = updateStatus( oldRefTime, newRefTime );
