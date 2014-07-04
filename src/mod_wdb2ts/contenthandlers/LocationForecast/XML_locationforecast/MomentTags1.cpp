@@ -179,8 +179,6 @@ output( std::ostream &out, const std::string &indent )
 		}
 	}
 
-	cerr << "time: " << pd->time() << " provider: " << provider  << endl;
-
 	if( ! provider.empty() ) {
 		savedProvider = provider;
 		symData->provider = provider;
@@ -215,8 +213,6 @@ output( std::ostream &out, const std::string &indent )
 
 		pd->forecastprovider( provider );
 		value = pd->RH2M( true );
-
-		cerr << "RH2M: " << pd->time() << " " << value <<  "'" << savedProvider << "'" << endl;
 
 		if( value == FLT_MAX && dewpoint != FLT_MAX) {
 		   if( dewpoint != FLT_MAX )
