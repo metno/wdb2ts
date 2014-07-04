@@ -222,7 +222,7 @@ configure( const wdb2ts::config::ActionParam &params,
 		string noteName = updateid+".LocationProviderReftimeList";
 		WEBFW_LOG_DEBUG( "LocationForecastGmlHandler::configure: updateid: '" << updateid << "' noteName '" << noteName << "'.");
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
-		app->notes.registerNoteListener( noteName, this );
+		noteHelper.addNoteListener( noteName, this );
 
 	   wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
 
@@ -484,7 +484,7 @@ get( webfw::Request  &req,
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	app->notes.checkForUpdatedPersistentNotes();
+	app->notes.checkForUpdatedNotes( &noteHelper );
 	extraConfigure( actionParams, app );
 
 	refTimes = getProviderReftimes();
