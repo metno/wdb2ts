@@ -98,10 +98,8 @@ output( std::ostream &out, const std::string &indent )
 		WEBFW_LOG_DEBUG("MomentTags: No data!");
 		return;
 	}
-	
 
-	if( ! pd->forecastprovider().empty() )
-		savedProvider = pd->forecastprovider();
+	savedProvider = pd->forecastprovider();
 
 	out.precision(1);
 	tmpout.setf( ios::fixed, ios::floatfield );
@@ -141,21 +139,18 @@ output( std::ostream &out, const std::string &indent )
 			       << " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
 	}
 
-	if( tempNoAdiabatic != FLT_MAX ) {
+	if( tempNoAdiabatic != FLT_MAX )
 		tempUsed = tempNoAdiabatic;
-	} else 	if( tempAdiabatic != FLT_MAX ) {
+	else if( tempAdiabatic != FLT_MAX )
 		tempUsed = tempAdiabatic;
-	}
 
 	if( tempUsed != FLT_MAX )
 	   tempProb = getTemperatureProability( tempUsed, true );
 
 	if( tempUsed != FLT_MAX ) {
 		if( loglevel >= log4cpp::Priority::DEBUG ) {
-			if( tempNoAdiabaticProvider.empty())
-				tmpout << indent << "<!-- Dataprovider: " << provider << " -->\n";
-			else
-				tmpout << indent << "<!-- Dataprovider: " << tempNoAdiabaticProvider << " -->\n";
+			tmpout << indent << "<!-- Dataprovider: "
+			       << (tempNoAdiabaticProvider.empty()?provider:tempNoAdiabaticProvider) << " -->\n";
 
 			if( tempNoAdiabatic != FLT_MAX && tempAdiabatic!=FLT_MAX ) {
 				tmpout << indent << "<!-- Dataprovider: " << provider << " tempAdiabatic: " << tempAdiabatic
@@ -184,7 +179,10 @@ output( std::ostream &out, const std::string &indent )
 		}
 	}
 
+	cerr << "time: " << pd->time() << " provider: " << provider  << endl;
+
 	if( ! provider.empty() ) {
+		savedProvider = provider;
 		symData->provider = provider;
 		symData->temperature = tempUsed;
 
@@ -194,15 +192,8 @@ output( std::ostream &out, const std::string &indent )
 		symData->wetBulbTemperature = pd->wetBulbTemperature();
 
 		if( projectionHelper ) {
-			if( projectionHelper->convertToDirectionAndLengthMiLib( provider, pd->latitude(), pd->longitude(),
-						                                            pd->windU10m(), pd->windV10m(),
-			                                                        dd, ff ) ) {
-				if( loglevel >= log4cpp::Priority::DEBUG ) {
-					tmpout << "<!-- libmi reprojection: dd: " << dd << " ff: " << ff << " -->\n";
-				}
-			}
 			projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
-								                           pd->windU10m(), pd->windV10m(),
+								                           pd->windU10m(true), pd->windV10m(),
 					                                       dd, ff );
 
 			if( dd!=FLT_MAX && ff != FLT_MAX ) {
@@ -222,7 +213,10 @@ output( std::ostream &out, const std::string &indent )
 
 		dewpoint = pd->dewPointTemperature( true );
 
+		pd->forecastprovider( provider );
 		value = pd->RH2M( true );
+
+		cerr << "RH2M: " << pd->time() << " " << value <<  "'" << savedProvider << "'" << endl;
 
 		if( value == FLT_MAX && dewpoint != FLT_MAX) {
 		   if( dewpoint != FLT_MAX )
@@ -311,6 +305,11 @@ output( std::ostream &out, const std::string &indent )
 		//must have at least 1 elements.
 		if( nForecast > 0 )
 			out << tmpout.str();
+
+		//The forecastprovider may have changed. But as a hack we define
+		//the forecastprovider as the provider that has the temperature (TA) or
+		//the wind component (windU10m).
+		pd->forecastprovider( savedProvider );
 	}
 	
 	hasTempCorr = false;
