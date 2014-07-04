@@ -27,8 +27,8 @@
 */
 
 
-#ifndef __NOTEMANAGER_H__
-#define __NOTEMANAGER_H__
+#ifndef __NOTEMANAGER1_H__
+#define __NOTEMANAGER1_H__
 
 #include <map>
 #include <list>
@@ -40,6 +40,44 @@
 #include <FileLockHelper.h>
 
 namespace wdb2ts {
+
+class NoteHelper {
+	friend class NoteManager;
+	NoteHelper& operator=(const NoteHelper &);
+	NoteHelper(const NoteHelper &);
+
+	struct NoteListenerElement {
+		std::list<INoteUpdateListener*> listeners;
+		boost::shared_ptr<NoteTag> note;
+
+		NoteListenerElement( INoteUpdateListener *l );
+		NoteListenerElement();
+
+		void callListeners( const std::string &noteName );
+		void addListener( INoteUpdateListener *l );
+		void removeListener( INoteUpdateListener *l );
+		bool updateNote( boost::shared_ptr<NoteTag> n );
+	};
+
+	///List of notes
+	std::map<std::string, NoteListenerElement > notes;
+
+	bool updateNote( const std::string &noteName, boost::shared_ptr<NoteTag> note );
+	void callListeners( const std::list<std::string> &noteList );
+
+public:
+	NoteHelper();
+
+	///Register a note listener.
+	void addNoteListener( const std::string &noteName,
+	                  	       INoteUpdateListener *noteListener );
+
+	void removeNoteListener( const std::string &noteName,
+	               	       INoteUpdateListener *noteListener );
+
+	void removeAllNoteListener( const std::string &noteName );
+};
+
 
 class NoteManager {
 	
@@ -53,7 +91,7 @@ class NoteManager {
 		PersistentNote( const std::string &filename_, NoteTag  *note_ ) 
 			: file( new miutil::FileLockHelper( filename_ ) ), 
 			  note( note_ ),
-			  isLoaded( false ){}
+			  isLoaded( false ){ note->version( 0 );		}
 		PersistentNote(const PersistentNote &pn )
 			: file( pn.file ), modifiedTime( pn.modifiedTime ), 
 			  note( pn.note ), isLoaded( pn.isLoaded ){}
@@ -76,14 +114,9 @@ class NoteManager {
 	///Maintain a list of named notes.
 	std::map<std::string, boost::shared_ptr<NoteTag> >      notes;
 	
-	///Maintain a list of noteListeners for every noteName.
-	std::map<std::string, std::list<INoteUpdateListener*> > noteListener;
+	boost::mutex        mutex;
 
-	///Serialize access to the notes
- 	boost::mutex        notesMutex;
- 	
- 	///Serialize access to the noteListener
- 	boost::mutex        listenerMutex;
+	void loadPersistentNotes();
 
 public:
 	NoteManager( const std::string &persistentNotePath );
@@ -91,27 +124,31 @@ public:
 	
 	void setPersistentNotePath( const std::string &persistentNotePath );
 	
-	void registerPersistentNote( const std::string &noteName, NoteTag *note );
-	void checkForUpdatedPersistentNotes();
-	
 	/**
-	 * Set a note and broadcast it to all noteListeners. 
+	 * Mark the noteName as a persistent note, ie a note that is saved to disk.
+	 */
+	void registerPersistentNote( const std::string &noteName, NoteTag *note );
+
+	/**
+	 * Check for updated notes and signal the listener registered in noteHelper.
+	 * It also reads the persistent loads saved to disk.
+	 */
+	void checkForUpdatedNotes( NoteHelper *noteHelper );
+
+
+	/**
+	 * Set a note. If it is a persistent note it is also saved
+	 * to disk.
 	 * 
-	 * Don't use the note ptr after this function have returned.
-	 * In the case of persistent notes the pointer is deleted.
+	 * Don't use the note pointer after this function have returned.
 	 */
 	void setNote( const std::string &noteName, NoteTag *note );
 	 
-	///Retrive a named note.
+	/**
+	 * Retrieve a note. To ensure that a persistent note can be
+	 * retrieved checkForUpdatedNotes must be called first.
+	 */
 	boost::shared_ptr<NoteTag> getNote( const std::string &note );
-	   
-	///Register a note listener.
-	void registerNoteListener( const std::string &noteName,
-			 	                   INoteUpdateListener *noteListener );
-
-	///Remove a note listener.
-	void removeNoteListener( const std::string &noteName,
-	 			 	              INoteUpdateListener *noteListener );
 
 };
 

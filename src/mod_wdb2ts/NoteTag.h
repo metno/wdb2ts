@@ -73,6 +73,7 @@ public:
 		const char* what()const throw()  { return msg_.c_str(); }
 	};
 	
+	NoteTag():version_(0){}
 	virtual ~NoteTag(){}
 	virtual const char* noteType() const =0;
 	
@@ -82,6 +83,12 @@ public:
 	 * Return a pointer to a new note on the heap. 
 	 */
 	virtual NoteTag* loadNote( std::istream &in ){ throw NoteException( "Not implemented!"); };
+
+	void version( long v ){ version_ = v; }
+	long version()const{ return version_; }
+
+	private:
+		long version_;
 };
 
 }
