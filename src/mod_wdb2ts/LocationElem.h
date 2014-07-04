@@ -149,10 +149,10 @@ class LocationElem {
 	 */
 	template<class T>
 	T getValueImpl( const T PData::* pPM,
-					    const FromTimeSerie &fromTimeSerie,
-		             boost::posix_time::ptime &fromTime,
-		             std::string &provider,
-		             T notValidValue )const
+					const FromTimeSerie &fromTimeSerie,
+		            boost::posix_time::ptime &fromTime,
+		            std::string &provider,
+		            T notValidValue )const
 	{
 		using namespace std;
 		CIFromTimeSerie itFromTimeSerie;
@@ -170,6 +170,25 @@ class LocationElem {
 		if( itFromTimeSerie == fromTimeSerie.end() )
 			return notValidValue;
 		
+//		if( pPM == &PData::RH2M  && provider=="ecmwf atmospheric [ecmwf grid 3]" ) {
+//			cerr << "getValueImpl: " <<  itTimeSerie->first << endl;
+//			cerr << "   providerList: " << endl;
+//			for( itProvider = itProviderPriorityBegin;
+//			     itProvider != providerPriority.end();
+//				 ++itProvider )
+//				cerr << "      " << itProvider->providerWithPlacename()<< endl;
+//			for( itProvider = itProviderPriorityBegin;
+//					itProvider != providerPriority.end();
+//					++itProvider ) {
+//				itProviderPDataList = itFromTimeSerie->second.find( itProvider->providerWithPlacename() );
+//
+//				if( itProviderPDataList == itFromTimeSerie->second.end() )
+//					continue;
+//
+//				cerr << "   RHM: " << itFromTimeSerie->first << " : " << itProvider->providerWithPlacename() << " = " << itProviderPDataList->second.*pPM << endl;
+//			}
+//		}
+
 		if( provider.empty() ) {
 			if( ! fromTime.is_special() ) {
 				for( itProvider = itProviderPriorityBegin;

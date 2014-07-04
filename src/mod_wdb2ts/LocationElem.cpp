@@ -156,7 +156,7 @@ startAtProvider( const std::string &providerWithPlacename )
 	if( providerWithPlacename.empty() ) {
 		itProviderPriorityBegin = providerPriority.begin();
 	} else {
-		itProviderPriorityBegin = providerPriority.findProvider( providerWithPlacename );
+		itProviderPriorityBegin = providerPriority.findProviderWithoutPlacename( providerWithPlacename );
 
 		if( itProviderPriorityBegin == providerPriority.end() ) {
 			itProviderPriorityBegin = providerPriority.begin();
