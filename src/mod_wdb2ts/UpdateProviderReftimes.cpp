@@ -194,7 +194,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
    string reftimeSpec;
    list<string> providerListWithoutplacename=providers.providerWithoutPlacename();
 
-   back -= hours( 8640 ); //48 hours back from now
+   back -= hours( 48 ); //48 hours back from now
    endTime += hours( 24 ); //1 day in the future.
 
    if( providers.empty() )
