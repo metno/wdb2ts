@@ -348,7 +348,7 @@ updateBreakTimes( const std::string &provider, const boost::posix_time::ptime &t
 	if(	breakTimeForecastProvider != provider ) {
 		if( ! provider.empty() ) {
 			WEBFW_LOG_DEBUG( "encode::updateBreakTimes: provider: '" << provider << "' "
-					         << "breakTimeProvider: '" << breakTimeForecastProvider << "'");
+					         << "breakTimeProvider: '" << breakTimeForecastProvider << "' time: " << time);
 			breakTimeForecastProvider = provider;
 			BreakTimeList::iterator itBreakTimes = curItBreakTimes;
 			curItBreakTimes = breakTimes.insert( breakTimes.end(),
