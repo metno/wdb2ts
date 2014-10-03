@@ -92,6 +92,7 @@ output( std::ostream &out, const std::string &indent )
 	int modelTopo;
 	int nForecast=0;
 	float dewpoint=FLT_MAX;
+	float humidity=FLT_MAX;
 	int relTopo; //The difference between modelTopo and real topography
 
 	if( ! pd ) {
@@ -210,20 +211,21 @@ output( std::ostream &out, const std::string &indent )
 		}
 
 		dewpoint = pd->dewPointTemperature( true );
+		humidity = pd->RH2M( true );
 
-		pd->forecastprovider( provider );
-		value = pd->RH2M( true );
+		if( loglevel >= log4cpp::Priority::DEBUG )
+			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint << " humidity: " << humidity << " tempUsed: " << tempUsed << " provider: " << pd->forecastprovider() << "-->\n";
 
-		if( value == FLT_MAX && dewpoint != FLT_MAX) {
-		   if( dewpoint != FLT_MAX )
-		      value = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
+		if( humidity == FLT_MAX && dewpoint != FLT_MAX) {
+		      humidity = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
 		}
 
-		if (value != FLT_MAX) {
-			tmpout << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
+		if( humidity != FLT_MAX) {
+			tmpout << indent << "<humidity value=\"" << humidity << "\" unit=\"percent\"/>\n";
 			nForecast++;
 		}
 
+		pd->forecastprovider( provider );
 		value = pd->PR( true );
 		if( value != FLT_MAX ) {
 			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
@@ -284,9 +286,8 @@ output( std::ostream &out, const std::string &indent )
 		if( pd->config && pd->config->outputParam( "dewpointTemperature") ) {
 		   float myDewPoint= dewpoint;
 
-		   if( myDewPoint == FLT_MAX ){
-		       //myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
-			   myDewPoint = miutil::dewPointTemperature( tempUsed, pd->RH2M( true ) );
+		   if( myDewPoint == FLT_MAX ) {
+			   myDewPoint = miutil::dewPointTemperature( tempUsed, humidity );
 		   }
 
 		   if( myDewPoint != FLT_MAX )
