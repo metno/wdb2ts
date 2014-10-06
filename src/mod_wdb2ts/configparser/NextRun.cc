@@ -198,10 +198,10 @@ addTimePeriod( const TimePeriode &timePeriod )
 
    timeList.sort();
 
-   cerr << "addTimePeriod: #: " << timeList.size() << endl;
-   for( std::list<TimePeriode>::const_iterator it=timeList.begin(); it != timeList.end(); ++it ) {
-      cerr << "  " << it->getTo() << "  d: " << it->getDif() << endl;
-   }
+//   cerr << "addTimePeriod: #: " << timeList.size() << endl;
+//   for( std::list<TimePeriode>::const_iterator it=timeList.begin(); it != timeList.end(); ++it ) {
+//      cerr << "  " << it->getTo() << "  d: " << it->getDif() << endl;
+//   }
 
 }
 
