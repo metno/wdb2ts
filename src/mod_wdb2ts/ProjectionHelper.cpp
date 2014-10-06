@@ -157,12 +157,6 @@ double turn( double angle_a, double angle_b)
 	return angle;
 }
 
-
-
-
-
-
-
 }
 
 namespace wdb2ts {
@@ -893,7 +887,7 @@ MiProjection::
 convertFromXYToGeographic( int nvec, double *yToLatitude, double *xToLongitude )const
 {
 	if( ! proj || ! geoproj ) {
-		cerr << "ERROR: convertFromXYToGeographic: No proj or geoproj definition.\n";
+		//cerr << "ERROR: convertFromXYToGeographic: No proj or geoproj definition.\n";
 		return false;
 	}
 
