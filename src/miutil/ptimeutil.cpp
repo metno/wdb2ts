@@ -238,7 +238,6 @@ ptimeFromIsoString( const std::string &isoTime )
 	
 	int hourOffset=0;
 	int minuteOffset=0;
-	bool isUTC=false;
 	string::size_type iIsoTime=0;
 	string::size_type iIsoTimePrev=0;
 	
@@ -318,7 +317,6 @@ ptimeFromIsoString( const std::string &isoTime )
 		char ch = isoTime[iIsoTime];
 		
 		if( ch == 'z' || ch == 'Z' ) { 
-			isUTC=true;
 			iIsoTime = string::npos;
 		} else if( ch == '+' || ch == '-' || isdigit( ch ) ) {
 			int sign=1;
