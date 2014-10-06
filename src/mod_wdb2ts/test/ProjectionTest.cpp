@@ -67,7 +67,7 @@ equals( double a1, double a2, int des ) {
 MiProjectionTest::
 MiProjectionTest()
 {
-	// NOOP
+	//NOOP
 }
 
 MiProjectionTest::
@@ -81,6 +81,8 @@ MiProjectionTest::
 setUp()
 {
 	// NOOP
+	WEBFW_USE_LOGGER( "handler" );
+	WEBFW_SET_LOGLEVEL( log4cpp::Priority::ERROR );
 }
 
 void
@@ -113,58 +115,58 @@ testLambert()
 	CPPUNIT_ASSERT( MiProjection::lambert == lambert.getProjectionType() );
 	CPPUNIT_ASSERT( MiProjection::geographic == geographic.getProjectionType() );
 
-	cerr << "LAMBERT   : " << lambert << endl;
-	cerr << "GEOGRAPHIC: " << geographic << endl;
+//	cerr << "LAMBERT   : " << lambert << endl;
+//	cerr << "GEOGRAPHIC: " << geographic << endl;
 
 	float lat=61.0;
 	float lon=7.0;
 	CPPUNIT_ASSERT( lambert.xyconvert( geographic, lat, lon ) );
 
-	cerr << "lat = " << lat << " lon = " << lon << endl;
+//	cerr << "lat = " << lat << " lon = " << lon << endl;
 
 	double dlat=61.0;
 	double dlon=7.0;
 	CPPUNIT_ASSERT( lambert.convertFromGeographicToXY( dlat, dlon ) );
-	cerr << "LAMBERT: lat = " << dlat << " lon = " << dlon << endl;
+//	cerr << "LAMBERT: lat = " << dlat << " lon = " << dlon << endl;
 
 	MiProjection obTran=ProjectionHelper::createProjection(-6.739, -16.039, 0.036, 0.036,
 			"+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +a=6367470.0 +no_defs" );
 
 	MiProjection obTranProj( lcc );
-	cerr << "ob_tran: " << obTran << endl;
-	cerr << "ob_tran: proj from milib: " << obTran.createProjDefinition(false) << endl;
+//	cerr << "ob_tran: " << obTran << endl;
+//	cerr << "ob_tran: proj from milib: " << obTran.createProjDefinition(false) << endl;
 
 	lat=61.0;
 	lon=7.0;
 	CPPUNIT_ASSERT( obTran.xyconvert( geographic, lat, lon ) );
 
-	cerr << "ob_tran: milib: lat = " << dlat << " lon = " << dlon << endl;
+//	cerr << "ob_tran: milib: lat = " << dlat << " lon = " << dlon << endl;
 	dlat=61.0;
 	dlon=7.0;
 	CPPUNIT_ASSERT( obTranProj.convertFromGeographicToXY( dlat, dlon ) );
-	cerr << "ob_tran:  proj: lat = " << dlat << " lon = " << dlon << endl;
+//	cerr << "ob_tran:  proj: lat = " << dlat << " lon = " << dlon << endl;
 
 
 	Projection diObTran( ob_tran, 1, 1 );
 	MiProjection miObTran( ob_tran );
-	cerr << "diField: " << diObTran << endl;
+//	cerr << "diField: " << diObTran << endl;
 	dlat=61.0;
 	dlon=7.0;
 	float flat=61.0;
 	float flon=7.0;
 	diObTran.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTran: proj: lat = " << flat << " lon = " << flon << endl;
+//	cerr << "diObTran: proj: lat = " << flat << " lon = " << flon << endl;
 	miObTran.convertFromGeographicToXY( dlat, dlon );
-	cerr << "miObTran: proj: lat = " << dlat << " lon = " << dlon << endl;
+//	cerr << "miObTran: proj: lat = " << dlat << " lon = " << dlon << endl;
 
 	float gs[6]={-6.703, -16.003, 0.036, 0.036, -24, 66.5};
 	double resx, resy;
 	diObTran.set_mi_gridspec( 3, gs, resx, resy );
-	cerr << "diObTran: proj (mi) : " << diObTran << endl;
+//	cerr << "diObTran: proj (mi) : " << diObTran << endl;
 	flat=61.0;
 	flon=7.0;
 	diObTran.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTran: proj (mi): lat = " << flat << " lon = " << flon << endl;
+//	cerr << "diObTran: proj (mi): lat = " << flat << " lon = " << flon << endl;
 
 
 }
@@ -173,7 +175,7 @@ void
 MiProjectionTest::
 testObTran()
 {
-	cerr << "\n\n\n ----- testObTran -------\n\n\n";
+//	cerr << "\n\n\n ----- testObTran -------\n\n\n";
 	MiProjection::ProjectionType gst=MiProjection::spherical_rotated;
 	float gs[6]={-6.703, -16.003, 0.036, 0.036, -24, 66.5};
 	const char *ob_tran="+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +R=6371000 +no_defs";
@@ -184,38 +186,38 @@ testObTran()
 
 	CPPUNIT_ASSERT( MiProjection::geographic == geographic.getProjectionType() );
 
-	cerr << "GEOGRAPHIC: " << geographic << endl;
-	cerr << "ob_tran   : " << obTranMi << endl;
+//	cerr << "GEOGRAPHIC: " << geographic << endl;
+//	cerr << "ob_tran   : " << obTranMi << endl;
 
 	double dlat, dlon;
 	float flat, flon;
 
 	Projection diObTran( ob_tran, 1, 1 );
 	MiProjection miObTran( ob_tran );
-	cerr << "diField: " << diObTran << endl;
+//	cerr << "diField: " << diObTran << endl;
 	dlat=61.0;
 	dlon=7.0;
 	flat=61.0;
 	flon=7.0;
 	diObTran.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTran: proj: lat = " << flat << " lon = " << flon << endl;
+//	cerr << "diObTran: proj: lat = " << flat << " lon = " << flon << endl;
 	miObTran.convertFromGeographicToXY( dlat, dlon );
-	cerr << "miObTran: proj: lat = " << dlat << " lon = " << dlon << endl;
+//	cerr << "miObTran: proj: lat = " << dlat << " lon = " << dlon << endl;
 
 	double resx, resy;
 	diObTran.set_mi_gridspec( 3, gs, resx, resy, false );
-	cerr << "diObTran: proj (mi) : " << diObTran << " resx: " << resx << " resy: " << resy << endl;
+//	cerr << "diObTran: proj (mi) : " << diObTran << " resx: " << resx << " resy: " << resy << endl;
 	Projection diObTranScale( "+proj=ob_tran +o_proj=longlat +lon_0=-24 +o_lat_p=23.5 +x_0=0.116989 +y_0=0.279305 +R=6371000 +no_defs", 1, 1 );
 
 	flat=61.0;
 	flon=7.0;
 	diObTran.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTran: proj (mi): lat = " << flat << " lon = " << flon << endl;
+//	cerr << "diObTran: proj (mi): lat = " << flat << " lon = " << flon << endl;
 
 	flat=61.0;
 	flon=7.0;
 	diObTranScale.convertFromGeographic( 1, &flon, &flat );
-	cerr << "diObTranScale: (mi): lat = " << flat << " lon = " << flon << endl;
+//	cerr << "diObTranScale: (mi): lat = " << flat << " lon = " << flon << endl;
 
 
 	flat=61.0;
@@ -223,7 +225,7 @@ testObTran()
 
 	CPPUNIT_ASSERT( obTranMi.xyconvert( geographic, flat, flon ) );
 
-	cerr << "obTranMi: mi       : lat = " << flat << " lon = " << flon << endl;
+//	cerr << "obTranMi: mi       : lat = " << flat << " lon = " << flon << endl;
 }
 
 
@@ -332,10 +334,10 @@ testAtThePoles()
 
 	geographic.makeGeographic();
 
-	cerr << "------ testNorthPole -----------\n";
-	cerr << "OBTRAN    : " << obTran << endl;
-	cerr << "LAMBERT   : " << lambert << endl;
-	cerr << "GEOGRAPHIC: " << geographic << endl;
+//	cerr << "------ testNorthPole -----------\n";
+//	cerr << "OBTRAN    : " << obTran << endl;
+//	cerr << "LAMBERT   : " << lambert << endl;
+//	cerr << "GEOGRAPHIC: " << geographic << endl;
 
 	double dlat;
 	double dlon;
@@ -350,46 +352,46 @@ testAtThePoles()
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lambert, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
-	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 169.402, dDD, 2 ) && equals(8.35785, dFF, 2) );
-	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
-	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
 
 	//This is also at the north pole, and the result should be the same as above.
 	dlat=90;
 	dlon = 30;
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lambert, dlat, dlon, dU, dV, dDD, dFF, false) );
-	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- lambert: DD: " << dDD << " FF: " << dFF << endl;
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
 
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
-	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
 	CPPUNIT_ASSERT( equals( 169.402, dDD, 2 ) && equals(8.35785, dFF, 2) );
 
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
-	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
 
 
-	cerr << " ----- south pole ------\n";
+//	cerr << " ----- south pole ------\n";
 	//Test south pole
 	dlat = -90;
 	dlon = 0;
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 257.696, dDD, 2 ) && equals(8.35785, dFF, 2) );
-	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- obTran: DD: " << dDD << " FF: " << dFF << endl;
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
-	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
+//	cerr << " --- lonLat: DD: " << dDD << " FF: " << dFF << endl;
 
 
 }
