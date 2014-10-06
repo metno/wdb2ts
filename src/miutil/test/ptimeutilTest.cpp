@@ -2,7 +2,9 @@
 #include <exception.h>
 #include <iostream>
 #include <ptimeutil.h>
+#include "EnableTimePeriod.h"
 #include "ptimeutilTest.h"
+
 
 CPPUNIT_TEST_SUITE_REGISTRATION( PtimeUtilTest );
 
@@ -167,6 +169,40 @@ geologicalLocalTime()
 }
 
 void 
+PtimeUtilTest::
+enableTimePeriod()
+{
+	using namespace boost::posix_time;
+	using namespace boost::gregorian;
+	ptime refTime = time_from_string("2014-06-06 10:35:45");
+	EnableTimePeriod p;
+
+	CPPUNIT_ASSERT_MESSAGE("All times", p.isEnabled( time_from_string("2014-10-06 10:35:45") ) );
+
+	p = EnableTimePeriod::parse( "May-1/Aug-1");
+
+	date_period dp = p.enabledPeriod( refTime.date() );
+	CPPUNIT_ASSERT_MESSAGE("Unexpected, periode is null.", ! dp.is_null() );
+	CPPUNIT_ASSERT( dp.begin() == date(2014, May, 1) && dp.last() == date(2014, Jul, 31) );
+
+	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-04-30 10:35:45") ) );
+	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-05-01 10:35:45") ) );
+	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-08-01 10:35:45") ) );
+	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-06-01 10:35:45") ) );
+
+
+	p = EnableTimePeriod::parse( "Aug-1/May-1");
+
+	dp = p.enabledPeriod( refTime.date() );
+
+	cerr << "Date period: " << dp << endl;
+	CPPUNIT_ASSERT( dp.begin() == date(2014, Aug, 1) && dp.last() == date(2015, Apr, 30) );
+
+
+
+}
+
+void
 PtimeUtilTest::
 testRFC1123()
 {
