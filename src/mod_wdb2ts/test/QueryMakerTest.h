@@ -55,8 +55,8 @@ using namespace wdb2ts::config;
 class QueryMakerTest : public CppUnit::TestFixture
 {
 	CPPUNIT_TEST_SUITE( QueryMakerTest );
-	CPPUNIT_TEST( test );
-	CPPUNIT_TEST( test2 );
+//	CPPUNIT_TEST( test );
+//	CPPUNIT_TEST( test2 );
 //	CPPUNIT_TEST( testUrlParamDataProviderOne );
 //	CPPUNIT_TEST( testUrlParamDataProviderMany );
 //	CPPUNIT_TEST( testUrlParamTimeSpecEmpty );
@@ -76,8 +76,8 @@ public:
 	virtual void tearDown();
 	
 	// UrlParamDataProvider
-	void test();
-	void test2();
+//	void test();
+//	void test2();
 //	void testUrlParamDataProviderOne();
 //	void testUrlParamDataProviderMany();
 //	// UrlParamTimeSpec

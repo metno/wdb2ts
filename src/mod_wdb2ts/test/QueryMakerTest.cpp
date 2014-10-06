@@ -99,82 +99,82 @@ tearDown()
 }
 
 
-void
-QueryMakerTest::
-test()
-{
-	string confFile("testconf1-params.xml");
-	Config *conf = loadConfig( confFile );
-	string id;
-	ProviderList providers;
-	PtrProviderRefTimes refTimes( new ProviderRefTimeList() );
-	Level level( 600, 600, "height above ground", "m");
-
-    CPPUNIT_ASSERT_MESSAGE(string("Cant read configuration file '")+confFile+"'.",  conf != 0 );
-
-	(*refTimes)["hirlam"]=pt::time_from_string("2013-03-26 12:00:00");
-	(*refTimes)["ecmwf atmospheric"]=pt::time_from_string("2013-03-26 12:00:00");
-	providers.push_back( ProviderItem("hirlam") );
-
-	CPPUNIT_ASSERT_MESSAGE( "No configuration available.",  conf != 0 );
-
-	QueryMaker *qMaker = QueryMaker::create( conf->paramdef, 3 );
-
-	QuerysAndParamDefsPtr q = qMaker->getWdbReadQuerys( id, 10, 62, providers, level, refTimes );
-
-	cerr << *q << endl;
-
-//	UrlParamDataProvider testParam;
-//	testParam.decode("");
-//	string wciParam = testParam.selectPart();
-//	string expResult = "NULL";
+//void
+//QueryMakerTest::
+//test()
+//{
+//	string confFile("testconf1-params.xml");
+//	Config *conf = loadConfig( confFile );
+//	string id;
+//	ProviderList providers;
+//	PtrProviderRefTimes refTimes( new ProviderRefTimeList() );
+//	Level level( 600, 600, "height above ground", "m");
 //
-//	CPPUNIT_ASSERT_EQUAL(  expResult, wciParam );
-}
-
-
-void
-QueryMakerTest::
-test2()
-{
-	string confFile("metno-wdb2ts-conf.xml");
-	string request("/proffecepsforecast");
-	Config *conf = loadConfig( confFile );
-	string id;
-	ProviderList providers;
-	PtrProviderRefTimes refTimes( new ProviderRefTimeList() );
-	Level level( 600, 600, "height above ground", "m");
-
-	CPPUNIT_ASSERT_MESSAGE(string("Cant read configuration file '")+confFile+"'.",  conf != 0 );
-
-	(*refTimes)["hirlam"]=pt::time_from_string("2013-03-26 12:00:00");
-	(*refTimes)["ecmwf atmospheric"]=pt::time_from_string("2013-03-26 12:00:00");
-	providers.push_back( ProviderItem("hirlam") );
-
-	CPPUNIT_ASSERT_MESSAGE( "No configuration available.",  conf != 0 );
-
-	RequestMap::iterator itReq = conf->requests.find( request );
-
-	for( RequestMap::iterator it = conf->requests.begin(); it != conf->requests.end(); ++it )
-		cerr << "Rquest Defined: '"<< it->first << "'" << endl;
-
-	CPPUNIT_ASSERT_MESSAGE(request+" - Not defined in file '" + confFile+ "'.",
-			               itReq != conf->requests.end() );
-
-	printParamdefs( itReq->second->requestDefault.paramdef, request );
-	QueryMaker *qMaker = QueryMaker::create( itReq->second->requestDefault.paramdef, 3 );
-
-	QuerysAndParamDefsPtr q = qMaker->getWdbReadQuerys( "default", 10, 62, providers, level, refTimes );
-
-	cerr << *q << endl;
-
-//	UrlParamDataProvider testParam;
-//	testParam.decode("");
-//	string wciParam = testParam.selectPart();
-//	string expResult = "NULL";
+//    CPPUNIT_ASSERT_MESSAGE(string("Cant read configuration file '")+confFile+"'.",  conf != 0 );
 //
-//	CPPUNIT_ASSERT_EQUAL(  expResult, wciParam );
-}
+//	(*refTimes)["hirlam"]=pt::time_from_string("2013-03-26 12:00:00");
+//	(*refTimes)["ecmwf atmospheric"]=pt::time_from_string("2013-03-26 12:00:00");
+//	providers.push_back( ProviderItem("hirlam") );
+//
+//	CPPUNIT_ASSERT_MESSAGE( "No configuration available.",  conf != 0 );
+//
+//	QueryMaker *qMaker = QueryMaker::create( conf->paramdef, 3 );
+//
+//	QuerysAndParamDefsPtr q = qMaker->getWdbReadQuerys( id, 10, 62, providers, level, refTimes );
+//
+//	cerr << *q << endl;
+//
+////	UrlParamDataProvider testParam;
+////	testParam.decode("");
+////	string wciParam = testParam.selectPart();
+////	string expResult = "NULL";
+////
+////	CPPUNIT_ASSERT_EQUAL(  expResult, wciParam );
+//}
+//
+//
+//void
+//QueryMakerTest::
+//test2()
+//{
+//	string confFile("metno-wdb2ts-conf.xml");
+//	string request("/proffecepsforecast");
+//	Config *conf = loadConfig( confFile );
+//	string id;
+//	ProviderList providers;
+//	PtrProviderRefTimes refTimes( new ProviderRefTimeList() );
+//	Level level( 600, 600, "height above ground", "m");
+//
+//	CPPUNIT_ASSERT_MESSAGE(string("Cant read configuration file '")+confFile+"'.",  conf != 0 );
+//
+//	(*refTimes)["hirlam"]=pt::time_from_string("2013-03-26 12:00:00");
+//	(*refTimes)["ecmwf atmospheric"]=pt::time_from_string("2013-03-26 12:00:00");
+//	providers.push_back( ProviderItem("hirlam") );
+//
+//	CPPUNIT_ASSERT_MESSAGE( "No configuration available.",  conf != 0 );
+//
+//	RequestMap::iterator itReq = conf->requests.find( request );
+//
+//	for( RequestMap::iterator it = conf->requests.begin(); it != conf->requests.end(); ++it )
+//		cerr << "Rquest Defined: '"<< it->first << "'" << endl;
+//
+//	CPPUNIT_ASSERT_MESSAGE(request+" - Not defined in file '" + confFile+ "'.",
+//			               itReq != conf->requests.end() );
+//
+//	printParamdefs( itReq->second->requestDefault.paramdef, request );
+//	QueryMaker *qMaker = QueryMaker::create( itReq->second->requestDefault.paramdef, 3 );
+//
+//	QuerysAndParamDefsPtr q = qMaker->getWdbReadQuerys( "default", 10, 62, providers, level, refTimes );
+//
+//	cerr << *q << endl;
+//
+////	UrlParamDataProvider testParam;
+////	testParam.decode("");
+////	string wciParam = testParam.selectPart();
+////	string expResult = "NULL";
+////
+////	CPPUNIT_ASSERT_EQUAL(  expResult, wciParam );
+//}
 
 
 //void
