@@ -51,6 +51,7 @@
 #include <ConfigUtils.h>
 #include <WebQuery.h>
 #include <QueryMaker.h>
+#include <EnableTimePeriod.h>
 
 namespace wdb2ts {
 
@@ -131,6 +132,7 @@ private:
    NearestHeights      nearestHeights;
    NearestLandConf     nearestLands;
    SymbolConfProvider  symbolConf_;
+   miutil::EnableTimePeriod thunderInSymbols;
    PtrProviderRefTimes providerReftimes;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;

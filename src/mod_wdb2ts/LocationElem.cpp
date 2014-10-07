@@ -93,6 +93,7 @@ using namespace boost::posix_time;
 
 LocationElem::
 LocationElem():
+	thunder( this ),
 	topoTime( boost::gregorian::date(1970, 1, 1),
 		   	 boost::posix_time::time_duration( 0, 0, 0 ) ),
 	topoPostfix("__MODEL_TOPO__"), topographyPostfix( "__TOPOGRAPHY__" ),
@@ -116,7 +117,8 @@ LocationElem( const ProviderList &providerPriority_,
 			  const TopoProviderMap &modelTopoProviders_,
 			  const std::list<std::string>  &topographyProviders_,
 			  float longitude, float latitude, int hight)
-	: topoTime( boost::gregorian::date(1970, 1, 1),
+	: thunder( this ),
+	  topoTime( boost::gregorian::date(1970, 1, 1),
 	            boost::posix_time::time_duration( 0, 0, 0 ) ),
 	  topoPostfix("__MODEL_TOPO__"), topographyPostfix( "__TOPOGRAPHY__" ),
 	  seaIceTime( boost::gregorian::date(1970, 1, 1),
@@ -132,6 +134,31 @@ LocationElem( const ProviderList &providerPriority_,
      config( new ConfigData() )
 {
 	itProviderPriorityBegin = providerPriority.begin();
+}
+
+bool
+LocationElem::
+EnableThunder::
+hasThunder() const
+{
+	if( ! isInitialized ) {
+		WEBFW_USE_LOGGER( "encode" );
+
+		isInitialized = true;
+		if( elem->config ) {
+			boost::posix_time::ptime now=boost::posix_time::second_clock::universal_time();
+			if( elem->config->thunder.valid() ) {
+				thunder = elem->config->thunder.isEnabled( now );
+				WEBFW_LOG_DEBUG("Thunder in symbols enabled: '" << elem->config->thunder.enabledPeriod( now.date() )<<"'. Spec: '" << elem->config->thunder << "'. Thunder enabled: " << (thunder?"true":"false")<<".");
+			} else {
+				WEBFW_LOG_ERROR("Thunder in symbols disabled. Invalid time period specification in 'symbols_enable_thunder'." );
+			}
+		} else {
+			thunder = true;
+			WEBFW_LOG_ERROR("Thunder. Internal error. Missing configuration 'LocationElem::EnableThunder::hasThunder'. (Thunder enabled)." );
+		}
+	}
+	return thunder;
 }
 
 void
@@ -1006,6 +1033,10 @@ float
 LocationElem::
 thunderProbability( bool tryHard )const
 {
+	if( ! thunder.hasThunder() ) {
+		return FLT_MAX;
+	}
+
 	return getValue( &PData::thunderProability,
 				        itTimeSerie->second,
 				        const_cast<ptime&>(itTimeSerie->first), 

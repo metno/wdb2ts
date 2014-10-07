@@ -279,6 +279,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	paramDefsPtr_.reset( new ParamDefList( getParamdef() ) );
 	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
 	doNotOutputParams = OutputParams::decodeOutputParams( params );
+	thunderInSymbols = wdb2ts::configEnableThunderInSymbols( params );
 
 	return true;
 }
@@ -509,6 +510,7 @@ get( webfw::Request  &req,
 	configData->parameterMap = doNotOutputParams;
 	configData->throwNoData = noDataResponse.doThrow();
 	configData->requestedProvider = webQuery.dataprovider();
+	configData->thunder = thunderInSymbols;
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 

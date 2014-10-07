@@ -34,6 +34,7 @@
 #include <list>
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/utility.hpp>
 #include <trimstr.h>
 #include <PointDataHelper.h>
 #include <UpdateProviderReftimes.h>
@@ -57,13 +58,25 @@ namespace wdb2ts {
 class LocationElem {
 	LocationElem( const LocationElem &);
 	LocationElem& operator=( const LocationElem &);
-	
+
 	friend class LocationData;
 	
 	typedef float PData::*PM_float;
 	typedef int PData::*PM_int;
 	typedef std::string PData::*PM_string;
 	
+	class EnableThunder : boost::noncopyable {
+		EnableThunder(); //Not implemented.
+		mutable bool isInitialized;
+		mutable bool thunder;
+		LocationElem *elem;
+
+	public:
+		EnableThunder(	LocationElem *e )
+			:isInitialized( false ), thunder(false), elem( e ) {}
+		bool hasThunder() const;
+	}thunder;
+
 	const boost::posix_time::ptime topoTime;
 	const std::string topoPostfix;
 	const std::string topographyPostfix;
@@ -89,6 +102,8 @@ class LocationElem {
 	int         height_;
 	int         topoHeight_;
 	bool        modeltopoSearched;
+
+
 	LocationElem();
 	LocationElem( const ProviderList &providerPriority,
 				  const TopoProviderMap &modelTopoProviders,

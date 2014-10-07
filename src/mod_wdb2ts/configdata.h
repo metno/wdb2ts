@@ -32,6 +32,7 @@
 #include <string>
 #include <map>
 #include <boost/shared_ptr.hpp>
+#include "EnableTimePeriod.h"
 #include "ConfigUtils.h"
 
 namespace wdb2ts {
@@ -41,6 +42,7 @@ struct ConfigData {
    std::string  url;
    bool throwNoData;
    std::string requestedProvider;
+   miutil::EnableTimePeriod thunder;
 
    ConfigData();
    bool outputParam( const std::string &param )const;
