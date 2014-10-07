@@ -34,14 +34,15 @@
 
 namespace miutil {
 
-struct EnableTimePeriod {
-	int fromDay; //From day =0, all days is enabled. From day <0 an invalid spec is given, no days is enabled.
+class EnableTimePeriod {
+	int fromDay; ///From day =0, all days is enabled. From day <0 an invalid spec is given, no days is enabled.
 	int fromMonth;
 	int toDay;
 	int toMonth;
+
+public:
 	EnableTimePeriod(): fromDay(0), fromMonth( -1 ), toDay( -1 ), toMonth( -1 ) {}
 	EnableTimePeriod( int dayFrom, int monthFrom=-1, int dayTo=-1, int monthTo=-1);
-
 	/**
 	 * duration is on the form  MM-DD/MM-DD
 	 */
@@ -50,7 +51,11 @@ struct EnableTimePeriod {
 	boost::gregorian::date_period enabledPeriod(const boost::gregorian::date &refTime=boost::gregorian::day_clock::universal_day() )const;
 	bool valid()const { return fromDay>-1; }
 	bool isEnabled( const boost::posix_time::ptime &t, const boost::gregorian::date &refTime=boost::gregorian::day_clock::universal_day() )const;
+
+	friend std::ostream& operator<<( std::ostream &o, const EnableTimePeriod &p );
 };
+
+std::ostream& operator<<( std::ostream &o, const EnableTimePeriod &p );
 
 }
 

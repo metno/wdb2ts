@@ -47,6 +47,8 @@ libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 		              src/miutil/metfunctions.cpp \
 		              src/miutil/ShapeReader.h \
 		              src/miutil/ShapeReader.cpp \
+		              src/miutil/EnableTimePeriod.h \
+		              src/miutil/EnableTimePeriod.cpp \
 		              src/miutil/mathalgo.h
 
 EXTRA_DIST+= src/miutil/wdb2ts.mk \

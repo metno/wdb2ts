@@ -36,17 +36,28 @@ using namespace std;
 namespace miutil {
 
 namespace {
+const char *months[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec", 0};
+
 int
 getMonth( const string &month )
 {
-	const char *months[]={"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec", 0};
-
 	for( int i=0; months[i]; ++i ) {
 		if( strcasecmp( months[i], month.c_str() ) == 0 )
 			return i+1;
 	}
 	return 0;
 }
+
+std::string
+getMonth( int month )
+{
+	if( month < 1 || month>12 )
+		return "(invalid month)";
+
+	return months[month-1];
+}
+
+
 }
 
 
@@ -164,5 +175,17 @@ isEnabled( const boost::posix_time::ptime &t, const boost::gregorian::date &refT
 		return false;
 }
 
+std::ostream&
+operator<<( std::ostream &o, const EnableTimePeriod &p )
+{
+	if( !p.valid() )
+		o << "Invalid TimePeriode specification.";
+	else if( p.fromDay == 0 )
+		o << "(all)";
+	else
+		o << getMonth( p.fromMonth ) << "-" << p.fromDay << "/"<< getMonth( p.toMonth ) << "-" << p.toDay;
 
+	return o;
+
+}
 }
