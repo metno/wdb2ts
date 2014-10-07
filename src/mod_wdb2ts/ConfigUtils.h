@@ -33,8 +33,13 @@
 #include <string>
 #include <map>
 #include <configparser/RequestConf.h>
+#include <EnableTimePeriod.h>
 
 namespace wdb2ts {
+
+miutil::EnableTimePeriod
+configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf );
+
 
 struct NoDataResponse {
     typedef enum{ NotDefined,ServiceUnavailable, NotFound } ENoDataResponse;

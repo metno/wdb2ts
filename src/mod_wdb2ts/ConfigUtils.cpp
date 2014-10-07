@@ -38,6 +38,31 @@ using namespace std;
 
 namespace wdb2ts {
 
+miutil::EnableTimePeriod
+configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf )
+{
+	WEBFW_USE_LOGGER( "handler" );
+	miutil::EnableTimePeriod thunder;
+	wdb2ts::config::ActionParam::const_iterator it=conf.find("symbols_enable_thunder");
+
+	if( it == conf.end() ) {
+		WEBFW_LOG_INFO("Config: No specification for 'symbols_enable_thunder' is given. Thunder is enabled throughout the year.");
+		return thunder;
+	}
+
+	string val = it->second.asString();
+
+	thunder = miutil::EnableTimePeriod::parse( val );
+
+	if( ! thunder.valid() ) {
+		WEBFW_LOG_ERROR("Config: Invalid specification for 'symbols_enable_thunder', '" << val << "'. The format of the time period from/to is: MMM-DD/MMM-DD, where MMM is Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov and Dec. DD is the day in the month, 1 - 31. Thunder is NOT enabled.");
+	} else {
+		WEBFW_LOG_INFO("Config: Thunder, 'symbols_enable_thunder', enabled for period: " << thunder << ".");
+	}
+
+	return thunder;
+}
+
 NoDataResponse
 NoDataResponse::
 decode( const wdb2ts::config::ActionParam &conf )
