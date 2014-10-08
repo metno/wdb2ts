@@ -589,9 +589,10 @@ decodePData( const ParamDefList &paramDefs,
 				pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION = value;
 			else if( paramDef->alias() == "UU" )
 				pd.UU = value;
-			else if( paramDef->alias() == "PRECIP.ACCUMULATED" )
+			else if( paramDef->alias() == "PRECIP.ACCUMULATED" ) {
+				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.ACCUMULATED: " << value << " (" << providerWithPlacename << " ["<< from << " - " << to << ")");
 				pd.PRECIP_ACCUMULATED = value;
-			else if( paramDef->alias() == "PRECIP.PROBABILITY" ) {
+			} else if( paramDef->alias() == "PRECIP.PROBABILITY" ) {
 				//WEBFW_LOG_DEBUG( "decodePData: PRECIP.PROBABILITY: " << value << " (" << providerWithPlacename << " ["<< from << " - " << to << ")");
 				pd.PRECIP_PROBABILITY = value;
 			} else if( paramDef->alias() == "PRECIP.MIN" ) {
