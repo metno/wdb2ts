@@ -75,7 +75,7 @@ symbolConfProviderSetPlacename( const SymbolConfProvider &symbolConfProvider,
 			for( ProviderRefTimeList::iterator pit = res->begin(); 
 			     pit != res->end(); 
 			     ++pit ) {
-				ProviderList tmp = ProviderList::decode( pit->first );
+				ProviderList tmp = ProviderList::decode( pit->first, false );
 				
 				for( ProviderList::size_type i=0; i < tmp.size(); ++i )
 					resList.add( tmp[i].providerWithPlacename(), it->second );

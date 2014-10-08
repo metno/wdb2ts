@@ -143,7 +143,7 @@ public:
 	 * it must be giaven as '1440,721 res 0.25 start -179.75,-90'.
 	 *
 	 */
-	static ProviderList decode( const std::string &toDecode );
+	static ProviderList decode( const std::string &toDecode, bool placeNamesMaybeAList=true );
 	static ProviderList decode( const std::string &toDecode, std::string &provider );
 
 	static ProviderItem decodeItem( const std::string &toDecode );

@@ -245,11 +245,11 @@ decode( const std::string &toDecode_, std::string &provider )
 
 ProviderList 
 ProviderList::
-decode( const std::string &toDecode_ ) 
+decode( const std::string &toDecode_, bool placeNamesMaybeAList )
 {
 	string dummy;
 	
-	return decode_( toDecode_, dummy, true );
+	return decode_( toDecode_, dummy, placeNamesMaybeAList );
 }
 
 
