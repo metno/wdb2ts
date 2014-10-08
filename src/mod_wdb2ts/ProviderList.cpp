@@ -162,30 +162,77 @@ decode( const std::string &providerWithPlacename )
 	return pi;
 }
 
+//ProviderItem
+//ProviderItem::
+//decodeFromWdb( const std::string &provider_, const std::string &pointPlacename )
+//{
+//	string provider = provider_;
+//	string placename;
+//	string::size_type i = pointPlacename.find_last_of( ")" );
+//
+//	if( i != string::npos ) {
+//		++i;
+//		if( i<pointPlacename.length() ) {
+//			i = pointPlacename.find_first_not_of( " ", i );
+//
+//			if( i != string::npos )
+//				placename = pointPlacename.substr( i );
+//		}
+//	}
+//
+//
+//	boost::algorithm::trim( provider );
+//	boost::algorithm::trim( placename );
+//
+//
+//	return ProviderItem( provider, placename );
+//}
+
+/**
+ * nearest POINT(10 60) netcdfload auto: (-179.875 90,180 90,180 -90,-179.875 -90,-179.875 90)
+ * nearest POLYGON((outer_ring),(interior_ring1), .., (interior_ringN)) netcdfload auto: (-179.875 90,180 90,180 -90,-179.875 -90,-179.875 90)
+ * nearest MULTIPOLYGON(((outer_ring),(interior_ring1), .., (interior_ringN)),.., ((outer_ring),..,(interior_rings))) netcdfload auto: (-179.875 90,180 90,180 -90,-179.875 -90,-179.875 90)
+ *
+ *
+ */
 ProviderItem
 ProviderItem::
 decodeFromWdb( const std::string &provider_, const std::string &pointPlacename )
 {
 	string provider = provider_;
 	string placename;
-	string::size_type i = pointPlacename.find_last_of( ")" );
+	string::size_type i = pointPlacename.find_first_of( "(" );
+	int stack=0;
 
 	if( i != string::npos ) {
+		stack++;
 		++i;
-		if( i<pointPlacename.length() ) {
-			i = pointPlacename.find_first_not_of( " ", i );
+		while( i < pointPlacename.length() && stack > 0 ) {
+			i = pointPlacename.find_first_of( ")(", i );
 
-			if( i != string::npos )
-				placename = pointPlacename.substr( i );
+			if( i == string::npos )
+				break; //This is a format bug.
+
+			if( pointPlacename[i] == ')' ) stack--;
+			else stack++;
+			i++;
+		}
+
+		if( stack == 0 ) {
+			placename = pointPlacename.substr( i );
+		} else {
+			ostringstream ost;
+			ost << "WDB Placename, invalid format '" << pointPlacename << "' (ProviderItem::decodeFromWdb, file=" << __FILE__ <<")";
+			throw std::logic_error( ost.str() );
 		}
 	}
-
 
 	boost::algorithm::trim( provider );
 	boost::algorithm::trim( placename );
 
 	return ProviderItem( provider, placename );
 }
+
 
 
 
