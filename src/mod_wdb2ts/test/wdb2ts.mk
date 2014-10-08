@@ -13,7 +13,9 @@ wdb2TsUnitTest_SOURCES += 	src/mod_wdb2ts/test/UrlParamTest.cpp \
                      src/mod_wdb2ts/test/ProjectionTest.h \
                      src/mod_wdb2ts/test/ProjectionTest.cpp \
                      src/mod_wdb2ts/test/SymbolTest.h \
-                     src/mod_wdb2ts/test/SymbolTest.cpp       
+                     src/mod_wdb2ts/test/SymbolTest.cpp \
+                     src/mod_wdb2ts/test/VariosTests.h \
+                     src/mod_wdb2ts/test/VariosTests.cpp      
 
 EXTRA_DIST +=				src/mod_wdb2ts/test/wdb2ts.mk \
 							src/mod_wdb2ts/test/Makefile.am \
