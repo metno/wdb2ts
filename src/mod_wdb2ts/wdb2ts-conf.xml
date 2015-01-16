@@ -10,11 +10,11 @@
 		   <actionparam key="provider_priority" value="hirlam 10;derived eps" />
 			<version version="0.1" action="LocationForecast" queryid="locationforecast"/>
 		</request>
-		<request path="/proabilityforecast" wdbdb="conan" action="LocationForecast" queryid="proabilityforecast">
+		<request path="/probabilityforecast" wdbdb="conan" action="LocationForecast" queryid="probabilityforecast">
 		   <actionparam key="provider_priority" value="hirlam 10;derived eps" />
-		   <actionparam key="proability" value="eps derived" />
+		   <actionparam key="probability" value="eps derived" />
 			<version version="0.1" >
-				<actionparam key="proability" value="eps" />
+				<actionparam key="probability" value="eps" />
 			</version>
 		</request>
 	</requests>
@@ -49,7 +49,7 @@
 				levelspec=0,0,distance above ground,exact"
 			</query>
 		</querydef>
-		<querydef id="proabilityforecast">
+		<querydef id="probabilityforecast">
 			<query>
 				dataprovider=derived eps;
 			   point_interpolation=bilinear;
