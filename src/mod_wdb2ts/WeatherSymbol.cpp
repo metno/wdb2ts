@@ -292,8 +292,8 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
 
 	if( hours ==  6 ) {
-		wd.temperatureMax = temperaturExtrema.max( FLT_MAX );
-		wd.temperatureMin = temperaturExtrema.min( FLT_MAX );
+		wd.maxTemperature = temperaturExtrema.max( FLT_MAX );
+		wd.minTemperature = temperaturExtrema.min( FLT_MAX );
 	}
 
 	return wd;
