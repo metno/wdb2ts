@@ -473,7 +473,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                      float &minOut, float &maxOut, float &meanOut, float probOut,
                      bool tryHard )const
 {
-   const float MIN_PRECIP=0.0;
+   const float MIN_PRECIP=0;
 // static float a[]={ 1.0,  0.3370, 0.6121, 0.9307, 0.4207, 1.4325 };
    static float a[]={ 0.98, 0.60,   0.64,   0.32,   0.39,   1.75 };
 
@@ -597,13 +597,14 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    backTime_ = savedFromTime;
 
    if( hoursBack == 1 ) {
-      minOut = min[0];
-      maxOut = max[0];
-      meanOut = mean[0];
-      probOut = prob[0];
+      minOut = std::max( float(0), min[0] );
+      maxOut = std::max( float(0), max[0] );
+      meanOut = std::max( float(0), mean[0] );
+      probOut = std::max( float(0), prob[0] );
 
-      minOut = minOut<=MIN_PRECIP?0:minOut;
-      maxOut = maxOut<=MIN_PRECIP?0:maxOut;
+      minOut = minOut <= MIN_PRECIP ? 0 : minOut;
+      maxOut = maxOut <= MIN_PRECIP ? 0 : maxOut;
+      meanOut = meanOut <= MIN_PRECIP ? 0 : meanOut;
 
       if( minOut>maxOut ) {
          float tmp = minOut;
@@ -617,7 +618,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       minOut = FLT_MAX;
       maxOut = FLT_MAX;
       probOut = FLT_MAX;
-      meanOut = sumVector( mean );
+      meanOut = std::max( float(0), sumVector( mean ) );
 
       return true;
    }
@@ -638,17 +639,17 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       v += minMaxDif[i]*a[i];
 
    v = v/2;
-   meanOut = sumVector( mean );
-   minOut = meanOut - v;
-   maxOut = meanOut + v;
+   meanOut = std::max( float(0), sumVector( mean ) );
+   minOut = std::max( float( 0 ), meanOut - v );
+   maxOut = std::max( float(0), meanOut + v );
 
    //Algorithm change 5. july 2011.
-   float sumMin = sumVector( min );
-   minOut = sumMin>minOut?sumMin:minOut; //max( sumMin, minOut )
+   float sumMin = std::max( float(0), sumVector( min ) );
+   minOut = std::max( sumMin, minOut );
 
    minOut = minOut<=MIN_PRECIP?0:minOut;
    maxOut = maxOut<maxPrecipMax?maxPrecipMax:maxOut;
-   probOut = maxInVector( prob );
+   probOut = std::max( float(0), maxInVector( prob ) );
 
    if( minOut>maxOut ) {
       float tmp = minOut;
