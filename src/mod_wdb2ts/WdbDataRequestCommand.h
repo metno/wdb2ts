@@ -56,8 +56,9 @@ class WdbDataRequestCommand {
 	bool isPolygon;
 	boost::shared_ptr<bool> ok_;
 	boost::shared_ptr<std::string> errMsg_;
-
+	int prognosisLengthSeconds_;
 public:
+
 	WdbDataRequestCommand( WciConnectionPtr connection,
 						   const webfw::RequestHandler *reqHandler_, //To use for logging
 					       const std::string &query,
@@ -65,7 +66,8 @@ public:
 			               ProviderListPtr  providerPriority_,
 			               PtrProviderRefTimes refTimes_,
 			               const int wciProtocol_,
-			               bool isPolygon_ )
+			               bool isPolygon_,
+						   int prognosisLengthSeconds)
 		: data_( new LocationPointData() ),
 		  connection_( connection ),
 		  reqHandler( reqHandler_ ),
@@ -75,7 +77,8 @@ public:
 		  wciProtocol( wciProtocol_ ),
 		  isPolygon( isPolygon_ ),
 		  ok_( new bool(true) ),
-		  errMsg_( new std::string() )
+		  errMsg_( new std::string() ),
+		  prognosisLengthSeconds_( prognosisLengthSeconds )
 		  {
 		  }
 
@@ -85,6 +88,8 @@ public:
 	bool ok()const { return *ok_;}
 	std::string errMsg()const { return *errMsg_;}
 
+	void validatePrognosisLength();
+	void validate();
 	void operator()();
 
 };

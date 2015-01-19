@@ -611,46 +611,6 @@ get( webfw::Request  &req,
 	PRINT_MI_PROFILE_SUMMARY( cerr );
 }
 
-LocationPointDataPtr
-LocationForecastGmlHandler::
-requestWdb( const LocationPointList &locationPoints,
-		    const boost::posix_time::ptime &to,
-		    bool isPolygon, int altitude,
-		    PtrProviderRefTimes refTimes,
-		    ParamDefListPtr paramDefs,
-		    const ProviderList &providerPriority
-          ) const
-{	
-	Wdb2TsApp *app=Wdb2TsApp::app();
-	
-	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
-	WciReadLocationForecast readLocationForecastTransactor(
-			                               locationPoints, to, isPolygon, altitude,
-			                               *paramDefs, refTimes, providerPriority, urlQuerys,
-			                               wciProtocol
-			                           );
-	try { 
-		wciConnection->perform( readLocationForecastTransactor );
-		return readLocationForecastTransactor.result();
-	}
-	catch( const exception &ex ) {
-	
-		/*NOTE: fix for bug #149. Remove when fixed. */
-		string exWhat( ex.what() );
-					
-		string::size_type i = exWhat.find( "nvalid seek offset:" );
-					
-		
-		if( i != string::npos ) {
-			WEBFW_USE_LOGGER( "handler" );
-			WEBFW_LOG_WARN( "requestWdb: Temporary fix for seek bug #149 (" << ex.what() <<")." );
-			return LocationPointDataPtr( new LocationPointData() );
-		}
-		
-		throw;
-	}
-	
-}
 
 
 LocationPointListPtr

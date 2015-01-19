@@ -337,6 +337,34 @@ T2M_NO_ADIABATIC_HIGHT_CORRECTION( bool tryHard )const
 
 float
 LocationElem::
+maxTemperature( int hours, bool tryHard )const
+{
+	switch( hours ) {
+	case 6: return getValue( &PData::maxTemperature_6h,
+	         	 	 	 	 itTimeSerie->second,
+							 const_cast<ptime&>(itTimeSerie->first),
+							 const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	default:
+		return FLT_MAX;
+	}
+}
+
+float
+LocationElem::
+minTemperature( int hours, bool tryHard )const
+{
+	switch( hours ) {
+	case 6: return getValue( &PData::minTemperature_6h,
+		         	 	 	 itTimeSerie->second,
+							 const_cast<ptime&>(itTimeSerie->first),
+							 const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	default:
+		return FLT_MAX;
+	}
+}
+
+float
+LocationElem::
 temperatureCorrected( bool tryHard )const
 {
 	return getValue( &PData::temperatureCorrected,

@@ -141,30 +141,17 @@ private:
    OutputParams        outputParams;
    NoDataResponse      noDataResponse;
    boost::mutex        mutex; 
-   
-  	
-   LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
-									const boost::posix_time::ptime &to,
-									bool isPolygon, int altitude,
-									PtrProviderRefTimes refTime,
-									ParamDefListPtr paramDefs,
-									const ProviderList &providerPriority )const;
 
+   PtrProviderRefTimes getProviderReftimes();
   	
-  	/*
-  	bool updateProviderReftimes( WciConnectionPtr con );
-  	*/
-  	
-  	PtrProviderRefTimes getProviderReftimes();
-  	
-  	//Get some mutex protected data.
-  	void getProtectedData( SymbolConfProvider &symbolConf, 
+   //Get some mutex protected data.
+   void getProtectedData( SymbolConfProvider &symbolConf,
   			                 ProviderList &providerList, ParamDefListPtr &paramDefsPtr );
 
-  	LocationPointListPtr getPolygonPoints( const WebQuery &webQuery,
-  	                                       const ProviderList &providerPriority,
-  	                                       const ProviderRefTimeList &reftimes,
-  	                                       ParamDefListPtr paramDefs );
+   LocationPointListPtr getPolygonPoints( const WebQuery &webQuery,
+		                                  const ProviderList &providerPriority,
+  	                                      const ProviderRefTimeList &reftimes,
+  	                                      ParamDefListPtr paramDefs );
   	  	
    
 };

@@ -54,6 +54,8 @@ struct PData{
    float T2M;
    float T2M_LAND;
    float T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+   float maxTemperature_6h;
+   float minTemperature_6h;
    float temperatureCorrected;
    float dewPointTemperature;
    float UU;
@@ -124,6 +126,7 @@ struct PData{
    PData()
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
    	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ), T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
+	 maxTemperature_6h( FLT_MAX ), minTemperature_6h( FLT_MAX ),
    	 temperatureCorrected(FLT_MAX) , dewPointTemperature( FLT_MAX ),
    	 UU( FLT_MAX ), PRECIP_PROBABILITY( FLT_MAX ),
    	 PRECIP_MIN( FLT_MAX ), PRECIP_MAX( FLT_MAX ), PRECIP_MEAN( FLT_MAX ),
@@ -179,6 +182,7 @@ struct PData{
       :windV10m(pd.windV10m), windU10m(pd.windU10m), 
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
+	   maxTemperature_6h( pd.maxTemperature_6h ), minTemperature_6h( pd.minTemperature_6h ),
        temperatureCorrected( pd.temperatureCorrected ),
        dewPointTemperature( pd.dewPointTemperature ), UU( pd.UU ),
        PRECIP_PROBABILITY( pd.PRECIP_PROBABILITY ),
@@ -244,6 +248,8 @@ struct PData{
          T2M      = rhs.T2M;
          T2M_LAND = rhs.T2M_LAND;
          T2M_NO_ADIABATIC_HIGHT_CORRECTION = rhs.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+         maxTemperature_6h = rhs.maxTemperature_6h;
+         minTemperature_6h = rhs.minTemperature_6h;
          temperatureCorrected = rhs.temperatureCorrected;
          UU       = rhs.UU;
          dewPointTemperature = rhs.dewPointTemperature;

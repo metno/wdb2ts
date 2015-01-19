@@ -103,6 +103,8 @@ merge( const PData &other )
     if( other.T2M_LAND  != FLT_MAX ) T2M_LAND = other.T2M_LAND;
     if( other.T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX )
 		T2M_NO_ADIABATIC_HIGHT_CORRECTION = other.T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+    if( other.maxTemperature_6h  != FLT_MAX ) maxTemperature_6h = other.maxTemperature_6h;
+    if( other.minTemperature_6h  != FLT_MAX ) minTemperature_6h = other.minTemperature_6h;
     if( other.temperatureCorrected != FLT_MAX ) temperatureCorrected = other.temperatureCorrected;
     if( other.dewPointTemperature != FLT_MAX ) dewPointTemperature = other.dewPointTemperature;
     if( other.UU != FLT_MAX ) UU = other.UU;
@@ -177,21 +179,23 @@ print( std::ostream &o, const std::string &space )const
 {
    if( windV10m != FLT_MAX ) o << space << "windV10m: " << windV10m << endl;
    if( windU10m != FLT_MAX ) o << space << "windU10m: " << windU10m << endl;
-   if( PP != FLT_MAX ) o << space << "PP: " << PP << endl;;
-   if( PR != FLT_MAX ) o << space << "PR: " << PR << endl;;
-   if( TA != FLT_MAX ) o << space << "TA: " << TA << endl;;
-   if( T2M != FLT_MAX ) o << space << "T2M: " << T2M << endl;;
-   if( T2M_LAND  != FLT_MAX ) o << space << "T2M_LAND: " << T2M_LAND << endl;;
+   if( PP != FLT_MAX ) o << space << "PP: " << PP << endl;
+   if( PR != FLT_MAX ) o << space << "PR: " << PR << endl;
+   if( TA != FLT_MAX ) o << space << "TA: " << TA << endl;
+   if( T2M != FLT_MAX ) o << space << "T2M: " << T2M << endl;
+   if( T2M_LAND  != FLT_MAX ) o << space << "T2M_LAND: " << T2M_LAND << endl;
    if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) o<< space  << "T2M_NO_ADIABATIC_HIGHT_CORRECTION: " << T2M_NO_ADIABATIC_HIGHT_CORRECTION << endl;
+   if( maxTemperature_6h  != FLT_MAX ) o << space << "maxTemperature.6H: " << maxTemperature_6h << endl;
+   if( minTemperature_6h  != FLT_MAX ) o << space << "minTemperature.6H: " << minTemperature_6h << endl;
    if( temperatureCorrected != FLT_MAX ) o << space << "temperatureCorrected: " << temperatureCorrected << endl;
    if( dewPointTemperature != FLT_MAX ) o << space << "dewPointTemperature: " << dewPointTemperature << endl;
    if( UU != FLT_MAX ) o << space << "UU: " << UU << endl;
-   if( PRECIP_PROBABILITY != FLT_MAX ) o << space << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;;
-   if( PRECIP_MIN != FLT_MAX ) o << space << "PRECIP_MIN: " << PRECIP_MIN << endl;;
-   if( PRECIP_MAX != FLT_MAX ) o << space << "PRECIP_MAX: " << PRECIP_MAX << endl;;
-   if( PRECIP_MEAN != FLT_MAX ) o << space << "PRECIP_MEAN: " << PRECIP_MEAN << endl;;
-   if( PRECIP != FLT_MAX ) o << space << "PRECIP: " << PRECIP << endl;;
-   if( PRECIP_ACCUMULATED != FLT_MAX ) o << space << "PRECIP_ACCUMULATED: " << PRECIP_ACCUMULATED << endl;;
+   if( PRECIP_PROBABILITY != FLT_MAX ) o << space << "PRECIP_PROBABILITY: " << PRECIP_PROBABILITY << endl;
+   if( PRECIP_MIN != FLT_MAX ) o << space << "PRECIP_MIN: " << PRECIP_MIN << endl;
+   if( PRECIP_MAX != FLT_MAX ) o << space << "PRECIP_MAX: " << PRECIP_MAX << endl;
+   if( PRECIP_MEAN != FLT_MAX ) o << space << "PRECIP_MEAN: " << PRECIP_MEAN << endl;
+   if( PRECIP != FLT_MAX ) o << space << "PRECIP: " << PRECIP << endl;
+   if( PRECIP_ACCUMULATED != FLT_MAX ) o << space << "PRECIP_ACCUMULATED: " << PRECIP_ACCUMULATED << endl;
    if( PRECIP_1T != FLT_MAX ) o << space << "PRECIP_1T: " << PRECIP_1T << endl;
    if( PRECIP_3T != FLT_MAX ) o << space << "PRECIP_3T: " << PRECIP_3T << endl;
    if( PRECIP_6T != FLT_MAX ) o << space << "PRECIP_6T: " << PRECIP_6T << endl;
@@ -266,6 +270,8 @@ count()const
     if( T2M != FLT_MAX ) ++n;
     if( T2M_LAND  != FLT_MAX ) ++n;
     if( T2M_NO_ADIABATIC_HIGHT_CORRECTION != FLT_MAX ) ++n;
+    if( maxTemperature_6h  != FLT_MAX ) ++n;
+    if( minTemperature_6h  != FLT_MAX ) ++n;
     if( temperatureCorrected != FLT_MAX ) ++n;
     if( dewPointTemperature != FLT_MAX ) ++n;
     if( UU != FLT_MAX ) ++n;
@@ -587,6 +593,10 @@ decodePData( const ParamDefList &paramDefs,
 				pd.T2M_LAND = value;
 			else if( paramDef->alias() == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
 				pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION = value;
+			else if( paramDef->alias() == "maxTemperature.6H" )
+				pd.maxTemperature_6h = value;
+			else if( paramDef->alias() == "minTemperature.6H" )
+				pd.minTemperature_6h = value;
 			else if( paramDef->alias() == "UU" )
 				pd.UU = value;
 			else if( paramDef->alias() == "PRECIP.ACCUMULATED" ) {
@@ -1153,6 +1163,10 @@ init( const std::string &param )
       pPM = &PData::T2M_LAND;
    else if( param == "T.2M.NO_ADIABATIC_HIGHT_CORRECTION" )
       pPM = &PData::T2M_NO_ADIABATIC_HIGHT_CORRECTION;
+   else if( param == "maxTemperature.6H" )
+	  pPM = &PData::maxTemperature_6h;
+   else if( param == "minTemperature.6H" )
+   	  pPM = &PData::minTemperature_6h;
    else if( param == "UU" )
       pPM = &PData::UU;
    else if( param == "PRECIP.PROBABILITY" )

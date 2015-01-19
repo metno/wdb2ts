@@ -53,16 +53,21 @@ public:
 		bool probe_;
 		bool stopIfData_;
 		std::string wdbdb_;
+		int prognosisLengthSeconds_;
 	public:
-		QueryElement( const std::string &query, bool probe, bool stopIfData, const std::string &wdbdb )
-			: query_( query ), probe_( probe ), stopIfData_( stopIfData ), wdbdb_( wdbdb ) {}
+		QueryElement( const std::string &query, bool probe, bool stopIfData,
+				      const std::string &wdbdb, int prognosisLengthSeconds )
+			: query_( query ), probe_( probe ), stopIfData_( stopIfData ), wdbdb_( wdbdb ),
+			  prognosisLengthSeconds_( prognosisLengthSeconds ){}
 		QueryElement( const QueryElement &qe )
-         : query_( qe.query_), probe_( qe.probe_ ), stopIfData_( qe.stopIfData_ ), wdbdb_( qe.wdbdb_ ) {}
+         : query_( qe.query_), probe_( qe.probe_ ), stopIfData_( qe.stopIfData_ ), wdbdb_( qe.wdbdb_ ),
+		   prognosisLengthSeconds_( qe.prognosisLengthSeconds_ ){}
 		
 		std::string query()const { return query_;}
 		bool probe()const { return probe_; }
 		bool stopIfData() const { return stopIfData_; }
 		std::string wdbdb()const { return wdbdb_; }
+		int prognosisLengthSeconds()const { return prognosisLengthSeconds_;}
 	};
 	
 	typedef std::list< QueryElement >      QueryList;

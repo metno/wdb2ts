@@ -29,6 +29,7 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
+#include <boost/lexical_cast.hpp>
 #include <readfile.h>
 #include <ConfigParser.h>
 #include <trimstr.h>
@@ -43,16 +44,18 @@ using namespace std;
 
 ConfigParser::
 ConfigParser()
-	:config( 0 ), inChardata( false ), recursionDepth( 0 ),
-	 basedir( WDB2TS_DEFAULT_SYSCONFDIR )
+	:config( 0 ), inChardata( false ),
+	 currentQueryDefPrognosisLengthSeconds(0),
+	 recursionDepth( 0 ),basedir( WDB2TS_DEFAULT_SYSCONFDIR )
 	 
 {
 }
 
 ConfigParser::
 ConfigParser( const std::string &basedir_ )
-	: config( 0 ), inChardata( false ), recursionDepth( 0 ),
-      basedir( basedir_ )
+	: config( 0 ), inChardata( false ),
+	  currentQueryDefPrognosisLengthSeconds(0),
+	  recursionDepth( 0 ),basedir( basedir_ )
 {
 }
 
@@ -152,6 +155,86 @@ readFile( const std::string &filename )
 		return myConfig;
 	}
 }
+
+int
+ConfigParser::
+getPrognosisLength( const AttributeMap &attributes, int defaultValue )
+{
+	string prognosisLength;
+	int scale;
+	char modifier='h';
+
+	getAttr( attributes, "prognosis_length", prognosisLength, "");
+
+	if( prognosisLength.empty() )
+		return defaultValue;
+
+	string::size_type i = prognosisLength.find_first_not_of("0123456789");
+
+	//No dimension identifier given, h (hours) assumed.
+	//Valid values h (hours) and s (seconds).
+	if( i == string::npos ) {
+		scale = 3600;
+		i = prognosisLength.size();
+	} else {
+		modifier = prognosisLength[i];
+	}
+
+	switch( modifier ) {
+	case 'h': scale=3600; break;
+	case 's': scale=1; break;
+	default:
+		//modifier (h) hour is used.
+		ostringstream ost;
+		ost << "prognosis_length: Invalid modifier '" << prognosisLength[i] << "'. Valid modifier h (hours) and s (seconds).";
+		error( ost.str() );
+	}
+
+	try {
+		return boost::lexical_cast<int>( prognosisLength.substr( 0, i ) ) * scale;
+	}catch( const boost::bad_lexical_cast &ex) {
+	}
+
+	return 0;
+}
+
+
+//int
+//ConfigParser::
+//getPrognosisLength( const AttributeMap &attributes, int defaultValue )const
+//{
+//	string prognosisLength;
+//	int scale;
+//
+//	getAttr( attributes, "prognosis_length", prognosisLength, "");
+//
+//	if( prognosisLength.empty() )
+//		return defaultValue;
+//
+//	string::size_type i = prognosisLength.find_first_not_of("0123456789");
+//
+//	//No dimension identifier given, h (hours) assumed.
+//	//Valid values h (hours) and s (seconds).
+//	if( i == string::npos ) {
+//		scale = 3600;
+//		i = prognosisLength.size();
+//	} else {
+//		switch( prognosisLength[i] ) {
+//		case 'h': scale=3600; break;
+//		case 's': scale=1; break;
+//		default:
+//			ostringstream ost;
+//			ost << "prognosis_length: Invalid modifier '" << prognosisLength[i] << "'. Valid modifier h (hours) and s (seconds).";
+//			error( ost.str() );
+//	}
+//
+//	try {
+//		return boost::lexical_cast<int>( prognosisLength.substr( i ) ) * scale;
+//	}catch( const boost::bad_lexical_cast &ex) {
+//	}
+//
+//	return 0;
+//}
 
 bool
 ConfigParser::
@@ -289,6 +372,7 @@ doQuery( const AttributeMap &attributes )
 {
 	string probe;
 	string stopIfData;
+	string prognosisLength;
 
 	getAttr( attributes, "must_have_data", probe, "false" );
 	
@@ -309,6 +393,8 @@ doQuery( const AttributeMap &attributes )
 
 	if( currentQueryWdbdb.empty() )
 		currentQueryWdbdb = currentQueryDefWdbdb;
+
+	currentQueryPrognosisLengthSeconds = getPrognosisLength( attributes, currentQueryDefPrognosisLengthSeconds );
 }
 
 bool
@@ -317,7 +403,7 @@ doQueryDef( const AttributeMap &attributes )
 {
 	string id;
 	string sParalell;
-	
+	string prognosisLength;
 
 	if( ! getAttr( attributes, "id", id) || id.empty() ) {
 		error("Mandatory 'querydef' attribute 'id' missing.");
@@ -334,8 +420,9 @@ doQueryDef( const AttributeMap &attributes )
 	config->querys[id]=Config::Query();
 	itCurrentQueryDef = config->querys.find( id );
 
-	getAttr( attributes, "wdbdb", currentQueryDefWdbdb, "");
+	currentQueryDefPrognosisLengthSeconds = getPrognosisLength( attributes, 0);
 
+	getAttr( attributes, "wdbdb", currentQueryDefWdbdb, "");
 
 	if( hasAttr( attributes, "parallel" ) )
 	   getAttr( attributes, "parallel", sParalell, "1");
@@ -891,7 +978,12 @@ endElement( const std::string &name )
 
 		if( !buf.empty() ) {
 			if( itCurrentQueryDef != config->querys.end() ){
-				itCurrentQueryDef->second.push_back( Config::QueryElement(buf, currentQueryProbe, currentQueryStopIfData, currentQueryWdbdb ) );
+				itCurrentQueryDef->second.push_back(
+						Config::QueryElement(
+								buf, currentQueryProbe, currentQueryStopIfData,
+								currentQueryWdbdb, currentQueryPrognosisLengthSeconds
+						)
+				);
 			}
 		}
 	} else if( xmlState == "/wdb2ts/paramdefs" ) {

@@ -49,8 +49,10 @@ class ConfigParser : public miutil::SAXParser
 	boost::shared_ptr<RequestConf> currentRequestVersion;
 	Config::QueryDefs::iterator itCurrentQueryDef;
 	std::string currentQueryDefWdbdb;
+	int currentQueryDefPrognosisLengthSeconds;
 	bool currentQueryProbe;
 	bool currentQueryStopIfData;
+	int currentQueryPrognosisLengthSeconds;
 	ParamDefConfig currentParamDefConfig;
 	ParamDef currentParamDef;
 	std::string currentParamDefsId;
@@ -63,6 +65,7 @@ class ConfigParser : public miutil::SAXParser
 	std::string checkPath( const std::string &filename );
 	bool mergeConfig( Config *config );
 	Config* readFile( const std::string &filename );
+	int  getPrognosisLength( const AttributeMap &atributes, int defaultValue );
 	bool doInclude( const AttributeMap &atributes );
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );
 	bool doRequestActionParam( const AttributeMap &attributes, ActionParam &actionParam );
@@ -72,12 +75,12 @@ class ConfigParser : public miutil::SAXParser
 	void doQuery( const AttributeMap &attributes );
 	bool doQueryDef( const AttributeMap &attributes );
 	bool doParamDef( const AttributeMap &attributes );
-   bool doParamDefs( const AttributeMap &attributes );
-   bool doValueParameter( const AttributeMap &attributes );
-   bool doLevelParameter( const AttributeMap &attributes );
-   bool doValue(  const AttributeMap &attributes );
-   bool doDataVersion( const AttributeMap &attributes );
-   bool addParamDef();
+	bool doParamDefs( const AttributeMap &attributes );
+	bool doValueParameter( const AttributeMap &attributes );
+	bool doLevelParameter( const AttributeMap &attributes );
+	bool doValue(  const AttributeMap &attributes );
+	bool doDataVersion( const AttributeMap &attributes );
+	bool addParamDef();
    
 public:
 	ConfigParser();

@@ -6,6 +6,7 @@
  */
 
 #include <ios>
+#include <algorithm>
 #include <boost/thread/mutex.hpp>
 #include "../miutil/mathalgo.h"
 #include "WeatherSymbol.h"
@@ -258,6 +259,7 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	ma::Average<float> precip;
 	ma::MinMax<float> thunder;
 	ma::Count<float, Greater> fog( greater );
+	ma::MinMax<float> temperaturExtrema;
 	int  possibleFogCount = ceil( static_cast<double>(hours)/2 );
 
 	int timestep;
@@ -274,9 +276,10 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 		totCloud( it->second.totalCloudCover );
 		mediumCloud( it->second.mediumCloudCover );
 		lowCloud( it->second.lowCloudCover );
-		precip( it->second.precipitation );
+		precip( std::max( float(0), it->second.precipitation ) );
 		thunder( it->second.thunderProbability );
 		fog( it->second.fogCover );
+		temperaturExtrema( it->second.temperature );
 	}
 
 	SymbolDataElement wd = slice.second->second;
@@ -287,6 +290,11 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	wd.thunder = thunder.max( 0 ) > 0.05;
 	wd.fog = fog.countAbove() >= possibleFogCount;
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
+
+	if( hours ==  6 ) {
+		wd.temperatureMax = temperaturExtrema.max( FLT_MAX );
+		wd.temperatureMin = temperaturExtrema.min( FLT_MAX );
+	}
 
 	return wd;
 }
@@ -300,18 +308,24 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 
 	try {
 		if( precip != FLT_MAX)
-			wd.precipitation = precip;
+			wd.precipitation = std::max( float(0), precip );
 
 		if( precipMin != FLT_MAX)
-			wd.minPrecipitation = precipMin;
+			wd.minPrecipitation = std::max( float(0), precipMin );
 
 		if( precipMax != FLT_MAX)
-			wd.maxPrecipitation = precipMax;
+			wd.maxPrecipitation = std::max( float(0), precipMax );
 
 		weather_symbol::Factory *factory = factories->get( hours );
 
-		if( factory )
+		if( factory ) {
 			wd.weatherCode = factory->getSymbol( wd );
+
+			if( ! factory->interpretor()->hasPrecipitation( wd.weatherCode ) ) {
+				wd.precipitation = 0;
+				wd.minPrecipitation = 0;
+			}
+		}
 	}
 	catch( const std::exception &ex ) {
 		//cerr <<  "computeWeatherSymbol EXCEPTION: (" << ex.what() << ") " << wd << "\n";
@@ -348,6 +362,10 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 		if( factory ) {
 			wd.weatherCode = factory->getSymbol( weatherCode, wd );
 			wd.from	= slice.second->first - boost::posix_time::hours( hours );
+
+			if( ! factory->interpretor()->hasPrecipitation( wd.weatherCode ) ) {
+				wd.precipitation = 0;
+			}
 
 //		if( wd.weatherCode != weatherCode )
 //			cerr << "computeWeatherSymbol (code): " << weather_symbol::name( weatherCode )
