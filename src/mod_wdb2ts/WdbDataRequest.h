@@ -71,10 +71,13 @@ class WdbDataRequestManager {
       bool mustHaveData;
       bool stopIfData;
       bool completed;
+      int prognosisLengthSeconds;
 
-      ThreadInfo( WdbDataRequestCommand *command_, const std::string &wdbid_, bool mustHaveData_, bool stopIfData_ )
+      ThreadInfo( WdbDataRequestCommand *command_, const std::string &wdbid_,
+    		      bool mustHaveData_, bool stopIfData_,
+				  int prognosisLenghtSeconds_ )
       : command( command_ ), thread( 0 ), wdbid( wdbid_ ), mustHaveData( mustHaveData_ ),
-        stopIfData( stopIfData_ ), completed( false )
+        stopIfData( stopIfData_ ), completed( false ), prognosisLengthSeconds( prognosisLenghtSeconds_ )
       {}
 
       ~ThreadInfo()

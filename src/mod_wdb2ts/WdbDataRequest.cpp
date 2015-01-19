@@ -84,6 +84,7 @@ populateThreadInfos( const std::string &wdbidDefault,
    string wdbid;
    bool   mustHaveData;
    bool   stopIfQueryHasData;
+   int    prognosisLengthSeconds;
 
    WEBFW_USE_LOGGER( "wdb" );
 
@@ -99,7 +100,7 @@ populateThreadInfos( const std::string &wdbidDefault,
 
       while ( wdbQueryHelper.hasNext() ) {
          try {
-            wciReadQuery = wdbQueryHelper.next( mustHaveData, stopIfQueryHasData );
+            wciReadQuery = wdbQueryHelper.next( mustHaveData, stopIfQueryHasData, prognosisLengthSeconds  );
             wdbid = wdbQueryHelper.wdbid();
 
             if( wdbid.empty() )
@@ -120,10 +121,13 @@ populateThreadInfos( const std::string &wdbidDefault,
                                                 providerPriority,
                                                 refTimes,
                                                 wciProtocol,
-                                                isPolygon ),
+                                                isPolygon,
+												prognosisLengthSeconds),
                                                 wdbid,
                                                 mustHaveData,
-                                                stopIfQueryHasData )
+                                                stopIfQueryHasData,
+												prognosisLengthSeconds
+												)
          );
 
          threadInfos.push_back( threadInfo );
@@ -147,6 +151,7 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 	//string decodeProfileProvider__; //Only used when profiling
 	bool   mustHaveData=false;
 	bool   stopIfQueryHasData=false;
+	int    prognosisLengthSeconds=0;
 
 	WEBFW_USE_LOGGER( "wdb" );
 
@@ -171,10 +176,11 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 										providerPriority,
 										querys->referenceTimes,
 										querys->wciProtocol,
-										isPolygon ),
+										isPolygon, prognosisLengthSeconds ),
 										wdbid,
 										mustHaveData,
-										stopIfQueryHasData )
+										stopIfQueryHasData,
+										prognosisLengthSeconds )
 				);
 
 				threadInfos.push_back( threadInfo );

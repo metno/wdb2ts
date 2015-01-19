@@ -288,6 +288,7 @@ init( const LocationPointList &locationPoints,
 	ost.setf(ios::floatfield, ios::fixed);
 	ost.precision(4);
 
+	prognosisLengthsCache.clear();
 	isPolygon = isPolygon_;
 
 	first=true;
@@ -394,6 +395,8 @@ hasNext( )
 		q = position + itNext->query();
 		queryMustHaveData = itNext->probe();
 		stopIfQueryHasData = itNext->stopIfData();
+		prognosisLengthSeconds = itNext->prognosisLengthSeconds();
+
 		wdbid_ = itNext->wdbdb();
 		
 		webQuery.decode( q );
@@ -520,15 +523,67 @@ hasNext( )
 
 std::string 
 WdbQueryHelper::
-next(  bool &mustHaveData, bool &stopIfData )
+next(  bool &mustHaveData, bool &stopIfData, int &prognosisLengthSeconds_ )
 {
 	mustHaveData = queryMustHaveData;
 	stopIfData = stopIfQueryHasData;
+	prognosisLengthSeconds_ = prognosisLengthSeconds;
 	
 	if( refTimeFrom_IsEqualTo_ReftTimeTo )
 		return webQuery.wciReadQuery();
 	
 	return webQuery.wciReadQuery() + " ORDER BY referencetime";
+}
+
+namespace {
+void
+setMaxPrognosisLength( std::map<ProviderItem, int> &prognosisLengths, const ProviderItem &provider, int progLenght )
+{
+	std::map<ProviderItem, int>::iterator it=prognosisLengths.find( provider );
+
+	if( it == prognosisLengths.end() )
+		prognosisLengths[provider]=progLenght;
+	else
+		it->second = ( it->second < progLenght?progLenght:it->second);
+}
+
+
+}
+
+std::map<ProviderItem, int>
+WdbQueryHelper::
+getProviderWithPrognosisLength()
+{
+	using namespace wdb2ts::config;
+	WEBFW_USE_LOGGER( "handler" );
+	std::map<ProviderItem, int> res;
+	int prognosisLength;
+
+	if( ! prognosisLengthsCache.empty() )
+		return prognosisLengthsCache;
+
+	for( Config::Query::const_iterator it=urlQuerys.begin(); it != urlQuerys.end(); ++it ) {
+		prognosisLength = it->prognosisLengthSeconds();
+
+		try{
+			webQuery.decode( it->query() );
+		}
+		catch( const std::logic_error &error ) {
+			if( webQuery.dataprovider.valueList.empty() ) {
+				WEBFW_LOG_ERROR("Invalid query: [" << it->query() << "]");
+				continue;
+			}
+			//We are only interested in the providers.
+		}
+
+		for( UrlParamString::ValueList::const_iterator itProvider=webQuery.dataprovider.valueList.begin();
+			 itProvider != webQuery.dataprovider.valueList.end(); ++itProvider ) {
+			for( ProviderList::const_iterator pit=providerPriority.begin(); pit != providerPriority.end(); ++pit ) {
+				if( pit->provider == *itProvider )
+					setMaxPrognosisLength( res, *pit, prognosisLength );
+			}
+		}
+	}
 }
 
 }

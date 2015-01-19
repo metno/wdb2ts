@@ -78,6 +78,7 @@ struct Query{
 	std::string provider;
 	std::list<ParamDef> params;
 	std::list<std::string> querys;
+	int prognosisLengthSeconds;
 
 	Query( const std::string &id, const std::string &provider )
 		: id( id ), provider( provider ) {}

@@ -67,10 +67,12 @@ class WdbQueryHelper
 	WciWebQuery webQuery;
 	bool        queryMustHaveData; 
 	bool        stopIfQueryHasData;
+	int         prognosisLengthSeconds;
 	bool        refTimeFrom_IsEqualTo_ReftTimeTo;
 	bool        isPolygon;
 	std::string validTime;
 	std::string wdbid_;
+	std::map<ProviderItem, int> prognosisLengthsCache;
 	
 	std::string getDataversionString( const std::list<std::string> &dataproviderList )const;
 
@@ -144,8 +146,10 @@ public:
 	 * @exception std::logic_error
 	 * @exception wdb2ts::NoReftime when we dont have  any data for a providerid.
 	 */
-	std::string next( bool &mustHaveData, bool &stopIfData );
+	std::string next( bool &mustHaveData, bool &stopIfData, int &prognosisLengthSeconds );
 	
+	std::map<ProviderItem, int> getProviderWithPrognosisLength();
+
 };
 
 
