@@ -473,7 +473,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
                      float &minOut, float &maxOut, float &meanOut, float probOut,
                      bool tryHard )const
 {
-   const float MIN_PRECIP=0.0;
+   const float MIN_PRECIP=0;
 // static float a[]={ 1.0,  0.3370, 0.6121, 0.9307, 0.4207, 1.4325 };
    static float a[]={ 0.98, 0.60,   0.64,   0.32,   0.39,   1.75 };
 
@@ -597,13 +597,14 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
    backTime_ = savedFromTime;
 
    if( hoursBack == 1 ) {
-      minOut = min[0];
-      maxOut = max[0];
-      meanOut = mean[0];
-      probOut = prob[0];
+      minOut = std::max( float(0), min[0] );
+      maxOut = std::max( float(0), max[0] );
+      meanOut = std::max( float(0), mean[0] );
+      probOut = std::max( float(0), prob[0] );
 
-      minOut = minOut<=MIN_PRECIP?0:minOut;
-      maxOut = maxOut<=MIN_PRECIP?0:maxOut;
+      minOut = minOut <= MIN_PRECIP ? 0 : minOut;
+      maxOut = maxOut <= MIN_PRECIP ? 0 : maxOut;
+      meanOut = meanOut <= MIN_PRECIP ? 0 : meanOut;
 
       if( minOut>maxOut ) {
          float tmp = minOut;
@@ -617,7 +618,7 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       minOut = FLT_MAX;
       maxOut = FLT_MAX;
       probOut = FLT_MAX;
-      meanOut = sumVector( mean );
+      meanOut = std::max( float(0), sumVector( mean ) );
 
       return true;
    }
@@ -638,17 +639,17 @@ PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
       v += minMaxDif[i]*a[i];
 
    v = v/2;
-   meanOut = sumVector( mean );
-   minOut = meanOut - v;
-   maxOut = meanOut + v;
+   meanOut = std::max( float(0), sumVector( mean ) );
+   minOut = std::max( float( 0 ), meanOut - v );
+   maxOut = std::max( float(0), meanOut + v );
 
    //Algorithm change 5. july 2011.
-   float sumMin = sumVector( min );
-   minOut = sumMin>minOut?sumMin:minOut; //max( sumMin, minOut )
+   float sumMin = std::max( float(0), sumVector( min ) );
+   minOut = std::max( sumMin, minOut );
 
    minOut = minOut<=MIN_PRECIP?0:minOut;
    maxOut = maxOut<maxPrecipMax?maxPrecipMax:maxOut;
-   probOut = maxInVector( prob );
+   probOut = std::max( float(0), maxInVector( prob ) );
 
    if( minOut>maxOut ) {
       float tmp = minOut;
@@ -694,9 +695,9 @@ PRECIP( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
       precip -= 0.0001; 
 
    if( precip <= MIN_PRECIP )
-      precip = 0.0f;
+      precip = 0;
 	
-	return  precip;
+	return precip;
 }
 
 
@@ -704,7 +705,7 @@ float
 LocationElem::
 PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
 {
-   float sumPrecip=0.0;
+   float sumPrecip=0;
    float precipNow;
    int   count=0;
    boost::posix_time::ptime fromTime;
@@ -754,16 +755,14 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
                                 const_cast<string&>(forecastProvider), FLT_MAX, myTryHard );
       }
 
-
       //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: loop: fromTime: " << fromTime << " toTime: " << it->first  << " precip: " << precipNow);
       fromTime = it->first;
-
 
       if( precipNow == FLT_MAX )
          return FLT_MAX;
 
       myTryHard = false;
-      sumPrecip += precipNow;
+      sumPrecip += std::max( float(0), precipNow );
       count++;
    }
 
@@ -774,11 +773,8 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
 
    backTime_ = savedFromTime;
 
-   if( sumPrecip < 0 )
-      sumPrecip = 0;
-
    //WEBFW_LOG_DEBUG( "LocationElem::PRECIP_MEAN: return sumPrecip:" << sumPrecip );
-   return sumPrecip;
+   return std::max( float(0), sumPrecip );
 }
 
 
@@ -786,7 +782,7 @@ float
 LocationElem::
 PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
 {
-	float sumPrecip=0.0;
+	float sumPrecip=0;
 	float precipNow;
 	int   count=0;
 	boost::posix_time::ptime fromTime;
@@ -827,7 +823,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 		if( precipNow == FLT_MAX )
 			return FLT_MAX;
 		
-		sumPrecip += precipNow;
+		sumPrecip += std::max( float(0), precipNow );
 		count++;
 	}
 
@@ -838,11 +834,8 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 
 	backTime_ = savedFromTime;
 	
-	if( sumPrecip < 0 )
-		sumPrecip = 0;
-	
 	//WEBFW_LOG_DEBUG( "LocationElem::PRECIP_1H: return sumPrecip:" << sumPrecip );
-	return sumPrecip;
+	return std::max( float(0), sumPrecip );
 }
 
 
@@ -913,7 +906,7 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 		if( precipBack == FLT_MAX ) 
 			return FLT_MAX;
 		
-		precip = precipNow - precipBack;
+		precip = std::max( float(0), precipNow ) - std::max( float(0), precipBack );
 	} else if( h.hours() == hoursBack ) {
 		precip = precipNow;
 	} else {
@@ -932,16 +925,13 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 		if( precipBack == FLT_MAX ) 
 		    return FLT_MAX;
 
-		precip = precipNow - precipBack;
+		precip = std::max( float(0), precipNow ) - std::max( float(0), precipBack );
 	}
 
 	backTime_ = backTime;
 	
-	if( precip < 0 )
-		precip = 0.0;
-	
 	//cerr << "PRECIP_N prec: " << precip << endl;
-	return precip;
+	return std::max( float(0), precip );
 }
 
 
