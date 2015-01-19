@@ -20,20 +20,20 @@ struct SymbolDataElement
 {
 	float thunderProbability;
 	float fogCover;
-	float temperatureMax;
-	float temperatureMin;
+	float maxTemperature;
+	float minTemperature;
 	weather_symbol::Code weatherCode;
 	std::string provider;
 	boost::posix_time::ptime from;
 
 	SymbolDataElement()
 		: thunderProbability( FLT_MAX ), fogCover( FLT_MAX ),
-		  temperatureMax( FLT_MAX ), temperatureMin( FLT_MAX ),
+		  maxTemperature( FLT_MAX ), minTemperature( FLT_MAX ),
 		  weatherCode( weather_symbol::Error ){}
 
 	SymbolDataElement( const weather_symbol::WeatherData &wd )
 		: weather_symbol::WeatherData( wd ), thunderProbability( FLT_MAX ),
-		  fogCover( FLT_MAX ), temperatureMax( FLT_MAX ), temperatureMin( FLT_MAX ),
+		  fogCover( FLT_MAX ), maxTemperature( FLT_MAX ), minTemperature( FLT_MAX ),
 		  weatherCode( weather_symbol::Error ){}
 
 	bool valid() const {

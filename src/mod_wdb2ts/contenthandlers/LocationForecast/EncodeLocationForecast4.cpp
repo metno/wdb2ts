@@ -611,12 +611,12 @@ encodePeriods( LocationElem &location,
 		   precipitationTag.output( ost, level5.indent() );
 	   }
 
-	   if( symbolData.temperatureMin != FLT_MAX ) {
-		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.temperatureMin << "\"/>\n";
+	   if( symbolData.minTemperature != FLT_MAX ) {
+		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.minTemperature << "\"/>\n";
 	   }
 
-	   if( symbolData.temperatureMax != FLT_MAX ) {
-		   ost << "<maxTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.temperatureMax << "\"/>\n";
+	   if( symbolData.maxTemperature != FLT_MAX ) {
+		   ost << "<maxTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.maxTemperature << "\"/>\n";
 	   }
 
 	   if( symbolData.weatherCode != weather_symbol::Error ) {

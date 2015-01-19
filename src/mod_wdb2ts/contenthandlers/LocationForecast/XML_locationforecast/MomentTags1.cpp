@@ -93,6 +93,7 @@ output( std::ostream &out, const std::string &indent )
 	int nForecast=0;
 	float dewpoint=FLT_MAX;
 	float humidity=FLT_MAX;
+	bool temperatureIsAdiabaticCorrected=false;
 	int relTopo; //The difference between modelTopo and real topography
 
 	if( ! pd ) {
@@ -142,8 +143,10 @@ output( std::ostream &out, const std::string &indent )
 
 	if( tempNoAdiabatic != FLT_MAX )
 		tempUsed = tempNoAdiabatic;
-	else if( tempAdiabatic != FLT_MAX )
+	else if( tempAdiabatic != FLT_MAX ) {
 		tempUsed = tempAdiabatic;
+		temperatureIsAdiabaticCorrected = true;
+	}
 
 	if( tempUsed != FLT_MAX )
 	   tempProb = getTemperatureProability( tempUsed, true );
@@ -187,6 +190,16 @@ output( std::ostream &out, const std::string &indent )
 
 		pd->temperatureCorrected( tempUsed, provider );
 
+		symData->maxTemperature = pd->maxTemperature( 6 );
+		symData->minTemperature = pd->minTemperature( 6 );
+
+		if( temperatureIsAdiabaticCorrected ) {
+			if( symData->maxTemperature != FLT_MAX )
+				symData->maxTemperature += tempCorrection;
+			if( symData->minTemperature != FLT_MAX )
+				symData->minTemperature += tempCorrection;
+		}
+
 		symData->thunderProbability = pd->thunderProbability();
 		symData->wetBulbTemperature = pd->wetBulbTemperature();
 
@@ -209,6 +222,7 @@ output( std::ostream &out, const std::string &indent )
 				nForecast++;
 			}
 		}
+
 
 		dewpoint = pd->dewPointTemperature( true );
 		humidity = pd->RH2M( true );
