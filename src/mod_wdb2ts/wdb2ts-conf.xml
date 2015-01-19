@@ -20,8 +20,8 @@
 	</requests>
 
 	<querydefs>
-		<querydef id="locationforecast">
-			<query>
+		<querydef id="locationforecast" prognosis_length="48h">
+			<query prognosis_length="48h">
 				dataprovider=hirlam 10;
 		   	point_interpolation=bilinear;
 		   	parameter=accumulated surface density of precipitation
