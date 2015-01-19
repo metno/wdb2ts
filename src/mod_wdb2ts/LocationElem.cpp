@@ -695,7 +695,7 @@ PRECIP( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
       precip -= 0.0001; 
 
    if( precip <= MIN_PRECIP )
-      precip = 0.0f;
+      precip = 0;
 	
 	return  precip;
 }
