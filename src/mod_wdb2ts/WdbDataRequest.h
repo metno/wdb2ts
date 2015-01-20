@@ -71,13 +71,13 @@ class WdbDataRequestManager {
       bool mustHaveData;
       bool stopIfData;
       bool completed;
-      int prognosisLengthSeconds;
+      boost::posix_time::ptime minPrognosisLength;
 
       ThreadInfo( WdbDataRequestCommand *command_, const std::string &wdbid_,
     		      bool mustHaveData_, bool stopIfData_,
-				  int prognosisLenghtSeconds_ )
+				  const boost::posix_time::ptime &minPrognosisLength_ )
       : command( command_ ), thread( 0 ), wdbid( wdbid_ ), mustHaveData( mustHaveData_ ),
-        stopIfData( stopIfData_ ), completed( false ), prognosisLengthSeconds( prognosisLenghtSeconds_ )
+        stopIfData( stopIfData_ ), completed( false ), minPrognosisLength( minPrognosisLength_ )
       {}
 
       ~ThreadInfo()
@@ -98,6 +98,7 @@ class WdbDataRequestManager {
    bool toManyThreads;
    std::map< int, boost::shared_ptr<ThreadInfo> > runningThreads;
    int nextThreadId;
+   boost::posix_time::ptime from;
 
    void
    populateThreadInfos( const std::string &wdbid,
@@ -156,6 +157,7 @@ public:
    LocationPointDataPtr requestData( Wdb2TsApp *app,
                                      const std::string &wdbid,
                                      const LocationPointList &locationPoints,
+									 const boost::posix_time::ptime &from,
                                      const boost::posix_time::ptime &toTime,
                                      bool isPloygon,
                                      int altitude,
@@ -169,6 +171,7 @@ public:
 		   	   	   	   	   	   	   	 const qmaker::QuerysAndParamDefsPtr querys,
                                      const std::string &wdbid,
                                      const LocationPointList &locationPoints,
+									 const boost::posix_time::ptime &from,
                                      const boost::posix_time::ptime &toTime,
                                      bool isPloygon,
                                      int altitude);

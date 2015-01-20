@@ -32,6 +32,7 @@
 #include <WdbDataRequestCommand.h>
 #include <Logger4cpp.h>
 #include <PqTupleContainer.h>
+#include <sstream>
 
 namespace {
 
@@ -44,6 +45,7 @@ class ReadHelper : public wdb2ts::WciReadHelper
 	wdb2ts::PtrProviderRefTimes refTimes;
 	const int wciProtocol;
 	bool isPolygon;
+	std::string id_;
 
 public:
 	ReadHelper( wdb2ts::LocationPointData &data_,
@@ -61,9 +63,13 @@ public:
 		  wciProtocol( wciProtocol_ ),
 		  isPolygon( isPolygon_ )
 		{
+			std::ostringstream ost;
+			ost << "tid: " << boost::this_thread::get_id();
+			ost << ". WdbDataRequestCommand";
+			id_ = ost.str();
 		}
 
-	std::string id() { return "WdbDataRequestCommand (wdb query)"; }
+	std::string id() { return id_; }
 	std::string query() { return query_; }
 	void clear() { data.clear(); }
 
@@ -85,6 +91,9 @@ operator()()
 {
 	//Register the requesthandler in this thread.
 	WEBFW_USE_LOGGER_REQUESTHANDLER( "wdb", reqHandler );
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+	myTid = boost::this_thread::get_id();
+
 	try {
 		ReadHelper	readHelper( *data_, query_, *paramDefs, *providerPriority,
 								refTimes, wciProtocol, isPolygon );
@@ -120,23 +129,27 @@ validatePrognosisLength()
 	using namespace boost;
 	using namespace boost::posix_time;
 
-	if( prognosisLengthSeconds_ <= 0 )
+	if( minPrognosisEndTime_.is_special() )
 		return;
 
 	WEBFW_USE_LOGGER_REQUESTHANDLER( "wdb", reqHandler );
 	ptime constFieldTime( gregorian::date(1970, 1, 1), time_duration( 0, 0, 0 ) );
-	ptime now( second_clock::universal_time() );
-	now = ptime( now.date(), time_duration( now.time_of_day().hours(), 0, 0 ) );
-	ptime progLength = now + seconds( prognosisLengthSeconds_ );
+	//ptime progLength = now + seconds( prognosisLengthSeconds_ );
 
 	LocationPointData::iterator itLocation=data_->begin();
 
 	while( itLocation != data_->end() ) {
 		if( ! itLocation->second || itLocation->second->empty() ) {
 			itLocation = miutil::eraseElement( *data_, itLocation );
-			WEBFW_LOG_INFO("Data removed, less data than the prognosis  length " << (prognosisLengthSeconds_/3600) << " hours (" << progLength <<").");
+			WEBFW_LOG_INFO("tid: " << myTid << ". Data removed, less data than the minimum prognosis  length " << minPrognosisEndTime_ << ".");
 			continue;
 		}
+
+//		if( logLevel >= log4cpp::Priority::DEBUG ) {
+//			std::ostringstream ost;
+//			printTimeSerie( ost, itLocation->second->begin(), itLocation->second->end(), 3 );
+//			WEBFW_LOG_DEBUG("tid: " << myTid <<".\n" << ost.str());
+//		}
 
 		//The TimeSerie collection is sorted by to_time. With the start of
 		//the forecast first.
@@ -149,11 +162,19 @@ validatePrognosisLength()
 		if( ritTime->first == constFieldTime )
 			continue;
 
-		if( ritTime->first < progLength ) {
+		if( ritTime->first < minPrognosisEndTime_ ) {
+			if( logLevel >= log4cpp::Priority::DEBUG ) {
+				std::ostringstream ost;
+				printTimeSerie( ost, itLocation->second->begin(), itLocation->second->end(), 3 );
+				WEBFW_LOG_DEBUG("tid: " << myTid << ". Data removed, less data than the minimum prognosis  length " << minPrognosisEndTime_ << ".\n"
+						        << ost.str());
+			}
+
 			itLocation = miutil::eraseElement( *data_, itLocation );
-			WEBFW_LOG_INFO("Data removed, less data than the prognosis  length " << (prognosisLengthSeconds_/3600) << " hours (" << progLength <<").");
+			WEBFW_LOG_INFO("tid: " << myTid << ". Data removed, less data than the minimum prognosis  length " << minPrognosisEndTime_ << ".");
 			continue;
 		}
+
 		++itLocation;
 	}
 }
@@ -163,6 +184,7 @@ WdbDataRequestCommand::
 validate()
 {
 	validatePrognosisLength();
+	removeEmptyData( *data_ );
 }
 
 

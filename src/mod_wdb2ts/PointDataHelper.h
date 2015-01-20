@@ -363,6 +363,28 @@ std::ostream&
 operator<<(std::ostream &o, const TimeSerie &ts );
 
 
+std::ostream&
+printTimeSerie(std::ostream &o, TimeSerie::const_iterator start, TimeSerie::const_iterator end, int count=-1 /*all*/ );
+
+std::ostream&
+printTimeSerie(std::ostream &o, TimeSerie::const_reverse_iterator start, TimeSerie::const_reverse_iterator end, int count=-1 /*all*/ );
+
+std::ostream&
+printLocationPointData( std::ostream &o, const LocationPointData &locations , int count=-1 );
+
+
+bool
+onlyConstFieldsOrEmpty(const TimeSerie &ts );
+
+bool
+onlyConstFieldsOrEmpty(const LocationPointData &ts );
+
+void
+removeEmptyData( TimeSerie &ts );
+
+void
+removeEmptyData( LocationPointData &ts );
+
 std::string
 toBeaufort( float mps, std::string &description );
 

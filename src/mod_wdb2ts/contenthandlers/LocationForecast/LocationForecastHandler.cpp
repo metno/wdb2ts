@@ -538,7 +538,7 @@ get( webfw::Request  &req,
  			WEBFW_LOG_DEBUG( "Altitude: " << altitude );
 		}
 
-		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.to(),
+		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.from(), webQuery.to(),
 															 webQuery.isPolygon(),
 				                                             altitude, refTimes, paramDefsPtr, providerPriority );
 
@@ -701,6 +701,7 @@ get( webfw::Request  &req,
 LocationPointDataPtr
 LocationForecastHandler::
 requestWdb( const LocationPointList &locationPoints,
+		    const boost::posix_time::ptime &from,
 		    const boost::posix_time::ptime &to,
 	        bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
@@ -711,7 +712,7 @@ requestWdb( const LocationPointList &locationPoints,
 	WdbDataRequestManager requestManager;
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	return requestManager.requestData( app, wdbDB, locationPoints, to, isPolygon, altitude,
+	return requestManager.requestData( app, wdbDB, locationPoints, from, to, isPolygon, altitude,
 									   refTimes, paramDefs, providerPriority, urlQuerys, wciProtocol );
 }
 

@@ -56,7 +56,11 @@ class WdbDataRequestCommand {
 	bool isPolygon;
 	boost::shared_ptr<bool> ok_;
 	boost::shared_ptr<std::string> errMsg_;
-	int prognosisLengthSeconds_;
+	boost::posix_time::ptime minPrognosisEndTime_;
+	std::ostringstream log;
+	log4cpp::Priority::Value logLevel;
+	boost::thread::id myTid;
+
 public:
 
 	WdbDataRequestCommand( WciConnectionPtr connection,
@@ -67,7 +71,7 @@ public:
 			               PtrProviderRefTimes refTimes_,
 			               const int wciProtocol_,
 			               bool isPolygon_,
-						   int prognosisLengthSeconds)
+						   const boost::posix_time::ptime &minPrognosisEndTime )
 		: data_( new LocationPointData() ),
 		  connection_( connection ),
 		  reqHandler( reqHandler_ ),
@@ -78,7 +82,7 @@ public:
 		  isPolygon( isPolygon_ ),
 		  ok_( new bool(true) ),
 		  errMsg_( new std::string() ),
-		  prognosisLengthSeconds_( prognosisLengthSeconds )
+		  minPrognosisEndTime_( minPrognosisEndTime )
 		  {
 		  }
 

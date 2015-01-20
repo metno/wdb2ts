@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <float.h>
+#include <stlContainerUtil.h>
 #include <PointDataHelper.h>
 #include <ptimeutil.h>
 #include <stdexcept>
@@ -93,7 +94,6 @@ void
 PData::
 merge( const PData &other )
 {
-
 	if( other.windV10m != FLT_MAX ) windV10m = other.windV10m;
     if( other.windU10m != FLT_MAX ) windU10m = other.windU10m;
     if( other.PP != FLT_MAX ) PP = other.PP;
@@ -217,6 +217,7 @@ print( std::ostream &o, const std::string &space )const
    if( significantTotalWaveHeight != FLT_MAX ) o << space << "significantTotalWaveHeight: " << significantTotalWaveHeight << endl;
    if( seaIcePresence != FLT_MAX )o << space << "seaIcePresence: " << seaIcePresence << endl;
    if( iceingIndex != FLT_MAX ) o << space << "iceingIndex: " << iceingIndex << endl;
+   if( seaBottomTopography != FLT_MAX ) o << space << "seaBottomTopography: " << seaBottomTopography << endl;
    if( NN != FLT_MAX ) o << space << "NN: " << NN << endl;
    if( visibility != FLT_MAX ) o << space << "visibility: " << visibility << endl;
    if( fog != FLT_MAX ) o << space << "fog: " << fog << endl;
@@ -254,8 +255,6 @@ print( std::ostream &o, const std::string &space )const
    if( LANDCOVER != FLT_MAX ) o << space << "LANDCOVER: " << LANDCOVER << endl;
 }
 
-
-
 int
 PData::
 count()const
@@ -291,8 +290,8 @@ count()const
     if( meanSwellWaveDirection != FLT_MAX ) ++n;
     if( peakSwellWavePeriode != FLT_MAX ) ++n;
     if( peakSwellWaveDirection != FLT_MAX ) ++n;
-    if( seaCurrentVelocityV != FLT_MAX ) ++n;
     if( seaCurrentVelocityU != FLT_MAX ) ++n;
+    if( seaCurrentVelocityV != FLT_MAX ) ++n;
     if( seaSalinity != FLT_MAX ) ++n;
     if( seaSurfaceHeight != FLT_MAX ) ++n;
     if( seaTemperature != FLT_MAX ) ++n;
@@ -302,6 +301,7 @@ count()const
     if( significantTotalWaveHeight != FLT_MAX ) ++n;
     if( seaIcePresence != FLT_MAX ) ++n;
     if( iceingIndex != FLT_MAX ) ++n;
+    if( seaBottomTopography != FLT_MAX ) ++n;
     if( NN != FLT_MAX ) ++n;
     if( visibility != FLT_MAX ) ++n;
     if( fog != FLT_MAX ) ++n;
@@ -334,6 +334,8 @@ count()const
     if( PRECIP_PROBABILITY_5_0MM != FLT_MAX ) ++n;
     if( symbol != FLT_MAX ) ++n;
     if( symbol_PROBABILITY != FLT_MAX ) ++n;
+    if( modeltopography != FLT_MAX ) ++n;
+    if( topography != FLT_MAX ) ++n;
     if( LANDCOVER != FLT_MAX ) ++n;
 
     return n;
@@ -420,8 +422,9 @@ decodePData( const ParamDefList &paramDefs,
 		int protocol )
 {
 	using namespace boost::posix_time;
+	using namespace boost;
 	using namespace miutil;
-
+	ptime constFieldTime( gregorian::date(1970, 1, 1),time_duration( 0, 0, 0 ) );
 	ptime from;
 	ptime to;
 	ptime reftime;
@@ -543,6 +546,12 @@ decodePData( const ParamDefList &paramDefs,
 			// //DBUGEND
 
 			renameProvider( providerWithPlacename, providerGroup );
+
+			if( to.is_pos_infinity() && from.is_neg_infinity() ) {
+				to = constFieldTime;
+				from = constFieldTime;
+			}
+
 			PData &pd = (*itLpd->second)[to][from][providerWithPlacename];
 
 			STOP_MARK_MI_PROFILE("timeSerie");
@@ -659,34 +668,21 @@ decodePData( const ParamDefList &paramDefs,
 				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
 				pd.significantTotalWaveHeight = value;
 			}else if( paramDef->alias() == "seaBottomTopography" ) {
-				ptime seaBottomTopographyTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaBottomTopography: [" << seaBottomTopographyTime <<"][" << seaBottomTopographyTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[seaBottomTopographyTime][seaBottomTopographyTime][providerWithPlacename].seaBottomTopography = value;
+				pd.seaBottomTopography = value;
 			}else if( paramDef->alias() == "seaIcePresence" ) {
-				ptime iceTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "seaIcePresence: [" << iceTime <<"][" << iceTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[iceTime][iceTime][providerWithPlacename].seaIcePresence = value;
+				pd.seaIcePresence = value;
 			}else if( paramDef->alias() == "iceingIndex" ) {
 				pd.iceingIndex = value;
 			} else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ) {
 				string topo=providerWithPlacename+string("__MODEL_TOPO__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].modeltopography = value;
+				(*itLpd->second)[constFieldTime][constFieldTime][topo].modeltopography = value;
 			} else if( paramDef->alias() == "TOPOGRAPHY" ) {
 				string topo=providerWithPlacename+string("__TOPOGRAPHY__");
-				ptime topoTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
 				//WEBFW_LOG_DEBUG( "[" << topoTime <<"][" << topoTime << "]["<<topo<< "]="<< value );
-				(*itLpd->second)[topoTime][topoTime][topo].topography = value;
+				(*itLpd->second)[constFieldTime][constFieldTime][topo].topography = value;
 			} else if( paramDef->alias() == "LANDCOVER" ) {
-				ptime landcoverTime( boost::gregorian::date(1970, 1, 1),
-						boost::posix_time::time_duration( 0, 0, 0 ) );
-				//WEBFW_LOG_DEBUG( "LANDCOVER: [" << landcoverTime <<"][" << landcoverTime << "]["<<providerWithPlacename << "]="<< value );
-				(*itLpd->second)[landcoverTime][landcoverTime][providerWithPlacename].LANDCOVER = value;
+				pd.LANDCOVER = value;
 			}else if( paramDef->alias() == "TOTAL.CLOUD" )
 				pd.NN = value;
 			else if( paramDef->alias() == "visibility" )
@@ -1372,6 +1368,110 @@ operator<<(std::ostream &o, const TimeSerie &ts )
 		}
 	}
 	return o;
+}
+
+
+
+std::ostream&
+printTimeSerie(std::ostream &o, TimeSerie::const_iterator start, TimeSerie::const_iterator end, int count )
+{
+	int i;
+	if(  count < 0 ) i = INT_MAX;
+	else i = count;
+
+	for(; start != end && i>0; ++start, --i) {
+		BOOST_FOREACH( const FromTimeSerie::value_type &fromTime, start->second ){
+			o << "[" << fromTime.first << " - " << start->first << "]" << endl;
+			BOOST_FOREACH( const ProviderPDataList::value_type &pdata, fromTime.second ) {
+				o << "   [" << pdata.first << "]" << endl;
+				pdata.second.print( o, "      ");
+			}
+		}
+	}
+	return o;
+}
+
+std::ostream&
+printTimeSerie(std::ostream &o, TimeSerie::const_reverse_iterator start, TimeSerie::const_reverse_iterator end, int count )
+{
+	int i;
+	if(  count < 0 ) i = INT_MAX;
+	else i = count;
+
+	for(; start != end && i>0; ++start, --i) {
+		BOOST_FOREACH( const FromTimeSerie::value_type &fromTime, start->second ){
+			o << "[" << fromTime.first << " - " << start->first << "]" << endl;
+			BOOST_FOREACH( const 	ProviderPDataList::value_type &pdata, fromTime.second ) {
+				o << "   [" << pdata.first << "]" << endl;
+				pdata.second.print( o, "      ");
+			}
+		}
+	}
+	return o;
+}
+
+std::ostream&
+printLocationPointData( std::ostream &o, const LocationPointData &locations , int count )
+{
+	BOOST_FOREACH( const LocationPointData::value_type &lp, locations ){
+		o << "Location (lon lat): " << lp.first.longitude() << " " << lp.first.latitude() << endl;
+		printTimeSerie( o, lp.second->begin(), lp.second->end(), count );
+	}
+	return o;
+}
+
+
+bool
+onlyConstFieldsOrEmpty(const TimeSerie &ts )
+{
+	using namespace boost::posix_time;
+	using namespace boost;
+	ptime constFieldTime( gregorian::date(1970, 1, 1),time_duration( 0, 0, 0 ) );
+
+	BOOST_FOREACH( TimeSerie::value_type toTime, ts ) {
+		if( toTime.first != constFieldTime )
+			return false;
+		BOOST_FOREACH( FromTimeSerie::value_type &fromTime, toTime.second ){
+			if( fromTime.first != constFieldTime )
+				return false;
+		}
+	}
+
+	return true;
+}
+
+bool
+onlyConstFieldsOrEmpty(const LocationPointData &ts )
+{
+	BOOST_FOREACH( LocationPointData::value_type pd, ts ) {
+		if( ! onlyConstFieldsOrEmpty( *pd.second ) )
+			return false;
+	}
+	return true;
+}
+
+void
+removeEmptyData( TimeSerie &ts )
+{
+	for( TimeSerie::iterator toIt=ts.begin(); toIt != ts.end(); /*empty*/ ) {
+		for( FromTimeSerie::iterator fromIt=toIt->second.begin(); fromIt != toIt->second.end(); /*empty*/ ) {
+			for( ProviderPDataList::iterator pdIt = fromIt->second.begin();
+					pdIt != fromIt->second.end(); /*empty*/ ) {
+				pdIt = miutil::eraseElementIf( fromIt->second, pdIt, pdIt->second.count() == 0  );
+			}
+			fromIt = miutil::eraseElementIf( toIt->second, fromIt, fromIt->second.empty() );
+		}
+		toIt = miutil::eraseElementIf( ts, toIt, toIt->second.empty() );
+	}
+}
+
+void
+removeEmptyData( LocationPointData &pd )
+{
+	for( LocationPointData::iterator it=pd.begin(); it != pd.end(); /*empty*/ ) {
+		removeEmptyData( *it->second );
+		it = miutil::eraseElementIf( pd, it, it->second->empty() );
+	}
 }
 
 

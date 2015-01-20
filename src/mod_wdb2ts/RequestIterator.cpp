@@ -39,6 +39,7 @@ RequestIterator( Wdb2TsApp *app__,
                  const wdb2ts::config::Config::Query &urlQuerys_,
                  const NearestHeights      &nearestHeights_,
                  const LocationPointListPtr locationPoints_,
+				 const boost::posix_time::ptime &from_,
                  const boost::posix_time::ptime &to_,
                  bool isPolygon_, int altitude_,
                  PtrProviderRefTimes refTimes__,
@@ -50,6 +51,7 @@ RequestIterator( Wdb2TsApp *app__,
      urlQuerys( urlQuerys_ ),
      nearestHeights( nearestHeights_ ),
      locationPoints( locationPoints_ ),
+	 from( from_ ),
      to( to_ ),
      isPolygon( isPolygon_ ),
      altitude( altitude_ ),
@@ -102,7 +104,7 @@ next()
          ++itPoint;
       }
 
-      data = requestManager.requestData( app_, wdbDB, pointList, to, false, altitude,
+      data = requestManager.requestData( app_, wdbDB, pointList, from, to, false, altitude,
                                          refTimes_, paramDefs, providerPriority_, urlQuerys, wciProtocol );
 
       if( !isPolygon ) {

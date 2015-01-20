@@ -53,6 +53,7 @@ namespace wdb2ts {
       wdb2ts::config::Config::Query urlQuerys;
       NearestHeights      nearestHeights;
       LocationPointListPtr locationPoints;
+      boost::posix_time::ptime from;
       boost::posix_time::ptime to;
       bool isPolygon;
       int altitude;
@@ -71,6 +72,7 @@ namespace wdb2ts {
                        const wdb2ts::config::Config::Query &urlQuerys,
                        const NearestHeights      &nearestHeights,
                        const LocationPointListPtr locationPoints,
+					   const boost::posix_time::ptime &from,
                        const boost::posix_time::ptime &to,
                        bool isPolygon, int altitude,
                        const PtrProviderRefTimes refTimes,

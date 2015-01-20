@@ -145,6 +145,7 @@ private:
    boost::mutex        mutex; 
       
   	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
+  			                         const boost::posix_time::ptime &from,
   	                                 const boost::posix_time::ptime &to,
   	                                 bool isPolygon, int altitude,
   	                                 PtrProviderRefTimes refTime,

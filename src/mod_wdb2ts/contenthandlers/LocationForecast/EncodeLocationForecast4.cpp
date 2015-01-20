@@ -493,7 +493,6 @@ encodeMoment( const boost::posix_time::ptime &from,
 			encodePeriods( location, symbolDataBuffer,
 						   symbolConfList , tmpOst, indent );
 		}
-
 	}
 
 	//May have one leftover.

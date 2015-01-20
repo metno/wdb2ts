@@ -544,7 +544,7 @@ get( webfw::Request  &req,
 	      WEBFW_LOG_DEBUG( log.str() );
 	   }
 
-	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.to(),
+	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.from(), webQuery.to(),
 	                          webQuery.isPolygon(), altitude, refTimes, paramDefPtr, providerPriority );
 
 		EncodeLocationForecastGml2 encode( reqit,

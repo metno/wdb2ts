@@ -742,7 +742,8 @@ requestWdbDefault( const WebQuery &webQuery,
 		           const ProviderList  &providerPriority
           ) const
 {
-	LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.to(),
+	LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(),
+			                                             webQuery.from(), webQuery.to(),
 														 webQuery.isPolygon(),
 			                                             altitude, refTimes, paramDefsPtr, providerPriority );
 
@@ -810,7 +811,8 @@ requestWdbSpecific( const WebQuery &webQuery,
 
 	return requestManager.requestData( app, querys, wdbDB,
 									   webQuery.locationPoints(),
-									   webQuery.to(), webQuery.isPolygon(), altitude );
+									   webQuery.from(), webQuery.to(),
+									   webQuery.isPolygon(), altitude );
 }
 
 
@@ -818,6 +820,7 @@ requestWdbSpecific( const WebQuery &webQuery,
 LocationPointDataPtr
 LocationForecastHandler2::
 requestWdb( const LocationPointList &locationPoints,
+			const boost::posix_time::ptime &from,
 		    const boost::posix_time::ptime &to,
 	        bool isPolygon, int altitude,
 		    PtrProviderRefTimes refTimes,
@@ -828,7 +831,7 @@ requestWdb( const LocationPointList &locationPoints,
 	WdbDataRequestManager requestManager;
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	return requestManager.requestData( app, wdbDB, locationPoints, to, isPolygon, altitude,
+	return requestManager.requestData( app, wdbDB, locationPoints, from, to, isPolygon, altitude,
 									   refTimes, paramDefs, providerPriority, urlQuerys, wciProtocol );
 }
 

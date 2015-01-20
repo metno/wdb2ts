@@ -85,6 +85,7 @@ populateThreadInfos( const std::string &wdbidDefault,
    bool   mustHaveData;
    bool   stopIfQueryHasData;
    int    prognosisLengthSeconds;
+   boost::posix_time::ptime minPrognosisLength;
 
    WEBFW_USE_LOGGER( "wdb" );
 
@@ -111,6 +112,10 @@ populateThreadInfos( const std::string &wdbidDefault,
             continue;
          }
 
+         if( prognosisLengthSeconds > 0 )
+        	 minPrognosisLength = from + boost::posix_time::seconds( prognosisLengthSeconds );
+         else
+        	 minPrognosisLength = boost::posix_time::ptime(); //undefined.
 
          boost::shared_ptr<ThreadInfo> threadInfo(
                new ThreadInfo(
@@ -122,11 +127,11 @@ populateThreadInfos( const std::string &wdbidDefault,
                                                 refTimes,
                                                 wciProtocol,
                                                 isPolygon,
-												prognosisLengthSeconds),
+												minPrognosisLength ),
                                                 wdbid,
                                                 mustHaveData,
                                                 stopIfQueryHasData,
-												prognosisLengthSeconds
+												minPrognosisLength
 												)
          );
 
@@ -139,6 +144,10 @@ populateThreadInfos( const std::string &wdbidDefault,
    }
 }
 
+/**
+ * This method is not used at the moment. It is work in progress
+ * to simplify the configuration files.
+ */
 void
 WdbDataRequestManager::
 populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
@@ -151,7 +160,9 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 	//string decodeProfileProvider__; //Only used when profiling
 	bool   mustHaveData=false;
 	bool   stopIfQueryHasData=false;
-	int    prognosisLengthSeconds=0;
+	int    prognosisLengthSeconds=0;   //Not used at the moment
+	boost::posix_time::ptime minPrognosisLength;//Not used at the moment
+
 
 	WEBFW_USE_LOGGER( "wdb" );
 
@@ -176,11 +187,11 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 										providerPriority,
 										querys->referenceTimes,
 										querys->wciProtocol,
-										isPolygon, prognosisLengthSeconds ),
+										isPolygon, minPrognosisLength ),
 										wdbid,
 										mustHaveData,
 										stopIfQueryHasData,
-										prognosisLengthSeconds )
+										minPrognosisLength )
 				);
 
 				threadInfos.push_back( threadInfo );
@@ -251,6 +262,8 @@ WdbDataRequestManager::
 waitForCompleted( int waitForAtLeast )
 {
    WEBFW_USE_LOGGER( "wdb" );
+   log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+
    int n=0;
    int tid;
    map< int, boost::shared_ptr<ThreadInfo> >::iterator it;
@@ -349,8 +362,10 @@ runRequests( Wdb2TsApp &app )
 
                //Check that we have data for this query.
                //If not, start more request if any.
-               if( ! (*lastStarted)->command->data().empty() )
-                  stop=true;
+               if( ! (*lastStarted)->command->data().empty() ) {
+            	   if( ! onlyConstFieldsOrEmpty( (*lastStarted)->command->data() ) )
+            		   stop=true;
+               }
             }
          }
       }
@@ -394,6 +409,7 @@ WdbDataRequestManager::
 mergeData( bool isPolygon )
 {
    WEBFW_USE_LOGGER( "wdb" );
+   log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
    LocationPointData *data = new LocationPointData();
    bool first = true;
 
@@ -446,12 +462,13 @@ mergeData( bool isPolygon )
          }
       }
 
-   std::ostringstream ost;
 
-   for( LocationPointData::iterator it = data->begin(); it != data->end(); ++it )
-      ost << " ( " << it->first.latitude() << ", " << it->first.longitude() << " )";
+   if( loglevel >= log4cpp::Priority::DEBUG ) {
+	   ostringstream tmpost;
+	   printLocationPointData( tmpost, *data,  5 );
 
-   WEBFW_LOG_DEBUG("mergeData: locations: " << data->size() << ost.str() );
+	   WEBFW_LOG_DEBUG("mergeData: locations: " << data->size()  << "\n" << tmpost.str() );
+   }
 
    return LocationPointDataPtr( data );
 }
@@ -461,6 +478,7 @@ WdbDataRequestManager::
 requestData( Wdb2TsApp *app,
              const std::string &wdbid,
              const LocationPointList &locationPoints,
+			 const boost::posix_time::ptime &from_,
              const boost::posix_time::ptime &toTime,
              bool isPolygon,
              int altitude,
@@ -472,6 +490,7 @@ requestData( Wdb2TsApp *app,
 {
    nParalell = urlQuerys.dbRequestsInParalells();
    ProviderListPtr providerPriorityPtr;
+   from = from_;
 
    try {
 	  providerPriorityPtr.reset( new ProviderList( providerPriority ) );
@@ -495,10 +514,12 @@ requestData( Wdb2TsApp *app,
 		     const qmaker::QuerysAndParamDefsPtr querys,
              const std::string &wdbid,
              const LocationPointList &locationPoints,
+			 const boost::posix_time::ptime &from_,
              const boost::posix_time::ptime &toTime,
              bool isPolygon,
              int altitude)
 {
+	from = from_;
 	nParalell = 3;
 
 	populateThreadInfos( querys, wdbid, locationPoints, toTime, isPolygon );
