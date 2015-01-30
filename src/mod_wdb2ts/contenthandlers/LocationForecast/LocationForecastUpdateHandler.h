@@ -86,8 +86,12 @@ private:
 	 *
 	 * The disable status from oldRefTime is set for each requestedUpdate. This is to preserve
 	 * the disable status from between update request.
+	 *
+	 * @return true if all requested providers is defined in the providerlist.
+	 *         false if one of the requested providers is not defined in the providerList.
+	 *         The providers that is not defined is marked with dataversion == INT_MAX.
 	 */
-	void checkProviders( const ProviderList &providerList,
+	bool checkProviders( const ProviderList &providerList,
 			             const ProviderRefTimeList &oldRefTime,
 			             ProviderRefTimeList &requestedUpdate )const;
 	void checkAgainstExistingProviders( const ProviderRefTimeList &exitingProviders, 

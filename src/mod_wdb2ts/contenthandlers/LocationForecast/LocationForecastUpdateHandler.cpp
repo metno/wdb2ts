@@ -304,7 +304,7 @@ getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )con
 	return true;
 }
 
-void
+bool
 LocationForecastUpdateHandler::
 checkProviders( const ProviderList &providerList,
 		        const ProviderRefTimeList &oldRefTime,
@@ -316,7 +316,25 @@ checkProviders( const ProviderList &providerList,
 	ProviderRefTimeList::const_iterator itOldRefTime;
 	bool disabled;
 	int dataversion;
+	bool notDefinedProviders=false;
 	
+
+	//Check that the requested providers i defined in the provider_prioority.
+	for( ProviderRefTimeList::iterator it = requestedUpdate.begin();
+		 it != requestedUpdate.end(); ++it ) {
+		ProviderList::const_iterator hasProvider = providerList.findProviderWithoutPlacename( it->first );
+
+		if( hasProvider == providerList.end() ) {
+			notDefinedProviders = true;
+			WEBFW_LOG_WARN( "WARNING: LocationUpdateHandler: It is requested an update for an provider '"
+					<< it->first << "' that is not in the provider_priority list.");
+			it->second.dataversion = INT_MAX;
+		}
+	}
+
+	if( notDefinedProviders )
+		return false;
+
 	{
 		ostringstream ost;
 		ost << "checkProviders:" << endl;
@@ -371,31 +389,7 @@ checkProviders( const ProviderList &providerList,
 
 		WEBFW_LOG_DEBUG( ost.str() );
 
-		return;
-	}
-	
-	ProviderRefTimeList::iterator it = requestedUpdate.begin();
-	while( it != requestedUpdate.end() )
-	{
-		for( pit = providers.begin();
-		     pit != providers.end();
-		     ++pit )
-		{
-			ProviderItem pi=ProviderList::decodeItem( it->first );
-
-			if( *pit == pi.provider )
-				break;
-		}	
-		
-		if( pit == providers.end() ) {
-			//It is requested update for a provider that is not defined 
-			//in the priority_provider. It is removed from the list.
-			WEBFW_LOG_WARN( "WARNING: LocationUpdateHandler: It is requested an update for an provider '"
-			     << it->first << "' that is not in the provider_priority list. The provider is ignored.");
-			it = miutil::eraseElement( requestedUpdate, it );
-		} else {
-			++it;
-		}
+		return true;
 	}
 
 	{
@@ -410,6 +404,8 @@ checkProviders( const ProviderList &providerList,
 
 		WEBFW_LOG_DEBUG( ost.str() );
 	}
+
+	return true;
 
 }
 
@@ -637,10 +633,13 @@ get( webfw::Request  &req,
 			return;
 		}
 	
-		checkProviders( providerPriorityList, oldRefTime, requestedProviders );
+		if( ! checkProviders( providerPriorityList, oldRefTime, requestedProviders ) ) {
+			response.status( webfw::Response::INVALID_QUERY );
+			return;
+		}
 		
 		
-		WEBFW_LOG_DEBUG( "LocationForecastUpdateHandler: myWdbID: " << myWdbID );;
+		WEBFW_LOG_DEBUG( "LocationForecastUpdateHandler: myWdbID: " << myWdbID );
 		
 		if( wciProtocol < 0 ) {
 			wciProtocol_ = app->wciProtocol( wdbDB );
