@@ -27,7 +27,7 @@
 */
 
 #include <math.h>
-#include <metlibs/diField/diProjection.h>
+#include <diField/diProjection.h>
 #include <Logger4cpp.h>
 #include <ProjectionTest.h>
 #include <ProjectionHelper.h>
