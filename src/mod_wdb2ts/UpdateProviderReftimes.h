@@ -50,6 +50,13 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 		                const ProviderList &providers,
 		                int wciProtocol );
 
+/**
+ * Checks that we have data in wdb for the the providers
+ * and requested reference times.
+ *
+ * @throws std::logical_error if the reftimes, dataversion or reftimes
+ * do not exist in the database.
+ */
 bool
 updateProviderRefTimes( WciConnectionPtr wciConnection, 
 						const ProviderRefTimeList &requestedUpdates,
