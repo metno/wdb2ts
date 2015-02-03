@@ -199,6 +199,9 @@ Name##_handler(request_rec *r)                     \
    MARK_ID_MI_PROFILE("dispatch");                 \
                                                    \
    std::string error( response.errorDoc() );       \
+   if( ! error.empty() ) {                         \
+      logger.error( error );                       \
+   }                                               \
    ost.str("");                                    \
    /*std::cerr << "Error: " << error << "\n"*/;    \
                                                    \
