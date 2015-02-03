@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/assign/list_inserter.hpp>
+#include <boost/regex.hpp>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>
 #include <replace.h>
 #include <splitstr.h>
@@ -73,152 +74,115 @@ LocationForecastUpdateHandler::
 } 
 
 
-bool 
+
+bool
 LocationForecastUpdateHandler::
-decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime, bool &debug )const
+decodeQueryValue( const std::string &provider, const std::string &val, ProviderRefTimeList &newRefTime)
 {
-	using namespace miutil;
-	using namespace boost::posix_time;
-	
+	const string DisableEnable = "(en|di)\\w*";
+	const string Timespec = "(today|now|tomorrow|infinity|-infinity|yesterday|epoch|\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}(:\\d{2}){0,2}z?)";
+	const string OnlyVersion="(0)? *, *([\\-+]?\\d+)";
+	const string TimeAndVersion(Timespec+"( *, *([\\-+]?\\d+))?");
+
+	boost::regex reDisableEnable( DisableEnable, boost::regex::perl|boost::regex::icase);
+	boost::regex reOnlyVersion( OnlyVersion );
+	boost::regex reTimeAndVersion( TimeAndVersion, boost::regex::perl|boost::regex::icase );
+	boost::smatch match;
+
 	WEBFW_USE_LOGGER( "handler" );
 
-	std::list<std::string> keys;
-	//vector<string> keys;
-	vector<string> keyvals;
-	string              buf;
-	int                 dataversion;
-	bool                disable;
-	bool 	            doDisableEnable=false;
-	bool              doDataversion=false;
-	webfw::UrlQuery     urlQuery;
-	
-	debug=false;
+	if( provider.empty() ) {
+		WEBFW_LOG_ERROR( "WebQuery: Empty provider." );
+		return false;
+	}
 
+	ProviderTimes &providerTimes = newRefTime[provider];
+	providerTimes = ProviderTimes();
+
+	if( val.empty() ) {
+		providerTimes.reftimeUpdateRequest = true;
+		return true;
+	}
+
+	if(  boost::regex_match( val, match, reDisableEnable) ) {
+		providerTimes.disableEnableRequest = true;
+		providerTimes.disabled = tolower(string(match[0])[0])=='d'?true:false;
+	}else if( boost::regex_match( val, match, reOnlyVersion) ) {
+		providerTimes.dataversion = boost::lexical_cast<int>( match[2] );
+		providerTimes.dataversionRequest = true;
+
+		if( ! string( match[1] ).empty() )  //reftime=0, Request update to latest reference time
+			providerTimes.reftimeUpdateRequest = true;
+	}else if( boost::regex_match( val, match, reTimeAndVersion ) ) {
+		string timeSpec=match[1];
+		if( ! string(match[4]).empty() ) {
+			providerTimes.dataversion = boost::lexical_cast<int>( match[4]);
+			providerTimes.dataversionRequest = true;
+		}
+		try {
+			providerTimes.refTime = miutil::ptimeFromIsoString( val );
+			providerTimes.reftimeUpdateRequest = true;
+		}
+		catch( logic_error &e ) {
+			WEBFW_LOG_ERROR( "WebQuery: Invalid value. Provider <" << provider << "> value <" << val << ">. Not a valid timespec." );
+			return false;
+		}
+	} else {
+		WEBFW_LOG_ERROR( "WebQuery: Invalid value for provider '" << provider  << ". Value: '" << val << "'." );
+		return false;
+	}
+	return true;
+}
+
+bool
+LocationForecastUpdateHandler::
+decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime, bool &debug )
+{
+	webfw::UrlQuery     urlQuery;
+	std::list<std::string> keys;
+
+	WEBFW_USE_LOGGER( "handler" );
+
+	debug=false;
 	newRefTime.clear();
-	
+
 	if( query.empty() )
 		return true;
-	
+
 	try {
 		urlQuery.decode( query );
 	}
 	catch( const std::exception &ex ) {
-		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid query '" + query +". Reason: " + ex.what() );
+		WEBFW_LOG_ERROR( "WebQuery: Invalid query '" + query +". Reason: " + ex.what() );
 		return false;
 	}
 
 	keys = urlQuery.keys();
-	
+
 	if( std::count( keys.begin(), keys.end(), "debug" ) > 0 ) {
 		debug = true;
 		return true;
 	}
 
 	for( std::list<std::string>::const_iterator iKey=keys.begin(); iKey != keys.end(); ++iKey ) {
-		string key = *iKey ;
-		string val = urlQuery.asString( *iKey, "");
-		string::size_type i;
-		
-		trimstr( key );
-		trimstr( val );
-		
-		if( key.empty() ) {
-			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid key. Empty key." );;
-			return false;
-		}
+		string key = boost::trim_copy( *iKey );
+		string val = boost::trim_copy( urlQuery.asString( *iKey, "") );
 
-		if( val.empty() ) {
-			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Key: '" << key << "'. Empty value." );;
+		if( key.empty() ) {
+			WEBFW_LOG_ERROR( "WebQuery: Invalid key. Empty key." );;
 			return false;
 		}
 
 		WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Key: '" << key << "' value: '" << val );
 		ProviderItem pi=ProviderList::decodeItem( key );
-		
-
-		//The val can be on the form YYYY-MM-DDThh:mm:ss,dataversion
-		//Where dataversion is optional.
-		//A dataversion is used only if the reftime is given.
-		keyvals = splitstr( val, ',' );
-		dataversion = -1;
-		disable = false;
-		doDataversion = false;
-		doDisableEnable = false;
-
-		if( keyvals.size() > 1 ) {
-			val = keyvals[0];
-			buf = keyvals[1];
-				
-			if( sscanf( buf.c_str(), "%d", &dataversion ) != 1 )
-				dataversion = -1;
-			else
-			   doDataversion = true;
-		}
-		
-		if( val.empty() ) {
-			newRefTime[pi.providerWithPlacename()] = ProviderTimes();
-			if( doDataversion ) {
-			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
-			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
-			}
-			continue;
-		}
-		
-				
-		i = val.find_first_not_of( "0123456789" );
-		
-
-		if( i == string::npos ) {
-			int n;
-			
-			if( sscanf( val.c_str(), "%d", &n ) != 1 ) {
-				WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> expecting a number." );
-				return false;
-			}
-			
-			if( n != 0 ) {
-				WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid Value. key <" << key << "> Not a valid value. Valid values [0]." );;
-				return false;
-			}
-				
-			newRefTime[pi.providerWithPlacename()] = ProviderTimes();
-			newRefTime[pi.providerWithPlacename()].reftimeUpdateRequest = true;
-
-			if( doDataversion ) {
-			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
-			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
-			}
-
-			continue;
-		} if( val[0]=='d' || val[0]=='D' ||  val[0]=='e' || val[0]=='E' ) {
-			doDisableEnable = true;
-
-			if( val[0]=='d' || val[0]=='D' )
-			   disable = true;
-		}
-		
-		try{ 
-			if( doDisableEnable ) {
-			   newRefTime[pi.providerWithPlacename()].disableEnableRequest = true;
-				newRefTime[pi.providerWithPlacename()].disabled = disable;
-			} else {
-				newRefTime[pi.providerWithPlacename()].refTime = ptimeFromIsoString( val );
-				newRefTime[pi.providerWithPlacename()].reftimeUpdateRequest = true;
-			}
-
-			if( doDataversion ) {
-			   newRefTime[pi.providerWithPlacename()].dataversion = dataversion;
-			   newRefTime[pi.providerWithPlacename()].dataversionRequest = true;
-			}
-		}
-		catch( logic_error &e ) {
-			WEBFW_LOG_ERROR( "LocationUpdateHandler:Query: Invalid value. key <" << key << "> value <" << val << ">. Not a valid timespec." );;
+		if( ! decodeQueryValue( pi.providerWithPlacename(), val, newRefTime ) ) {
+			WEBFW_LOG_ERROR( "WebQuery: Key: '" << key << "' value: '" << val );
 			return false;
 		}
 	}
 	
 	std::ostringstream logMsg;
-	logMsg << "LocationUpdateHandler:Query: Requested providers reftime!\n";
+	logMsg << "WebQuery: Requested providers reftime!\n";
 	for( ProviderRefTimeList::const_iterator it = newRefTime.begin(); it != newRefTime.end(); ++it )
 		logMsg <<"     " << it->first << ": " << it->second.refTime
 		       << " dataversion (" << (it->second.dataversionRequest?"t":"f") << "): " << it->second.dataversion
@@ -705,7 +669,15 @@ get( webfw::Request  &req,
 			}
 			WEBFW_LOG_DEBUG( ost.str() );
 
-			updateProviderRefTimes( wciConnection, requestedProviders, newRefTime, wciProtocol_ );
+			try {
+				updateProviderRefTimes( wciConnection, requestedProviders, newRefTime, wciProtocol_ );
+			}
+			catch( const std::logic_error &ex ) {
+				WEBFW_LOG_ERROR("Update failed: " << ex.what() );
+				response.errorDoc( ex.what() );
+				response.status( webfw::Response::NO_DATA );
+				return;
+			}
 
 			ost.str("");
 			ost << "*** newRefTime: " << newRefTime.size() << endl;

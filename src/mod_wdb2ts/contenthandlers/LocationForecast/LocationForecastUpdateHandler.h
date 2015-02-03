@@ -62,10 +62,34 @@ public:
 				       const wdb2ts::config::Config::Query &query,
 						 const std::string &wdbDB );
 	
+
+	/**
+	 * Valid querys for update requests:
+	 *
+	 * http://host/...update?provider=reftime[,dataversion]
+	 * If the dataversion part is missing -1 is assumed.
+	 * reftime is on the form YYYY-MM-DDThh:mm:ssZ
+	 *
+	 * Reftime may also be left out. This updates reftime
+	 * to latest reftime for the provider.
+	 * http://host/...update?provider=,dataversion
+	 *
+	 * Reftime may also be set to 0. This only
+	 * updates the dataversion we use for the provider
+	 * without touching the reftime.
+	 * http://host/...update?provider=0,dataversion
+	 *
+	 * A provider can be disabled/enabled with querys on the form
+	 * http://host/...update?provider=(enable/diable)
+	 * If a provider is disabled it will be disabled until it is enabled
+	 * with http://host/...update?provider=enable
+	 */
    virtual void get( webfw::Request  &req, 
                      webfw::Response &response, 
                      webfw::Logger   &logger );
-   
+   static bool decodeQueryValue( const std::string &provider, const std::string &val,
+		                         ProviderRefTimeList &newRefTime);
+   static bool decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime, bool &debug );
 private:
 
 	std::string  wdbDB;
@@ -76,7 +100,6 @@ private:
 	ProviderRefTimeList getProviderReftimes( Wdb2TsApp *app );
 	std::string updateStatus( ProviderRefTimeList &oldRefTime, 
 							  ProviderRefTimeList &newRefTime )const;
-	bool decodeQuery( const std::string &query, ProviderRefTimeList &newRefTime, bool &debug )const;
 	bool getProviderPriorityList( Wdb2TsApp *app, const std::string &wdbID, ProviderList &providerPriorityList )const;
 	bool getProviderPriorityList( Wdb2TsApp *app, ProviderList &providerPriorityList )const;
 
