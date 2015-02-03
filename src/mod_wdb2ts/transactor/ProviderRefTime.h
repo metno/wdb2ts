@@ -48,7 +48,8 @@ class  ProviderRefTime
 public:
 	ProviderRefTime( const ProviderRefTimeList &refTimes, 
          			  const std::string &provider,
-         			  const std::string &reftimespec  );
+         			  const std::string &reftimespec,
+					  int dataversion=-1);
 	
 	~ProviderRefTime();
 
@@ -60,6 +61,7 @@ private:
 	const ProviderRefTimeList refTimes;
 	const std::string provider;
 	const std::string reftimespec;
+	int dataversion;
 	PtrProviderRefTimes refTimesResult;
 };
 

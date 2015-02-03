@@ -41,9 +41,11 @@ namespace wdb2ts {
 ProviderRefTime::
 ProviderRefTime( const ProviderRefTimeList &refTimes_, 
          		  const string &provider_,
-         		  const string &reftimespec_  )
+         		  const string &reftimespec_,
+				  int dataversion_)
 	: refTimes( refTimes_ ), provider( provider_ ),
 	  reftimespec( reftimespec_ ),
+	  dataversion( dataversion_ ),
 	  refTimesResult( new ProviderRefTimeList() )
 {
 }
@@ -63,7 +65,7 @@ operator () ( argument_type &t )
 	*refTimesResult=refTimes;
 
 	ost << "SELECT * FROM wci.browse( ARRAY['" << provider <<"'], NULL,"<< reftimespec 
-	    << ",NULL,NULL,NULL,NULL,NULL::wci.browseplace)";
+	    << ",NULL,NULL,NULL,ARRAY[" << dataversion <<"],NULL::wci.browseplace)";
 
 	WEBFW_LOG_DEBUG( "ProviderReftimes (Transactor): query: " << ost.str() );
 	
