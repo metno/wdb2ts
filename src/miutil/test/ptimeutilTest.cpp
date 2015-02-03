@@ -185,10 +185,10 @@ enableTimePeriod()
 	CPPUNIT_ASSERT_MESSAGE("Unexpected, periode is null.", ! dp.is_null() );
 	CPPUNIT_ASSERT( dp.begin() == date(2014, May, 1) && dp.last() == date(2014, Jul, 31) );
 
-	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-04-30 10:35:45") ) );
-	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-05-01 10:35:45") ) );
-	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-08-01 10:35:45") ) );
-	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-06-01 10:35:45") ) );
+	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-04-30 10:35:45"), refTime.date() ) );
+	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-05-01 10:35:45"), refTime.date() ) );
+	CPPUNIT_ASSERT( ! p.isEnabled( time_from_string("2014-08-01 10:35:45"), refTime.date() ) );
+	CPPUNIT_ASSERT( p.isEnabled( time_from_string("2014-06-01 10:35:45"), refTime.date() ) );
 
 
 	p = EnableTimePeriod::parse( "Aug-1/May-1");
