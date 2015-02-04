@@ -79,7 +79,6 @@ output( std::ostream &out, const std::string &indent )
 	float value;
 	float tempNoAdiabatic;
 	float tempAdiabatic;
-	float modelTemp;
 	float tempUsed=FLT_MAX;
 	float dd, ff;
 	string savedProvider;
@@ -131,7 +130,6 @@ output( std::ostream &out, const std::string &indent )
 
 	value = pd->TA( true );
 	tempAdiabatic = value;
-	modelTemp = value;
 
 	if( value != FLT_MAX ) {
 		provider = pd->forecastprovider();
@@ -145,9 +143,6 @@ output( std::ostream &out, const std::string &indent )
 
 	if( tempNoAdiabatic != FLT_MAX ) {
 		tempUsed = tempNoAdiabatic;
-		if( modelTemp != FLT_MAX ) {
-			tempCorrection = tempUsed - modelTemp;
-		}
 	} else if( tempAdiabatic != FLT_MAX ) {
 		tempUsed = tempAdiabatic;
 		temperatureIsAdiabaticCorrected = true;
