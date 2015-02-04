@@ -200,6 +200,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
    float value;
    float tempNoAdiabatic;
    float tempAdiabatic;
+   float tempUsed=FLT_MAX;
    float iValue;
    string provider;
    string tempNoAdiabaticProvider;
@@ -273,6 +274,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 
       doSymbol( value );
       out << indent << "<mox:airTemperature uom=\"Cel\">" << value << "</mox:airTemperature>\n";
+      tempUsed = value;
       count++;
    }
 
@@ -300,7 +302,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
       count++;
    }
 
-   value = pd->RH2M();
+   value = pd->humidity( tempUsed, true );
    if (value != FLT_MAX) {
       out << indent << "<mox:humidity uom=\"percent\">" << value << "</mox:humidity>\n";
       count++;
@@ -357,10 +359,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
    }
 
    if( pd->config && pd->config->outputParam("temperature:td") ) {
-      float dewpoint = pd->dewPointTemperature();
-
-      if( dewpoint == FLT_MAX )
-         dewpoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
+      float dewpoint = pd->dewPointTemperature( tempUsed, true );
 
       if( dewpoint != FLT_MAX ) {
          out << indent << "<mox:dewPointTemperature uom=\"Cel\">" << value << "</mox:dewPointTemperature>\n";

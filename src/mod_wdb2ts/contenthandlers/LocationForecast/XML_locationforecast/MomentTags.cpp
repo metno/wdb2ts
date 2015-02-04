@@ -206,16 +206,10 @@ output( std::ostream &out, const std::string &indent )
 
 		pd->temperatureCorrected( tempUsed, provider );
 
-		dewpoint = pd->dewPointTemperature();
+		dewpoint = pd->dewPointTemperature( tempUsed, true );
+		value = pd->humidity( tempUsed, true );
 
-		value = pd->RH2M( );
-
-		if( value == FLT_MAX && dewpoint != FLT_MAX) {
-		   if( dewpoint != FLT_MAX )
-		      value = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
-		}
-
-		if (value != FLT_MAX) {
+		if ( value != FLT_MAX) {
 			tmpout << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
 			nForecast++;
 		}
@@ -272,18 +266,8 @@ output( std::ostream &out, const std::string &indent )
 		      tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
 		}
 
-		if( pd->config && pd->config->outputParam( "dewpointTemperature") ) {
-		   float myDewPoint= dewpoint;
-
-		   if( myDewPoint == FLT_MAX ){
-		       //myDewPoint = miutil::dewPointTemperature( pd->T2M(), pd->RH2M() );
-			   myDewPoint = miutil::dewPointTemperature( tempUsed, pd->RH2M() );
-		   }
-
-		   if( myDewPoint != FLT_MAX )
-		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celcius\" value=\""<< myDewPoint << "\"/>\n";
-
-		}
+		if( dewpoint != FLT_MAX && pd->config && pd->config->outputParam( "dewpointTemperature") )
+			tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celcius\" value=\""<< dewpoint << "\"/>\n";
 
 	//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
 		

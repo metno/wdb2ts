@@ -34,7 +34,7 @@
 #include <limits.h>
 #include <LocationElem.h>
 #include <Logger4cpp.h>
-
+#include <metfunctions.h>
 
 namespace {
    float sumVector( const std::vector<float> &v ) {
@@ -84,6 +84,14 @@ namespace {
          return ret;
       }
 
+   struct RestoreForecastProvider
+	{
+   	std::string provider_;
+   	wdb2ts::LocationElem *l_;
+   	RestoreForecastProvider(wdb2ts::LocationElem *l )
+   	: l_( l ), provider_( l->forecastprovider()){}
+   	~RestoreForecastProvider() { l_->forecastprovider( provider_ );}
+	};
 }
 
 namespace wdb2ts {
@@ -435,7 +443,7 @@ wetBulbTemperature( bool tryHard )const
 
    tUhc = T2M( tryHard );
    tHc  = temperatureCorrected( tryHard );
-   rh = RH2M( false );
+   rh = RH2MFromModel( false );
    h = height();
 
    if( tUhc == FLT_MAX || tHc == FLT_MAX || rh == FLT_MAX ||
@@ -1029,7 +1037,7 @@ lowCloud(bool tryHard)const
 
 float 
 LocationElem::
-RH2M(bool tryHard)const
+RH2MFromModel(bool tryHard)const
 {
 	return getValue( &PData::RH2M,
 	                 itTimeSerie->second,
@@ -1039,15 +1047,56 @@ RH2M(bool tryHard)const
 
 float
 LocationElem::
-dewPointTemperature( bool tryHard )const
+humidity( float tempUsed, bool tryHard )const
+{
+	RestoreForecastProvider restoreForecastProvider( const_cast<LocationElem*>(this) );
+	float rh = RH2MFromModel( tryHard );
+
+	if( rh == FLT_MAX )
+		rh = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewPointTemperatureFromModel( tryHard ) );
+
+	return rh;
+}
+
+float
+LocationElem::
+dewPointTemperatureFromModel( bool tryHard )const
 {
    return getValue( &PData::dewPointTemperature,
-                       itTimeSerie->second,
-                       const_cast<ptime&>(itTimeSerie->first),
-                       const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+                    itTimeSerie->second,
+                    const_cast<ptime&>(itTimeSerie->first),
+                    const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
 
 float 
+LocationElem::
+dewPointTemperature( float usedTemperature, bool tryHard )const
+{
+	RestoreForecastProvider restoreForecastProvider( const_cast<LocationElem*>(this) );
+	float modelTemp;
+	float dewTemp = miutil::dewPointTemperature( usedTemperature, RH2MFromModel( tryHard ) );;
+
+	if( dewTemp != FLT_MAX )
+		return dewTemp;
+
+	dewTemp = dewPointTemperatureFromModel( tryHard );
+	modelTemp = T2M( false );
+
+	if( dewTemp == FLT_MAX || modelTemp == FLT_MAX )
+		return FLT_MAX;
+
+	//Compute relative humidity from model temperature and model dewtemperature.
+	//This is the model relative humidity.
+	float modelRh = miutil::dewPointTemperatureToRelativeHumidity( modelTemp, dewTemp );
+
+	//Compute the dew temperature from height corrected temperature and
+	//relative humidity from the model.
+	dewTemp = miutil::dewPointTemperature( usedTemperature, modelRh );
+
+	return dewTemp;
+}
+
+float
 LocationElem::
 thunderProbability( bool tryHard )const
 {

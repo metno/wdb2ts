@@ -79,12 +79,13 @@ output( std::ostream &out, const std::string &indent )
 	float value;
 	float tempNoAdiabatic;
 	float tempAdiabatic;
+	float modelTemp;
 	float tempUsed=FLT_MAX;
 	float dd, ff;
 	string savedProvider;
 	string provider;
 	string tempNoAdiabaticProvider;
-	float tempCorrection;
+	float tempCorrection=FLT_MAX;
 	float tempProb = FLT_MAX;
 	float windProb = FLT_MAX;
 	bool hasTempCorr;
@@ -130,6 +131,7 @@ output( std::ostream &out, const std::string &indent )
 
 	value = pd->TA( true );
 	tempAdiabatic = value;
+	modelTemp = value;
 
 	if( value != FLT_MAX ) {
 		provider = pd->forecastprovider();
@@ -141,9 +143,12 @@ output( std::ostream &out, const std::string &indent )
 			       << " tempAdiabatic: " << value << " (uncorrected) modelTopo: " << modelTopo << " relTopo: " << relTopo << " -->\n";
 	}
 
-	if( tempNoAdiabatic != FLT_MAX )
+	if( tempNoAdiabatic != FLT_MAX ) {
 		tempUsed = tempNoAdiabatic;
-	else if( tempAdiabatic != FLT_MAX ) {
+		if( modelTemp != FLT_MAX ) {
+			tempCorrection = tempUsed - modelTemp;
+		}
+	} else if( tempAdiabatic != FLT_MAX ) {
 		tempUsed = tempAdiabatic;
 		temperatureIsAdiabaticCorrected = true;
 	}
@@ -224,15 +229,11 @@ output( std::ostream &out, const std::string &indent )
 		}
 
 
-		dewpoint = pd->dewPointTemperature( true );
-		humidity = pd->RH2M( true );
+		dewpoint = pd->dewPointTemperature( tempUsed, true );
+		humidity = pd->humidity( tempUsed, true );
 
 		if( loglevel >= log4cpp::Priority::DEBUG )
 			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint << " humidity: " << humidity << " tempUsed: " << tempUsed << " provider: " << pd->forecastprovider() << "-->\n";
-
-		if( humidity == FLT_MAX && dewpoint != FLT_MAX) {
-		      humidity = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewpoint );
-		}
 
 		if( humidity != FLT_MAX) {
 			tmpout << indent << "<humidity value=\"" << humidity << "\" unit=\"percent\"/>\n";
@@ -297,17 +298,8 @@ output( std::ostream &out, const std::string &indent )
 		      tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
 		}
 
-		if( pd->config && pd->config->outputParam( "dewpointTemperature") ) {
-		   float myDewPoint= dewpoint;
-
-		   if( myDewPoint == FLT_MAX ) {
-			   myDewPoint = miutil::dewPointTemperature( tempUsed, humidity );
-		   }
-
-		   if( myDewPoint != FLT_MAX )
-		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""<< myDewPoint << "\"/>\n";
-
-		}
+		if( dewpoint != FLT_MAX && pd->config && pd->config->outputParam( "dewpointTemperature") )
+		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""<< dewpoint << "\"/>\n";
 
 	//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
 		
