@@ -190,14 +190,14 @@ output( std::ostream &out, const std::string &indent )
 
 		pd->temperatureCorrected( tempUsed, provider );
 
-		symData->maxTemperature = pd->maxTemperature( 6 );
-		symData->minTemperature = pd->minTemperature( 6 );
+		symData->maxTemperature_6h = pd->maxTemperature( 6 );
+		symData->minTemperature_6h = pd->minTemperature( 6 );
 
 		if( temperatureIsAdiabaticCorrected ) {
-			if( symData->maxTemperature != FLT_MAX )
-				symData->maxTemperature += tempCorrection;
-			if( symData->minTemperature != FLT_MAX )
-				symData->minTemperature += tempCorrection;
+			if( symData->maxTemperature_6h != FLT_MAX )
+				symData->maxTemperature_6h += tempCorrection;
+			if( symData->minTemperature_6h != FLT_MAX )
+				symData->minTemperature_6h += tempCorrection;
 		}
 
 		symData->thunderProbability = pd->thunderProbability();

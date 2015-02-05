@@ -260,6 +260,7 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	ma::MinMax<float> thunder;
 	ma::Count<float, Greater> fog( greater );
 	ma::MinMax<float> temperaturExtrema;
+	int count=0;
 	int  possibleFogCount = ceil( static_cast<double>(hours)/2 );
 
 	int timestep;
@@ -270,9 +271,12 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 
 	WeatherSymbolDataBuffer::const_iterator it=slice.first;
 	WeatherSymbolDataBuffer::const_iterator end = slice.second;
+	WeatherSymbolDataBuffer::const_iterator lastIt = end;;
 	++end;
 
 	for(; it != end; ++it ) {
+		++count;
+		lastIt = it;
 		totCloud( it->second.totalCloudCover );
 		mediumCloud( it->second.mediumCloudCover );
 		lowCloud( it->second.lowCloudCover );
@@ -292,8 +296,19 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
 
 	if( hours ==  6 ) {
-		wd.maxTemperature = temperaturExtrema.max( FLT_MAX );
-		wd.minTemperature = temperaturExtrema.min( FLT_MAX );
+		float min = temperaturExtrema.min( FLT_MAX );
+		float max = temperaturExtrema.max( FLT_MAX );;
+
+		cerr << "computeWeatherSymbolData: min/max count: " << count << ".\n";
+		if( count == 6 ) {
+			wd.maxTemperature_6h = max;
+			wd.minTemperature_6h = min;
+		} else if( lastIt != end ){
+			if( lastIt->second.maxTemperature_6h != FLT_MAX && max != FLT_MAX )
+				wd.maxTemperature_6h = std::max(lastIt->second.maxTemperature_6h, max );
+			if( lastIt->second.minTemperature_6h != FLT_MAX && min != FLT_MAX )
+				wd.minTemperature_6h = std::min(lastIt->second.minTemperature_6h, min );
+		}
 	}
 
 	return wd;
@@ -365,6 +380,16 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 
 			if( ! factory->interpretor()->hasPrecipitation( wd.weatherCode ) ) {
 				wd.precipitation = 0;
+			}
+
+			if( hours == 6 ) {
+				if( wd.minTemperature_6h != FLT_MAX && wd.temperature != FLT_MAX )
+					wd.minTemperature_6h = std::min( wd.minTemperature_6h, wd.temperature );
+				if( wd.maxTemperature_6h != FLT_MAX && wd.temperature != FLT_MAX )
+					wd.maxTemperature_6h = std::max( wd.maxTemperature_6h, wd.temperature );
+			} else {
+				wd.minTemperature_6h = FLT_MAX;
+				wd.maxTemperature_6h = FLT_MAX;
 			}
 
 //		if( wd.weatherCode != weatherCode )

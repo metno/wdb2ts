@@ -226,31 +226,6 @@ compactBreakTimes()
 	}
 }
 
-
-//boost::shared_ptr<SymbolHolder>
-//EncodeLocationForecast4::
-//findSymbolHolder( const std::string &provider, int timespan )
-//{
-//	ProviderSymbolHolderList::iterator ii = symbols.find( provider );
-//
-//	if( ii == symbols.end() )
-//		return boost::shared_ptr<SymbolHolder>();
-//
-//	for( SymbolHolderList::iterator it = ii->second.begin();
-//		  it != ii->second.end();
-//		  ++it )
-//		if( (*it)->timespanInHours() == timespan )
-//			return *it;
-//
-//	return boost::shared_ptr<SymbolHolder>();
-//
-//}
-
-
-
-
-
-
 void
 EncodeLocationForecast4::
 encodePrecipitationPercentiles( const boost::posix_time::ptime &from, 
@@ -330,7 +305,7 @@ encodePrecipitationPercentiles( const boost::posix_time::ptime &from,
 				
 		}
 
-		//My have one left over.
+		//May have one left over.
 		if( ! percentileOst.str().empty() ) {
 		   ++nElements;
 			ost << outOst.str();
@@ -469,8 +444,6 @@ encodeMoment( const boost::posix_time::ptime &from,
 				}
 
 				if( hasMomentData ) {
-//					ost << "<!-- Add symboldata: " << location.time() << " ("  << location.forecastprovider()
-//					       << ") -->\n";
 					symbolDataBuffer.add( location.time(), symbolData );
 					tmpOst << momentOst.str();
 				}
@@ -610,19 +583,19 @@ encodePeriods( LocationElem &location,
 		   precipitationTag.output( ost, level5.indent() );
 	   }
 
-	   if( symbolData.minTemperature != FLT_MAX ) {
-		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.minTemperature << "\"/>\n";
+	   if( symbolData.minTemperature_6h != FLT_MAX ) {
+		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.minTemperature_6h << "\"/>\n";
 	   }
 
-	   if( symbolData.maxTemperature != FLT_MAX ) {
-		   ost << "<maxTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.maxTemperature << "\"/>\n";
+	   if( symbolData.maxTemperature_6h != FLT_MAX ) {
+		   ost << "<maxTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.maxTemperature_6h << "\"/>\n";
 	   }
 
 	   if( symbolData.weatherCode != weather_symbol::Error ) {
 		   ost << "<symbol id=\"" << WeatherSymbolGenerator::symbolName( symbolData.weatherCode ) <<"\" number=\"" << symbolData.weatherCode << "\"/>\n";
 
-	   	   if( symbolProbability != FLT_MAX )
-	   		   ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbolProbability ) << "\"/>\n";
+		   if( symbolProbability != FLT_MAX )
+		   	ost << "<symbolProbability unit=\"probabilitycode\" value=\"" << probabilityCode( symbolProbability ) << "\"/>\n";
 	   }
 	}
 	location.symbolprovider( oldSymbolProvider );
