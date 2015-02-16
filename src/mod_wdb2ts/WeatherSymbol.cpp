@@ -299,7 +299,6 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 		float min = temperaturExtrema.min( FLT_MAX );
 		float max = temperaturExtrema.max( FLT_MAX );;
 
-		cerr << "computeWeatherSymbolData: min/max count: " << count << ".\n";
 		if( count == 6 ) {
 			wd.maxTemperature_6h = max;
 			wd.minTemperature_6h = min;
