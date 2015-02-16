@@ -1,3 +1,12 @@
+metno-wdb2ts (1.3.12~rc3-1) unstable; urgency=low
+  * Update request return 400 if an request to an undefined provider is issued.
+  * Rewrite the update query decoding.
+  * Add test for update query decoding.
+  * Height adjust dew point temperature.
+  * Adjust min/max-tempereture against TA.
+      
+ -- Borge Moe <borge.moe@met.no>  Mon, 16 Feb 2015 14:00:00 +0100
+
 metno-wdb2ts (1.3.12~rc2-1) unstable; urgency=low
   * Update request return 400 if an request to an undefined provider is issued.
   * Rewrite the update query decoding.
