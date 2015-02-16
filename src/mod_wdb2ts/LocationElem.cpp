@@ -347,28 +347,55 @@ float
 LocationElem::
 maxTemperature( int hours, bool tryHard )const
 {
+	float tt=FLT_MAX;
+	ptime h = itTimeSerie->first - boost::posix_time::hours( hours );
+
 	switch( hours ) {
-	case 6: return getValue( &PData::maxTemperature_6h,
-	         	 	 	 	 itTimeSerie->second,
-							 const_cast<ptime&>(itTimeSerie->first),
-							 const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	case 6: {
+		tt = getValue( &PData::maxTemperature_6h,
+   			         itTimeSerie->second,	h,
+	   					const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+
+		if( tt == FLT_MAX ) {
+			tt = getValue( &PData::maxTemperature_6h,
+					         itTimeSerie->second,
+								const_cast<ptime&>(itTimeSerie->first),
+								const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+		}
+	}
+	break;
 	default:
 		return FLT_MAX;
 	}
+	return tt;
 }
 
 float
 LocationElem::
 minTemperature( int hours, bool tryHard )const
 {
+	float tt = FLT_MAX;
+	ptime h = itTimeSerie->first - boost::posix_time::hours( hours );
+
 	switch( hours ) {
-	case 6: return getValue( &PData::minTemperature_6h,
-		         	 	 	 itTimeSerie->second,
-							 const_cast<ptime&>(itTimeSerie->first),
-							 const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	case 6: {
+		tt = getValue( &PData::minTemperature_6h,
+          	 	      itTimeSerie->second, h,
+							const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+
+		if( tt == FLT_MAX ) {
+			tt = getValue( &PData::minTemperature_6h,
+					         itTimeSerie->second,
+							   const_cast<ptime&>(itTimeSerie->first),
+							   const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+		}
+	}
+	break;
 	default:
 		return FLT_MAX;
 	}
+
+	return tt;
 }
 
 float
