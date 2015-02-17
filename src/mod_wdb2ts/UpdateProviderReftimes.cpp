@@ -107,10 +107,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
       ost.str("");
 
       if( it->second.refTime.is_special() ) {
-         if( wciProtocol == 1 )
-            ost << "('" << isotimeString( back, false, true ) << "','" << isotimeString( endTime, false, true ) << "','inside')";
-         else
-            ost << "'inside " << isotimeString( back, false, true ) << " TO " << isotimeString( endTime, false, true ) << "'";
+      	ost << "NULL";
       } else {
          if( wciProtocol == 1 )
             ost << "('" << isotimeString( it->second.refTime, false, true ) << "','" << isotimeString( it->second.refTime, false, true ) << "','exact')";
@@ -126,7 +123,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
     	  ostringstream serr;
     	  serr << "Missing data for: " << provider << " at ";
 
-    	  if(it->second.refTime.is_special() )  serr << 'latest';
+    	  if(it->second.refTime.is_special() )  serr << "'latest'";
     	  else serr << "'" << isotimeString( it->second.refTime, false, true ) << "'";
 
     	  serr << " with dataversion ";
