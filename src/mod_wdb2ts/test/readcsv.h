@@ -6,8 +6,8 @@
 #include <vector>
 #include <list>
 
-std::list<std::vector<std::string> >
-readCSV( std::istream &in, char sep_ );
+bool
+readCSV( std::istream &in, std::list<std::vector<std::string> > &csv, char sep_ );
 
 
 #endif

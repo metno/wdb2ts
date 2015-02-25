@@ -1,12 +1,14 @@
+#include <iostream>
 #include <memory>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <sstream>
 #include "readcsv.h"
 
 using namespace std;
-using namespace boost;
-using namespace boost::algorithm;
+//using namespace boost;
+//using namespace boost::algorithm;
 
 namespace {
 void
@@ -29,34 +31,40 @@ split( vector<string> &vals, const string &line, char sep_)
 		} else if( ch == '"') {
 			inString = ! inString;
 		} else if( ch == sep_ ) {
-			vals.push_back( trim_copy( buf.str() ) );
+			vals.push_back( boost::trim_copy( buf.str() ) );
 			buf.str("");
 		} else {
 			buf << ch;
 		}
+		++it;
 	}
-	vals.push_back( trim_copy( buf.str() ) );
+	vals.push_back( boost::trim_copy( buf.str() ) );
 }
 }
 
-std::list< std::vector<std::string> >
-readCSV( std::istream &in, char sep_ )
+bool
+readCSV( std::istream &in, std::list<std::vector<std::string> > &csv, char sep_ )
 {
 	string line;
 	vector<string> vals;
-	list< vector<string> > result;
 	int n=-1;
+
+	csv.clear();
 
 	while( getline( in, line ) ) {
 		split( vals, line, sep_ );
+
 		if( n < 0 )
 			n=vals.size();
-		else if( n > -1 && vals.size() != n )
-			return list< vector<string> >();
+		else if( n > -1 && vals.size() != n ) {
+			if( vals.size() && vals[0].length()==0) //Skip empty lines.
+				continue;
+			return false;
+		}
 
-		result.push_back( vals );
+		csv.push_back( vals );
 	}
 
-	return result;
+	return true;
 }
 
