@@ -323,7 +323,7 @@ SAXerrorFunc( void *ctx,
       va_start(args, msg);
       n=vsnprintf(buf, n+1, msg, args);
       m=buf;
-      delete buf;
+      delete[] buf;
     }
     catch(...){
        cerr << "SAXerrorFunc: OUT OF MEMMORY!\n";
@@ -357,7 +357,7 @@ SAXwarningFunc(void *ctx,
       va_start(args, msg);
       n=vsnprintf(buf, n+1, msg, args);
       m=buf;
-      delete buf;
+      delete[] buf;
     }
     catch(...){
        cerr << "SAXwarningFunc: OUT OF MEMMORY!\n";
@@ -391,7 +391,7 @@ SAXfatalErrorSAXFunc(void *ctx,
       va_start(args, msg);
       n=vsnprintf(buf, n+1, msg, args);
       m=buf;
-      delete buf;
+      delete[] buf;
     }
     catch(...){
        cerr << "SAXFatalErrorSAXFunc: OUT OF MEMMORY!\n";
