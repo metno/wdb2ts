@@ -64,7 +64,7 @@ public:
 		  isPolygon( isPolygon_ )
 		{
 			std::ostringstream ost;
-			ost << "tid: " << boost::this_thread::get_id();
+			ost << "tid: " << boost::this_thread::get_id() << "";
 			ost << ". WdbDataRequestCommand";
 			id_ = ost.str();
 		}
@@ -92,7 +92,10 @@ operator()()
 	//Register the requesthandler in this thread.
 	WEBFW_USE_LOGGER_REQUESTHANDLER( "wdb", reqHandler );
 	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
-	myTid = boost::this_thread::get_id();
+	std::ostringstream tidOst;
+
+	tidOst << boost::this_thread::get_id();
+	myTid = tidOst.str();
 
 	try {
 		ReadHelper	readHelper( *data_, query_, *paramDefs, *providerPriority,
@@ -186,6 +189,5 @@ validate()
 	validatePrognosisLength();
 	removeEmptyData( *data_ );
 }
-
 
 }

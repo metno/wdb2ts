@@ -59,7 +59,7 @@ class WdbDataRequestCommand {
 	boost::posix_time::ptime minPrognosisEndTime_;
 	std::ostringstream log;
 	log4cpp::Priority::Value logLevel;
-	boost::thread::id myTid;
+	std::string myTid;
 
 public:
 
