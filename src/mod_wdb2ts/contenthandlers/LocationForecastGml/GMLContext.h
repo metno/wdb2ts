@@ -3,6 +3,7 @@
 
 #include <SymbolContext.h>
 #include <ProjectionHelper.h>
+#include <WeatherSymbol.h>
 #include <map>
 #include <string>
 namespace wdb2ts {
@@ -21,12 +22,13 @@ public:
 	//that has encoded symbol fields.
 	SymbolContext symbolContext;
 	const ProjectionHelper *projectionHelper;
+	SymbolDataElement *symData;
 	std::map<std::string, int > idMap;
 	ForecastType forecastType;
 	
 	GMLContext( const ProjectionHelper *projectionHelper_, bool useTempInFromtime )
 		: symbolContext( useTempInFromtime ), projectionHelper( projectionHelper_ ),
-		  forecastType( OceanForecast )
+		  symData( 0 ), forecastType( OceanForecast )
 	{
 		
 	}
