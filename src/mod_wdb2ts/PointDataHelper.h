@@ -48,6 +48,7 @@ namespace wdb2ts {
 struct PData{
    float windV10m;
    float windU10m;
+   float windGust;
    float PP;
    float PR;
    float TA;
@@ -124,9 +125,11 @@ struct PData{
    float LANDCOVER;
    
    PData()
-   	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), PP( FLT_MAX ), PR( FLT_MAX ), 
-   	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ), T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
-	 maxTemperature_6h( FLT_MAX ), minTemperature_6h( FLT_MAX ),
+   	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), windGust(FLT_MAX),
+		 PP( FLT_MAX ), PR( FLT_MAX ),
+   	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ),
+		 T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
+	    maxTemperature_6h( FLT_MAX ), minTemperature_6h( FLT_MAX ),
    	 temperatureCorrected(FLT_MAX) , dewPointTemperature( FLT_MAX ),
    	 UU( FLT_MAX ), PRECIP_PROBABILITY( FLT_MAX ),
    	 PRECIP_MIN( FLT_MAX ), PRECIP_MAX( FLT_MAX ), PRECIP_MEAN( FLT_MAX ),
@@ -179,10 +182,10 @@ struct PData{
    	LANDCOVER( FLT_MAX ){}
    
    PData(const PData &pd)
-      :windV10m(pd.windV10m), windU10m(pd.windU10m), 
+      :windV10m(pd.windV10m), windU10m(pd.windU10m), windGust(pd.windGust),
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
-	   maxTemperature_6h( pd.maxTemperature_6h ), minTemperature_6h( pd.minTemperature_6h ),
+	    maxTemperature_6h( pd.maxTemperature_6h ), minTemperature_6h( pd.minTemperature_6h ),
        temperatureCorrected( pd.temperatureCorrected ),
        dewPointTemperature( pd.dewPointTemperature ), UU( pd.UU ),
        PRECIP_PROBABILITY( pd.PRECIP_PROBABILITY ),
@@ -242,6 +245,7 @@ struct PData{
       if(this!=&rhs){
          windV10m = rhs.windV10m; 
          windU10m = rhs.windU10m;
+         windGust = rhs.windGust;
          PP       = rhs.PP;
          PR       = rhs.PR;
          TA       = rhs.TA;

@@ -267,6 +267,17 @@ windU10m(bool tryHard)const
 
 float 
 LocationElem::
+windGust(bool tryHard)const
+{
+	return getValue( &PData::windGust,
+			           itTimeSerie->second,
+			           const_cast<ptime&>(itTimeSerie->first),
+			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+}
+
+
+float
+LocationElem::
 PP(bool tryHard)const
 {
 	return getValue( &PData::PP,

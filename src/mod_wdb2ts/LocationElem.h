@@ -357,6 +357,7 @@ public:
 		
 	float windV10m( bool tryHard=false )const;
    float windU10m( bool tryHard=false )const;
+   float windGust( bool tryHard=false )const;
    float PP( bool tryHard=false )const;
    float PR( bool tryHard=false )const;
    

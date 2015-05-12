@@ -178,14 +178,6 @@ output( std::ostream &out, const std::string &indent )
 	if( ! provider.empty() ) {
 		pd->temperatureCorrected( tempUsed, provider );
 
-		if( projectionHelper->convertToDirectionAndLengthMiLib( provider, pd->latitude(), pd->longitude(),
-		   	                                           pd->windU10m(), pd->windV10m(),
-			                                           dd, ff ) ) {
-			if( loglevel >= log4cpp::Priority::DEBUG ) {
-				tmpout << "<!-- libmi reprojection: dd: " << dd << " ff: " << ff << " -->\n";
-			}
-		}
-
 		projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
 				                                       pd->windU10m(), pd->windV10m(),
 					                                   dd, ff );
@@ -203,6 +195,10 @@ output( std::ostream &out, const std::string &indent )
 			pd->forecastprovider( provider ); //Reset the forecastprovider back to provider.
 			nForecast++;
 		}
+
+		value = pd->windGust( true );
+		if( value != FLT_MAX )
+			tmpout << indent << "<windGust id=\"ff_gust\" mps=\""<< value << "\"/>\n";
 
 		pd->temperatureCorrected( tempUsed, provider );
 

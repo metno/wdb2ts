@@ -223,6 +223,9 @@ output( std::ostream &out, const std::string &indent )
 			}
 		}
 
+		value = pd->windGust( true );
+		if( value != FLT_MAX )
+			tmpout << indent << "<windGust id=\"ff_gust\" mps=\""<< value << "\"/>\n";
 
 		dewpoint = pd->dewPointTemperature( tempUsed, true );
 		humidity = pd->humidity( tempUsed, true );
