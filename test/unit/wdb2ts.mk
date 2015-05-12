@@ -24,14 +24,29 @@ wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) \
                             -lWciWebQuery \
                             -lXML_locationforecast \
                             -lmiutil \
-                            $(difield_LIBS) \
                             $(pgconpool_LIBS) \
                             $(putools_LIBS) \
                             $(pumet_LIBS) \
-                            $(milib_LIBS) \
                             $(LIBPQXX_LIBS) \
                             -lproj \
                             -lgfortran
+
+
+#wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) \
+#                            -lwebFW \
+#                            -lwdb2tsconfigparser \
+#                            -lwdb2ts \
+#                            -lWciWebQuery \
+#                            -lXML_locationforecast \
+#                            -lmiutil \
+#                            $(difield_LIBS) \
+#                            $(pgconpool_LIBS) \
+#                            $(putools_LIBS) \
+#                            $(pumet_LIBS) \
+#                            $(milib_LIBS) \
+#                            $(LIBPQXX_LIBS) \
+#                            -lproj \
+#                            -lgfortran
                              
 # -ltestConfiguration -lwdbConfig
 
