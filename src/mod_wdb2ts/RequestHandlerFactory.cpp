@@ -18,15 +18,15 @@ requestHandlerFactory( const std::string &id,
 	else if( id == "LocationForecast2")
 		return new LocationForecastHandler( ver.majorVer, ver.minorVer, "2" );
 	else if( id == "LocationForecast3")
-	   return new LocationForecastHandler( ver.majorVer, ver.minorVer, "3" );
+		return new LocationForecastHandler( ver.majorVer, ver.minorVer, "3" );
 	else if( id == "LocationForecastUpdate" )
 		return new LocationForecastUpdateHandler( ver.majorVer, ver.minorVer );
 	else if( id == "LocationForecastGml" )
-			return new LocationForecastGmlHandler( ver.majorVer, ver.minorVer );
+		return new LocationForecastGmlHandler( ver.majorVer, ver.minorVer );
 	else if( id == "LocationForecast4" )
 		return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "3" );
 	else if( id == "LocationForecast5" )
-			return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "4" );
+		return new LocationForecastHandler2( ver.majorVer, ver.minorVer, "4" );
 	else
 		return 0;
 }
