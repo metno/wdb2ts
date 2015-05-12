@@ -438,7 +438,7 @@
       	type=exact: 10, 25, 50, 75 or 90
       	type=lowerlimit: 0.1mm, 0.2mm, 0.5mm, 1.0mm, 2.0mm or 5.0mm. 
       - parameter is temperature or precipitation.
-      - unit is celcius, mm or percent.
+      - unit is celsius, mm or percent.
 	</programlisting>
 		</para>
 		<para>
@@ -458,7 +458,7 @@
 					<para>
 						<programlisting>
    type=exact
-   unit=celcius
+   unit=celsius
    
    percentile |  id
    -----------+--------------------
