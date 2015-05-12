@@ -2,6 +2,13 @@
 # gribWrite unit tests
 #-----------------------------------------------------------------------------
 #diFieldLibs=-ldiField -lboost_date_time-mt -lfimex -lmic -lpropoly -lpuCtools -lmi -lcurl -lmiLogger -llog4cpp 
+noinst_PROGRAMS += tantest
+
+tantest_SOURCES =\
+	test/unit/tantest.cpp
+
+tantest_LDADD=-lm
+tantest_CPPFLAGS=
 
 TESTS +=   					wdb2TsUnitTest
 
