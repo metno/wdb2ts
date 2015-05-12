@@ -44,42 +44,42 @@
 
 namespace wdb2ts {
 
+class uv {
+  double u_;
+  double v_;
+public:
+
+  uv():u_( HUGE_VAL), v_( HUGE_VAL ) {}
+  uv( double u, double v);
+
+  explicit uv(double angle);
+
+  double u()const { return u_;}
+  double v()const { return v_;}
+  double angle() const;
+  void  directionAndLength( double &direction, double &length, bool turn=false)const;
+
+  friend std::ostream& operator<<( std::ostream &o, const uv &uv_ );
+};
+
+std::ostream& operator<<( std::ostream &o, const uv &uv_ );
+
 
 class Wdb2TsApp;
 
 class MiProjection {
 	
 public:
-	typedef enum  {
-			undefined_projection = 0,
-			polarstereographic_60= 1,
-			geographic=            2,
-			spherical_rotated=     3,
-			polarstereographic=    4,
-			mercator=              5,
-			lambert=               6
-		} ProjectionType;
-			
-	typedef float GridSpec[6] ;
 			  
 	MiProjection();
 	MiProjection( const std::string &projDef );
 	MiProjection( const MiProjection &proj );
-	MiProjection( GridSpec gridSpec, ProjectionType pt, const char *proj=0 );
 	~MiProjection();
 
 	MiProjection& operator=( const MiProjection &rhs );
 	
-	void set( GridSpec gridSpec, ProjectionType pt  );
-
-	std::string createProjDefinition( bool addDatum );
-
 	bool valid()const{ return geoproj && proj; }
 	void makeGeographic();
-	
-	const float* getGridSpec()const { return gridSpec; }
-	ProjectionType getProjectionType()const { return gridType; }
-	
 
 	bool calculateVectorRotationElements(const MiProjection& srcProj, int nvec,
 			                             const double *to_x, const double *to_y,
@@ -140,20 +140,6 @@ public:
 	 */
 
 	bool transform( const MiProjection &proj, int nvec, double *y, double *x )const;
-
-	/**
-	 * Convert coordinates between projection.
-	 * 
-	 * On call of this method latitude and longitude is given in the 
-	 * projection of proj. On return the latitude and longitude is given
-	 * in the projection of this projection.
-	 * 
-	 * @param proj Convert latitude/longitude from proj to this projection.
-	 * @param latitude Latitude in the projection given with proj.
-	 * @param longitude Longitude in the projection given with proj.
-	 * @return true on success and false on failure.
-	 */
-	bool xyconvert( const MiProjection &proj, float &latitude, float &longitude )const;
 	
 
 	/**
@@ -187,28 +173,6 @@ public:
 	bool convertVectors( const MiProjection& srcProj,
 						 double to_x, double to_y,
 						 double &u, double &v) const;
-
-
-
-	/**
-	 * Turn vector (ex. velocity) components between different projections.
-    * 
-    * You may use xyconvert to convert the positions first.
-    * 
-    * latitude and longitude is in this projection.
-    * On input u and v is in the projection of proj and on output
-    * it is in the projection of this projection.
-    *
-    * @param proj Convert u/v from proj to this projection. Latitude/longitude 
-    *             is in this projection.
-    * @param latitude Latitude in this projection.
-    * @param longitude Longitude in this projection.
-    * @param u On input in the projection of proj, on output in this projection.
-    * @param v On input in the projection of proj, on output in this projection.
-    *
-	 * @return true on success and false on failure.
-	 */
-	bool uvconvert( const MiProjection &proj, float latitude, float longitude, float &u, float &v )const;
 	
 	/**
 	 * Convert a vector represented with u and v to direction and length at a
@@ -233,21 +197,13 @@ public:
 			                          double u, double v,
 								      double &direction, double &length, bool turn=false )const;
 
-	bool convertToDirectionAndLengthMiLib( const MiProjection &srcProj,
-									  float latitudeY, float longitudeX,
-				                      float u, float v,
-									  float &direction, float &length, bool turn=false )const;
-
-
 	friend std::ostream& operator<<(std::ostream &o, const MiProjection &proj );
 
 private:
 	void init();
 	std::string projString;
 	projPJ proj;
-	ProjectionType gridType;
 	projPJ geoproj;
-	GridSpec gridSpec;
 };
 
 
@@ -285,9 +241,7 @@ public:
 	
 	void add( const std::string &provider, const MiProjection &projection );
 
-	static MiProjection createProjection( float startx, float starty,
-				  	  	  	  	  	  	  float incrementx, float incrementy,
-				  	  	  	  	  	  	  const std::string &projDefinition );
+	static MiProjection createProjection( const std::string &projDefinition );
 
 	ProjectionHelper& operator=( const ProjectionHelper &rhs );
 
@@ -306,16 +260,11 @@ public:
 	 * @param[in] longitude geographic longitude.
 	 * @param[in] u The x component to the vector in the projection given by the provider (placename).
 	 * @param[in] v The y component to the vector in the projection given by the provider (placename).
-	 * @param[out] direction in degrease.
+	 * @param[out] direction in degrees.
 	 * @param[out] length The length of the vector (speed).
-	 * @param[out] turn turn the direction 180 degrease. ocean ant atmosphere parameters is in
-	 *    oposit direction. ocean parameters need turn=true.
+	 * @param[out] turn turn the direction 180 degrees. ocean ant atmosphere parameters is in
+	 *    opposite direction. ocean parameters need turn=true.
 	 */
-	bool convertToDirectionAndLengthMiLib( const std::string &provider,
-								      float latitude, float longitude,
-								      float u, float v,
-								      float &direction, float &length, bool turn=false )const;
-	
 	bool convertToDirectionAndLength( const std::string &provider,
 									   float latitude, float longitude,
 									   float u, float v,

@@ -55,111 +55,8 @@ loadFromDBWciProtocol_2( pqxx::connection& con,
 		                 )
 {
 	WEBFW_USE_LOGGER( "handler" );
-
-	try {
-
-		pqxx::work work( con, "WciPlaceSpecification");
-		pqxx::result  res = work.exec( "SELECT * FROM wci.placespecification()" );
-		
-		ostringstream msg;
-		MiProjection::GridSpec gs;
-		MiProjection::ProjectionType pType;
-		int nCols;
-		int nRows;
-
-		msg << "Projection (P2): ";
-
-		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
-		{
-			nCols = row["inumber"].as<int>();
-			nRows = row["jnumber"].as<int>();
-			gs[0] = row["startlongitude"].as<float>();
-			gs[1] = row["startlatitude"].as<float>();
-			gs[2] = row["jincrement"].as<float>();
-			gs[3] = row["iincrement"].as<float>();
-			
-			// The SRIDs are hardcoded into the code, instead of trying to decode
-			// the PROJ string.
-			switch ( row["originalsrid"].as<int>() ) {
-			case 50000:
-			case 50007:
-				//From comments in milib shall gs allways be set to
-				//this value for geographic projection.
-				gs[0] = 1.0;
-				gs[1] = 1.0;
-				gs[2] = 1.0;
-				gs[3] = 1.0;
-				gs[4] = 0.0;
-				gs[5] = 0.0;
-				pType = MiProjection::geographic;
-				break;
-			case 50001: // Hirlam 10     
-				gs[4] = -40.0;
-				gs[5] = 68.0;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50002: // Hirlam 20
-				gs[4] = 0.0;
-				gs[5] = 65.0;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50003: // PROFET
-				gs[4] = -24.0;
-				gs[5] = 66.5;
-				pType = MiProjection::spherical_rotated;
-				break;
-			case 50004: //Sea and wave models
-				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
-				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
-				gs[3] = 58;
-				gs[4] = 60;
-				gs[5] = 0.0;
-				pType = MiProjection::polarstereographic;
-				break;
-			case 50005: //Sea and wave models
-				gs[0] = (0-gs[0])/gs[3] ; //poleGridX = (0 - startX) / iIncrement
-				gs[1] = (0-gs[1])/gs[2];  //poleGridY = (0 - startY) / jIncrement
-				gs[3] = 24;
-				gs[4] = 60;
-				gs[5] = 0.0;
-				pType = MiProjection::polarstereographic;
-				break;
-			default:
-				pType =  MiProjection::undefined_projection;
-				/*
-				gs[4] = 0.0;
-				gs[5] = 0.0;
-				pType = MiProjection::spherical_rotated;
-				*/
-				break;
-			}
-		/*
-		WEBFW_LOG_DEBUG( row.at("placename").c_str() << "i#: " << row.at("inumber").as<int>()
-			     << " j#: " << row.at("jnumber").as<int>() 
-			     << " iincr: " << row.at("iincrement").as<float>()
-			     << " jincr: " << row.at("jincrement").as<float>()
-			     << " startlon: " << row.at("startlongitude").as<float>()
-			     << " startlat: " << row.at("startlatitude").as<float>()	
-			     << " srid: " << row.at("originalsrid").as<int>()
-			     << " proj: " << row.at("projdefinition").c_str() );
-		*/
-
-			projections.add( row.at("placename").c_str(), MiProjection( gs, pType ) );
-			msg << endl << "       projection: " <<  row.at("placename").c_str() << "  " << MiProjection( gs, pType );
-		}
-
-		WEBFW_LOG_DEBUG( msg.str() );
-	}
-	catch( std::exception &ex ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: " << ex.what() );
-		return false;
-	}
-	catch( ... ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB: UNKNOWN reason!" );
-		return false;
-	}
-	
-	return true;
+	WEBFW_LOG_ERROR("WDB versions less than 0.9.7 is NOT supported.");
+	return false;
 }
 
 
@@ -175,14 +72,13 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 	ostringstream msg;
 
 	try {
-
 		WEBFW_LOG_DEBUG( "ProjectionHelper::P4: SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
 		string transactionid;
 		string query;
 
 		if( protocol == 4 ) {
-			transactionid = "wci.inforegulargrid";
-			query = "SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )";
+			WEBFW_LOG_ERROR("WDB versions less than 0.9.7 is NOT supported.");
+			return false;
 		} else {
 			transactionid = "wci.inforegulargrid";
 			query = "SELECT * FROM wci.getPlaceRegularGrid( NULL )";
@@ -195,15 +91,15 @@ loadFromDBWciProtocol_4( pqxx::connection& con,
 
 		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
 		{
-
-			MiProjection projection = ProjectionHelper::createProjection( row["startx"].as<float>(), row["starty"].as<float>(),
-														row["incrementx"].as<float>(), row["incrementy"].as<float>(),
-														row["projdefinition"].c_str() );
-			if( projection.getProjectionType() ==  MiProjection::undefined_projection )
+			try {
+				MiProjection projection = ProjectionHelper::createProjection( row["projdefinition"].c_str() );
+				msg << endl << "       projection: " << row.at("placename").c_str() << "  " << projection;
+				projections.add( row.at("placename").c_str(), projection );
+			}
+			catch( const std::exception &ex ) {
+				WEBFW_LOG_ERROR("Projection: Not supported projection '" << row["projdefinition"].c_str() << "'.");
 				continue;
-
-			projections.add( row.at("placename").c_str(), projection );
-			msg << endl << "       projection: " << row.at("placename").c_str() << "  " << projection;
+			}
 		}
 
 		WEBFW_LOG_DEBUG( msg.str() );
