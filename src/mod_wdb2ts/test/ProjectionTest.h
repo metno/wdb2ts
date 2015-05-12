@@ -45,6 +45,7 @@ class MiProjectionTest : public CppUnit::TestFixture
 	CPPUNIT_TEST( testVectorReprojection );
 	CPPUNIT_TEST( testAtThePoles );
 	CPPUNIT_TEST( testPolarStero );
+	CPPUNIT_TEST( testIrland );
 	CPPUNIT_TEST_SUITE_END();
 public:
 	
@@ -59,6 +60,7 @@ public:
 	void testVectorReprojection();
 	void testAtThePoles();
 	void testPolarStero();
+	void testIrland();
 
 private:
 
