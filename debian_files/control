@@ -18,7 +18,7 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
                libpqxx-dev (>=2.6.9) | libpqxx3-dev (>=3.1) , 
                libpq-dev (>=8.3),
                libaprutil1-dev (>=1.2),
-               proj (>=4.6),
+               proj (>=4.6) | libproj-dev (>=4.6),
                liblog4cpp5-dev (>= 1.0),
                libcurl4-openssl-dev (>= 7.15.5) 
 #               ,metlibs-pgconpool-dev, 
