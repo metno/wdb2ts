@@ -51,6 +51,8 @@ class MomentTags1 : public IXmlTemplate
 	SymbolDataElement *symData;
 	const ProjectionHelper *projectionHelper;
 	
+	void setPrecipitation();
+
 public:
 	MomentTags1():
 		pd(0), symData( &dummy ), projectionHelper( 0 ){

@@ -381,6 +381,11 @@ public:
    float PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
    float PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
    
+   //Use data from PRECIP_MIN_MAX_MEAN or PRECIP.
+   float PRECIP_DATA( int hoursBack, boost::posix_time::ptime &backTime_,
+                      float &minOut, float &maxOut, float probOut,
+						  	 bool tryHard=false )const;
+
    /**
     * PRECIP from accumulated values.  
     */

@@ -842,7 +842,6 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 			else if( paramDef->alias() == "MSLP" )
 				pd.PR = value;
 			else if( paramDef->alias() == "T.2M" ){
-				//WEBFW_LOG_DEBUG( "decode: T.2M: " << value );
 				pd.T2M = value;
 			}else if( paramDef->alias() == "T.2M.LAND" )
 				pd.T2M_LAND = value;

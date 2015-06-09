@@ -66,6 +66,16 @@ getTemperatureProability( float temp, bool tryHard )const
 	return prob;
 }
 	
+void
+MomentTags1::
+setPrecipitation()
+{
+	boost::posix_time::ptime horseBackDummy;
+	float precipMinDummy;
+	float precipMaxDummy;
+	float precipProbDummy;
+	symData->precipitation = pd->PRECIP_DATA( 1, horseBackDummy, precipMinDummy, precipMaxDummy, precipProbDummy );
+}
 
 
 void 
@@ -251,6 +261,9 @@ output( std::ostream &out, const std::string &indent )
 			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
 			nForecast++;
 		}
+
+		//We need the 1 hours precipitations in the thunder logic
+		setPrecipitation();
 
 		value = pd->fog();
 		if( value != FLT_MAX ) {

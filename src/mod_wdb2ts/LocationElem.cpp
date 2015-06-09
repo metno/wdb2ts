@@ -89,7 +89,7 @@ namespace {
    	std::string provider_;
    	wdb2ts::LocationElem *l_;
    	RestoreForecastProvider(wdb2ts::LocationElem *l )
-   	: l_( l ), provider_( l->forecastprovider()){}
+   	: provider_( l->forecastprovider()), l_( l ) {}
    	~RestoreForecastProvider() { l_->forecastprovider( provider_ );}
 	};
 }
@@ -789,7 +789,7 @@ PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )c
    bool isEqual=false;
    bool myTryHard = tryHard;
 
-   WEBFW_USE_LOGGER( "main" );
+   //WEBFW_USE_LOGGER( "main" );
 
    backTime_=boost::posix_time::ptime(); //Set it to undefined.
 
@@ -864,7 +864,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 	boost::posix_time::ptime startTime;
 	boost::posix_time::ptime savedFromTime;
 	
-	WEBFW_USE_LOGGER( "main" );
+	//WEBFW_USE_LOGGER( "main" );
 
 	backTime_=boost::posix_time::ptime(); //Set it to undefined.
 	
@@ -914,6 +914,20 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 
 
 float 
+LocationElem::
+PRECIP_DATA( int hoursBack, boost::posix_time::ptime &backTime_,
+             float &minOut, float &maxOut, float probOut,
+   		  	 bool tryHard )const
+{
+	float precipMean=FLT_MAX;
+	if( PRECIP_MIN_MAX_MEAN( hoursBack, backTime_, minOut, maxOut, precipMean, probOut, tryHard) )
+		return precipMean;
+	return PRECIP( hoursBack, backTime_, tryHard );
+}
+
+
+
+float
 LocationElem::
 PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )const
 {
