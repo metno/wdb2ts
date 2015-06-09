@@ -451,7 +451,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 			}
 		} //End Block
 
-		if( hasMomentData && currentTime >= currentFrom   ) {
+		if( hasMomentData ) {
 			symbolConfList = symbolConf.get( location.forecastprovider() );
 
 			if( loglevel >= log4cpp::Priority::DEBUG ) {
@@ -464,7 +464,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 			}
 
 			encodePeriods( location, symbolDataBuffer,
-						   symbolConfList , tmpOst, indent );
+						   symbolConfList , tmpOst, indent, currentTime >= currentFrom  );
 		}
 	}
 
@@ -503,11 +503,12 @@ getSymbol( LocationElem &location, const ptime &fromTime_ )const
 bool
 EncodeLocationForecast4::
 encodePeriods( LocationElem &location,
-	    	   const WeatherSymbolDataBuffer &weatherData,
+	    	      WeatherSymbolDataBuffer &weatherData,
   		      // const PrecipConfigElement &precipConfig,
   		       const SymbolConfList &symbolConf,
 		       std::ostream &ost,
-		       miutil::Indent &indent )
+		       miutil::Indent &indent,
+				 bool doOutputXml)
 {
 	WEBFW_USE_LOGGER( "encode" );
 	int N = symbolConf.size();
@@ -535,8 +536,10 @@ encodePeriods( LocationElem &location,
 	   precipProb = FLT_MAX;
 	   symbolCode = weather_symbol::Error;
 
-	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precip, precipProb ) )
-	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), fromTime);
+//	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precip, precipProb ) )
+//	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), fromTime);
+
+	   precip = location.PRECIP_DATA( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precipProb );
 
 	   if( fromTime.is_special() )
 		   continue;
@@ -552,14 +555,24 @@ encodePeriods( LocationElem &location,
 		   continue;
 	   }
 
-	   if( symbolCode != INT_MAX )
+	   if( symbolCode != INT_MAX ) {
 		   symbolData = WeatherSymbolGenerator::computeWeatherSymbol(
 				   weatherData, symbolConf[symbolIndex].precipHours(),
 				   weather_symbol::Code( symbolCode )
 		   	   );
-	   else
+	   } else {
 		   symbolData = WeatherSymbolGenerator::computeWeatherSymbol( weatherData, symbolConf[symbolIndex].precipHours(),
 			                              precip, precipMin, precipMax );
+		   precip = symbolData.precipitation;
+		   precipMin = symbolData.minPrecipitation;
+		   precipMax = symbolData.maxPrecipitation;
+	   }
+
+	   //This is a HACK
+	   //We have done what we should, generate the symbols for the
+	   //data buffer so we just continue without writing the xml.
+	   if( ! doOutputXml )
+	   	continue;
 
 	   if( symbolData.weatherCode == weather_symbol::Error ) {
 		   	WEBFW_LOG_DEBUG( "encodePeriods: ERROR_SYMBOL (" <<  symbolConf[symbolIndex].precipHours() << " "

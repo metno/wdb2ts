@@ -128,11 +128,12 @@ class EncodeLocationForecast4 : public Encode
 
 
 	bool encodePeriods( LocationElem &elem,
-			            const WeatherSymbolDataBuffer &weatherData,
+			             WeatherSymbolDataBuffer &weatherData,
 			            const SymbolConfList &symbolConf,
 				        //const PrecipConfigElement &precipConfig,
 				        std::ostream &ost,
-				        miutil::Indent &indent );
+				        miutil::Indent &indent,
+						  bool doOutputXml=true);
 
 	int getSymbol( LocationElem &location, const boost::posix_time::ptime &fromTime )const;
 	float getSymbolProbability( LocationElem &location,

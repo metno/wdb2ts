@@ -8,16 +8,18 @@
 #include <ios>
 #include <algorithm>
 #include <boost/thread/mutex.hpp>
+#include <boost/function.hpp>
 #include "../miutil/mathalgo.h"
 #include "WeatherSymbol.h"
 
 using namespace std;
 
 namespace {
+
 struct MyFactories
 {
 	weather_symbol::Factory *factories[6];
-	weather_symbol::Interpretor interpretor;
+	static weather_symbol::Interpretor interpretor;
 	MyFactories()
 	{
 		for( int i = 1; i <= 6; ++i )
@@ -37,12 +39,25 @@ struct MyFactories
 		return factories[hours-1];
 	}
 
-	std::string name( weather_symbol::Code code) {
+	static std::string name( weather_symbol::Code code) {
 			return interpretor.name( code );
 	}
 
+	static bool hasThunder( weather_symbol::Code code ){
+		return interpretor.hasThunder( code );
+	}
+
+	static weather_symbol::Code turnOffThunder( weather_symbol::Code code ){
+		return interpretor.turnOffThunder( code );
+	}
+
+	static weather_symbol::Code turnOnThunder( weather_symbol::Code code ){
+		return interpretor.turnOnThunder( code );
+	}
 
 };
+
+weather_symbol::Interpretor MyFactories::interpretor;
 
 boost::mutex mutex;
 MyFactories *factories=0;
@@ -88,9 +103,52 @@ add( const boost::posix_time::ptime &time, const SymbolDataElement &data )
 	}
 }
 
+void
+WeatherSymbolDataBuffer::
+updateWeatherSymbol( const boost::posix_time::ptime &time, const weather_symbol::Code &symbol )
+{
+	SymbolData::iterator it = data_.find( time );
+
+	if( it == data_.end() )
+		return;
+
+	it->second.weatherCode = symbol;
+}
+
+bool
+WeatherSymbolDataBuffer::
+hasThunder( const boost::posix_time::ptime &to, int hours )const
+{
+	int timestep;
+	slice_iterator itSlice=slice( to, hours, timestep );
+	return hasThunder( itSlice, timestep );
+}
+
+bool
+WeatherSymbolDataBuffer::
+hasThunder( const slice_iterator &slice, int timestep )const
+{
+	const_iterator it=slice.first;
+	const_iterator end = slice.second;
+	++end;
+
+	if( slice.first == data_.end() || timestep == INT_MAX )
+		throw std::logic_error("hasThunder: Missing data");
+
+	for(; it != end; ++it ) {
+		if( it->second.weatherCode == weather_symbol::Error )
+			throw std::logic_error("hasThunder: Symbol not set in dataset.");
+		else if( MyFactories::hasThunder( it->second.weatherCode) )
+			return true;
+   }
+
+	return false;
+}
+
+
 WeatherSymbolDataBuffer::slice_iterator
 WeatherSymbolDataBuffer::
-slice( const boost::posix_time::ptime &from, boost::posix_time::ptime &to, int &timestep )const
+slice( const boost::posix_time::ptime &from, const boost::posix_time::ptime &to, int &timestep )const
 {
 	boost::posix_time::time_duration d;
 	boost::posix_time::time_duration tmpDuration;
@@ -100,29 +158,20 @@ slice( const boost::posix_time::ptime &from, boost::posix_time::ptime &to, int &
 
 	timestep = INT_MAX;
 
-//	cerr << "---- iterator: " << from << " - " << to << endl;
-
 	if( it == data_.end()  )
 		return slice_iterator( data_.end(), data_.end() );
 
-//	cerr << "   iterator: check point 1: " << it->first << endl;
 	prevIt = it;
 	++it;
 	if( it == data_.end() )
 		return slice_iterator( data_.end(), data_.end()  );
 
-//	cerr << "   iterator: check point 2: " << it->first << " prev: " << prevIt->first << endl;
-
 	begin = it;
 	d = begin->first - prevIt->first;
-//	cerr << "   iterator: check point 3: " << it->first << " prev: " << prevIt->first
-//		 << " d: " << d << endl;
 	prevIt = it;
 
 	for( ++it; it != data_.end()  &&  it->first <= to ; ++it ) {
 		tmpDuration = it->first - prevIt->first;
-		//cerr << "   iterator: check point 4: " << it->first << " prev: " << prevIt->first
-		//		 << " tmpD: " << tmpDuration << endl;
 		prevIt = it;
 
 		if( tmpDuration != d )
@@ -133,8 +182,21 @@ slice( const boost::posix_time::ptime &from, boost::posix_time::ptime &to, int &
 		return slice_iterator( data_.end(), data_.end()  );
 
 	timestep = d.hours();
-	//cerr << " ---- iterator: check point 5: " << begin->first << " - " << prevIt->first << endl;
 	return slice_iterator( begin, prevIt );
+}
+
+WeatherSymbolDataBuffer::slice_iterator
+WeatherSymbolDataBuffer::
+slice( const boost::posix_time::ptime &to, int hours, int &timestep )const
+{
+	const_iterator it = data_.find( to );
+
+	if( it == data_.end() )
+		return slice_iterator( data_.end(), data_.end()  );;
+
+	boost::posix_time::ptime from = to - boost::posix_time::hours( hours );
+
+	return slice( from, to, timestep );
 }
 
 WeatherSymbolDataBuffer::slice_iterator
@@ -234,6 +296,7 @@ struct Greater {
 };
 
 
+
 void init() {
 	boost::mutex::scoped_lock lock( mutex );
 	if( factories )
@@ -248,8 +311,41 @@ std::string symbolName( weather_symbol::Code code )
 }
 
 
+struct Thunder{
+	typedef boost::function<float (float prob, float precip)> F;
+
+	F thunderProb;
+
+	static float noThunder( float prob, float precip ){
+		return 0;
+	}
+
+	static float possibleThunder( float prob, float precip ){
+		//We may only have thunder if the precipitation >= 0
+		return (precip==FLT_MAX || precip<0.1)?0:prob;
+	}
+
+	Thunder( F func ) {
+		thunderProb=func;
+	}
+
+	Thunder( int timestep ) {
+		if( timestep == 1 ) thunderProb=&possibleThunder;
+		else thunderProb = &noThunder;
+	}
+
+	float operator()( float prob, float precip) {
+		return thunderProb(prob, precip);
+	}
+};
+
+
+
 SymbolDataElement
-computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
+computeBaseWeatherSymbolData(
+		WeatherSymbolDataBuffer &data,
+		const WeatherSymbolDataBuffer::slice_iterator &slice,
+		int hours, int timestep )
 {
 	namespace ma = miutil::algorithm;
 	Greater greater( 25 );
@@ -260,28 +356,31 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	ma::MinMax<float> thunder;
 	ma::Count<float, Greater> fog( greater );
 	ma::MinMax<float> temperaturExtrema;
+	float precipVal;
 	int count=0;
 	int  possibleFogCount = ceil( static_cast<double>(hours)/2 );
 
-	int timestep;
-	WeatherSymbolDataBuffer::slice_iterator slice=data.slice( hours, timestep );
 
 	if( slice.first == data.end() )
 		return SymbolDataElement();
 
+  Thunder thunderProb( timestep );
 	WeatherSymbolDataBuffer::const_iterator it=slice.first;
 	WeatherSymbolDataBuffer::const_iterator end = slice.second;
-	WeatherSymbolDataBuffer::const_iterator lastIt = end;;
+	WeatherSymbolDataBuffer::const_iterator lastIt = end;
 	++end;
+
+	int debug=0;
 
 	for(; it != end; ++it ) {
 		++count;
 		lastIt = it;
+		precipVal = it->second.precipitation;
 		totCloud( it->second.totalCloudCover );
 		mediumCloud( it->second.mediumCloudCover );
 		lowCloud( it->second.lowCloudCover );
-		precip( std::max( float(0), it->second.precipitation ) );
-		thunder( it->second.thunderProbability );
+		precip( std::max( float(0), precipVal) );
+		thunder( thunderProb(it->second.thunderProbability, precipVal ) );
 		fog( it->second.fogCover );
 		temperaturExtrema( it->second.temperature );
 	}
@@ -294,6 +393,7 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 	wd.thunder = thunder.max( 0 ) > 0.05;
 	wd.fog = fog.countAbove() >= possibleFogCount;
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
+	wd.to = slice.second->first;
 
 	if( hours ==  6 ) {
 		float min = temperaturExtrema.min( FLT_MAX );
@@ -309,15 +409,29 @@ computeWeatherSymbolData(  const WeatherSymbolDataBuffer &data, int hours)
 				wd.minTemperature_6h = std::min(lastIt->second.minTemperature_6h, min );
 		}
 	}
-
 	return wd;
 }
 
-SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float precip, float precipMin, float precipMax )
-{
 
-	SymbolDataElement wd = computeWeatherSymbolData( data, hours );
+
+SymbolDataElement
+computeWeatherSymbolData(  WeatherSymbolDataBuffer &data, int hours, int &timestep)
+{
+	WeatherSymbolDataBuffer::slice_iterator slice = data.slice( hours, timestep );
+
+	return computeBaseWeatherSymbolData( data, slice, hours, timestep);
+}
+
+SymbolDataElement
+computeWeatherSymbol( WeatherSymbolDataBuffer &data, int hours, float precip, float precipMin, float precipMax )
+{
+	int timestep;
+	WeatherSymbolDataBuffer::slice_iterator slice = data.slice( hours, timestep );
+
+	if( slice.first == data.end() )
+		return SymbolDataElement();
+
+	SymbolDataElement wd =computeBaseWeatherSymbolData( data, slice, hours, timestep);
 	wd.weatherCode = weather_symbol::Error;
 
 	try {
@@ -339,10 +453,24 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 				wd.precipitation = 0;
 				wd.minPrecipitation = 0;
 			}
+
+			if( timestep == hours ) {
+				data.updateWeatherSymbol( wd.to, wd.weatherCode );
+			} else {
+				try {
+					//Test if the base symbols has thunder,
+					if( data.hasThunder( slice, timestep) )
+						wd.weatherCode = MyFactories::turnOnThunder( wd.weatherCode );
+					else
+						wd.weatherCode = MyFactories::turnOffThunder( wd.weatherCode );
+				} catch( const std::exception &e) {
+//					cerr << "EXCEPTION: WeatherSymbol: thunder: " << e.what()
+//							<<  " (" << wd.from << " - " << wd.to << ")" <<endl;
+				}
+			}
 		}
 	}
 	catch( const std::exception &ex ) {
-		//cerr <<  "computeWeatherSymbol EXCEPTION: (" << ex.what() << ") " << wd << "\n";
 		wd.weatherCode = weather_symbol::Error;
 	}
 	return wd;
@@ -350,10 +478,9 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float prec
 
 
 SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode )
+computeWeatherSymbol( WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode )
 {
 	int timestep;
-	int count=0;
 	WeatherSymbolDataBuffer::slice_iterator slice = data.slice( hours, timestep );
 
 	if( slice.first == data.end() )
@@ -363,11 +490,10 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 	if( slice.first != slice.second )
 		return SymbolDataElement();
 
-//	//It should be no elements between first and second
-//	for( WeatherSymbolDataBuffer::const_iterator it = slice.first; it != slice.second; ++it)
-//		++count;
-//
 	SymbolDataElement wd = slice.second->second;
+	wd.from = slice.second->first - boost::posix_time::hours( hours );
+	wd.to = slice.second->first;
+
 	wd.weatherCode = weather_symbol::Error;
 
 	try {
@@ -391,15 +517,12 @@ computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_sy
 				wd.maxTemperature_6h = FLT_MAX;
 			}
 
-//		if( wd.weatherCode != weatherCode )
-//			cerr << "computeWeatherSymbol (code): " << weather_symbol::name( weatherCode )
-//			     << " " << slice.first->first << " - " << slice.second->first
-//			     << " -> " << wd << endl;
+			if( timestep == hours ) {
+				data.updateWeatherSymbol( wd.to, wd.weatherCode );
+			}
 		}
-
 	}
 	catch( const std::exception &ex ) {
-		//cerr <<  "computeWeatherSymbol (code) EXCEPTION: (" << ex.what() << ") " << wd << "\n";
 		wd.weatherCode = weather_symbol::Error;
 	}
 	return wd;

@@ -25,6 +25,7 @@ struct SymbolDataElement
 	weather_symbol::Code weatherCode;
 	std::string provider;
 	boost::posix_time::ptime from;
+	boost::posix_time::ptime to;
 
 	SymbolDataElement()
 		: thunderProbability( FLT_MAX ), fogCover( FLT_MAX ),
@@ -62,8 +63,27 @@ public:
 	void clear();
 
 	void add( const boost::posix_time::ptime &time, const SymbolDataElement &data );
-	slice_iterator slice( const boost::posix_time::ptime &from,  boost::posix_time::ptime &to, int &timestep )const;
+	void updateWeatherSymbol( const boost::posix_time::ptime &time, const weather_symbol::Code &symbol );
+
+	/**
+	 * hasThunder
+	 * Check if any symbols generated for the base data has thunder.
+	 * If an error occur an exception is thrown.
+	 * @throws std::logic_error.
+	 */
+	bool hasThunder( const boost::posix_time::ptime &time, int hours )const;
+
+	/**
+	 * hasThunder
+	 * Check if any symbols generated for the base data has thunder.
+	 * If an error occur an exception is thrown.
+	 * @throws std::logic_error.
+	 */
+	bool hasThunder( const slice_iterator &slice, int timestep )const;
+
+	slice_iterator slice( const boost::posix_time::ptime &from,  const boost::posix_time::ptime &to, int &timestep )const;
 	slice_iterator slice( int hours, int &timestep )const;
+	slice_iterator slice( const boost::posix_time::ptime &from, int hours, int &timestep )const;
 
 	const_iterator begin()const { return data_.begin(); }
 	const_iterator end()const { return data_.end(); }
@@ -82,7 +102,7 @@ public:
 	operator<<( std::ostream &o, const wdb2ts::WeatherSymbolDataBuffer::slice_iterator &it );
 
 private:
-	int size_;
+	size_t size_;
 	SymbolData data_;
 };
 
@@ -98,15 +118,19 @@ namespace  WeatherSymbolGenerator {
 void init();
 
 std::string symbolName( weather_symbol::Code code );
+//bool hasThunder( weather_symbol::Code code );
+//
+//weather_symbol::Code turnOffThunder( weather_symbol::Code code );
+//weather_symbol::Code turnOnThunder( weather_symbol::Code code );
+//
+SymbolDataElement
+computeWeatherSymbolData( WeatherSymbolDataBuffer &data, int hours, int &timestep );
 
 SymbolDataElement
-computeWeatherSymbolData( const WeatherSymbolDataBuffer &data, int hours );
+computeWeatherSymbol( WeatherSymbolDataBuffer &data, int hours, float precip=FLT_MAX, float precipMin=FLT_MAX, float precipMax=FLT_MAX );
 
 SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, float precip=FLT_MAX, float precipMin=FLT_MAX, float precipMax=FLT_MAX );
-
-SymbolDataElement
-computeWeatherSymbol( const WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode );
+computeWeatherSymbol( WeatherSymbolDataBuffer &data, int hours, weather_symbol::Code weatherCode );
 
 }
 
