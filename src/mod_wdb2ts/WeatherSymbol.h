@@ -118,11 +118,7 @@ namespace  WeatherSymbolGenerator {
 void init();
 
 std::string symbolName( weather_symbol::Code code );
-//bool hasThunder( weather_symbol::Code code );
-//
-//weather_symbol::Code turnOffThunder( weather_symbol::Code code );
-//weather_symbol::Code turnOnThunder( weather_symbol::Code code );
-//
+
 SymbolDataElement
 computeWeatherSymbolData( WeatherSymbolDataBuffer &data, int hours, int &timestep );
 
