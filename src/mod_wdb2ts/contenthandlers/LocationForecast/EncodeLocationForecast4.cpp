@@ -536,9 +536,6 @@ encodePeriods( LocationElem &location,
 	   precipProb = FLT_MAX;
 	   symbolCode = weather_symbol::Error;
 
-//	   if( ! location.PRECIP_MIN_MAX_MEAN( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precip, precipProb ) )
-//	      precip = location.PRECIP( symbolConf[symbolIndex].precipHours(), fromTime);
-
 	   precip = location.PRECIP_DATA( symbolConf[symbolIndex].precipHours(), fromTime, precipMin, precipMax, precipProb );
 
 	   if( fromTime.is_special() )
@@ -596,11 +593,11 @@ encodePeriods( LocationElem &location,
 		   precipitationTag.output( ost, level5.indent() );
 	   }
 
-	   if( symbolData.minTemperature_6h != FLT_MAX ) {
-		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.minTemperature_6h << "\"/>\n";
-	   }
+	   //Remove data that do not applies.
+	   symbolData.clean( symbolConf[symbolIndex].precipHours() );
 
-	   if( symbolData.maxTemperature_6h != FLT_MAX ) {
+	   if( symbolData.minTemperature_6h != FLT_MAX && symbolData.maxTemperature_6h != FLT_MAX ) {
+		   ost << "<minTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.minTemperature_6h << "\"/>\n";
 		   ost << "<maxTemperature id=\"TTT\" unit=\"celsius\" value=\""<< symbolData.maxTemperature_6h << "\"/>\n";
 	   }
 

@@ -40,6 +40,22 @@ struct SymbolDataElement
 	bool valid() const {
 		return precipitation != FLT_MAX && totalCloudCover != FLT_MAX && temperature != FLT_MAX;
 	}
+
+	int hours()const { return (to - from).hours(); }
+
+	/**
+	 * Set all data that is valid for a specific timeperiode to
+	 * an invalid state if i does'nt match the timeperiod.
+	 *
+	 * At the moment this only applies to maxTemperature_6h and
+	 * minTemperature_6h.
+	 */
+	void clean( int hours ) {
+		if( hours != 6 ) {
+			maxTemperature_6h=FLT_MAX;
+			minTemperature_6h=FLT_MAX;
+		}
+	}
 };
 
 std::ostream&
