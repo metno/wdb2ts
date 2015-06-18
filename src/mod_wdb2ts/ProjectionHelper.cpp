@@ -239,7 +239,7 @@ MiProjection::
 MiProjection( const std::string &projDef )
 	: projString( projDef ), geoproj( 0 )
 {
-	proj = pj_init_plus( projDef.c_str() );
+	proj = pj_init_plus( projString.c_str() );
 	init();
 }
 
@@ -547,15 +547,9 @@ directionAndLength(int nvec, const double *longitude, const double  *latitude,
           double *dd, double *length ) const
 {
 
-	//cerr << "--- IN2: u: " << *u << " v: " << *v << endl;
-  // transform u,v to a geographic grid
   if( ! uv2geo( area, nvec, longitude, latitude, u, v ) ) {
 	  return false;
   }
-
-  //cerr << "--- CONVERTED2: u: " << *u << " v: " << *v << endl;
-
-  //double ff;
 
   for (int i = 0; i < nvec; i++) {
 	  length[i] = sqrt(u[i] * u[i] + v[i] * v[i]);
@@ -593,13 +587,10 @@ makeGeographic()
 		pj_free( proj );
 		proj = 0;
 	}
-
-	//projString="+proj=lonlat +ellps=WGS84 +towgs84=0,0,0 +no_defs";
 	projString="+proj=lonlat +ellps=WGS84 +no_defs";
 	proj = pj_init_plus( projString.c_str() );
 
 	if( ! proj ) {
-		cerr << "FAILED: MiProjection::makeGeographic: can't create geographic projection.\n";
 		projString.erase();
 	}
 }
@@ -873,18 +864,16 @@ add( const std::string &provider, const MiProjection &projection )
 
 MiProjection
 ProjectionHelper::
-createProjection( const std::string &projDefinition )
+createProjection( const std::string &proj )
 {
 	using namespace boost;
 
 	WEBFW_USE_LOGGER( "handler" );
-	string proj;
 	ostringstream msg;
 	ostringstream inData;
 
 	try {
-
-		inData << "ProjectionHelper::createProjection:  projdef: '" << projDefinition << "'";
+		inData << "ProjectionHelper::createProjection:  projdef: '" << proj << "'";
 		WEBFW_LOG_DEBUG( "ProjectionHelper::createProjection: " << inData.str() );
 		return MiProjection( proj.c_str() );
 	}
@@ -983,18 +972,19 @@ convertToDirectionAndLength( const std::string &provider,
 		if( it != projectionMap.end() )
 		{
 			if( !it->second.valid() ) {
-				WEBFW_LOG_WARN( "ProjectionHelper::convertToDirectionAndLength: Projection definition for provider <" << provider << "> is 'undefined_projection'!" );
+				WEBFW_LOG_ERROR( "Missing a projection definition for provider <" << provider << ">!" );
 				return false;
 			}
 
 			if( ! geographic.convertToDirectionAndLength(it->second, latitude, longitude, u, v, direction, length, turn ) ){
-				WEBFW_LOG_ERROR( "ProjectionHelper::convertToDirectionAndLength: failed!" );
+				WEBFW_LOG_ERROR( "convertToDirectionAndLength: failed: ("
+						<< latitude << " , " << longitude << ") u: " << u << " v: " << v << " proj: '" << it->second.getProj() << "'.");
 				return false;
 			}
 
 			//WEBFW_LOG_DEBUG( "ProjectionHelper::convertToDDandFF: DEBUG provider <" << provider << ">!" );
 		} else {
-			WEBFW_LOG_WARN( "ProjectionHelper::convertToDirectionAndLength: WARNING no Projection definition for provider <" << provider << ">!" );
+			WEBFW_LOG_ERROR("No projection definition for provider <" << provider << ">!" );
 		}
 	} //End mutex protected scope.
 

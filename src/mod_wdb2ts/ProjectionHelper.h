@@ -77,8 +77,9 @@ public:
 	~MiProjection();
 
 	MiProjection& operator=( const MiProjection &rhs );
-	
-	bool valid()const{ return geoproj && proj; }
+
+	std::string getProj()const { return projString; }
+	bool valid()const{return geoproj && proj; }
 	void makeGeographic();
 
 	bool calculateVectorRotationElements(const MiProjection& srcProj, int nvec,
