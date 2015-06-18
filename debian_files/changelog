@@ -1,4 +1,4 @@
-metno-wdb2ts (1.3.15-1) unstable; urgency=low
+metno-wdb2ts (1.3.16-1) unstable; urgency=low
   * Fix: min/maxTemperature when data is from the weatherforecast models.
 
  -- Borge Moe <borge.moe@met.no>  Tue, 16 Jun 2015 14:30:00 +0200
