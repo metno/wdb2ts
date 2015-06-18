@@ -213,52 +213,59 @@ output( std::ostream &out, const std::string &indent )
 		symData->thunderProbability = pd->thunderProbability();
 		symData->wetBulbTemperature = pd->wetBulbTemperature();
 
-		if( projectionHelper ) {
-			projectionHelper->convertToDirectionAndLength( provider, pd->latitude(), pd->longitude(),
-								                           pd->windU10m(true), pd->windV10m(),
-					                                       dd, ff );
+		if( projectionHelper ){
+			if( projectionHelper->convertToDirectionAndLength( provider,
+					pd->latitude(), pd->longitude(), pd->windU10m( true ),
+					pd->windV10m(), dd, ff ) ){
+				if( dd != FLT_MAX && ff != FLT_MAX ){
+					tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
+							<< "\" " << "name=\"" << windDirectionName( dd )
+							<< "\"/>\n" << indent << "<windSpeed id=\"ff\" mps=\""
+							<< ff << "\" " << "beaufort=\""
+							<< toBeaufort( ff, description ) << "\" " << "name=\""
+							<< description << "\"/>\n";
 
-			if( dd!=FLT_MAX && ff != FLT_MAX ) {
-				tmpout << indent
-				       << "<windDirection id=\"dd\" deg=\""<< dd << "\" "
-				       << "name=\"" << windDirectionName(dd ) <<"\"/>\n"
-				       << indent
-				       << "<windSpeed id=\"ff\" mps=\""<< ff << "\" "
-				       << "beaufort=\"" << toBeaufort( ff, description) << "\" "
-				       << "name=\"" << description << "\"/>\n";
-		
-				windProb = pd->WIND_PROBABILITY( true );
-				pd->forecastprovider( provider ); //Reset the forecastprovider back to provider.
-				nForecast++;
+					windProb = pd->WIND_PROBABILITY( true );
+					pd->forecastprovider( provider ); //Reset the forecastprovider back to provider.
+					nForecast++;
+				}
+			}else{
+				WEBFW_LOG_ERROR( "Failed to reproject the wind vectors." )
 			}
 		}
 
 		value = pd->windGust( true );
 		if( value != FLT_MAX )
-			tmpout << indent << "<windGust id=\"ff_gust\" mps=\""<< value << "\"/>\n";
+			tmpout << indent << "<windGust id=\"ff_gust\" mps=\"" << value
+					<< "\"/>\n";
 
 		dewpoint = pd->dewPointTemperature( tempUsed, true );
 		humidity = pd->humidity( tempUsed, true );
 
 		if( loglevel >= log4cpp::Priority::DEBUG )
-			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint << " humidity: " << humidity << " tempUsed: " << tempUsed << " provider: " << pd->forecastprovider() << "-->\n";
+			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint
+					<< " humidity: " << humidity << " tempUsed: " << tempUsed
+					<< " provider: " << pd->forecastprovider() << "-->\n";
 
-		if( humidity != FLT_MAX) {
-			tmpout << indent << "<humidity value=\"" << humidity << "\" unit=\"percent\"/>\n";
+		if( humidity != FLT_MAX ){
+			tmpout << indent << "<humidity value=\"" << humidity
+					<< "\" unit=\"percent\"/>\n";
 			nForecast++;
 		}
 
 		pd->forecastprovider( provider );
 		value = pd->PR( true );
-		if( value != FLT_MAX ) {
-			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""<< value << "\"/>\n";
+		if( value != FLT_MAX ){
+			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""
+					<< value << "\"/>\n";
 			nForecast++;
 		}
-	
-		value = pd->NN(  true );
-		if( value != FLT_MAX ) {
+
+		value = pd->NN( true );
+		if( value != FLT_MAX ){
 			symData->totalCloudCover = value;
-			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value << "\"/>\n";
+			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value
+					<< "\"/>\n";
 			nForecast++;
 		}
 
@@ -266,54 +273,64 @@ output( std::ostream &out, const std::string &indent )
 		setPrecipitation();
 
 		value = pd->fog();
-		if( value != FLT_MAX ) {
+		if( value != FLT_MAX ){
 			symData->fogCover = value;
-			tmpout << indent <<"<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
+			tmpout << indent << "<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
 			nForecast++;
 		}
 
 		value = pd->lowCloud();
 		if( value != FLT_MAX ){
 			symData->lowCloudCover = value;
-			tmpout << indent << "<lowClouds id=\"LOW\" percent=\"" << value << "\"/>\n";
+			tmpout << indent << "<lowClouds id=\"LOW\" percent=\"" << value
+					<< "\"/>\n";
 			nForecast++;
 		}
 
 		value = pd->mediumCloud();
-		if( value !=FLT_MAX ) {
+		if( value != FLT_MAX ){
 			symData->mediumCloudCover = value;
-			tmpout << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value << "\"/>\n";
+			tmpout << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value
+					<< "\"/>\n";
 			nForecast++;
 		}
 
-		value = pd->highCloud(  );
-		if( value != FLT_MAX ) {
+		value = pd->highCloud();
+		if( value != FLT_MAX ){
 			symData->highCloudCover = value;
-			tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value << "\"/>\n";
+			tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value
+					<< "\"/>\n";
 			nForecast++;
 		}
 
 		tmpout.precision( 0 );
-	
+
 		if( tempProb != FLT_MAX )
-			tmpout << indent << "<temperatureProbability unit=\"probabilitycode\" value=\"" << probabilityCode( tempProb )<< "\"/>\n";
-	
+			tmpout << indent
+					<< "<temperatureProbability unit=\"probabilitycode\" value=\""
+					<< probabilityCode( tempProb ) << "\"/>\n";
+
 		if( windProb != FLT_MAX )
-			tmpout << indent << "<windProbability unit=\"probabilitycode\" value=\"" << probabilityCode( windProb ) << "\"/>\n";
+			tmpout << indent
+					<< "<windProbability unit=\"probabilitycode\" value=\""
+					<< probabilityCode( windProb ) << "\"/>\n";
 
 		tmpout.precision( 1 );
 
-		if( pd->config && pd->config->outputParam("seaiceingindex") ) {
-		   value = pd->iceingIndex( false, pd->forecastprovider() );
-		   if( value != FLT_MAX )
-		      tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
+		if( pd->config && pd->config->outputParam( "seaiceingindex" ) ){
+			value = pd->iceingIndex( false, pd->forecastprovider() );
+			if( value != FLT_MAX )
+				tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
 		}
 
-		if( dewpoint != FLT_MAX && pd->config && pd->config->outputParam( "dewpointTemperature") )
-		      tmpout << indent << "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""<< dewpoint << "\"/>\n";
+		if( dewpoint != FLT_MAX && pd->config
+				&& pd->config->outputParam( "dewpointTemperature" ) )
+			tmpout << indent
+					<< "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""
+					<< dewpoint << "\"/>\n";
 
-	//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
-		
+		//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
+
 		out.precision( 1 );
 
 		//must have at least 1 elements.
@@ -325,69 +342,80 @@ output( std::ostream &out, const std::string &indent )
 		//the wind component (windU10m).
 		pd->forecastprovider( savedProvider );
 	}
-	
+
 	hasTempCorr = false;
 	tempCorrection = 0.0;
 	value = pd->T2M_PERCENTILE_10( true );
-	if( value != FLT_MAX ) {
-		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-			hasTempCorr = true;
-		} 
-		
-		value += tempCorrection;	
-		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"10\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-	}
-	
-	value = pd->T2M_PERCENTILE_25();
-	if( value != FLT_MAX ) {
-		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-			hasTempCorr = true;
-		} 
-	
-		value += tempCorrection;;
-		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"25\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-	}
-	
-	value = pd->T2M_PERCENTILE_50(); 
-	if( value != FLT_MAX ) {
-		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-			hasTempCorr = true;
-		} 
-
-		value += tempCorrection;
-		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"50\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-	}
-	
-	value = pd->T2M_PERCENTILE_75(); 
 	if( value != FLT_MAX ){
-		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
+		if( !hasTempCorr ){
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(),
+					relTopo, modelTopo );
 			hasTempCorr = true;
-		} 
+		}
 
 		value += tempCorrection;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"75\" unit=\"celsius\" value=\"" << value << "\"/>\n";
+				<< " percentile=\"10\" unit=\"celsius\" value=\"" << value
+				<< "\"/>\n";
 	}
-	
+
+	value = pd->T2M_PERCENTILE_25();
+	if( value != FLT_MAX ){
+		if( !hasTempCorr ){
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(),
+					relTopo, modelTopo );
+			hasTempCorr = true;
+		}
+
+		value += tempCorrection;
+		;
+		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
+				<< " percentile=\"25\" unit=\"celsius\" value=\"" << value
+				<< "\"/>\n";
+	}
+
+	value = pd->T2M_PERCENTILE_50();
+	if( value != FLT_MAX ){
+		if( !hasTempCorr ){
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(),
+					relTopo, modelTopo );
+			hasTempCorr = true;
+		}
+
+		value += tempCorrection;
+		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
+				<< " percentile=\"50\" unit=\"celsius\" value=\"" << value
+				<< "\"/>\n";
+	}
+
+	value = pd->T2M_PERCENTILE_75();
+	if( value != FLT_MAX ){
+		if( !hasTempCorr ){
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(),
+					relTopo, modelTopo );
+			hasTempCorr = true;
+		}
+
+		value += tempCorrection;
+		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
+				<< " percentile=\"75\" unit=\"celsius\" value=\"" << value
+				<< "\"/>\n";
+	}
+
 	value = pd->T2M_PERCENTILE_90();
 	if( pd->T2M_PERCENTILE_90() != FLT_MAX ){
-		if( !hasTempCorr ) {
-			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
+		if( !hasTempCorr ){
+			tempCorrection = pd->computeTempCorrection( pd->percentileprovider(),
+					relTopo, modelTopo );
 			hasTempCorr = true;
-		} 
+		}
 
 		value += tempCorrection;
 		out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-		    << " percentile=\"90\" unit=\"celsius\" value=\"" << value << "\"/>\n";
+				<< " percentile=\"90\" unit=\"celsius\" value=\"" << value
+				<< "\"/>\n";
 	}
-	
+
 	out.precision( oldPrec );
 }
 
