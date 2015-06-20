@@ -1,3 +1,8 @@
+metno-wdb2ts (1.3.17-1) unstable; urgency=low
+  * Fix: humidity when computed from dewpoint temperature.
+
+ -- Borge Moe <borge.moe@met.no>  Sat, 20 Jun 2015 10:30:00 +0200
+
 metno-wdb2ts (1.3.16-1) unstable; urgency=low
   * Fix: Initialization of projections.
 
