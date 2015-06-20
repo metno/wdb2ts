@@ -302,7 +302,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
       count++;
    }
 
-   value = pd->humidity( tempUsed, true );
+   value = pd->humidity( true );
    if (value != FLT_MAX) {
       out << indent << "<mox:humidity uom=\"percent\">" << value << "</mox:humidity>\n";
       count++;

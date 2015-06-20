@@ -240,7 +240,7 @@ output( std::ostream &out, const std::string &indent )
 					<< "\"/>\n";
 
 		dewpoint = pd->dewPointTemperature( tempUsed, true );
-		humidity = pd->humidity( tempUsed, true );
+		humidity = pd->humidity( true );
 
 		if( loglevel >= log4cpp::Priority::DEBUG )
 			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint

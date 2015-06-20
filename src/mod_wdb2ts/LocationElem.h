@@ -403,7 +403,7 @@ public:
    float mediumCloud( bool tryHard=false )const;
    float lowCloud( bool tryHard=false )const;
    float RH2MFromModel( bool tryHard=false )const;
-   float humidity( float tempUsed, bool tryHard=false )const;
+   float humidity( bool tryHard=false )const;
    float dewPointTemperatureFromModel( bool tryHard=false )const;
    float dewPointTemperature( float usedTemperature, bool tryHard=false )const;
    float thunderProbability( bool tryHard=false )const;

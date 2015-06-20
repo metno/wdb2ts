@@ -1099,13 +1099,17 @@ RH2MFromModel(bool tryHard)const
 
 float
 LocationElem::
-humidity( float tempUsed, bool tryHard )const
+humidity( bool tryHard )const
 {
 	RestoreForecastProvider restoreForecastProvider( const_cast<LocationElem*>(this) );
 	float rh = RH2MFromModel( tryHard );
 
-	if( rh == FLT_MAX )
-		rh = miutil::dewPointTemperatureToRelativeHumidity( tempUsed, dewPointTemperatureFromModel( tryHard ) );
+	if( rh == FLT_MAX ) {
+		//We must use the temperature from the model not the height corrected temperature
+		float dewtemp = dewPointTemperatureFromModel( tryHard );
+		float modeltemp = T2M( false );
+		rh = miutil::dewPointTemperatureToRelativeHumidity( modeltemp, dewtemp );
+	}
 
 	return rh;
 }

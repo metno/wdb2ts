@@ -203,7 +203,7 @@ output( std::ostream &out, const std::string &indent )
 		pd->temperatureCorrected( tempUsed, provider );
 
 		dewpoint = pd->dewPointTemperature( tempUsed, true );
-		value = pd->humidity( tempUsed, true );
+		value = pd->humidity( true );
 
 		if ( value != FLT_MAX) {
 			tmpout << indent << "<humidity value=\"" << value << "\" unit=\"percent\"/>\n";
