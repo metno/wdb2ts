@@ -154,7 +154,7 @@ module AP_MODULE_DECLARE_DATA Name ## _module = {                  \
 int                                         \
 Name##_handler(request_rec *r)                     \
 {                                                  \
-	MY_USE_LOG_MODULE(#Name);                       \
+	MY_USE_LOG_MODULE(Name);                        \
    std::ostringstream ost;                         \
    time_t             requestTime;                 \
   /* double tstart=miutil::gettimeofday(); */      \
