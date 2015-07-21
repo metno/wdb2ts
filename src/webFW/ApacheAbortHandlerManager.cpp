@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <boost/thread/xtime.hpp>
+#include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <ApacheAbortHandlerManager.h>
 #include <ApacheRequest.h>
@@ -42,12 +43,10 @@ ApacheAbortHandlerManager::
 AbortHelper::
 operator()()
 {
-	boost::xtime xt;
+	boost::system_time xt;
 
 	while( true ) {
-		xtime_get(&xt, boost::TIME_UTC);
-		xt.sec+=15;
-
+		xt = boost::get_system_time()+boost::posix_time::seconds(15);
 		boost::thread::sleep( xt );
 		abortManager->checkAboretedConnections();
 	}
