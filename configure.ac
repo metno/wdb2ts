@@ -13,6 +13,7 @@ AC_INIT(metno-wdb2ts, 1.3.17, wdb@met.no)
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([wdb2ts_config.h.in])
 AC_CONFIG_HEADER([wdb2ts_config.h])
+AM_PROG_AR
 METNO_PVERSION
 
 #-----------------------------------------------------------------------------
