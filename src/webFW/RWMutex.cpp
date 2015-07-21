@@ -26,7 +26,7 @@
     MA  02110-1301, USA
 */
 #include <stdlib.h>
-#include <boost/thread/xtime.hpp>
+#include <boost/thread.hpp>
 #include <RWMutex.h>
 
 miutil::thread::
@@ -55,11 +55,7 @@ readLock(int timeout)
         cond.wait(lock);
       }
     }else{
-      boost::xtime xt;
-      xtime_get(&xt, boost::TIME_UTC);
-      xt.sec+=timeout;
-       
-      cond.timed_wait(lock, xt);
+      cond.timed_wait(lock, boost::posix_time::seconds(timeout));
     
       if(waitingWriters_>0 || writerIsActiv_)
         return false;
@@ -114,11 +110,7 @@ writeLock(int timeout)
         cond.wait(lock);
       }
     }else{
-      boost::xtime xt;
-      xtime_get(&xt, boost::TIME_UTC);
-      xt.sec+=timeout;
-       
-      cond.timed_wait(lock, xt);
+      cond.timed_wait(lock, boost::posix_time::seconds(timeout));
     
       if(readers_>0 || writerIsActiv_)
         return false;
