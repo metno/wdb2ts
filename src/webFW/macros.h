@@ -70,7 +70,13 @@ app()                                     \
 #define PRINT_PROFILE_DATA
 #endif
 
-       
+#ifdef APLOG_USE_MODULE
+#  define MY_USE_LOG_MODULE(modName) APLOG_USE_MODULE(modName)
+#else
+#  define MY_USE_LOG_MODULE(modName)
+#endif
+
+
 
 #define MISP_CREATE_AND_INIT_APP( AppClass, Logger, IAbortManager )   \
 AppClass::app()->init( Logger, IAbortManager )
@@ -148,6 +154,7 @@ module AP_MODULE_DECLARE_DATA Name ## _module = {                  \
 int                                         \
 Name##_handler(request_rec *r)                     \
 {                                                  \
+	MY_USE_LOG_MODULE(#Name);                       \
    std::ostringstream ost;                         \
    time_t             requestTime;                 \
   /* double tstart=miutil::gettimeofday(); */      \
@@ -178,7 +185,7 @@ Name##_handler(request_rec *r)                     \
                                                    \
    webfw::ApacheRequest   request( r );            \
    webfw::ApacheResponse  response( r );           \
-   webfw::ApacheLogger    logger( r );             \
+   webfw::ApacheLogger    logger( r, #Name );      \
    AppClass*   myApp = AppClass::app();            \
                                                    \
    ap_set_content_type ( r, "text/plain" );        \
@@ -301,7 +308,7 @@ Name##_child_init( apr_pool_t *pchild, server_rec *s )             \
    /* Initialize as a singleton before it is used in any threads.  \
     * Also call the apps initAction.                               \
     */                                                             \
-   webfw::ApacheLogger logger( pchild );                           \
+   webfw::ApacheLogger logger( pchild, #Name );                           \
    MISP_CREATE_AND_INIT_APP( AppClass,                             \
                              logger,                               \
                              new webfw::ApacheAbortHandlerManager() );      \

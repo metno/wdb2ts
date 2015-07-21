@@ -43,10 +43,11 @@ class ApacheLogger
 {
    request_rec *request;
    apr_pool_t  *pool;
-   
-   public:
-      ApacheLogger( request_rec *request );
-      ApacheLogger( apr_pool_t *pool );
+   std::string moduleName;
+
+	public:
+      ApacheLogger( request_rec *request, const std::string &modName );
+      ApacheLogger( apr_pool_t *pool, const std::string &modName );
       virtual ~ApacheLogger();
       
       virtual void log( LogLevel ll, const std::string &msg )const; 

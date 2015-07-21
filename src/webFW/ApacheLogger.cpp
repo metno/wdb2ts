@@ -40,15 +40,15 @@ using namespace std;
 
 webfw::
 ApacheLogger:: 
-ApacheLogger(  request_rec *request_  )
-   :  request( request_ ), pool( 0 )  
+ApacheLogger(  request_rec *request_, const std::string &modName  )
+   :  request( request_ ), pool( 0 ), moduleName( modName )
 {
 }
 
 webfw::
 ApacheLogger::
-ApacheLogger( apr_pool_t *pool_ )
-   : request( 0 ), pool( pool_ )
+ApacheLogger( apr_pool_t *pool_, const std::string &modName )
+   : request( 0 ), pool( pool_ ), moduleName(modName)
 {
 }
 
@@ -63,6 +63,9 @@ webfw::
 ApacheLogger:: 
 log( LogLevel ll, const std::string &msg )const
 {  
+#ifdef APLOG_USE_MODULE
+APLOG_USE_MODULE(moduleName);
+#endif
    int l;
    
    switch( ll ) {
