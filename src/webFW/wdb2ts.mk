@@ -24,8 +24,7 @@ libwebFW_la_SOURCES=   src/webFW/App.cpp \
 		               src/webFW/DefaultResponse.h \
 		               src/webFW/ApacheRequest.cpp \
 		               src/webFW/ApacheRequest.h \
-		               src/webFW/ApacheLogger.cpp \
-		               src/webFW/ApacheLogger.h \
+		               src/webFW/DefineApacheLogger.h \
 		               src/webFW/ApacheStream.cpp \
 		               src/webFW/ApacheStream.h \
 		               src/webFW/ApacheResponse.cpp \
