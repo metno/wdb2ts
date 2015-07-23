@@ -28,6 +28,7 @@
 
 #include <trimstr.h>
 #include <boost/thread.hpp>
+#include "DefineApacheLogger.h"
 
 #define MISP_DECLARE_APP( AppClass ) \
    private:                          \
@@ -70,18 +71,12 @@ app()                                     \
 #define PRINT_PROFILE_DATA
 #endif
 
-#ifdef APLOG_USE_MODULE
-#  define MY_USE_LOG_MODULE(modName) APLOG_USE_MODULE(modName)
-#else
-#  define MY_USE_LOG_MODULE(modName)
-#endif
-
-
 
 #define MISP_CREATE_AND_INIT_APP( AppClass, Logger, IAbortManager )   \
 AppClass::app()->init( Logger, IAbortManager )
 
 #define MISP_IMPL_APACHE_HANDLER( Name, AppClass ) \
+DEFINE_APACHE_LOGGER( Name )                       \
                                                    \
 struct Name##_conf {                               \
 	const char *confpath;                           \
@@ -154,7 +149,7 @@ module AP_MODULE_DECLARE_DATA Name ## _module = {                  \
 int                                         \
 Name##_handler(request_rec *r)                     \
 {                                                  \
-	MY_USE_LOG_MODULE(Name);                        \
+	MY_APLOG_USE_MODULE(Name);                      \
    std::ostringstream ost;                         \
    time_t             requestTime;                 \
   /* double tstart=miutil::gettimeofday(); */      \
@@ -185,7 +180,7 @@ Name##_handler(request_rec *r)                     \
                                                    \
    webfw::ApacheRequest   request( r );            \
    webfw::ApacheResponse  response( r );           \
-   webfw::ApacheLogger    logger( r, #Name );      \
+   Name ## ApacheLogger   logger( r );             \
    AppClass*   myApp = AppClass::app();            \
                                                    \
    ap_set_content_type ( r, "text/plain" );        \
@@ -308,7 +303,7 @@ Name##_child_init( apr_pool_t *pchild, server_rec *s )             \
    /* Initialize as a singleton before it is used in any threads.  \
     * Also call the apps initAction.                               \
     */                                                             \
-   webfw::ApacheLogger logger( pchild, #Name );                           \
+   Name ## ApacheLogger logger( pchild );                          \
    MISP_CREATE_AND_INIT_APP( AppClass,                             \
                              logger,                               \
                              new webfw::ApacheAbortHandlerManager() );      \
@@ -327,13 +322,6 @@ Name##_register_hooks(apr_pool_t *p)                               \
    /* Initialize as a singleton before it is used in any threads.  \
     * Also call the apps initAction.                               \
     */                                                             \
-    std::cerr << "-- AppInit: register_hooks: " << AppClass::app()->moduleName() << std::endl;    \
-/*   webfw::ApacheLogger logger( p );                                \
-   MISP_CREATE_AND_INIT_APP( AppClass,                             \
-                             logger,                               \
-                             new webfw::ApacheAbortHandlerManager() );\
-                             << "_register_hooks: called!\n";         \
-*/                                                                   \
    ap_hook_child_init(Name ## _child_init, NULL, NULL, APR_HOOK_MIDDLE); \
    ap_hook_handler(Name ## _handler, NULL, NULL, APR_HOOK_MIDDLE); \
 }                                                                  \
