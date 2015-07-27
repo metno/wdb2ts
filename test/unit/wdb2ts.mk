@@ -31,6 +31,7 @@ wdb2TsUnitTest_LDADD = 		$(CPPUNIT_LIBS) \
                             -lWciWebQuery \
                             -lXML_locationforecast \
                             -lmiutil \
+                            -lweather-symbol \
                             $(pgconpool_LIBS) \
                             $(putools_LIBS) \
                             $(pumet_LIBS) \
