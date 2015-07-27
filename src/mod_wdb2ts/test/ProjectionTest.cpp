@@ -28,7 +28,6 @@
 
 #include <fstream>
 #include <math.h>
-#include <diField/diProjection.h>
 #include <Logger4cpp.h>
 #include <ProjectionTest.h>
 #include <ProjectionHelper.h>
