@@ -584,6 +584,8 @@ getProviderWithPrognosisLength()
 			}
 		}
 	}
+
+	return res;
 }
 
 }
