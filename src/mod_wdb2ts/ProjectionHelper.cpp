@@ -191,7 +191,7 @@ void
 uv::
 directionAndLength( double &direction, double &length, bool turn )const
 {
-	double fTurn;
+	double fTurn=0;
 
 	if( u_ == HUGE_VAL || v_ == HUGE_VAL ) {
 		direction = HUGE_VAL;
