@@ -49,11 +49,11 @@ namespace {
 		if( wciProtocol < 3 )
 			return "value, dataprovidername, placename, referencetime, validfrom, validto, " 
 			       "valueparametername, valueparameterunit, levelparametername, " 
-				    "levelunitname, levelfrom, levelto, dataversion, astext(placegeometry) as point";
+				    "levelunitname, levelfrom, levelto, dataversion, ST_AsText(placegeometry) as point";
 		
 		return "value, dataprovidername, placename, referencetime, validtimefrom, validtimeto, " 
 				 "valueparametername, valueparameterunit, levelparametername, " 
-				 "levelunitname, levelfrom, levelto, dataversion, astext(placegeometry) as point";
+				 "levelunitname, levelfrom, levelto, dataversion, ST_AsText(placegeometry) as point";
 	}
 	
 	
