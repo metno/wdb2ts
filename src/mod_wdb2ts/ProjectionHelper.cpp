@@ -829,7 +829,7 @@ convertToDirectionAndLength( const MiProjection &srcProj,
 		return false;
 	}
 	if( loglevel >= log4cpp::Priority::DEBUG ) {
-		log << "----- CONVERTED: u: " << u << " v: " << v << endl;
+		log << "----- CONVERTED: u: " << u << " v: " << v;
 		WEBFW_LOG_DEBUG( log.str() );
 	}
 
