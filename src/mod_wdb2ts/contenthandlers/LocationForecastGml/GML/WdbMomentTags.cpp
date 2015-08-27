@@ -350,7 +350,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
    }
 
    if( gmlContext->forecastType == GMLContext::LocationForecast &&
-         pd->config && pd->config->outputParam("seaiceingindex") ) {
+         pd->config && pd->config->outputParam("seaIceingIndex") ) {
       value = pd->iceingIndex( false, pd->forecastprovider() );
       if( value != FLT_MAX ) {
          out << indent << "<mox:seaIceingIndex>" << value << "</mox:seaIceingIndex>\n";
@@ -358,7 +358,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
       }
    }
 
-   if( pd->config && pd->config->outputParam("temperature:td") ) {
+   if( pd->config && pd->config->outputParam("dewpointTemperature") ) {
       float dewpoint = pd->dewPointTemperature( tempUsed, true );
 
       if( dewpoint != FLT_MAX ) {
@@ -373,7 +373,7 @@ output( std::ostream &out_, miutil::Indent &indent_ )
       iValue = pd->seaBottomTopography( tmpProvider );
       if( iValue != INT_MAX ) {
          WRITE_DEBUG( loglevel, out << "<!-- provider: " << tmpProvider << " (seaBottomTopography) -->\n");
-         out << indent << "<mox:seaBottomTopography>" << iValue << "</mox:seaBottomTopography>\n";
+         out << indent << "<mox:seaBottomTopography uom=\"m\">" << iValue << "</mox:seaBottomTopography>\n";
          count++;
       }
 
@@ -527,80 +527,6 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 
    if( count > 0 ) //count > 2
       out_ << out.str();
-
-#if 0
-   out.precision( 0 );
-
-   if( tempProb != FLT_MAX )
-      out << indent << "<mox:airTemperatureProbability uom=\"probabilitycode\">" << probabilityCode( tempProb )<< "</mox:airTemperatureProbability>\n";
-
-   if( windProb != FLT_MAX )
-      out << indent << "<mox:windProbability uom=\"probabilitycode\">" << probabilityCode( windProb ) << "</mox:windProbability>\n";
-
-   out.precision( oldPrec );
-
-   hasTempCorr = false;
-   tempCorrection = 0.0;
-   value = pd->T2M_PERCENTILE_10( true );
-   if( value != FLT_MAX ) {
-      if( !hasTempCorr ) {
-         tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-         hasTempCorr = true;
-      }
-
-      value += tempCorrection;
-      out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-            << " percentile=\"10\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-   }
-
-   value = pd->T2M_PERCENTILE_25();
-   if( value != FLT_MAX ) {
-      if( !hasTempCorr ) {
-         tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-         hasTempCorr = true;
-      }
-
-      value += tempCorrection;;
-      out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-            << " percentile=\"25\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-   }
-
-   value = pd->T2M_PERCENTILE_50();
-   if( value != FLT_MAX ) {
-      if( !hasTempCorr ) {
-         tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-         hasTempCorr = true;
-      }
-
-      value += tempCorrection;
-      out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-            << " percentile=\"50\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-   }
-
-   value = pd->T2M_PERCENTILE_75();
-   if( value != FLT_MAX ){
-      if( !hasTempCorr ) {
-         tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-         hasTempCorr = true;
-      }
-
-      value += tempCorrection;
-      out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-            << " percentile=\"75\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-   }
-
-   value = pd->T2M_PERCENTILE_90();
-   if( pd->T2M_PERCENTILE_90() != FLT_MAX ){
-      if( !hasTempCorr ) {
-         tempCorrection = pd->computeTempCorrection( pd->percentileprovider(), relTopo, modelTopo );
-         hasTempCorr = true;
-      }
-
-      value += tempCorrection;
-      out << indent << "<probability type=\"exact\" parameter=\"temperature\""
-            << " percentile=\"90\" unit=\"celsius\" value=\"" << value << "\"/>\n";
-   }
-#endif	
 }
 
 }

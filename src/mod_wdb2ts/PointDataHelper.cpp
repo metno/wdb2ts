@@ -913,9 +913,11 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				//WEBFW_LOG_DEBUG( "decode: significantWaveHeight: " << value );
 				pd.significantTotalWaveHeight = value;
 			}else if( paramDef->alias() == "seaBottomTopography" ){
-				pd.seaBottomTopography = value;
+				(*itLpd->second)[constFieldTime][constFieldTime][providerWithPlacename].seaBottomTopography = value;
+				//pd.seaBottomTopography = value;
 			}else if( paramDef->alias() == "seaIcePresence" ){
-				pd.seaIcePresence = value;
+				(*itLpd->second)[constFieldTime][constFieldTime][providerWithPlacename].seaIcePresence = value;
+				//pd.seaIcePresence = value;
 			}else if( paramDef->alias() == "iceingIndex" ){
 				pd.iceingIndex = value;
 			}else if( paramDef->alias() == "MODEL.TOPOGRAPHY" ){
