@@ -44,7 +44,6 @@
 #include <ptimeutil.h>
 #include <profiling.h>
 #include <macros.h>
-#include <ApacheLogger.h>
 #include <ApacheAbortHandlerManager.h>
 
 #endif 
