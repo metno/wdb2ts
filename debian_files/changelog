@@ -1,3 +1,8 @@
+metno-wdb2ts (1.3.19-1) unstable; urgency=low
+  * Fix: oceanforecast - turn the seaCurrentDirection 180 deegrees.
+  
+ -- Borge Moe <borge.moe@met.no>  Mon, 31 Aug 2015 13:00:00 +0200
+
 metno-wdb2ts (1.3.18-1) unstable; urgency=low
   * Fix: oceanforecast - Fix seaIcePresence and seaBottomTopography.
   * Fix: locationforecast moxformat - fix config of seaIceingIndex and dewpointTemperature.
