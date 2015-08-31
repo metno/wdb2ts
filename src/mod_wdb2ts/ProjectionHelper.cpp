@@ -833,7 +833,7 @@ convertToDirectionAndLength( const MiProjection &srcProj,
 		WEBFW_LOG_DEBUG( log.str() );
 	}
 
-	uv( u, v ).directionAndLength( direction, length );
+	uv( u, v ).directionAndLength( direction, length, turn );
 
 	return true;
 }
