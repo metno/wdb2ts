@@ -38,27 +38,30 @@ AC_ARG_WITH([proj],
 
 # Add path if given
 if test "$ac_proj_path" != ""; then
-        PROJ_CPPFLAGS="-I$ac_proj_path/include"
+   PROJ_CPPFLAGS="-I$ac_proj_path/include"
 	PROJ_LDFLAGS="-L$ac_proj_path/lib"
 else
-	for ac_proj_path_tmp in /usr /usr/local /opt ; do
-        	if test -d "$ac_proj_path_tmp/proj/include" && test -d "$ac_emos_path_tmp/proj/lib"; then
-                        PROJ_CPPFLAGS="-I$ac_proj_path_tmp/proj/include"
-                	PROJ_LDFLAGS="-L$ac_proj_path_tmp/proj/lib"
-                        break;
-                fi
-        done
+	for ac_proj_path_tmp in /usr /usr/local /opt /opt/proj; do
+     	if test -f "$ac_proj_path_tmp/include/proj_api.h"; then
+         PROJ_CPPFLAGS="-I$ac_proj_path_tmp/include"
+        	PROJ_LDFLAGS="-L$ac_proj_path_tmp/lib"
+         break;
+      fi
+   done
 fi
 
 # Set up environment
-CPPFLAGS="$CPPFLAGS $PROJ_CPPFLAGS"
-LDFLAGS="$LDFLAGS $PROJ_LDFLAGS"
+
+OLD_CPPFLAGS="$CPPFLAGS $PROJ_CPPFLAGS"
+OLD_LDFLAGS="$LDFLAGS $PROJ_LDFLAGS"
+CPPFLAGS="$PROJ_CPPFLAGS"
+LDFLAGS="$PROJ_LDFLAGS"
 
 # Search for the Library
 # automatically adds -lproj to the LIBS variable
 #AC_LANG_PUSH([C++])
-AC_SEARCH_LIBS(pj_init_plus, 
-		[proj],, 
+AC_SEARCH_LIBS([pj_init_plus], 
+		[proj],[LDFLAGS=$OLD_LDFLAGS; CPPFLAGS=$OLD_CPPFLAGS], 
 		[AC_MSG_ERROR([
 -------------------------------------------------------------------------
     Unable to link with proj. If the library is installed, make sure 
