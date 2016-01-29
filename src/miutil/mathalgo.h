@@ -42,6 +42,39 @@
 namespace miutil {
 namespace algorithm {
 
+template<typename T>
+const T& max(const T &v1, const T &v2, const T &nullValue=std::numeric_limits<T>::max())
+{
+	if( v1==nullValue || v2==nullValue)
+		return nullValue;
+	return std::max(v1,v2);
+}
+
+template<typename T>
+const T& max3(const T &v1, const T &v2, const T &v3, const T &nullValue=std::numeric_limits<T>::max())
+{
+	if( v1==nullValue || v2==nullValue || v3==nullValue)
+		return nullValue;
+	return std::max(v1,std::max(v2,v3));
+}
+
+
+template<typename T>
+const T& min(const T &v1, const T &v2, const T &nullValue=std::numeric_limits<T>::max())
+{
+	if( v1==nullValue || v2==nullValue)
+		return nullValue;
+	return std::min(v1,v2);
+}
+
+template<typename T>
+const T& min3(const T &v1, const T &v2, const T &v3, const T &nullValue=std::numeric_limits<T>::max())
+{
+	if( v1==nullValue || v2==nullValue || v3==nullValue)
+		return nullValue;
+	return std::min(v1,std::min(v2,v3));
+}
+
   // Randomiser
 class Random {
 public:

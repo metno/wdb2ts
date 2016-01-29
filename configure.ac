@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.3.20, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.3.21, wdb@met.no)
 AC_CONFIG_MACRO_DIR([config])
 
 # Config
@@ -115,8 +115,12 @@ AC_CXX_REQUIRE_STL
 # Module Checks
 #-----------------------------------------------------------------------------
 
+#proj 
+WDB_PROJ_CHECK
+
+
 #POSTGRES
-WDB_POSTGRES_CHECK
+#WDB_POSTGRES_CHECK
 
 #BOOST
 WDB_BOOST_CHECK
@@ -124,15 +128,13 @@ WDB_BOOST_CHECK
 #pgconpool
 PGCONPOOL_CHECK
 
-#proj 
-WDB_PROJ_CHECK
 
 #libcurl
 LIBCURL_CHECK_CONFIG([no],[7.15.5],[want_libcurl=yes],[want_libcurl=no])
 AM_CONDITIONAL([BUILD_WDB2TSGET],[test x$want_libcurl = xyes])
 
 #LOG4CPP
-WDB_LOG4CPP_CHECK
+#WDB_LOG4CPP_CHECK
 
 
 #libxml
