@@ -1,8 +1,18 @@
-metno-wdb2ts (1.3.20~rc1-1) unstable; urgency=low
-  * Fix T1902: New limits for precipitation phases.
+metno-wdb2ts (1.3.21-1) unstable; urgency=low
+  * New release, no changes since last rc.
   * Fix T1901: Include both endpoints in the computation of min/max temperatures.
   
- -- Borge Moe <borge.moe@met.no>  Wed, 9 Dec 2015 12:30:00 +0100
+ -- Borge Moe <borge.moe@met.no>  Fri, 29 Jan 2015 07:00:00 +0100
+
+metno-wdb2ts (1.3.21~rc1-1) unstable; urgency=low
+  * Fix T1901: Include both endpoints in the computation of min/max temperatures.
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 26 Jan 2015 08:00:00 +0100
+
+metno-wdb2ts (1.3.20-1) unstable; urgency=low
+  * T1902: Adjust limits for wetbulb precipitation phase
+
+ -- Borge Moe <borge.moe@met.no>  Wed, 16 Dec 2015 13:00:00 +0100
 
 metno-wdb2ts (1.3.19-1) unstable; urgency=low
   * Fix: oceanforecast - turn the seaCurrentDirection 180 deegrees.
