@@ -396,6 +396,7 @@ public:
     * Candidates are acumulated precip or 1 hours values.
     */
    float PRECIP( int horsBack, boost::posix_time::ptime &fromtime,bool tryHard=false )const;
+   float precipIntensity(bool tryHard=false )const;
    float NN( bool tryHard=false )const;
    float visibility( bool tryHard=false )const;
    float fog( bool tryHard=false )const;

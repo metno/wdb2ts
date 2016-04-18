@@ -1022,6 +1022,19 @@ PRECIP_N( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )cons
 	return std::max( float(0), precip );
 }
 
+float
+LocationElem::
+precipIntensity(bool tryHard )const
+{
+	WEBFW_USE_LOGGER( "main" );
+
+	float value = getValue( &PData::precipIntensity,
+				        itTimeSerie->second,
+				        const_cast<ptime&>(itTimeSerie->first),
+				        const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	WEBFW_LOG_DEBUG( "LocationElem::precipIntensity: " << value << (value==FLT_MAX?"  N/A":"") );
+	return value;
+}
 
 float
 LocationElem::

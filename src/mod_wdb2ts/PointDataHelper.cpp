@@ -140,6 +140,8 @@ void PData::merge( const PData &other )
 		PRECIP_12T = other.PRECIP_12T;
 	if( other.PRECIP_24T != FLT_MAX )
 		PRECIP_24T = other.PRECIP_24T;
+	if( other.precipIntensity != FLT_MAX )
+		precipIntensity = other.precipIntensity;
 	if( other.significantSwellWaveHeight != FLT_MAX )
 		significantSwellWaveHeight = other.significantSwellWaveHeight;
 	if( other.meanSwellWavePeriode != FLT_MAX )
@@ -299,9 +301,11 @@ void PData::print( std::ostream &o, const std::string &space ) const
 		o << space << "PRECIP_12T: " << PRECIP_12T << endl;
 	if( PRECIP_24T != FLT_MAX )
 		o << space << "PRECIP_24T: " << PRECIP_24T << endl;
+	if( precipIntensity != FLT_MAX )
+			o << space << "precipIntensity: " << precipIntensity << endl;
 	if( significantSwellWaveHeight != FLT_MAX )
 		o << space << "seaTotalSwellWaveHeight: " << significantSwellWaveHeight
-				<< endl;
+		  << endl;
 	if( meanSwellWavePeriode != FLT_MAX )
 		o << space << "seaMeanSwellWavePeriode: " << meanSwellWavePeriode << endl;
 	if( meanSwellWaveDirection != FLT_MAX )
@@ -470,6 +474,8 @@ int PData::count() const
 	if( PRECIP_12T != FLT_MAX )
 		++n;
 	if( PRECIP_24T != FLT_MAX )
+		++n;
+	if( precipIntensity != FLT_MAX )
 		++n;
 	if( significantSwellWaveHeight != FLT_MAX )
 		++n;
@@ -880,7 +886,10 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.PRECIP_12T = value;
 			else if( paramDef->alias() == "PRECIP.24H" )
 				pd.PRECIP_24T = value;
-			else if( paramDef->alias() == "significantSwellWaveHeight" )
+			else if( paramDef->alias() == "PRECIP.INTENSITY" ) {
+				WEBFW_LOG_DEBUG( "decodePData: precipIntensity: " << value << " (" << providerWithPlacename << " ["<< from << " - " << to<< ")");
+				pd.precipIntensity = value;
+			} else if( paramDef->alias() == "significantSwellWaveHeight" )
 				pd.significantSwellWaveHeight = value;
 			else if( paramDef->alias() == "meanSwellWavePeriode" ){
 				//WEBFW_LOG_DEBUG( "decode: seaMeanSwellWavePeriode: " << value );
@@ -1217,6 +1226,8 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.PRECIP_12T = value;
 			else if( paramDef->alias() == "PRECIP.24H" )
 				pd.PRECIP_24T = value;
+			else if( paramDef->alias() == "precipIntensity" )
+			   pd.precipIntensity = value;
 			else if( paramDef->alias() == "significantSwellWaveHeight" )
 				pd.significantSwellWaveHeight = value;
 			else if( paramDef->alias() == "meanSwellWavePeriode" ){

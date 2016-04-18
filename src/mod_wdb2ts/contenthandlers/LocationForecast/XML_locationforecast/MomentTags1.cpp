@@ -303,6 +303,7 @@ output( std::ostream &out, const std::string &indent )
 			nForecast++;
 		}
 
+
 		tmpout.precision( 0 );
 
 		if( tempProb != FLT_MAX )
@@ -315,21 +316,34 @@ output( std::ostream &out, const std::string &indent )
 					<< "<windProbability unit=\"probabilitycode\" value=\""
 					<< probabilityCode( windProb ) << "\"/>\n";
 
+
 		tmpout.precision( 1 );
 
 		if( pd->config && pd->config->outputParam( "seaiceingindex" ) ){
 			value = pd->iceingIndex( false, pd->forecastprovider() );
-			if( value != FLT_MAX )
+			if( value != FLT_MAX ) {
 				tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
+				nForecast++;
+			}
 		}
 
 		if( dewpoint != FLT_MAX && pd->config
-				&& pd->config->outputParam( "dewpointTemperature" ) )
+				&& pd->config->outputParam( "dewpointTemperature" ) ) {
 			tmpout << indent
 					<< "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""
 					<< dewpoint << "\"/>\n";
+			nForecast++;
+		}
 
 		//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
+
+		value = pd->precipIntensity(true);
+		if( value != FLT_MAX ) {
+			nForecast++;
+			tmpout << indent
+		          << "<precipitation unit=\"mm/h\" value=\"" << value << "/>\n";
+		}
+
 
 		out.precision( 1 );
 

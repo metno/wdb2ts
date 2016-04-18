@@ -71,6 +71,7 @@ struct PData{
    float PRECIP_6T;
    float PRECIP_12T;
    float PRECIP_24T;
+   float precipIntensity;
    float significantSwellWaveHeight;
    float meanSwellWavePeriode;
    float meanSwellWaveDirection;
@@ -136,7 +137,7 @@ struct PData{
    	 PRECIP( FLT_MAX ),
    	 PRECIP_ACCUMULATED( FLT_MAX ), PRECIP_1T( FLT_MAX ),
    	 PRECIP_3T( FLT_MAX ), PRECIP_6T( FLT_MAX ), PRECIP_12T( FLT_MAX ), 
-   	 PRECIP_24T( FLT_MAX ),
+   	 PRECIP_24T( FLT_MAX ), precipIntensity(FLT_MAX),
    	 significantSwellWaveHeight( FLT_MAX ),
    	 meanSwellWavePeriode( FLT_MAX ),
    	 meanSwellWaveDirection( FLT_MAX ),
@@ -194,7 +195,7 @@ struct PData{
        PRECIP_ACCUMULATED( pd.PRECIP_ACCUMULATED ),
        PRECIP_1T(pd.PRECIP_1T), PRECIP_3T(pd.PRECIP_3T), 
        PRECIP_6T(pd.PRECIP_6T), PRECIP_12T(pd.PRECIP_12T), 
-       PRECIP_24T(pd.PRECIP_24T),
+       PRECIP_24T(pd.PRECIP_24T),precipIntensity(pd.precipIntensity),
        significantSwellWaveHeight( pd.significantSwellWaveHeight ),
        meanSwellWavePeriode( pd. meanSwellWavePeriode ),
        meanSwellWaveDirection( pd.meanSwellWaveDirection ),
@@ -268,6 +269,7 @@ struct PData{
          PRECIP_6T  = rhs.PRECIP_6T;
          PRECIP_12T = rhs.PRECIP_12T;
          PRECIP_24T = rhs.PRECIP_24T;
+         precipIntensity = rhs.precipIntensity;
          significantSwellWaveHeight = rhs.significantSwellWaveHeight;
          meanSwellWavePeriode = rhs.meanSwellWavePeriode;
          meanSwellWaveDirection = rhs.meanSwellWaveDirection;
