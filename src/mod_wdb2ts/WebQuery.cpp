@@ -1,3 +1,4 @@
+#include <cmath>
 #include <stdio.h>
 #include <list>
 #include <sstream>
@@ -9,8 +10,10 @@
 #include <trimstr.h>
 #include <limits.h>
 #include <float.h>
+#include "../miutil/ptimeutil.h"
 
 using namespace std;
+namespace pt=boost::posix_time;
 
 namespace wdb2ts {
 
@@ -197,14 +200,6 @@ decodeQuery( const std::string &queryToDecode, const std::string &urlPath )
 		
 		if( urlQuery.hasParam( "to" ) )
 			to = decodeTimeduration( urlQuery.asString( "to", "" ), boost::posix_time::pos_infin );
-
-		//Adjust the fromtime to the nearest hour in the future. 
-		if( from.is_not_a_date_time() ) {
-			from = second_clock::universal_time();
-			from += hours( 1 );
-			from = ptime( from.date(), 
-					        time_duration( from.time_of_day().hours(), 0, 0, 0 ));
-		}
 		
 		if( urlQuery.hasParam( "refTime" ) ) 
 			refTime = urlQuery.asPTime("fromTime", boost::posix_time::not_a_date_time );
@@ -234,7 +229,6 @@ decodeQuery( const std::string &queryToDecode, const std::string &urlPath )
       if( urlQuery.hasParam( "level" ) ) {
     	  level = decodeLevel( urlQuery.asString("level", "") );
       }
-
 
       WebQuery webQury(myPoints, alt, from, to, refTime, dataprovider, level, isPolygon,
                        skip, urlQuery.asBool( "nearest_land", false ) );
@@ -300,7 +294,16 @@ altitude() const
 {
 	return altitude_;
 }
+void
+WebQuery::
+setFromIfNotSet( int resolutionInSeconds ){
+	if( resolutionInSeconds < 0)
+		return;
 
+	//Adjust the fromtime to the nearest resolution in the future.
+	if( from_.is_not_a_date_time() )
+		from_=miutil::nearesTimeInTheFuture(resolutionInSeconds);
+}
 
 
 }
