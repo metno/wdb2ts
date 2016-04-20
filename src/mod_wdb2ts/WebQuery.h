@@ -60,7 +60,7 @@ public:
 	float longitude()const;
 	LocationPointList locationPoints() const { return points; }
 	int   altitude() const;
-	void setFromIfNotSet( int resolutionInSeconds = 3600);
+	void setFromTimeIfNotSet( int resolutionInSeconds = 3600);
 	boost::posix_time::ptime from() const { return from_; }
 	boost::posix_time::ptime to() const { return to_; }
 	boost::posix_time::ptime reftime() const { return reftime_; }

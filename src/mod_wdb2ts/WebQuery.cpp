@@ -296,7 +296,7 @@ altitude() const
 }
 void
 WebQuery::
-setFromIfNotSet( int resolutionInSeconds ){
+setFromTimeIfNotSet( int resolutionInSeconds ){
 	if( resolutionInSeconds < 0)
 		return;
 
