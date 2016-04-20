@@ -209,154 +209,157 @@ output( std::ostream &out, const std::string &indent )
 			if( symData->minTemperature_6h != FLT_MAX )
 				symData->minTemperature_6h += tempCorrection;
 		}
+	}
+	symData->thunderProbability = pd->thunderProbability();
+	symData->wetBulbTemperature = pd->wetBulbTemperature();
 
-		symData->thunderProbability = pd->thunderProbability();
-		symData->wetBulbTemperature = pd->wetBulbTemperature();
+	if( projectionHelper ){
+		if( projectionHelper->convertToDirectionAndLength( provider,
+				pd->latitude(), pd->longitude(), pd->windU10m( true ),
+				pd->windV10m(), dd, ff ) ){
+			if( dd != FLT_MAX && ff != FLT_MAX ){
+				tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
+						<< "\" " << "name=\"" << windDirectionName( dd )
+						<< "\"/>\n" << indent << "<windSpeed id=\"ff\" mps=\""
+						<< ff << "\" " << "beaufort=\""
+						<< toBeaufort( ff, description ) << "\" " << "name=\""
+						<< description << "\"/>\n";
 
-		if( projectionHelper ){
-			if( projectionHelper->convertToDirectionAndLength( provider,
-					pd->latitude(), pd->longitude(), pd->windU10m( true ),
-					pd->windV10m(), dd, ff ) ){
-				if( dd != FLT_MAX && ff != FLT_MAX ){
-					tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
-							<< "\" " << "name=\"" << windDirectionName( dd )
-							<< "\"/>\n" << indent << "<windSpeed id=\"ff\" mps=\""
-							<< ff << "\" " << "beaufort=\""
-							<< toBeaufort( ff, description ) << "\" " << "name=\""
-							<< description << "\"/>\n";
-
-					windProb = pd->WIND_PROBABILITY( true );
-					pd->forecastprovider( provider ); //Reset the forecastprovider back to provider.
-					nForecast++;
-				}
-			}else{
-				WEBFW_LOG_ERROR( "Failed to reproject the wind vectors." )
-			}
-		}
-
-		value = pd->windGust( true );
-		if( value != FLT_MAX )
-			tmpout << indent << "<windGust id=\"ff_gust\" mps=\"" << value
-					<< "\"/>\n";
-
-		dewpoint = pd->dewPointTemperature( tempUsed, true );
-		humidity = pd->humidity( true );
-
-		if( loglevel >= log4cpp::Priority::DEBUG )
-			tmpout << indent << "<!-- dewpointTemperature: " << dewpoint
-					<< " humidity: " << humidity << " tempUsed: " << tempUsed
-					<< " provider: " << pd->forecastprovider() << "-->\n";
-
-		if( humidity != FLT_MAX ){
-			tmpout << indent << "<humidity value=\"" << humidity
-					<< "\" unit=\"percent\"/>\n";
-			nForecast++;
-		}
-
-		pd->forecastprovider( provider );
-		value = pd->PR( true );
-		if( value != FLT_MAX ){
-			tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""
-					<< value << "\"/>\n";
-			nForecast++;
-		}
-
-		value = pd->NN( true );
-		if( value != FLT_MAX ){
-			symData->totalCloudCover = value;
-			tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value
-					<< "\"/>\n";
-			nForecast++;
-		}
-
-		//We need the 1 hours precipitations in the thunder logic
-		setPrecipitation();
-
-		value = pd->fog();
-		if( value != FLT_MAX ){
-			symData->fogCover = value;
-			tmpout << indent << "<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
-			nForecast++;
-		}
-
-		value = pd->lowCloud();
-		if( value != FLT_MAX ){
-			symData->lowCloudCover = value;
-			tmpout << indent << "<lowClouds id=\"LOW\" percent=\"" << value
-					<< "\"/>\n";
-			nForecast++;
-		}
-
-		value = pd->mediumCloud();
-		if( value != FLT_MAX ){
-			symData->mediumCloudCover = value;
-			tmpout << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value
-					<< "\"/>\n";
-			nForecast++;
-		}
-
-		value = pd->highCloud();
-		if( value != FLT_MAX ){
-			symData->highCloudCover = value;
-			tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value
-					<< "\"/>\n";
-			nForecast++;
-		}
-
-
-		tmpout.precision( 0 );
-
-		if( tempProb != FLT_MAX )
-			tmpout << indent
-					<< "<temperatureProbability unit=\"probabilitycode\" value=\""
-					<< probabilityCode( tempProb ) << "\"/>\n";
-
-		if( windProb != FLT_MAX )
-			tmpout << indent
-					<< "<windProbability unit=\"probabilitycode\" value=\""
-					<< probabilityCode( windProb ) << "\"/>\n";
-
-
-		tmpout.precision( 1 );
-
-		if( pd->config && pd->config->outputParam( "seaiceingindex" ) ){
-			value = pd->iceingIndex( false, pd->forecastprovider() );
-			if( value != FLT_MAX ) {
-				tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
+				windProb = pd->WIND_PROBABILITY( true );
+				pd->forecastprovider( savedProvider ); //Reset the forecastprovider back to provider.
 				nForecast++;
 			}
+		}else{
+			WEBFW_LOG_ERROR( "Failed to reproject the wind vectors." )
 		}
-
-		if( dewpoint != FLT_MAX && pd->config
-				&& pd->config->outputParam( "dewpointTemperature" ) ) {
-			tmpout << indent
-					<< "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""
-					<< dewpoint << "\"/>\n";
-			nForecast++;
-		}
-
-		//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
-
-		value = pd->precipIntensity(true);
-		if( value != FLT_MAX ) {
-			nForecast++;
-			tmpout << indent
-		          << "<precipitation unit=\"mm/h\" value=\"" << value << "/>\n";
-		}
-
-
-		out.precision( 1 );
-
-		//must have at least 1 elements.
-		if( nForecast > 0 )
-			out << tmpout.str();
-
-		//The forecastprovider may have changed. But as a hack we define
-		//the forecastprovider as the provider that has the temperature (TA) or
-		//the wind component (windU10m).
-		pd->forecastprovider( savedProvider );
 	}
 
+	value = pd->windGust( true );
+	if( value != FLT_MAX )
+		tmpout << indent << "<windGust id=\"ff_gust\" mps=\"" << value << "\"/>\n";
+
+	dewpoint = pd->dewPointTemperature( tempUsed, true );
+	humidity = pd->humidity( true );
+
+	if( loglevel >= log4cpp::Priority::DEBUG )
+		tmpout << indent << "<!-- dewpointTemperature: " << dewpoint
+		       << " humidity: " << humidity << " tempUsed: " << tempUsed
+				 << " provider: " << pd->forecastprovider() << "-->\n";
+
+	if( humidity != FLT_MAX ){
+		tmpout << indent << "<humidity value=\"" << humidity
+		       << "\" unit=\"percent\"/>\n";
+		nForecast++;
+	}
+
+	pd->forecastprovider( savedProvider );
+	value = pd->PR( true );
+	if( value != FLT_MAX ){
+		tmpout << indent << "<pressure id=\"pr\" unit=\"hPa\" value=\""
+				 << value << "\"/>\n";
+		nForecast++;
+	}
+
+	//We must get the cloud data from the same provider (model).
+	pd->forecastprovider( savedProvider );
+	value = pd->NN( true );
+	if( value != FLT_MAX ){
+		symData->totalCloudCover = value;
+		tmpout << indent << "<cloudiness id=\"NN\" percent=\"" << value
+				 << "\"/>\n";
+		nForecast++;
+	}
+
+	//We need the 1 hours precipitations in the thunder logic
+	setPrecipitation();
+
+	value = pd->fog();
+	if( value != FLT_MAX ){
+		symData->fogCover = value;
+		tmpout << indent << "<fog id=\"FOG\" percent=\"" << value << "\"/>\n";
+		nForecast++;
+	}
+
+	value = pd->lowCloud();
+	if( value != FLT_MAX ){
+		symData->lowCloudCover = value;
+		tmpout << indent << "<lowClouds id=\"LOW\" percent=\"" << value
+				 << "\"/>\n";
+		nForecast++;
+	}
+
+	value = pd->mediumCloud();
+	if( value != FLT_MAX ){
+		symData->mediumCloudCover = value;
+		tmpout << indent << "<mediumClouds id=\"MEDIUM\" percent=\"" << value
+				 << "\"/>\n";
+		nForecast++;
+	}
+
+	value = pd->highCloud();
+	if( value != FLT_MAX ){
+		symData->highCloudCover = value;
+		tmpout << indent << "<highClouds id=\"HIGH\" percent=\"" << value
+				<< "\"/>\n";
+		nForecast++;
+	}
+
+
+	tmpout.precision( 0 );
+
+	if( tempProb != FLT_MAX )
+		tmpout << indent
+		<< "<temperatureProbability unit=\"probabilitycode\" value=\""
+		<< probabilityCode( tempProb ) << "\"/>\n";
+
+	if( windProb != FLT_MAX )
+		tmpout << indent
+		<< "<windProbability unit=\"probabilitycode\" value=\""
+		<< probabilityCode( windProb ) << "\"/>\n";
+
+
+	tmpout.precision( 1 );
+
+	if( pd->config && pd->config->outputParam( "seaiceingindex" ) ){
+		value = pd->iceingIndex( false, pd->forecastprovider() );
+		if( value != FLT_MAX ) {
+			tmpout << indent << "<seaIceingIndex value=\"" << value << "\"/>\n";
+			nForecast++;
+		}
+	}
+
+	if( dewpoint != FLT_MAX && pd->config
+			&& pd->config->outputParam( "dewpointTemperature" ) ) {
+		tmpout << indent
+				<< "<dewpointTemperature id=\"TD\" unit=\"celsius\" value=\""
+				<< dewpoint << "\"/>\n";
+		nForecast++;
+	}
+
+	//	WEBFW_LOG_DEBUG("MomentTags: " << nForecast << " element encoded!");
+
+	value = pd->precipIntensity(true);
+	if( value != FLT_MAX ) {
+		nForecast++;
+		tmpout << indent
+				<< "<precipitation unit=\"mm/h\" value=\"" << value << "\"/>\n";
+	}
+
+
+	out.precision( 1 );
+
+	//must have at least 1 elements.
+	if( nForecast > 0 )
+		out << tmpout.str();
+
+	//The forecastprovider may have changed. But as a hack we define
+	//the forecastprovider as the provider that has the temperature (TA) or
+	//the wind component (windU10m).
+	pd->forecastprovider( savedProvider );
+
+	//
+	// Get the percentile data.
+	//
 	hasTempCorr = false;
 	tempCorrection = 0.0;
 	value = pd->T2M_PERCENTILE_10( true );
