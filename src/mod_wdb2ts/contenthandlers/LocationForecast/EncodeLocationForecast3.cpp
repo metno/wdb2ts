@@ -754,10 +754,8 @@ encode(  webfw::Response &response )
 		IndentLevel level2( indent );
 		ProductTag productTag;
 		productTag.output( ost, level2.indent() );
-		
 		encodeMoment(  from, ost, indent );
 		encodePrecipitationPercentiles( from, ost, indent );
-
 	}
 
 	if( nElements == 0 ) {
