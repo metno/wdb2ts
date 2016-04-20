@@ -716,7 +716,8 @@ encode(  webfw::Response &response )
  	USE_MI_PROFILE;
  	MARK_ID_MI_PROFILE("EncodeXML");
  	WEBFW_USE_LOGGER( "encode" );
- 	
+	log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+
  	nElements = 0;
 
  	//Use one decimal precision as default.
@@ -728,12 +729,9 @@ encode(  webfw::Response &response )
  	response.contentType("text/xml");
  	response.directOutput( true );
    
- 	expire = second_clock::universal_time();
-	expire += hours( 1 );
-	expire = ptime( expire.date(), 
-	                time_duration( expire.time_of_day().hours(), 0, 0, 0 ));
-   
-	if( expireRand > 0)
+	expire = miutil::nearesTimeInTheFuture(config_->modelTimeResolution);
+
+ 	if( expireRand > 0)
 		expire = expire + seconds( rand_r( &seed ) % expireRand );
 	
 	
@@ -780,6 +778,9 @@ encode(  webfw::Response &response )
 		
 		//Make room for the meta tag.
 		ost << metatemplate;
+
+		if( loglevel >= log4cpp::Priority::DEBUG )
+			ost << "<!-- from: " << from << " Expire: " << expire << " expireRand: " << expireRand << " res: " << config_->modelTimeResolution << "-->\n";
 
 		IndentLevel level2( indent );
 		ProductTag productTag;
