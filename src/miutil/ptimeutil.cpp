@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <cmath>
 #include <ctype.h>
 #include <iostream>
 #include <stdio.h>
@@ -398,7 +399,20 @@ to_time_t( const boost::posix_time::ptime &t )
     return static_cast<time_t>( dif.total_seconds() );
 }
 
+boost::posix_time::ptime miutil::nearesTimeInTheFuture( int resolutionInSeconds, const boost::posix_time::ptime &refTime,  int offsetInSeconds )
+{
+	namespace pt=boost::posix_time;
+	pt::ptime from(refTime);
 
+	if( from.is_special() )
+		from=pt::second_clock::universal_time();
+
+	int seconds = from.time_of_day().total_seconds();
+	int q = std::ceil(static_cast<double>(seconds)/resolutionInSeconds);
+	from = pt::ptime(from.date(), pt::time_duration(0,0,0));
+	from += pt::seconds(q*resolutionInSeconds+offsetInSeconds);
+	return from;
+}
 
 
 namespace {

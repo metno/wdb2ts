@@ -161,5 +161,17 @@ namespace miutil {
     */
 
    time_t to_time_t( const boost::posix_time::ptime &t );
+
+   /**
+    * nearestTimeInTheFuture compute the nearest time in the future
+    * that is divisible by resolutionInSeconds. At the moment it only
+    * computes the nearest time at max one day into the future, ie
+    * the resolutionInSeconds must be in the interval [0, 86400].
+    * @param resolutionInSeconds Valid values [0, 86400]
+    * @param refTime Use this as the reference time to compute the nearest time. If
+    * refTime.is_special it use the wall clock as reference time.
+    * @param offsetInSeconds If the computation is not to reference at full hour.
+    */
+   boost::posix_time::ptime nearesTimeInTheFuture( int resolutionInSeconds, const boost::posix_time::ptime &refTime=boost::posix_time::ptime(), int offsetInSeconds=0);
 }
 #endif 
