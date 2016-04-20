@@ -1,3 +1,9 @@
+metno-wdb2ts (1.3.22~rc1-1) unstable; urgency=low
+  * Add precipitation intensity to the moment data.
+  * Add 'model_resolution' config option.
+  
+ -- Borge Moe <borge.moe@met.no>  Tue, 20 Apr 2016 07:00:00 +0100
+
 metno-wdb2ts (1.3.21-1) unstable; urgency=low
   * New release, no changes since last rc.
   * Fix T1901: Include both endpoints in the computation of min/max temperatures.
