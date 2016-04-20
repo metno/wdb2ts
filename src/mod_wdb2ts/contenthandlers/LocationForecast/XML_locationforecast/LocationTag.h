@@ -69,9 +69,12 @@ public:
 		
 	//	out.setf(std::ios::floatfield, std::ios::fixed);
 		out.precision(4);
+		out << indent << "<location ";
 		
-		out << indent << "<location altitude=\"" <<  alt << "\" " 
-		    << "latitude=\"" <<  lat << "\" "
+		if( alt != INT_MIN )
+			out << "altitude=\"" <<  alt << "\" ";
+
+		out << "latitude=\"" <<  lat << "\" "
 		    << "longitude=\"" << lon << "\">\n";
 		
 		out.precision( oldPrec );
