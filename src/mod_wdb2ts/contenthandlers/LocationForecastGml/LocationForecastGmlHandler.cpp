@@ -477,6 +477,7 @@ get( webfw::Request  &req,
 		return;
 	}
 
+	webQuery.setFromTimeIfNotSet(3600);
    ConfigDataPtr configData( new ConfigData() );
    configData->url = webQuery.urlQuery();
    configData->parameterMap = outputParams;

@@ -488,7 +488,7 @@ get( webfw::Request  &req,
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery(), req.urlPath() );
 		altitude = webQuery.altitude();
-		webQuery.setFromIfNotSet(modelResolution);
+		webQuery.setFromTimeIfNotSet(modelResolution);
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {

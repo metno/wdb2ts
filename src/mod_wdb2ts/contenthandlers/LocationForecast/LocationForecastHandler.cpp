@@ -485,11 +485,13 @@ get( webfw::Request  &req,
 		response.status( webfw::Response::INVALID_QUERY );
 		return;
 	}
+	webQuery.setFromTimeIfNotSet(3600);
 
 	ConfigDataPtr configData( new ConfigData() );
 	configData->url = webQuery.urlQuery();
 	configData->parameterMap = doNotOutputParams;
 	configData->throwNoData = noDataResponse.doThrow();
+
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
