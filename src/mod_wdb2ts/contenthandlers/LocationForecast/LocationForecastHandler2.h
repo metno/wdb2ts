@@ -145,6 +145,7 @@ private:
    OutputParams        doNotOutputParams;
    NoDataResponse      noDataResponse;
    wdb2ts::qmaker::QueryMakerPtr queryMaker;
+   int modelResolution;
 
    boost::mutex        mutex; 
       

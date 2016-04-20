@@ -40,6 +40,9 @@ namespace wdb2ts {
 miutil::EnableTimePeriod
 configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf );
 
+int
+configModelResolution( const wdb2ts::config::ActionParam &conf, int defaultResolutionInSeconds=3600 );
+
 
 struct NoDataResponse {
     typedef enum{ NotDefined,ServiceUnavailable, NotFound } ENoDataResponse;

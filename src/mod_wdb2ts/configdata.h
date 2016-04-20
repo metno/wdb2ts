@@ -43,6 +43,8 @@ struct ConfigData {
    bool throwNoData;
    std::string requestedProvider;
    miutil::EnableTimePeriod thunder;
+   int modelTimeResolution;
+
 
    ConfigData();
    bool outputParam( const std::string &param )const;

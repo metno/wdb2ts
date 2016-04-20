@@ -63,6 +63,29 @@ configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf )
 	return thunder;
 }
 
+int
+configModelResolution(const wdb2ts::config::ActionParam &conf, int defaultResolutionInSeconds){
+	WEBFW_USE_LOGGER( "handler" );
+	wdb2ts::config::ActionParam::const_iterator it=conf.find("model_resolution");
+
+	int res = defaultResolutionInSeconds;
+
+	if( it == conf.end() ) {
+		WEBFW_LOG_INFO("Config: No specification for 'model_resolution'. Using default:" << defaultResolutionInSeconds << " seconds.");
+		return defaultResolutionInSeconds;
+	}
+	try {
+		res = it->second.asInt();
+	}
+	catch( const std::exception &ex ) {
+		WEBFW_LOG_ERROR("Config: Failed to read 'model_resolution'. " << ex.what() << ". Using default:" << defaultResolutionInSeconds << " seconds.");
+	}
+
+	WEBFW_LOG_INFO("Config: 'model_resolution': " << res);
+	return res;
+}
+
+
 NoDataResponse
 NoDataResponse::
 decode( const wdb2ts::config::ActionParam &conf )

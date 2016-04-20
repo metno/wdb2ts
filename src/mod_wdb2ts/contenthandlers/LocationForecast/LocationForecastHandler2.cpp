@@ -81,7 +81,8 @@ LocationForecastHandler2()
       providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
 	  precipitationConfig( 0 ),
-	  expireRand( 120 )
+	  expireRand( 120 ),
+	  modelResolution(3600)
 {
 	// NOOP
 }
@@ -96,7 +97,8 @@ LocationForecastHandler2( int major, int minor, const std::string &note_ )
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
 	  wciProtocolIsInitialized( false ),
-	  expireRand( 120 )
+	  expireRand( 120 ),
+	  modelResolution(3600)
 {
 	if( ! note.empty() ) {
 		int n;
@@ -280,6 +282,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
 	doNotOutputParams = OutputParams::decodeOutputParams( params );
 	thunderInSymbols = wdb2ts::configEnableThunderInSymbols( params );
+	modelResolution = wdb2ts::configModelResolution(params);
 
 	return true;
 }
@@ -469,7 +472,7 @@ get( webfw::Request  &req,
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
 	WebQuery            webQuery;
-	ParamDefListPtr     paramDefsPtr
+	ParamDefListPtr     paramDefsPtr;
 
 	// Initialize Profile
 	INIT_MI_PROFILE(100);
@@ -479,13 +482,13 @@ get( webfw::Request  &req,
 	ost << endl << "URL:   " << req.urlPath() << endl 
 	    << "Query: " << req.urlQuery() << " subversion: " << subversion << endl;
 
-	//cerr << ost.str() <<"\n";
 	WEBFW_LOG_DEBUG( ost.str() );
 
 	try { 
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery(), req.urlPath() );
 		altitude = webQuery.altitude();
+		webQuery.setFromIfNotSet(modelResolution);
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {
@@ -511,6 +514,7 @@ get( webfw::Request  &req,
 	configData->throwNoData = noDataResponse.doThrow();
 	configData->requestedProvider = webQuery.dataprovider();
 	configData->thunder = thunderInSymbols;
+	configData->modelTimeResolution=modelResolution;
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
