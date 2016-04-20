@@ -349,7 +349,7 @@ public:
 	
 	void symbolprovider(const std::string &provider ){ symbolProvider = provider; }
 	void symbolProbabilityprovider(const std::string &provider ){  symbolProbabilityProvider = provider; }
-	void forecastprovider( const std::string &provider ) { forecastProvider=provider; }
+	void forecastprovider( const std::string &provider ) { if( ! provider.empty() ) forecastProvider=provider; }
 
 	float computeTempCorrection( const std::string &provider, int &relTopo, int &modelTopo  )const;
 	

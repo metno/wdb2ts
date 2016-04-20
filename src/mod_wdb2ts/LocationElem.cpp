@@ -427,6 +427,9 @@ temperatureCorrected( float temperature, const std::string &provider_, bool all 
 	string provider(provider_);
 	WEBFW_USE_LOGGER( "encode" );
 
+	if( temperature == FLT_MAX )
+		return;
+
 	if( provider.empty() && ! all ) {
 		if( forecastProvider.empty() )
 			return;
@@ -1143,6 +1146,10 @@ dewPointTemperature( float usedTemperature, bool tryHard )const
 {
 	RestoreForecastProvider restoreForecastProvider( const_cast<LocationElem*>(this) );
 	float modelTemp;
+
+	if( usedTemperature == FLT_MAX )
+		return FLT_MAX;
+
 	float dewTemp = miutil::dewPointTemperature( usedTemperature, RH2MFromModel( tryHard ) );;
 
 	if( dewTemp != FLT_MAX )
