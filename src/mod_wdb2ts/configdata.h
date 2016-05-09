@@ -29,7 +29,9 @@
 #ifndef __CONFIGDATA_H__
 #define __CONFIGDATA_H__
 
+#include <time.h>
 #include <string>
+#include <iostream>
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include "EnableTimePeriod.h"
@@ -37,14 +39,31 @@
 
 namespace wdb2ts {
 
+struct ExpireConfig {
+	typedef enum { Now, NearestModelTimeResolution }Reference;
+	Reference ref_;
+	int modelTimeResolution_;
+	int expireRand_;
+	int expire_;
+	mutable unsigned int seed_;
+	ExpireConfig( const Reference &ref, int modelResolutionInSeconds, int randOffset, int expire):
+		ref_(ref), modelTimeResolution_( modelResolutionInSeconds), expireRand_(randOffset),
+		expire_(expire), seed_(time(0)){}
+	ExpireConfig():ref_(NearestModelTimeResolution),modelTimeResolution_(3600),expireRand_(0),expire_(0),seed_(time(0)){}
+
+	boost::posix_time::ptime expire(const boost::posix_time::ptime &ref=boost::posix_time::second_clock::universal_time())const;
+	static ExpireConfig readConf(const wdb2ts::config::ActionParam &conf );
+	friend std::ostream &operator<<(std::ostream &o, const ExpireConfig &conf);
+};
+
 struct ConfigData {
+
    OutputParams parameterMap;
    std::string  url;
    bool throwNoData;
    std::string requestedProvider;
    miutil::EnableTimePeriod thunder;
-   int modelTimeResolution;
-
+   ExpireConfig expireConf;
 
    ConfigData();
    bool outputParam( const std::string &param )const;

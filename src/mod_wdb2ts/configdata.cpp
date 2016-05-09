@@ -25,11 +25,65 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
     MA  02110-1301, USA
 */
+#include <stdlib.h>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <configdata.h>
+#include <Logger4cpp.h>
 
 using namespace std;
+namespace pt=boost::posix_time;
 
 namespace wdb2ts {
+
+
+
+ExpireConfig ExpireConfig::readConf(const wdb2ts::config::ActionParam &conf ) {
+
+	Reference ref=Now;
+	int modelResolution = conf.get<int>("model_resolution", 3600);
+	int expire = conf.get<int>("expire", INT_MAX);
+	int expireRand = conf.get<int>("expire_rand", 0);
+
+	if( expire == INT_MAX )
+		ref=NearestModelTimeResolution;
+
+	return ExpireConfig( ref, modelResolution, expireRand, expire);
+}
+
+
+boost::posix_time::ptime
+ExpireConfig::expire(const boost::posix_time::ptime &ref)const
+{
+	using miutil::nearesTimeInTheFuture;
+	pt::ptime myExpire;
+
+	switch( ref_ ) {
+	case NearestModelTimeResolution:
+		myExpire=nearesTimeInTheFuture(modelTimeResolution_, ref);
+	break;
+
+	case Now:
+		myExpire=ref+pt::seconds(expire_);
+	break;
+	}
+
+ 	if( expireRand_ > 0)
+		myExpire += pt::seconds( rand_r( &seed_ ) % expireRand_ );
+
+ 	return myExpire;
+}
+
+std::ostream &operator<<(std::ostream &o, const ExpireConfig &conf) {
+	o << "ExpireConfig: Ref: ";
+	switch( conf.ref_ ) {
+		case ExpireConfig::NearestModelTimeResolution: o << "NearestModelTimeResolution"; break;
+		case ExpireConfig::Now: o << "Now"; break;
+	}
+
+	o << " model_resolution: " << conf.modelTimeResolution_ << " expire_rand: " << conf.expireRand_
+	  << " expire: " << conf.expire_;
+	return o;
+}
 
 ConfigData::
 ConfigData()

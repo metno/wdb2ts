@@ -75,7 +75,7 @@ configModelResolution(const wdb2ts::config::ActionParam &conf, int defaultResolu
 		return defaultResolutionInSeconds;
 	}
 	try {
-		res = it->second.asInt();
+		res = it->second.as<int>();
 	}
 	catch( const std::exception &ex ) {
 		WEBFW_LOG_ERROR("Config: Failed to read 'model_resolution'. " << ex.what() << ". Using default:" << defaultResolutionInSeconds << " seconds.");

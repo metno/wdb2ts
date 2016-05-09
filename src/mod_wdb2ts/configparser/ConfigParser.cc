@@ -431,7 +431,7 @@ doQueryDef( const AttributeMap &attributes )
 
 	try {
 		miutil::Value val( sParalell );
-		int n = val.asInt();
+		int n = val.as<int>();
 
 		if( n < 0 )
 			n = 1;
@@ -689,10 +689,10 @@ doLevelParameter( const AttributeMap &attributes )
 
 	try {
 		par="to"; parVal = to;
-		currentParamDef.levelTo = miutil::Value( to ).asInt();
+		currentParamDef.levelTo = miutil::Value( to ).as<int>();
 
 		par="from"; parVal = from;
-		currentParamDef.levelFrom = miutil::Value(from).asInt();
+		currentParamDef.levelFrom = miutil::Value(from).as<int>();
 	}
 	catch( std::exception & ex) {
 		error("ParamDef id: '"+currentParamDef.id.asString()+"' : levelparameter, invalid attribute value for '" + par + "' value '"
@@ -722,7 +722,7 @@ doValue(  const AttributeMap &attributes )
 	vOffset = offset;
 	
 	try {
-		currentParamDef.valueScale = vScale.asFloat();
+		currentParamDef.valueScale = vScale.as<float>();
 	}
 	catch( std::exception & ex) {
 		error("ParamDef id: '"+currentParamDef.id.asString()+"' : value element invalid attribute value scale '"+ scale + "' " + ex.what() +".");
@@ -730,7 +730,7 @@ doValue(  const AttributeMap &attributes )
 	}
 	
 	try {
-		currentParamDef.valueOffset = vOffset.asFloat();
+		currentParamDef.valueOffset = vOffset.as<float>();
 	}
 	catch( std::exception & ex) {
 		error("ParamDef id: '"+currentParamDef.id.asString()+"' : value element invalid attribute value offset '"+ offset + "' " + ex.what() +".");
@@ -768,7 +768,7 @@ doValue(  const AttributeMap &attributes )
 
 		try {
 			miutil::Value vNull( val ); 
-			currentParamDef.compareValue = vNull.asInt();
+			currentParamDef.compareValue = vNull.as<int>();
 		}
 		catch( std::exception & ex) {
 			error("ParamDef id: '"+currentParamDef.id.asString()+"' : value attribut 'null' value '" + val + "' not an integer!");
@@ -793,7 +793,7 @@ doDataVersion( const AttributeMap &attributes )
 	vValue = value;
 	
 	try {
-		currentParamDef.dataVersion = vValue.asInt();
+		currentParamDef.dataVersion = vValue.as<int>();
 	}
 	catch( std::exception & ex) {
 		error("ParamDef id: '"+currentParamDef.id.asString()+"' : dataversion element, invalid attribute version '"+ value + "' " + ex.what() +".");
