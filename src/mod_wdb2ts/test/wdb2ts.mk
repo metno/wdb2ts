@@ -19,7 +19,7 @@ wdb2TsUnitTest_SOURCES += 	src/mod_wdb2ts/test/UrlParamTest.cpp \
                      src/mod_wdb2ts/test/UpdateWebQueryTest.h\
                      src/mod_wdb2ts/test/UpdateWebQueryTest.cpp \
                      src/mod_wdb2ts/test/readcsv.h \
-                     src/mod_wdb2ts/test/readcsv.cpp
+                     src/mod_wdb2ts/test/readcsv.cpp 
 
 EXTRA_DIST +=				src/mod_wdb2ts/test/wdb2ts.mk \
 							src/mod_wdb2ts/test/Makefile.am \
