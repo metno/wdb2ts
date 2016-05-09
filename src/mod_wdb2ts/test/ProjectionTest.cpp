@@ -323,7 +323,7 @@ testAtThePoles()
 	dlon = 0;
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( obTran, dlat, dlon, dU, dV, dDD, dFF, false) );
-	CPPUNIT_ASSERT( equals( 257.696, dDD, 2 ) && equals(8.35785, dFF, 2) );
+	CPPUNIT_ASSERT( equals( 257.69, dDD, 2 ) && equals(8.35785, dFF, 2) );
 
 	CPPUNIT_ASSERT( geographic.convertToDirectionAndLength( lonLat, dlat, dlon, dU, dV, dDD, dFF, false) );
 	CPPUNIT_ASSERT( equals( 143.333, dDD, 2 ) && equals(8.35785, dFF, 2) );
