@@ -32,6 +32,7 @@
 #include <iostream>
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
 #include <stdexcept>
 
 
@@ -63,73 +64,64 @@ public:
 	Value& operator=( const boost::posix_time::ptime &pt );
 	
 	bool defined() const { return defined_; }
+
+	/**
+	 * Use as<type>(), where type is a numeric including float, double etc.
+	 *
+	 * @throw std::logic_error if the value is undefined or can't be  converted to
+	 *    type T.
+	 */
+	template <typename T>
+	T as()const {
+		if( !defined_)
+			throw std::logic_error("The value is undefined!");
+		try {
+			return boost::lexical_cast<T>(value_);
+		}
+		catch( const boost::bad_lexical_cast &ex ) {
+			throw std::logic_error(ex.what());
+		}
+	}
+
+	/**
+	 * Use getAs<type>(defValue), where type is a numeric including float, double etc.
+	 *
+	 * Return defValue if the value is undefuned or can't be converted to type T.
+	 */
+	template <typename T>
+	T as(const T &defaultValue)const{
+		try {
+			return as<T>();
+		}
+		catch( const std::exception &e /* ignored */) {
+			return defaultValue;
+		}
+	}
 	
 	/**
 	 * @throws std::logic_error if the this Value is undefined.
 	 */
 	std::string asString()const;
-	
+
+
 	/**
-	 * Return the defValue if the param dos not exist.
+	 * Return the defValue if the value does not exist.
 	 */
 	std::string asString( const std::string &defValue )const;
 	
-	/**
-	 * @throws std::logic_error if undefined.
-	 * @throws std::bad_cast if the param value can not be converted to 
-	 *     an float.
-	 */
-   float asFloat( )const;
-   
    /**
-    * Return the defValue if the param dos not exist.
-    * @throws std::bad_cast if the param value can not be converted to 
-    *     an float.
-    */
-   float asFloat( float defValue )const;
-
-	/**
-	 * @throws std::logic_error if undefined.
-	 * @throws std::bad_cast if the param value can not be converted to 
-	 *     an float.
-	 */
-   double asDouble( )const;
-   
-   /**
-    * Return the defValue if the param dos not exist.
-    * @throws std::bad_cast if the param value can not be converted to 
-    *     an float.
-    */
-   double asDouble( double defValue )const;
-   
-   /**
-    * Return the defValue if the param dos not exist.
-    * 
-  	 * @throws std::logic_error if undefined.
-  	 */
-   int asInt()const;
-   
-   /**
-    * Return the defValue if the param dos not exist.
-    * @throws std::logic_error if the param value can not be converted to 
-    */
-   int asInt(int defValue )const;
-  
-   /**
-  	 * @throws std::logic_error if undefined.
+  	 * @throws std::logic_error if undefined or can't be converted to ptime.
   	 */
    boost::posix_time::ptime asPTime( )const;
    
    /**
-    * Return the defValue if the param dos not exist.
-    * 
-    * @throws std::logic_error if the param value can not be converted to 
-    *     an ptime.
+    * Return the defValue if the value does not exist or can't be converted to ptime..
     */
    boost::posix_time::ptime asPTime( const boost::posix_time::ptime &defValue )const;
    
    friend std::ostream& operator<<(std::ostream& output, const Value& v);
 };
+
 
 std::ostream& operator<<(std::ostream& output, const Value& v);
 

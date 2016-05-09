@@ -94,7 +94,6 @@ Value::
 Value( const std::string &value )
 	:value_( value ), defined_(true)	
 {
-	
 }
 
 
@@ -154,13 +153,13 @@ operator=( const boost::posix_time::ptime &pt )
 	return *this;
 }
 
-std::string 
+std::string
 Value::
 asString( )const
 {
 	if( ! defined_ )
 		throw logic_error("Value is undefined.");
-	
+
 	return value_;
 }
 
@@ -171,122 +170,21 @@ asString( const std::string &defValue )const
 {
 	if( ! defined_ )
 		return defValue;
-		
+
 	return value_;
-	
+
 }
 
-float
-Value::
-asFloat( )const
-{
-	if( ! defined_ )
-		throw logic_error("Value is undefined.");
-			
-	try {
-		return boost::lexical_cast<float>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to float!");
-	}
-}
-
-
-float 
-Value::
-asFloat( float defValue )const
-{
-	if( ! defined_ )
-		return defValue;
-		
-	try {
-		if( value_.empty() )
-			return defValue;
-		
-		return boost::lexical_cast<float>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to float!");
-   }
-}
-
-double
-Value::
-asDouble( )const
-{
-	if( ! defined_ )
-		throw logic_error("Value is undefined.");
-			
-	try {
-		return boost::lexical_cast<double>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to double!");
-	}
-}
-
-
-double 
-Value::
-asDouble( double defValue )const
-{
-	if( ! defined_ )
-		return defValue;
-		
-	try {
-		if( value_.empty() )
-			return defValue;
-		
-		return boost::lexical_cast<double>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to double!");
-   }
-}
-
-int
-Value::
-asInt( )const
-{
-	if( ! defined_ )
-		throw logic_error("Value is undefined.");
-		
-	try {
-		return boost::lexical_cast<int>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to int!");
-   }
-}
-
-int
-Value::
-asInt( int defValue )const
-{
-	if( ! defined_ )
-		return defValue;
-	
-	try {
-		if( value_.empty() )
-			return defValue;
-	
-		return boost::lexical_cast<int>(value_);
-	}
-	catch( ... ) {
-		throw logic_error("Value '"+value_+"' not convertibel to int!");
-	}
-}
-
-boost::posix_time::ptime 
+boost::posix_time::ptime
 Value::
 asPTime( )const
 {
 	if( ! defined_ )
 		throw logic_error("Value is undefined.");
-	
+
 	if( value_.empty() )
 		throw logic_error("Value has no value.");
-	
+
 	try {
 		return miutil::ptimeFromIsoString( value_ );
 	}
@@ -310,6 +208,32 @@ asPTime( const boost::posix_time::ptime &defValue )const
 		return defValue;
 	}
 }
+
+
+
+/**
+ * Specializations for std::string and boost::posix_time::ptime.
+ */
+template <>
+std::string Value::as<std::string>()const {
+	return asString();
+}
+
+template <>
+std::string Value::as<std::string>(const std::string &defVal)const {
+	return asString(defVal);
+}
+
+template <>
+boost::posix_time::ptime Value::as<boost::posix_time::ptime>()const {
+	return asPTime();
+}
+
+template <>
+boost::posix_time::ptime Value::as<boost::posix_time::ptime>(const boost::posix_time::ptime &defVal)const {
+	return asPTime(defVal);
+}
+
 
 std::ostream& 
 operator<<(std::ostream& output, const Value& v)
