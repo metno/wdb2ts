@@ -225,7 +225,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	
 	if( it != params.end() )  {
 		try {
-			expireRand = it->second.asInt();
+			expireRand = it->second.as<int>();
 			expireRand = abs( expireRand );
 
 			WEBFW_LOG_DEBUG("Config: expire_rand: " << expireRand);

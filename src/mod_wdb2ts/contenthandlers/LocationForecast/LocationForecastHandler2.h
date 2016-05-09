@@ -141,11 +141,10 @@ private:
    ProviderPrecipitationConfig *precipitationConfig;
    bool                wciProtocolIsInitialized;
    int                 wciProtocol;
-   int                 expireRand; //Randomize the expire header. Default 120s.
    OutputParams        doNotOutputParams;
    NoDataResponse      noDataResponse;
    wdb2ts::qmaker::QueryMakerPtr queryMaker;
-   int modelResolution;
+   ExpireConfig        expireConfig;
 
    boost::mutex        mutex; 
       

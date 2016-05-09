@@ -142,8 +142,7 @@ EncodeLocationForecast4( LocationPointDataPtr locationPointData_,
                         const ProviderList &providerPriority_,
                         const TopoProviderMap &modelTopoProviders_,
                         const std::list<std::string> &topographyProviders_,
-                        const SymbolConfProvider &symbolConf_,
-                        int expire_rand )
+                        const SymbolConfProvider &symbolConf_)
    : locationPointData( locationPointData_ ), projectionHelper( projectionHelper_ ),
      longitude( longitude ), latitude( latitude ),
      altitude( altitude ), tempCorrection( 0.0 ), from( from ),
@@ -153,8 +152,7 @@ EncodeLocationForecast4( LocationPointDataPtr locationPointData_,
      modelTopoProviders( modelTopoProviders_),
      topographyProviders( topographyProviders_ ),
      symbolConf( symbolConf_ ),
-     expireRand( expire_rand ),
-     nElements( 0 )
+	  nElements( 0 )
 {
 }
 
@@ -728,12 +726,8 @@ encode(  webfw::Response &response )
  	
  	response.contentType("text/xml");
  	response.directOutput( true );
-   
-	expire = miutil::nearesTimeInTheFuture(config_->modelTimeResolution);
 
- 	if( expireRand > 0)
-		expire = expire + seconds( rand_r( &seed ) % expireRand );
-	
+ 	expire = config_->expireConf.expire();
 	
 	WEBFW_LOG_DEBUG( "encode: Number of locations: " << locationPointData->size() );
 
@@ -780,7 +774,7 @@ encode(  webfw::Response &response )
 		ost << metatemplate;
 
 		if( loglevel >= log4cpp::Priority::DEBUG )
-			ost << "<!-- from: " << from << " Expire: " << expire << " expireRand: " << expireRand << " res: " << config_->modelTimeResolution << "-->\n";
+			ost << "<!-- from: " << from << " Expire: " << expire << " [" << config_->expireConf << "] -->\n";
 
 		IndentLevel level2( indent );
 		ProductTag productTag;
@@ -788,7 +782,6 @@ encode(  webfw::Response &response )
 		
 		encodeMoment(  from, ost, indent );
 		encodePrecipitationPercentiles( from, ost, indent );
-
 	}
 
 	if( nElements == 0 ) {

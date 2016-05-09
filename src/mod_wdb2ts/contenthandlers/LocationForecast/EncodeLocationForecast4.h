@@ -112,8 +112,6 @@ class EncodeLocationForecast4 : public Encode
 	const SymbolConfProvider &symbolConf;
 
 
-	//Expire randomization.
-	int expireRand;
 	int nElements;
 
 	void encodePrecipitationPercentiles( const boost::posix_time::ptime &from, 
@@ -177,8 +175,7 @@ public:
 	                         const ProviderList &providerPriority,
 	                         const TopoProviderMap &modelTopoProviders,
 	                         const std::list<std::string> &topographyProviders,
-	                         const SymbolConfProvider &symbolConf,
-	                         int expire_rand
+	                         const SymbolConfProvider &symbolConf
 		                  );
 
 	

@@ -80,9 +80,7 @@ LocationForecastHandler2()
 	  noteIsUpdated( false ),
       providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false), 
-	  precipitationConfig( 0 ),
-	  expireRand( 120 ),
-	  modelResolution(3600)
+	  precipitationConfig( 0 )
 {
 	// NOOP
 }
@@ -96,9 +94,7 @@ LocationForecastHandler2( int major, int minor, const std::string &note_ )
 	  providerPriorityIsInitialized( false ),
 	  projectionHelperIsInitialized( false ), 
 	  precipitationConfig( 0 ),
-	  wciProtocolIsInitialized( false ),
-	  expireRand( 120 ),
-	  modelResolution(3600)
+	  wciProtocolIsInitialized( false )
 {
 	if( ! note.empty() ) {
 		int n;
@@ -226,27 +222,16 @@ configure( const wdb2ts::config::ActionParam &params,
 
 	WEBFW_USE_LOGGER( "handler" );
 	
-	wdb2ts::config::ActionParam::const_iterator it=params.find("expire_rand");
-	
-	if( it != params.end() )  {
-		try {
-			expireRand = it->second.asInt();
-			expireRand = abs( expireRand );
-
-			WEBFW_LOG_DEBUG("Config: expire_rand: " << expireRand);
-		}
-		catch( const std::logic_error &ex ) {
-			WEBFW_LOG_ERROR("expire_rand: not convertible to an int. Value given '" << ex.what() <<"'.");
-		}
+	expireConfig = ExpireConfig::readConf(params);
+	if( expireConfig.expireRand_ == INT_MAX) {
+		WEBFW_LOG_DEBUG("Config: expire_rand: " << expireConfig.expireRand_);
+	} else {
+		WEBFW_LOG_DEBUG("Config: expire_rand: undefined");
 	}
 	
 	noDataResponse = NoDataResponse::decode( params );
+	updateid=params.getStr("updateid", "");
 
-	it=params.find("updateid");
-	
-	if( it != params.end() )  
-		updateid = it->second.asString();
-	
 	symbolGenerator.readConf( app->getConfDir()+"/qbSymbols.def" );
 	
 	if( ! updateid.empty() ) {
@@ -254,12 +239,9 @@ configure( const wdb2ts::config::ActionParam &params,
 		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
 		noteHelper.addNoteListener( noteName, this );
 
-		wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
-
-		if( it != params.end() )
+		if( params.hasKey("provider_priority") )
 		   app->notes.setNote( updateid + ".LocationProviderPriority",
-		                       new NoteString( it->second.asString() ) );
-
+		                       new NoteString( params.getStr("provider_priority")));
 	}
 	
 	wdbDB = wdbDB_;
@@ -282,7 +264,6 @@ configure( const wdb2ts::config::ActionParam &params,
 	paramDefsPtr_->setProviderList( providerListFromConfig( params ).providerWithoutPlacename() );
 	doNotOutputParams = OutputParams::decodeOutputParams( params );
 	thunderInSymbols = wdb2ts::configEnableThunderInSymbols( params );
-	modelResolution = wdb2ts::configModelResolution(params);
 
 	return true;
 }
@@ -488,7 +469,7 @@ get( webfw::Request  &req,
 		MARK_ID_MI_PROFILE("decodeQuery");
 		webQuery = WebQuery::decodeQuery( req.urlQuery(), req.urlPath() );
 		altitude = webQuery.altitude();
-		webQuery.setFromTimeIfNotSet(modelResolution);
+		webQuery.setFromTimeIfNotSet(expireConfig.modelTimeResolution_);
 		MARK_ID_MI_PROFILE("decodeQuery");
 	}
 	catch( const std::exception &ex ) {
@@ -514,7 +495,7 @@ get( webfw::Request  &req,
 	configData->throwNoData = noDataResponse.doThrow();
 	configData->requestedProvider = webQuery.dataprovider();
 	configData->thunder = thunderInSymbols;
-	configData->modelTimeResolution=modelResolution;
+	configData->expireConf=expireConfig;
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
@@ -587,7 +568,7 @@ get( webfw::Request  &req,
 									       modelTopoProviders,
 									       topographyProviders,
 									       symbolConf,
-									       expireRand );
+									       expireConfig.expireRand_ );
 			encode.config( configData );
 			encode.schema( schema );
 			MARK_ID_MI_PROFILE("encodeXML");
@@ -606,7 +587,7 @@ get( webfw::Request  &req,
 									        modelTopoProviders,
 									        topographyProviders,
 									        symbolConf,
-									        expireRand );
+									        expireConfig.expireRand_ );
 		   encode.schema( schema );
 		   encode.config( configData );
 		   MARK_ID_MI_PROFILE("encodeXML");
@@ -625,7 +606,7 @@ get( webfw::Request  &req,
                                          modelTopoProviders,
                                          topographyProviders,
                                          symbolConf,
-                                         expireRand );
+                                         expireConfig.expireRand_ );
 		   encode.schema( schema );
 		   encode.config( configData );
 
@@ -644,8 +625,7 @@ get( webfw::Request  &req,
 	                                         providerPriority,
 	                                         modelTopoProviders,
 	                                         topographyProviders,
-	                                         symbolConf,
-	                                         expireRand );
+	                                         symbolConf);
 			   encode.schema( schema );
 			   encode.config( configData );
 
