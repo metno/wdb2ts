@@ -5,12 +5,21 @@
 #include <ptimeutil.h>
 #include "configTest.h"
 #include <src/mod_wdb2ts/configparser/RequestConf.h>
+#include <src/mod_wdb2ts/configdata.h>
 
 CPPUNIT_TEST_SUITE_REGISTRATION( ConfigTest );
 
 using namespace std;
 using namespace miutil;
 using namespace boost::posix_time;
+
+namespace {
+	ptime pts(const std::string &s){
+		ptime pt(time_from_string(s));
+		return pt;
+	}
+}
+
 
 void
 ConfigTest::
@@ -161,4 +170,62 @@ testTimePeriod()
    CPPUNIT_ASSERT_MESSAGE( "Timeperiod 7:11",
                            tpReftime.refto( time_from_string( "2011-05-12 12:00:00"), fromTime ) ==
                            time_from_string( "2011-05-12 12:00:00" )  );
+}
+
+void
+ConfigTest::testExpire(){
+	wdb2ts::config::ActionParam theConf;
+	ptime refTime(pts("2016-05-04 09:40:38"));
+
+	//Test default configuration.
+	// - ref is NearestModelTimeResolution
+	// - model_resolution = 3600 seconds
+	// - expire_rand = 0
+	// - expire is undef, ie INT_MAX
+	wdb2ts::ExpireConfig conf=wdb2ts::ExpireConfig::readConf(theConf);
+
+	CPPUNIT_ASSERT(conf.ref_ == wdb2ts::ExpireConfig::NearestModelTimeResolution);
+	CPPUNIT_ASSERT(conf.modelTimeResolution_ == 3600);
+	CPPUNIT_ASSERT(conf.expireRand_ == 0);
+	CPPUNIT_ASSERT(conf.expire_ == INT_MAX);
+	ptime expire = conf.expire(refTime);
+
+	CPPUNIT_ASSERT(expire == pts("2016-05-04 10:00:00"));
+
+	//Test that we get an random addition at most 120 seconds into the future from refTime
+	theConf["expire_rand"]=Value(120);
+	conf=wdb2ts::ExpireConfig::readConf(theConf);
+	CPPUNIT_ASSERT( conf.expireRand_==120);
+
+	for( int i=0; i<100; ++i) {
+		expire = conf.expire(refTime);
+		CPPUNIT_ASSERT( expire>=pts("2016-05-04 10:00:00") && expire<pts("2016-05-04 10:02:00"));
+	}
+
+	//Test clear the config and set a model_resolution to 450 seconds.
+	theConf.clear();
+	theConf["model_resolution"]=Value(450);
+
+	conf=wdb2ts::ExpireConfig::readConf(theConf);
+
+	CPPUNIT_ASSERT(conf.ref_ == wdb2ts::ExpireConfig::NearestModelTimeResolution);
+	CPPUNIT_ASSERT(conf.modelTimeResolution_ == 450);
+	CPPUNIT_ASSERT(conf.expireRand_ == 0);
+	CPPUNIT_ASSERT(conf.expire_ == INT_MAX);
+	expire = conf.expire(refTime);
+
+	CPPUNIT_ASSERT(expire == pts("2016-05-04 09:45:00"));
+
+	//Test expire, the reference should be set to Now and expire should be
+	//refTime + conf.expire_
+	theConf["expire"]=Value(60);
+	conf=wdb2ts::ExpireConfig::readConf(theConf);
+	CPPUNIT_ASSERT(conf.ref_ == wdb2ts::ExpireConfig::Now);
+	CPPUNIT_ASSERT(conf.expire_ == 60);
+	CPPUNIT_ASSERT(conf.modelTimeResolution_ == 450);
+	CPPUNIT_ASSERT(conf.expireRand_ == 0);
+
+	expire = conf.expire(refTime);
+
+	CPPUNIT_ASSERT(expire == pts("2016-05-04 09:41:38"));
 }
