@@ -43,6 +43,31 @@ namespace {
 }
 
 
+std::string ActionParam::getStr(const std::string &key)const{
+	const_iterator it=find(key);
+
+	if( it == end() )
+		throw std::range_error("The key '"+key+"' do not exist in the configuration.");
+
+	return it->second.asString("");
+}
+
+
+std::string ActionParam::getStr(const std::string &key, const std::string &defaultValue)const{
+	try {
+		return getStr(key);
+	}
+	catch (const std::exception &e) {
+		return defaultValue;
+	}
+}
+
+bool ActionParam::hasKey(const std::string &key, bool valueMustBeDefined)const
+{
+	const_iterator it = find(key);
+	return it != end() && (valueMustBeDefined?it->second.defined():true);
+}
+
 void
 ParamDefConfig::
 clear()

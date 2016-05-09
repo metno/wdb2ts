@@ -32,6 +32,8 @@
 
 #include <limits.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
+#include <stdexcept>
 #include <string>
 #include <list>
 #include <map>
@@ -40,11 +42,44 @@
 #include <ParamDef.h>
 #include <NextRun.h>
 
+
 namespace wdb2ts {
 namespace config {
 
 
-typedef std::map<std::string, miutil::Value> ActionParam;
+class ActionParam : public std::map<std::string, miutil::Value>{
+public:
+	ActionParam(){}
+	~ActionParam(){}
+
+	/**
+	 * @throw std::range_error if the key do not exist.
+	 */
+	std::string getStr(const std::string &key)const;
+	std::string getStr(const std::string &key, const std::string &defaultValue)const;
+
+
+	/**
+	 * @throw std::range_error if the key do not exist.
+	 * @throw boost::bad_lexical_cast if the value can not be converted to T.
+	 */
+	template <typename T>
+	T get(const std::string &key)const{
+		return boost::lexical_cast<T>( getStr(key) );
+	}
+
+	template <typename T>
+	T get(const std::string &key, T defaultValue)const{
+		try {
+			return boost::lexical_cast<T>( getStr(key) );
+		}
+		catch( const std::exception &e) {
+			return defaultValue;
+		}
+	}
+
+	bool hasKey(const std::string &key, bool valueMustBeDefined=true)const;
+};
 
 struct ParamDef {
 	miutil::Value id;
