@@ -66,6 +66,7 @@ AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
 #-----------------------------------------------------------------------------
 # Source Makefiles
 #-----------------------------------------------------------------------------
+include src/pgconpool/wdb2ts.mk
 include src/miutil/wdb2ts.mk
 include src/util/wdb2ts.mk
 include src/tuple_container/wdb2ts.mk

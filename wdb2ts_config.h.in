@@ -24,6 +24,9 @@
 /* define if the Boost::System library is available */
 #undef HAVE_BOOST_SYSTEM
 
+/* define if the Boost::Thread library is available */
+#undef HAVE_BOOST_THREAD
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H

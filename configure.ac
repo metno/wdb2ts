@@ -45,6 +45,7 @@ test_subdirs="	test/unit \
 # Build Directories
 # - All directories that building can occur in
 build_subdirs=" src/tuple_container \
+            src/pgconpool \
          	src/mod_wdb2ts/WciWebQuery \
 				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 				src/mod_wdb2ts \
@@ -129,7 +130,9 @@ AX_BOOST_REGEX
 AX_BOOST_FILESYSTEM
 
 #pgconpool
-PGCONPOOL_CHECK
+PKG_CHECK_MODULES(pqxx, libpqxx)
+CPPFLAGS="$pqxx_CFLAGS $CPPFLAGS"
+LDFLAGS="$pqxx_LIBS $LDFLAGS"
 
 
 #libcurl

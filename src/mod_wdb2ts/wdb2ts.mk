@@ -166,6 +166,7 @@ mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 						     -export-dynamic      \
 							 -module              \
 							 -avoid-version
+							 $(LDFLAGS)
 								
 mod_metno_wdb2ts_la_LIBADD= \
                         -lwebFW  \
@@ -175,7 +176,8 @@ mod_metno_wdb2ts_la_LIBADD= \
                     	   -lwdb2ts \
                     	   -lmiutil \
                     	   -ltuplecontainer \
-                    	   -lgfortran
+                    	   -lpgconpool \
+                    	   -lgfortran 
 
 noinst_PROGRAMS+= TestWdb2Ts
 
@@ -189,7 +191,9 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 					-lmiutil \
 					$(LIBPQXX_LIBS) \
 					-ltuplecontainer \
-					-lgfortran
+					-lpgconpool \
+					-lgfortran \
+					$(LDFLAGS)
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \
