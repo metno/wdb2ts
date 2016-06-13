@@ -618,6 +618,14 @@ encodeMeta( std::string &result )
 		     ++it )
 		{
 			itMeta = metaConf.find( it->provider );
+			termin = boost::posix_time::ptime(); //Undef
+			runEnded = boost::posix_time::ptime(); //Undef
+			itRefTime = refTimes->find( it->provider );
+
+			if( itRefTime != refTimes->end() ) {
+				termin = itRefTime->second.refTime;
+				runEnded = itRefTime->second.updatedTime;
+			}
 			
 			//Try to find the provider part of the provider. Remember
 			//a provider string may be on the form 'provider [placename]'.
@@ -635,18 +643,9 @@ encodeMeta( std::string &result )
 				if( name.empty() )
 					name = it->provider;
 				
-				nextrun = itMeta->second.findNextrun();
+				nextrun = itMeta->second.findNextrun(runEnded);
 			}
-			
-			termin = boost::posix_time::ptime(); //Undef
-			runEnded = boost::posix_time::ptime(); //Undef
-			itRefTime = refTimes->find( it->provider );
-			
-			if( itRefTime != refTimes->end() ) { 
-				termin = itRefTime->second.refTime;
-				runEnded = itRefTime->second.updatedTime;
-			}
-			
+
 			ost << level3.indent() << "<model name=\"" << name <<"\"";
 			
 			if( ! termin.is_special() )

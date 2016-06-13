@@ -33,28 +33,42 @@
 #include <stdio.h>
 #include <ProviderList.h>
 #include <Logger4cpp.h>
+#include <boost/regex.hpp>
+
+
+namespace b=boost;
 
 namespace wdb2ts {
 
 using namespace boost::posix_time;
 using namespace std;
 
-	
+namespace {
+boost::posix_time::ptime nowTime__;
+string rRelativeToLoadtime=" *\\+?(\\d+)";
+string rEvery=" *(\\*|\\d+)/(\\d+)";
+}
+
+void MetaModelConf::setNowTimeForTest(const boost::posix_time::ptime &nowTime)
+{
+	nowTime__=nowTime;
+}
 
 MetaModelConf::
 MetaModelConf()
+	:specType(Undefined)
 {
 }
 
 MetaModelConf::
 MetaModelConf( const std::string &name )
-	: name_( name )
+	: name_( name ), specType(Undefined)
 {
 }
 
 MetaModelConf::
 MetaModelConf( const MetaModelConf &m )
-	: name_( m.name_ ), nextrun_( m.nextrun_ )
+	: name_( m.name_ ), specType(m.specType), nextrun_( m.nextrun_ )
 {
 }
 	
@@ -64,6 +78,7 @@ operator=( const MetaModelConf &rhs )
 {
 	if( this != &rhs ) {
 		name_ = rhs.name_;
+		specType = rhs.specType;
 		nextrun_ = rhs.nextrun_;
 	}
 	
@@ -73,29 +88,39 @@ operator=( const MetaModelConf &rhs )
 	
 boost::posix_time::ptime
 MetaModelConf::
-findNextrun()const
+findNextrun(const boost::posix_time::ptime &refTime)const
 {
-	ptime now( second_clock::universal_time() );
+	ptime now( (nowTime__.is_special()?second_clock::universal_time():nowTime__) );
 	ptime midnight( now.date(), time_duration(0, 0, 0, 0) );
 	time_duration tdNow( now.time_of_day() );
 	
+
 	if( nextrun_.empty() )
 		return ptime(); //Udefined.
 	
-	TimeDurationList::const_iterator it=nextrun_.begin();
-	for( ; it != nextrun_.end() && *it < tdNow ; ++it ); 
-		
-	if( it == nextrun_.end() ) {
-		midnight += hours( 24 ); //next day
-		it = nextrun_.begin();
+	if( specType==Absolute) {
+		TimeDurationList::const_iterator it=nextrun_.begin();
+		for( ; it != nextrun_.end() && *it < tdNow ; ++it );
+
+		if( it == nextrun_.end() ) {
+			midnight += hours( 24 ); //next day
+			it = nextrun_.begin();
+		}
+
+		return midnight + *it;
+	} else if( specType == RelativeToLoadTime ){
+		if( refTime.is_special() || nextrun_.empty())
+			return ptime();  // undefined
+
+		return refTime + (*nextrun_.begin());
+	} else {
+		return ptime();  // Undefined
 	}
-	
-	return midnight + *it;
 }
 
 void 
 MetaModelConf::
-addTimeDuration( const boost::posix_time::time_duration &td )
+addTimeDuration( const boost::posix_time::time_duration &td, MetaModelConf::SpecType specType)
 {
 	TimeDurationList::iterator it=nextrun_.begin();
 	
@@ -123,17 +148,65 @@ isnumber( const std::string &val )
 	return true;
 }
 
+MetaModelConf::SpecType
+MetaModelConf::parseNextrun1( const std::string &val )
+{
+	boost::regex reRelativToReftime( rRelativeToLoadtime, boost::regex::perl|boost::regex::icase );
+	boost::regex reEvery( rEvery, boost::regex::perl|boost::regex::icase );
+	boost::smatch match;
+
+	if( b::regex_match( val, match, reRelativToReftime) ) {
+		addTimeDuration( b::posix_time::seconds(b::lexical_cast<int>(match[1])));
+		return RelativeToLoadTime;
+	} else if( b::regex_match( val, match, reEvery) ) {
+		int offset=0;
+		int every=b::lexical_cast<int>(match[2]);
+
+		if(string(match[1])[0]!='*')
+			offset=b::lexical_cast<int>(match[1]);
+		for(int i=offset; i<86400; i+=every)
+			addTimeDuration(b::posix_time::seconds(i));
+
+		return Absolute;
+	} else {
+		return Error;
+	}
+}
+
+MetaModelConf::SpecType
+MetaModelConf::parseNextrun2( const std::string &val1, const std::string &val2 )
+{
+	using namespace miutil;
+	string sHH(val1), sMM(val2);
+	int h, m;
+	trimstr( sHH );
+	trimstr( sMM );
+
+	if( sHH.empty() || sMM.empty() )
+		return Error;
+
+	if( ! isnumber( sHH ) || ! isnumber( sMM ) )
+		return Error;
+
+
+	if( sscanf( sHH.c_str(), "%d", &h) != 1 )
+		return Error;
+
+	if( sscanf( sMM.c_str(), "%d", &m) != 1 )
+		return Error;
+
+	addTimeDuration( time_duration( h, m, 0, 0) );
+
+	return Absolute;
+}
 
 bool
 MetaModelConf::
 parseNextrun( const std::string &val_ )
 {
 	using namespace miutil;
-	
-	string sHH, sMM;
-	string val;
-	int h, m;	
-	
+	WEBFW_USE_LOGGER( "main" );
+	SpecType spec;
 	vector<string> keyvals = splitstr( val_, ',' );
 	
 	for( vector<string>::iterator it = keyvals.begin(); 
@@ -141,31 +214,30 @@ parseNextrun( const std::string &val_ )
         ++it )
 	{
 		vector<string> timeDurationList = splitstr( *it, ':' );
-		
-		if( timeDurationList.size() != 2 )
-					continue;
-				
-		sHH = timeDurationList[0]; 
-		sMM = timeDurationList[1]; 
-		trimstr( sHH );
-		trimstr( sMM );
-
-		if( sHH.empty() || sMM.empty() )
+		if( timeDurationList.size() == 2 )
+			spec=parseNextrun2(timeDurationList[0], timeDurationList[1]);
+		else if( timeDurationList.size() == 1 )
+			spec=parseNextrun1(timeDurationList[0]);
+		else {
 			continue;
+		}
 
-		if( ! isnumber( sHH ) || ! isnumber( sMM ) )
+
+		if( spec==Error) {
+			WEBFW_LOG_ERROR( "meta-model: Spec type: 'HH:MM' can not be mixed with '+ss' or '*/ss'. (" << val_ << ")." );
 			return false;
-		
-		
-		if( sscanf( sHH.c_str(), "%d", &h) != 1 )
+		}
+
+		if( specType==Undefined)
+			specType = spec;
+		else if( specType == Absolute && spec != specType) {
+			WEBFW_LOG_ERROR( "meta-model: Spec type: 'HH:MM' can not be mixed with '+ss' or '*/ss'. (" << val_ << ")." );
 			return false;
-		
-		if( sscanf( sMM.c_str(), "%d", &m) != 1 )
+		} else if( specType == RelativeToLoadTime ) {
+			WEBFW_LOG_ERROR( "meta-model: Spec type: 'HH:MM' can not be mixed with '+ss' or '*/ss'. (" << val_ << ")." );
 			return false;
-		
-		addTimeDuration( time_duration( h, m, 0, 0) );
+		}
 	}
-	
 	return true;
 }
 
@@ -271,6 +343,16 @@ operator<<( std::ostream &o, const MetaModelConf &c )
 	return o;
 }
 
-
+std::ostream& operator<<( std::ostream &o, const MetaModelConf::SpecType c ){
+	switch(c) {
+	case MetaModelConf::Error: o << "Error"; break;
+	case MetaModelConf::Undefined: o << "Undefined"; break;
+	case MetaModelConf::Absolute: o << "Absolute"; break;
+	case MetaModelConf::RelativeToLoadTime: o << "RelativeToLoadTime"; break;
+	default:
+		o << "<Unknown>";
+	}
+	return o;
+}
 }
 

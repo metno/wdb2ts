@@ -49,11 +49,15 @@ class MetaModelConf
 {
 	std::string name_;	
 	
+	typedef enum  {Error, Undefined, Absolute, RelativeToLoadTime} SpecType;
+	SpecType specType;
 	///Sorted list of time_durations.
 	TimeDurationList nextrun_; 
 	
 	bool isnumber( const std::string &val );
 	bool parseNextrun( const std::string &val );
+	SpecType parseNextrun1( const std::string &val );
+	SpecType parseNextrun2( const std::string &val1, const std::string &val2 );
 
 public:
 	MetaModelConf();
@@ -70,10 +74,14 @@ public:
 
 	std::string name()const { return name_; }
 	TimeDurationList nextrun() const { return nextrun_; }
-	boost::posix_time::ptime findNextrun()const;
-	void addTimeDuration( const boost::posix_time::time_duration &td );
+	boost::posix_time::ptime findNextrun(const boost::posix_time::ptime &refTime=boost::posix_time::ptime() )const;
+	void addTimeDuration( const boost::posix_time::time_duration &td, MetaModelConf::SpecType specType=MetaModelConf::Absolute );
 	
 	friend std::ostream& operator<<( std::ostream &o, const MetaModelConf &c );
+	friend std::ostream& operator<<( std::ostream &o, const MetaModelConf::SpecType c );
+
+	///Only used for testing;
+	static void setNowTimeForTest(const boost::posix_time::ptime &nowTime);
 };
 
 typedef std::map<std::string, MetaModelConf > MetaModelConfList;
@@ -84,6 +92,9 @@ configureMetaModelConf( const wdb2ts::config::ActionParam &params );
 
 std::ostream& 
 operator<<( std::ostream &o, const MetaModelConf &c );
+
+std::ostream&
+operator<<( std::ostream &o, const MetaModelConf::SpecType c);
 
 
 }

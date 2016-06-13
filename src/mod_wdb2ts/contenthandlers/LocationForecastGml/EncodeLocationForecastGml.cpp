@@ -839,6 +839,7 @@ encodeMeta( std::string &result )
 	string name;
 	boost::posix_time::ptime nextrun;
 	boost::posix_time::ptime termin;
+	boost::posix_time::ptime endTime;
 	ostringstream ost;
 	
 	
@@ -860,6 +861,14 @@ encodeMeta( std::string &result )
 		     ++it )
 		{
 			itMeta = metaConf.find( it->provider );
+			termin = boost::posix_time::ptime(); //Undef
+			endTime = boost::posix_time::ptime(); //Undef
+			itRefTime = refTimes->find( it->provider );
+
+			if( itRefTime != refTimes->end() ) {
+				termin = itRefTime->second.refTime;
+				endTime = itRefTime->second.updatedTime;
+			}
 			
 			if( itMeta == metaConf.end() ) {
 				name = it->provider;
@@ -870,14 +879,8 @@ encodeMeta( std::string &result )
 				if( name.empty() )
 					name = it->provider;
 				
-				nextrun = itMeta->second.findNextrun();
+				nextrun = itMeta->second.findNextrun(endTime);
 			}
-			
-			termin = boost::posix_time::ptime(); //Undef
-			itRefTime = refTimes->find( it->provider );
-			
-			if( itRefTime != refTimes->end() ) 
-				termin = itRefTime->second.refTime;
 			
 			ost << level3.indent() << "<model name=\"" << name <<"\"";
 			

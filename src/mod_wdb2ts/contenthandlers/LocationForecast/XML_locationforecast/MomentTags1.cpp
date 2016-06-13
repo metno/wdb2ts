@@ -340,6 +340,8 @@ output( std::ostream &out, const std::string &indent )
 
 	value = pd->precipIntensity(true);
 	if( value != FLT_MAX ) {
+		if( value < 0.1 )
+			value = 0;
 		nForecast++;
 		tmpout << indent
 				<< "<precipitation unit=\"mm/h\" value=\"" << value << "\"/>\n";
