@@ -16,6 +16,8 @@ using namespace std;
 namespace ma = miutil::algorithm;
 namespace {
 
+const float THUNDER_LIMIT=0.1;
+
 struct MyFactories
 {
 	weather_symbol::Factory *factories[6];
@@ -386,7 +388,7 @@ SymbolDataElement computeBaseWeatherSymbolData( WeatherSymbolDataBuffer &data,
 	wd.mediumCloudCover = mediumCloud.avg( FLT_MAX );
 	wd.lowCloudCover = lowCloud.avg( FLT_MAX );
 	wd.precipitation = precip.sum( FLT_MAX );
-	wd.thunder = thunder.max( 0 ) > 0.05;
+	wd.thunder = thunder.max( 0 ) > THUNDER_LIMIT;
 	wd.fog = fog.countAbove() >= possibleFogCount;
 	wd.from = slice.second->first - boost::posix_time::hours( hours );
 	wd.to = slice.second->first;
