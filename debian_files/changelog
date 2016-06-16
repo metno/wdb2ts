@@ -1,3 +1,9 @@
+metno-wdb2ts (1.3.24-1) unstable; urgency=low
+  * Do not log reprojection warnings if no data.
+  * Change thunder limit from 0.05 to 0.1. 
+  
+ -- Borge Moe <borge.moe@met.no>  Thu, 16 Jun 2016 11:00:00 +0100
+
 metno-wdb2ts (1.3.23-1) unstable; urgency=low
   * Fix rounding of precipitation intensity. 
   
