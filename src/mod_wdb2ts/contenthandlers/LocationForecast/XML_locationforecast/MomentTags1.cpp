@@ -214,23 +214,26 @@ output( std::ostream &out, const std::string &indent )
 	symData->wetBulbTemperature = pd->wetBulbTemperature();
 
 	if( projectionHelper ){
-		if( projectionHelper->convertToDirectionAndLength( provider,
-				pd->latitude(), pd->longitude(), pd->windU10m( true ),
-				pd->windV10m(), dd, ff ) ){
-			if( dd != FLT_MAX && ff != FLT_MAX ){
-				tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
-						<< "\" " << "name=\"" << windDirectionName( dd )
-						<< "\"/>\n" << indent << "<windSpeed id=\"ff\" mps=\""
-						<< ff << "\" " << "beaufort=\""
-						<< toBeaufort( ff, description ) << "\" " << "name=\""
-						<< description << "\"/>\n";
+		float windU = pd->windU10m( true );
+		float windV = pd->windV10m();
+		if( windU != FLT_MAX && windV != FLT_MAX ){
+			if( projectionHelper->convertToDirectionAndLength( provider,
+					pd->latitude(), pd->longitude(), windU, windV, dd, ff ) ){
+				if( dd != FLT_MAX && ff != FLT_MAX ){
+					tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
+							<< "\" " << "name=\"" << windDirectionName( dd )
+							<< "\"/>\n" << indent << "<windSpeed id=\"ff\" mps=\""
+							<< ff << "\" " << "beaufort=\""
+							<< toBeaufort( ff, description ) << "\" " << "name=\""
+							<< description << "\"/>\n";
 
-				windProb = pd->WIND_PROBABILITY( true );
-				pd->forecastprovider( savedProvider ); //Reset the forecastprovider back to provider.
-				nForecast++;
+					windProb = pd->WIND_PROBABILITY( true );
+					pd->forecastprovider( savedProvider ); //Reset the forecastprovider back to provider.
+					nForecast++;
+				}
+			}else{
+				WEBFW_LOG_ERROR( "Failed to reproject the wind vectors." )
 			}
-		}else{
-			WEBFW_LOG_ERROR( "Failed to reproject the wind vectors." )
 		}
 	}
 
