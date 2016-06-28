@@ -47,39 +47,25 @@ namespace wdb2ts {
 
 class MomentTags1 : public IXmlTemplate
 {
+	MomentTags1( const MomentTags1 &);
+	MomentTags1& operator=(const MomentTags1 &);
+
 	LocationElem *pd;
 	SymbolDataElement *symData;
 	const ProjectionHelper *projectionHelper;
-	
+	bool isForecast;
 	void setPrecipitation();
 
 public:
-	MomentTags1():
-		pd(0), symData( &dummy ), projectionHelper( 0 ){
-	}
-	
-	MomentTags1( LocationElem &pointData,
-			    const ProjectionHelper *projectionHelper_ )
-		:  symData( &dummy ), projectionHelper( projectionHelper_ )
-		{
-			init( pointData );
-		}
 
 	MomentTags1( LocationElem &pointData,
 				SymbolDataElement &symData_,
-				const ProjectionHelper *projectionHelper_ )
-			:  symData( &symData_ ), projectionHelper( projectionHelper_ )
+				const ProjectionHelper *projectionHelper_, bool isForecast_ )
+			:  symData( &symData_ ), projectionHelper( projectionHelper_ ),
+				isForecast( isForecast_ )
 			{
 				init( pointData );
 			}
-
-
-	MomentTags1( LocationElem &pointData, SymbolDataElement &symData_ )
-			: symData( &symData_ ), projectionHelper( 0 )
-	{
-		init( pointData );
-	}
-
 	
 	virtual ~MomentTags1(){
 	}

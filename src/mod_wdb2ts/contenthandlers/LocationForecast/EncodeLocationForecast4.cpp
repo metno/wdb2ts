@@ -350,17 +350,13 @@ encodeMoment( const boost::posix_time::ptime &from,
 			     std::ostream &ost, 
 		        miutil::Indent &indent )
 {
-    WEBFW_USE_LOGGER( "encode" );
-    log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
+   WEBFW_USE_LOGGER( "encode" );
+   log4cpp::Priority::Value loglevel = WEBFW_GET_LOGLEVEL();
 
-    int countProviderChange=0; //used to stop endless loops.
-	CIProviderPDataList itPData;
-	CIFromTimeSerie itFromTimeserie;
+   int countProviderChange=0; //used to stop endless loops.
 	ostringstream tmpOst;
 	ostringstream momentOst;
 	WeatherSymbolDataBuffer symbolDataBuffer;
-	PrecipitationAggregations precipAggregates;
-	PrecipConfigElement precip;
 	SymbolConfList symbolConfList;
 	boost::posix_time::ptime dataFrom;
 	boost::posix_time::ptime currentTime;
@@ -393,6 +389,8 @@ encodeMoment( const boost::posix_time::ptime &from,
 		LocationElem &location = *locationData->next();
 		location.config = config_;
 		
+		//Just fill the buffer if the dataset is before, the currentFrom time,
+		//ie do not output the data.
 		if( currentTime >= currentFrom && ! momentOst.str().empty() ) {
 		   ++nElements;
 			ost << tmpOst.str();
@@ -413,7 +411,7 @@ encodeMoment( const boost::posix_time::ptime &from,
 			locationTag.output( tmpOst, level4.indent() );
 	
 			IndentLevel level5( indent );
-			MomentTags1 momentTags( location, symbolData, projectionHelper );
+			MomentTags1 momentTags( location, symbolData, projectionHelper, config_->isForecast );
 			momentTags.output( momentOst, level5.indent() );
 		
 			hasMomentData = false;

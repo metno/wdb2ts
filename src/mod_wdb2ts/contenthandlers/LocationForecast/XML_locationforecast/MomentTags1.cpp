@@ -217,7 +217,7 @@ output( std::ostream &out, const std::string &indent )
 		float windU = pd->windU10m( true );
 		float windV = pd->windV10m();
 		if( windU != FLT_MAX && windV != FLT_MAX ){
-			if( projectionHelper->convertToDirectionAndLength( provider,
+			if( projectionHelper->convertToDirectionAndLength( pd->forecastprovider(),
 					pd->latitude(), pd->longitude(), windU, windV, dd, ff ) ){
 				if( dd != FLT_MAX && ff != FLT_MAX ){
 					tmpout << indent << "<windDirection id=\"dd\" deg=\"" << dd
@@ -354,8 +354,12 @@ output( std::ostream &out, const std::string &indent )
 	out.precision( 1 );
 
 	//must have at least 1 elements.
-	if( nForecast > 0 )
-		out << tmpout.str();
+	if( nForecast > 0  ) {
+		//  We do not request precipitation in this method
+		//  so ignore it here, ie. symData->valid(true).
+		if( ! isForecast || (isForecast && symData->valid(true)))
+			out << tmpout.str();
+	}
 
 	//The forecastprovider may have changed. But as a hack we define
 	//the forecastprovider as the provider that has the temperature (TA) or
