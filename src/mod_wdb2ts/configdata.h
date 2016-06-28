@@ -64,6 +64,7 @@ struct ConfigData {
    std::string requestedProvider;
    miutil::EnableTimePeriod thunder;
    ExpireConfig expireConf;
+   bool isForecast;
 
    ConfigData();
    bool outputParam( const std::string &param )const;

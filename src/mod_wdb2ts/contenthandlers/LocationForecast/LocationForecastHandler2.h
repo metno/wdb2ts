@@ -145,6 +145,7 @@ private:
    NoDataResponse      noDataResponse;
    wdb2ts::qmaker::QueryMakerPtr queryMaker;
    ExpireConfig        expireConfig;
+   bool                isForecast;
 
    boost::mutex        mutex; 
       

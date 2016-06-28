@@ -87,7 +87,7 @@ std::ostream &operator<<(std::ostream &o, const ExpireConfig &conf) {
 
 ConfigData::
 ConfigData()
-    : throwNoData( false )
+    : throwNoData( false ),isForecast(true)
 {
 }
 

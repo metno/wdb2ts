@@ -254,7 +254,7 @@ configure( const wdb2ts::config::ActionParam &params,
 	topographyProviders = configureTopographyProvider( params );
 	nearestHeights = NearestHeight::configureNearestHeight( params );
 	nearestLands = NearestLand::configureNearestLand( params );
-
+	isForecast = configForcast( params );
 	configureSymbolconf( params, symbolConf_ );
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
 
@@ -496,6 +496,7 @@ get( webfw::Request  &req,
 	configData->requestedProvider = webQuery.dataprovider();
 	configData->thunder = thunderInSymbols;
 	configData->expireConf=expireConfig;
+	configData->isForecast = isForecast;
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
