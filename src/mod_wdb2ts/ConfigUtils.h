@@ -43,6 +43,7 @@ configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf );
 int
 configModelResolution( const wdb2ts::config::ActionParam &conf, int defaultResolutionInSeconds=3600 );
 
+bool configForcast( const wdb2ts::config::ActionParam &conf);
 
 struct NoDataResponse {
     typedef enum{ NotDefined,ServiceUnavailable, NotFound } ENoDataResponse;

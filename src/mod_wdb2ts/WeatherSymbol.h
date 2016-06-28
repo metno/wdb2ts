@@ -9,6 +9,7 @@
 #define __WEATHERSYMBOL_H__
 
 #include <map>
+#include <iostream>
 #include <float.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <weather_symbol/Factory.h>
@@ -40,10 +41,10 @@ struct SymbolDataElement: virtual public weather_symbol::WeatherData
 	{
 	}
 
-	bool valid() const
+	bool valid(bool ignorePrecipitation=false) const
 	{
-		return precipitation != FLT_MAX && totalCloudCover != FLT_MAX
-				&& temperature != FLT_MAX;
+		return (ignorePrecipitation || precipitation != FLT_MAX) && totalCloudCover != FLT_MAX
+						&& temperature != FLT_MAX;
 	}
 
 	int hours() const
