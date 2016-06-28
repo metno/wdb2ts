@@ -209,30 +209,61 @@ asPTime( const boost::posix_time::ptime &defValue )const
 	}
 }
 
+bool
+Value::asBool()const
+{
+	if( ! defined_ || value_.empty() )
+		throw logic_error("Value is undefined.");
 
-
-/**
- * Specializations for std::string and boost::posix_time::ptime.
- */
-template <>
-std::string Value::as<std::string>()const {
-	return asString();
+	return value_[0]=='t' || value_[0]=='T';
 }
 
-template <>
-std::string Value::as<std::string>(const std::string &defVal)const {
-	return asString(defVal);
+bool
+Value::asBool(bool defVal)const
+{
+	try {
+		return asBool();
+	}catch( const std::exception &x) {
+		return defVal;
+	}
 }
 
-template <>
-boost::posix_time::ptime Value::as<boost::posix_time::ptime>()const {
-	return asPTime();
-}
 
-template <>
-boost::posix_time::ptime Value::as<boost::posix_time::ptime>(const boost::posix_time::ptime &defVal)const {
-	return asPTime(defVal);
-}
+
+///**
+// * Specializations for std::string, boost::posix_time::ptime and bool.
+// */
+//template <>
+//std::string Value::as<std::string>()const {
+//	return asString();
+//}
+//
+//template <>
+//std::string Value::as<std::string>(const std::string &defVal)const {
+//	return asString(defVal);
+//}
+//
+//template <>
+//boost::posix_time::ptime Value::as<boost::posix_time::ptime>()const {
+//	return asPTime();
+//}
+//
+//template <>
+//boost::posix_time::ptime Value::as<boost::posix_time::ptime>(const boost::posix_time::ptime &defVal)const {
+//	return asPTime(defVal);
+//}
+//
+//template <>
+//bool Value::as<bool>( const bool &defVal) const {
+//	cerr << "\n\n\n     BIG BALA LALA BOM BOM BOM        \n\n\n";
+//	return asBool(defVal);
+//}
+//
+//template <>
+//bool Value::as<bool>()const {
+//	return asBool();
+//}
+
 
 
 std::ostream& 

@@ -115,12 +115,55 @@ public:
    boost::posix_time::ptime asPTime( )const;
    
    /**
-    * Return the defValue if the value does not exist or can't be converted to ptime..
+    * Return the defValue if the value does not exist or can't be converted to bool.
     */
    boost::posix_time::ptime asPTime( const boost::posix_time::ptime &defValue )const;
    
+   /**
+    * @throws std::logic_error if undefined or can't be converted to bool.
+    */
+   bool asBool()const;
+
+   /**
+    * Return the defValue if the value does not exist or can't be converted to bool.
+    */
+   bool asBool(bool defVal)const;
    friend std::ostream& operator<<(std::ostream& output, const Value& v);
 };
+
+
+/**
+ * Specializations for std::string, boost::posix_time::ptime and bool.
+ */
+template <>
+inline std::string Value::as<std::string>()const {
+	return asString();
+}
+
+template <>
+inline std::string Value::as<std::string>(const std::string &defVal)const {
+	return asString(defVal);
+}
+
+template <>
+inline boost::posix_time::ptime Value::as<boost::posix_time::ptime>()const {
+	return asPTime();
+}
+
+template <>
+inline boost::posix_time::ptime Value::as<boost::posix_time::ptime>(const boost::posix_time::ptime &defVal)const {
+	return asPTime(defVal);
+}
+
+template <>
+inline bool Value::as<bool>( const bool &defVal) const {
+	return asBool(defVal);
+}
+
+template <>
+inline bool Value::as<bool>()const {
+	return asBool();
+}
 
 
 std::ostream& operator<<(std::ostream& output, const Value& v);
