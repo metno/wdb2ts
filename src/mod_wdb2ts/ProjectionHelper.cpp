@@ -953,7 +953,7 @@ convertToDirectionAndLength( const std::string &provider,
 							  float u_, float v_,
 							  float &direction_, float &length_, bool turn )const
 {
-	if( u_ == FLT_MAX || v_ == FLT_MAX )
+	if( u_ == FLT_MAX || v_ == FLT_MAX || provider.empty())
 		return false;
 
 	double direction=direction_;
@@ -985,6 +985,7 @@ convertToDirectionAndLength( const std::string &provider,
 			//WEBFW_LOG_DEBUG( "ProjectionHelper::convertToDDandFF: DEBUG provider <" << provider << ">!" );
 		} else {
 			WEBFW_LOG_ERROR("No projection definition for provider <" << provider << ">!" );
+			return false;
 		}
 	} //End mutex protected scope.
 
