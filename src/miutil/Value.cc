@@ -229,43 +229,6 @@ Value::asBool(bool defVal)const
 }
 
 
-
-///**
-// * Specializations for std::string, boost::posix_time::ptime and bool.
-// */
-//template <>
-//std::string Value::as<std::string>()const {
-//	return asString();
-//}
-//
-//template <>
-//std::string Value::as<std::string>(const std::string &defVal)const {
-//	return asString(defVal);
-//}
-//
-//template <>
-//boost::posix_time::ptime Value::as<boost::posix_time::ptime>()const {
-//	return asPTime();
-//}
-//
-//template <>
-//boost::posix_time::ptime Value::as<boost::posix_time::ptime>(const boost::posix_time::ptime &defVal)const {
-//	return asPTime(defVal);
-//}
-//
-//template <>
-//bool Value::as<bool>( const bool &defVal) const {
-//	cerr << "\n\n\n     BIG BALA LALA BOM BOM BOM        \n\n\n";
-//	return asBool(defVal);
-//}
-//
-//template <>
-//bool Value::as<bool>()const {
-//	return asBool();
-//}
-
-
-
 std::ostream& 
 operator<<(std::ostream& output, const Value& v)
 {
