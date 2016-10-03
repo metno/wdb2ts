@@ -391,14 +391,6 @@ removeEmptyData( TimeSerie &ts );
 void
 removeEmptyData( LocationPointData &ts );
 
-std::string
-toBeaufort( float mps, std::string &description );
-
-std::string
-windDirectionName( float dd );
-
-std::string 
-symbolidToName( int id );
 
 
 

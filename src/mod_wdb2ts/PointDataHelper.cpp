@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <float.h>
+#include <math.h>
 #include <stlContainerUtil.h>
 #include <PointDataHelper.h>
 #include <ptimeutil.h>
@@ -585,86 +586,6 @@ int PData::count() const
 	return n;
 }
 
-std::string toBeaufort( float mps, std::string &description )
-{
-	float knop;
-
-	if( mps == FLT_MAX ){
-		description = "";
-		return "";
-	}
-
-	knop = mps * 1.94384449244;
-
-	if( knop < 1.0f ){
-		description = "Stille";
-		return "0";
-	}else if( knop >= 1.0f && knop < 4.0f ){
-		description = "Flau vind";
-		return "1";
-	}else if( knop >= 4.0f && knop < 7.0f ){
-		description = "Svak vind";
-		return "2";
-	}else if( knop >= 7.0f && knop < 11.0f ){
-		description = "Lett bris";
-		return "3";
-	}else if( knop >= 11.0f && knop < 17.0f ){
-		description = "Laber bris";
-		return "4";
-	}else if( knop >= 17.0f && knop < 22.0f ){
-		description = "Frisk bris";
-		return "5";
-	}else if( knop >= 22.0f && knop < 28.0f ){
-		description = "Liten kuling";
-		return "6";
-	}else if( knop >= 28.0f && knop < 34.0f ){
-		description = "Stiv kuling";
-		return "7";
-	}else if( knop >= 34.0f && knop < 41.0f ){
-		description = "Sterk kuling";
-		return "8";
-	}else if( knop >= 41.0f && knop < 48.0f ){
-		description = "Liten storm";
-		return "9";
-	}else if( knop >= 48.0f && knop < 56.0f ){
-		description = "Full storm";
-		return "10";
-	}else if( knop >= 56.0f && knop <= 63.0f ){
-		description = "Sterk storm";
-		return "11";
-	}else{
-		description = "Orkan";
-		return "12";
-	}
-
-	return description;
-}
-
-std::string windDirectionName( float dd )
-{
-	if( dd == FLT_MAX )
-		return "";
-
-	if( dd < 0 || dd > 360 )
-		dd = 360;
-
-	if( dd < 22.5 || dd >= 337.5 )
-		return "N";
-	else if( dd >= 22.5 && dd < 67.5 )
-		return "NE";
-	else if( dd >= 67.5 && dd < 112.5 )
-		return "E";
-	else if( dd >= 112.5 && dd < 157.5 )
-		return "SE";
-	else if( dd >= 157.5 && dd < 202.5 )
-		return "S";
-	else if( dd >= 202.5 && dd < 247.5 )
-		return "SW";
-	else if( dd >= 247.5 && dd < 292.5 )
-		return "W";
-	else
-		return "NW";
-}
 
 void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 		const ProviderRefTimeList &refTimeList, const pqxx::result &result,
@@ -1552,60 +1473,6 @@ float SetPDataHelper::get( const PData &data ) const
 	return FLT_MIN;
 }
 
-std::string symbolidToName( int id )
-{
-	if( id < 0 )
-		return "";
-
-	switch( id ){
-	case 1:
-	case 16:
-		return "SUN";
-	case 2:
-	case 17:
-		return "LIGHTCLOUD";
-	case 3:
-		return "PARTLYCLOUD";
-	case 4:
-		return "CLOUD";
-	case 5:
-		return "LIGHTRAINSUN";
-	case 18:
-		return "LIGHTRAINSUN";
-	case 6:
-		return "LIGHTRAINTHUNDERSUN";
-	case 7:
-		return "SLEETSUN";
-	case 8:
-		return "SNOWSUN";
-	case 9:
-		return "LIGHTRAIN";
-	case 10:
-		return "RAIN";
-	case 11:
-		return "RAINTHUNDER";
-	case 12:
-		return "SLEET";
-	case 13:
-		return "SNOW";
-	case 14:
-		return "SNOWTHUNDER";
-	case 15:
-		return "FOG";
-	case 19:
-		return "SNOWSUN";
-	case 20:
-		return "SLEETSUNTHUNDER";
-	case 21:
-		return "SNOWSUNTHUNDER";
-	case 22:
-		return "LIGHTRAINTHUNDER";
-	case 23:
-		return "SLEETTHUNDER";
-	default:
-		return "";         //Unknown symbol
-	}
-}
 
 std::ostream&
 operator<<( std::ostream &o, const TimeSerie &ts )
