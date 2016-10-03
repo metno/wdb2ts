@@ -36,6 +36,10 @@
 #include <Logger4cpp.h>
 #include <metfunctions.h>
 
+
+using miutil::windDirectionName;
+using miutil::toBeaufort;
+
 namespace wdb2ts {
 
 using namespace std;

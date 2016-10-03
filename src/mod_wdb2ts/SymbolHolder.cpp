@@ -35,6 +35,7 @@
 #include <SymbolGenerator.h>
 #include <Logger4cpp.h>
 #include <PointDataHelper.h>
+#include <metfunctions.h>
 
 using namespace std;
 
@@ -54,6 +55,8 @@ bool
 symbolHasThunder( const wdb2ts::SymbolHolder::SymbolRange &range );
 
 }
+
+using  miutil::symbolidToName;
 
 namespace wdb2ts {
 
