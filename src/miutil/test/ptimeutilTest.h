@@ -10,6 +10,7 @@ class PtimeUtilTest : public CppUnit::TestFixture
    CPPUNIT_TEST( testRFC1123 );
    CPPUNIT_TEST( geologicalLocalTime );
    CPPUNIT_TEST( enableTimePeriod );
+   CPPUNIT_TEST( testToBeaufort );
    CPPUNIT_TEST_SUITE_END();
 
    protected:
@@ -17,6 +18,7 @@ class PtimeUtilTest : public CppUnit::TestFixture
       void testRFC1123();
       void geologicalLocalTime();
       void enableTimePeriod();
+      void testToBeaufort();
       
    public:
       void setUp();

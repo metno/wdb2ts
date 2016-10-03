@@ -1,9 +1,11 @@
 #include <cppunit/config/SourcePrefix.h>
 #include <exception.h>
 #include <iostream>
+#include <string>
 #include <ptimeutil.h>
 #include "EnableTimePeriod.h"
 #include "ptimeutilTest.h"
+#include "metfunctions.h"
 
 
 CPPUNIT_TEST_SUITE_REGISTRATION( PtimeUtilTest );
@@ -11,6 +13,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION( PtimeUtilTest );
 using namespace std;
 using namespace miutil;
 using namespace boost::posix_time;
+
+using std::string;
 
 void
 PtimeUtilTest::
@@ -217,4 +221,63 @@ testRFC1123()
    string testRfc=rfc1123date( pt );
    cerr << pt << " -> (pt) " << testRfc << endl;
    CPPUNIT_ASSERT_MESSAGE( "2007-04-01 09:51:04", rfc == testRfc );
+}
+
+void PtimeUtilTest::testToBeaufort(){
+   string name;
+   CPPUNIT_ASSERT(toBeaufort(0.17, name)==string("0") && name == string("Stille"));
+	CPPUNIT_ASSERT(toBeaufort(0.24, name)==string("0") && name == string("Stille"));
+	CPPUNIT_ASSERT(toBeaufort(0.25, name)==string("1") && name == string("Flau vind"));
+
+	cerr << "Code: " << toBeaufort(1.54, name) << " name: " << name << "\n";
+	CPPUNIT_ASSERT(toBeaufort(1.0, name)==string("1") && name == string("Flau vind"));
+	CPPUNIT_ASSERT(toBeaufort(1.54, name)==string("1") && name == string("Flau vind"));
+	CPPUNIT_ASSERT(toBeaufort(1.55, name)==string("2") && name == string("Svak vind"));
+
+	CPPUNIT_ASSERT(toBeaufort(2.0, name)==string("2") && name == string("Svak vind"));
+	CPPUNIT_ASSERT(toBeaufort(3.34, name)==string("2") && name == string("Svak vind"));
+	CPPUNIT_ASSERT(toBeaufort(3.35, name)==string("3") && name == string("Lett bris"));
+
+	CPPUNIT_ASSERT(toBeaufort(4.0, name)==string("3") && name == string("Lett bris"));
+	CPPUNIT_ASSERT(toBeaufort(5.44, name)==string("3") && name == string("Lett bris"));
+	CPPUNIT_ASSERT(toBeaufort(5.45, name)==string("4") && name == string("Laber bris"));
+
+	CPPUNIT_ASSERT(toBeaufort(6.0, name)==string("4") && name == string("Laber bris"));
+	CPPUNIT_ASSERT(toBeaufort(7.94, name)==string("4") && name == string("Laber bris"));
+	CPPUNIT_ASSERT(toBeaufort(7.95, name)==string("5") && name == string("Frisk bris"));
+
+	CPPUNIT_ASSERT(toBeaufort(9.0, name)==string("5") && name == string("Frisk bris"));
+	CPPUNIT_ASSERT(toBeaufort(10.74, name)==string("5") && name == string("Frisk bris"));
+	CPPUNIT_ASSERT(toBeaufort(10.75, name)==string("6") && name == string("Liten kuling"));
+
+	CPPUNIT_ASSERT(toBeaufort(12.0, name)==string("6") && name == string("Liten kuling"));
+	CPPUNIT_ASSERT(toBeaufort(13.84, name)==string("6") && name == string("Liten kuling"));
+	CPPUNIT_ASSERT(toBeaufort(13.85, name)==string("7") && name == string("Stiv kuling"));
+
+	CPPUNIT_ASSERT(toBeaufort(14.0, name)==string("7") && name == string("Stiv kuling"));
+	CPPUNIT_ASSERT(toBeaufort(17.14, name)==string("7") && name == string("Stiv kuling"));
+	CPPUNIT_ASSERT(toBeaufort(17.15, name)==string("8") && name == string("Sterk kuling"));
+
+	CPPUNIT_ASSERT(toBeaufort(19.0, name)==string("8") && name == string("Sterk kuling"));
+	CPPUNIT_ASSERT(toBeaufort(20.74, name)==string("8") && name == string("Sterk kuling"));
+	CPPUNIT_ASSERT(toBeaufort(20.75, name)==string("9") && name == string("Liten storm"));
+
+	CPPUNIT_ASSERT(toBeaufort(23.0, name)==string("9") && name == string("Liten storm"));
+	CPPUNIT_ASSERT(toBeaufort(24.44, name)==string("9") && name == string("Liten storm"));
+	CPPUNIT_ASSERT(toBeaufort(24.45, name)==string("10") && name == string("Full storm"));
+
+	CPPUNIT_ASSERT(toBeaufort(26.0, name)==string("10") && name == string("Full storm"));
+	CPPUNIT_ASSERT(toBeaufort(28.44, name)==string("10") && name == string("Full storm"));
+	CPPUNIT_ASSERT(toBeaufort(28.45, name)==string("11") && name == string("Sterk storm"));
+
+	CPPUNIT_ASSERT(toBeaufort(30.0, name)==string("11") && name == string("Sterk storm"));
+	CPPUNIT_ASSERT(toBeaufort(32.64, name)==string("11") && name == string("Sterk storm"));
+	CPPUNIT_ASSERT(toBeaufort(32.65, name)==string("12") && name == string("Orkan"));
+	CPPUNIT_ASSERT(toBeaufort(33.0, name)==string("12") && name == string("Orkan"));
+
+
+
+
+
+
 }
