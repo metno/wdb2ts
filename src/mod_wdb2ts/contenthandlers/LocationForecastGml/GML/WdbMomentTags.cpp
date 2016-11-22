@@ -208,7 +208,8 @@ output( std::ostream &out_, miutil::Indent &indent_ )
    float tempCorrection;
    float tempProb = FLT_MAX;
    float windProb = FLT_MAX;
-   int ice=INT_MAX;
+   float ice=FLT_MAX;
+   bool hasIceParam=false;
    float length, direction;
    float u, v;
    ostringstream out;
@@ -379,10 +380,11 @@ output( std::ostream &out_, miutil::Indent &indent_ )
 
       ice = pd->seaIcePresence( tmpProvider );
 
-      if( ice != INT_MAX ) {
+      if( ice != FLT_MAX) {
          WRITE_DEBUG( loglevel,out << "<!-- provider: " << tmpProvider << " (seaIcePresence) ice: " << ice << " -->\n");
-         out << indent << "<mox:seaIcePresence>" << ice << "</mox:seaIcePresence>\n";
+         out << indent << "<mox:seaIcePresence uom=\"%\">" << setprecision(0)<< ice << setprecision(1) << "</mox:seaIcePresence>\n";
          count++;
+         hasIceParam=true;
       } else {
          ice = 0;
       }
@@ -398,90 +400,77 @@ output( std::ostream &out_, miutil::Indent &indent_ )
       value = pd->meanTotalWaveDirection( true );
       if( value != FLT_MAX ) {
          WRITE_DEBUG( loglevel, out << "<!-- provider: " << pd->oceanProvider() << " (meanWaveDirection) ice: " << ice << " -->\n");
-
-         if( ice ) {
-            out << indent << "<mox:meanTotalWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         } else {
-            out << indent << "<mox:meanTotalWaveDirection uom=\"deg\">" << value << "</mox:meanTotalWaveDirection>\n";
-         }
+         out << indent << "<mox:meanTotalWaveDirection uom=\"deg\">" << value << "</mox:meanTotalWaveDirection>\n";
          count++;
+      } else if( hasIceParam ) {
+      	out << indent << "<mox:meanTotalWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
       value = pd->meanTotalWavePeriode( true );
       if( value != FLT_MAX ){
-         if(  ice )
-            out << indent << "<mox:meanTotalWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:meanTotalWavePeriode uom=\"m\">" << value << "</mox:meanTotalWavePeriode>\n";
+      	out << indent << "<mox:meanTotalWavePeriode uom=\"m\">" << value << "</mox:meanTotalWavePeriode>\n";
          count++;
+      } else if(hasIceParam) {
+      	out << indent << "<mox:meanTotalWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
-
 
       value =  pd->maximumTotalWaveHeight( true );
       if( value != FLT_MAX ){
-         if(  ice )
-            out << indent << "<mox:maximumTotalWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:maximumTotalWaveHeight uom=\"m\">" << value << "</mox:maximumTotalWaveHeight>\n";
+      	out << indent << "<mox:maximumTotalWaveHeight uom=\"m\">" << value << "</mox:maximumTotalWaveHeight>\n";
          count++;
+      } else if( hasIceParam ) {
+         out << indent << "<mox:maximumTotalWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
       value = pd->significantTotalWaveHeight( true );
       if( value != FLT_MAX ){
-         if(  ice )
-            out << indent << "<mox:significantTotalWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:significantTotalWaveHeight uom=\"m\">" << value << "</mox:significantTotalWaveHeight>\n";
-
+      	out << indent << "<mox:significantTotalWaveHeight uom=\"m\">" << value << "</mox:significantTotalWaveHeight>\n";
          count++;
+      } else if( hasIceParam ) {
+      	out << indent << "<mox:significantTotalWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
       value = pd->significantSwellWaveHeight( true );
       if( value != FLT_MAX ) {
-         if(  ice )
-            out << indent << "<mox:significantSwellWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:significantSwellWaveHeight uom=\"m\">" << value << "</mox:significantSwellWaveHeight>\n";
+      	out << indent << "<mox:significantSwellWaveHeight uom=\"m\">" << value << "</mox:significantSwellWaveHeight>\n";
          count++;
+      } else if( hasIceParam ) {
+      	out << indent << "<mox:significantSwellWaveHeight xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
       value = pd->meanSwellWavePeriode( true );
       if( value != FLT_MAX ){
-         if(  ice )
-            out << indent << "<mox:meanSwellWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:meanSwellWavePeriode uom=\"s\">" << value << "</mox:meanSwellWavePeriode>\n";
+      	out << indent << "<mox:meanSwellWavePeriode uom=\"s\">" << value << "</mox:meanSwellWavePeriode>\n";
          count++;
+      } else if(hasIceParam) {
+      	out << indent << "<mox:meanSwellWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
 
       value = pd->meanSwellWaveDirection( true );
       if( value != FLT_MAX ) {
-         if(  ice )
-            out << indent << "<mox:meanSwellWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:meanSwellWaveDirection uom=\"deg\">" << value << "</mox:meanSwellWaveDirection>\n";
-         count++;
+      	out << indent << "<mox:meanSwellWaveDirection uom=\"deg\">" << value << "</mox:meanSwellWaveDirection>\n";
+      	count++;
+      }else if( hasIceParam ){
+      	out << indent << "<mox:meanSwellWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
 
       value = pd->peakSwellWavePeriode( true );
       if( value != FLT_MAX ) {
-         if(  ice )
-            out << indent << "<mox:peakSwellWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:peakSwellWavePeriode uom=\"s\">" << value << "</mox:peakSwellWavePeriode>\n";
+      	out << indent << "<mox:peakSwellWavePeriode uom=\"s\">" << value << "</mox:peakSwellWavePeriode>\n";
          count++;
+      } else if( hasIceParam) {
+      	out << indent << "<mox:peakSwellWavePeriode xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
 
       value = pd->peakSwellWaveDirection( true );
       if( value != FLT_MAX ){
-         if(  ice )
-            out << indent << "<mox:peakSwellWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
-         else
-            out << indent << "<mox:peakSwellWaveDirection uom=\"deg\">" << value << "</mox:peakSwellWaveDirection>\n";
+      	out << indent << "<mox:peakSwellWaveDirection uom=\"deg\">" << value << "</mox:peakSwellWaveDirection>\n";
          count++;
+      }else if( hasIceParam ) {
+         out << indent << "<mox:peakSwellWaveDirection xsi:nil=\"true\" nilReason=\"inapplicable\"/>\n";
       }
 
 

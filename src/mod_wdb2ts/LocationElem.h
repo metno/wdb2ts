@@ -463,7 +463,7 @@ public:
    float seaTemperature( bool tryHard=false )const;
    float meanTotalWaveDirection( bool tryHard=false )const;
    float significantTotalWaveHeight( bool tryHard=false )const;
-   int   seaIcePresence( std::string &usedProvider, const std::string &useProvider="" )const;
+   float seaIcePresence( std::string &usedProvider, const std::string &useProvider="" )const;
    int   seaBottomTopography( std::string &usedProvider, const std::string &useProvider="" )const;
       
 	/**

@@ -1749,7 +1749,7 @@ seaBottomTopography( std::string &usedProvider, const std::string &useProvider )
 	
 
 
-int 
+float
 LocationElem::
 seaIcePresence( std::string &usedProvider, const std::string &useProvider )const
 {
@@ -1789,10 +1789,7 @@ seaIcePresence( std::string &usedProvider, const std::string &useProvider )const
 		break;
 	}
 		
-	if( retVal == FLT_MAX )
-		return INT_MAX;
-		
-	return static_cast<int>( retVal );
+	return retVal;
 }
 
 std::string
