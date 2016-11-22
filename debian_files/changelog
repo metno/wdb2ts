@@ -1,7 +1,7 @@
 metno-wdb2ts (1.3.27-1) unstable; urgency=low
   * Fix seaIcePrcence.
     
- -- Borge Moe <borge.moe@met.no>  Tue, 22 Now 2016 10:02:00 +0200
+ -- Borge Moe <borge.moe@met.no>  Tue, 22 Nov 2016 10:02:00 +0200
 
 metno-wdb2ts (1.3.26-1) unstable; urgency=low
   * Fix beaufort encoding.
