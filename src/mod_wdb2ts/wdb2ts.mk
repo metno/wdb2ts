@@ -188,7 +188,6 @@ mod_metno_wdb2ts_la_LIBADD= \
 								$(BOOST_SYSTEM_LIB) \
                     	   -lgfortran
                     	    
-
 noinst_PROGRAMS+= TestWdb2Ts
 TestWdb2Ts_SOURCES = src/mod_wdb2ts/testWdb2Ts.cpp
 

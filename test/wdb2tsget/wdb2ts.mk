@@ -22,6 +22,7 @@ wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(BOOST_THREAD_LIB)\
 	$(BOOST_SYSTEM_LIB)\
 	$(LIBCURL) 
+
 endif
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
