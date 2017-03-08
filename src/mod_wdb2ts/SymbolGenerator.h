@@ -137,7 +137,7 @@ computeSymbolData( const SymbolDataContainer &baseData,
 
 class SymbolGenerator 
 {
-	std::map<miutil::miString, int> IDlist;
+	std::map<std::string, int> IDlist;
 	static symbolMaker sm;
 	
 public:

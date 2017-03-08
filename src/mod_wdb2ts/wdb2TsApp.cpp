@@ -28,8 +28,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <wdb2TsApp.h>
 #include <sstream>
-#include <../pgconpool/dbSetup.h>
-#include <../pgconpool/dbConnectionPool.h>
+#include "../pgconpool/dbSetup.h"
+#include "../pgconpool/dbConnectionPool.h"
 #include <contenthandlers/Location/LocationHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>

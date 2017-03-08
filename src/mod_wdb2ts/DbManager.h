@@ -32,10 +32,10 @@
 #include <map>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <../pgconpool/dbConnectionPool.h>
-#include <../pgconpool/dbSetup.h>
 #include <boost/thread/thread.hpp>
 #include <transactor/WciTransactor.h>
+#include "../pgconpool/dbConnectionPool.h"
+#include "../pgconpool/dbSetup.h"
 
 namespace wdb2ts {
 

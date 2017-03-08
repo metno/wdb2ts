@@ -1,0 +1,1 @@
+LoadModule metno_wdb2ts_module /usr/lib/apache2/modules/mod_metno_wdb2ts.so

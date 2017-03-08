@@ -59,8 +59,8 @@ configure-stamp:
 	            --with-wdb2ts-tmpdir=/var/lib/metno-wdb2ts/tmp \
 	            --prefix=/usr \
 	            --with-apxs=/usr/bin/apxs2 \
-                --with-libcurl \
-                --localstatedir=/var \
+               --with-libcurl \
+               --localstatedir=/var \
 	            CFLAGS="$(CFLAGS)" 
 	touch configure-stamp
 
@@ -95,9 +95,10 @@ install: build
 	$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC FFLAGS=-fPIC DESTDIR=$(CURDIR)/debian/metno-wdb2ts install
 	mkdir -p $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
 	cp -f $(CURDIR)/doc/html/wdb2ts-manual/*.html \
-        $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
+       $(CURDIR)/debian/metno-wdb2ts/usr/share/doc/metno-wdb2ts/html/wdb2ts-manual
 	mv $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts.conf.template \
-       $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts.conf  
+       $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts.conf
+	(cd $(CURDIR)/debian/apache; tar cpf - *) |(cd $(CURDIR)/debian/metno-wdb2ts; tar xpf - )
 	#mv $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts-conf.xml.template\
 	#   $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts
 	#mv $(CURDIR)/debian/metno-wdb2ts/etc/metno-wdb2ts/metno-wdb2ts-db.conf.template\

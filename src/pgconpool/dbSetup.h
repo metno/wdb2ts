@@ -39,6 +39,8 @@
 #include <string>
 #include <map>
 
+
+
 namespace miutil { 
 
 namespace  pgpool {
@@ -117,6 +119,7 @@ public:
    friend std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 };
 
+std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 
 
 /**
@@ -128,11 +131,11 @@ parseDbSetup( const std::string &setupToParse,
 
 
 
-std::ostream& 
-operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 
       
 }
 }
+
+
 
 #endif /*WDBPARAMSETUP_H_*/

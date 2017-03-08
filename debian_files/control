@@ -13,38 +13,34 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
                libboost-regex-dev (>=1.34.1), 
                libboost-iostreams-dev (>=1.34.1),
                libboost-program-options-dev (>=1.34.1),
-               apache2-threaded-dev (>=2.0), 
+               apache2-dev (>=2.4) | apache2-threaded-dev (>=2.0), 
                libapr1-dev (>=1.2), 
-               libpqxx-dev (>=2.6.9) | libpqxx3-dev (>=3.1) , 
-               libpq-dev (>=8.3),
+               libpqxx3-metno-dev (>=3.1) | libpqxx-dev (>=2.6.9) | libpqxx3-dev (>=3.1) , 
+               libpq-dev (>=9.1),
                libaprutil1-dev (>=1.2),
                proj (>=4.6) | libproj-dev (>=4.6),
                liblog4cpp5-dev (>= 1.0),
-               libcurl4-openssl-dev (>= 7.15.5) 
-#               ,metlibs-pgconpool-dev, 
-#               metlibs-milib-dev, 
-#               metlibs-libmi-dev, 
-#               metlibs-pumet-dev,
-#               metlibs-putools-dev
+               libcurl4-openssl-dev (>= 7.15.5), 
+               metlibs-pumet-dev,
+               metlibs-putools-dev
 Standards-Version: 3.6.2
 
 Package: metno-wdb2ts-@VERSION@
 Architecture: any
 Depends: ${shlibs:Depends},
          debconf, dbconfig-common, 
-         libstdc++6 (>= 4.1), 
-          libboost-date-time1.34.1 | libboost-date-time1.40.0 | libboost-date-time1.46.1,
-         libboost-thread1.34.1 | libboost-thread1.40.0 | libboost-thread1.46.1, 
-         libboost-regex1.34.1 | libboost-regex1.40.0 | libboost-regex1.46.1,
-         libboost-iostreams1.34.1 | libboost-iostreams1.40.0 | libboost-iostreams1.46.1,
-	     libboost-program-options1.34.1| libboost-program-options1.40.0 | libboost-program-options1.46.1,
-         apache2-mpm-worker (>=2.2),
-         libpqxx-2.6.9ldbl (>=2.6.8) | libpqxx-3.1 , 
-         libpq5 (>=8.3),
-         proj (>=4.6),
-         liblog4cpp5 (>= 1.0),
-	     gzip (>=1.3.5),
-         libcurl3 (>= 7.15.5)
+         libstdc++6 , 
+          libboost-date-time1.58.0 | libboost-date-time1.34.1 | libboost-date-time1.40.0 | libboost-date-time1.46.1,
+         libboost-thread1.58.0 | libboost-thread1.34.1 | libboost-thread1.40.0 | libboost-thread1.46.1, 
+         libboost-regex1.58.0 | libboost-regex1.34.1 | libboost-regex1.40.0 | libboost-regex1.46.1,
+         libboost-iostreams1.58.0 | libboost-iostreams1.34.1 | libboost-iostreams1.40.0 | libboost-iostreams1.46.1,
+	      libboost-program-options1.58.0 | libboost-program-options1.34.1| libboost-program-options1.40.0 | libboost-program-options1.46.1,
+         apache2 (>=2.4),
+         libpq5 ,
+         libproj9 | proj,
+         liblog4cpp5v5,
+	      gzip ,
+         libcurl3 
 Provides: metno-wdb2ts
 Conflicts: metno-wdb2ts, metno-wdb2ts-1.2
 Description: wdb2ts is an apache module that return a timeserie of meteorological data.
