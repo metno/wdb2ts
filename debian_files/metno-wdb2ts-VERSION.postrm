@@ -26,8 +26,11 @@ case "$1" in
   purge)
     for i in "/var/lib/metno-wdb2ts"; do
         dpkg-statoverride --remove $i
-     done
-   ;;
+    done
+
+   
+    dpkg-statoverride --remove /var/log/apache2-wdb2ts
+    ;;
 
     *)
         echo "postrm called with unknown argument \`$1'" >&2

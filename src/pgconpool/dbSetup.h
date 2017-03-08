@@ -39,6 +39,8 @@
 #include <string>
 #include <map>
 
+
+
 namespace miutil { 
 
 namespace  pgpool {
@@ -48,6 +50,7 @@ class DbDef;
 typedef std::map<std::string, DbDef>   DbDefList;
 typedef DbDefList::iterator           IDbDefList;
 typedef DbDefList::const_iterator    CIDbDefList;
+
 
 
 
@@ -118,6 +121,7 @@ public:
    friend std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 };
 
+std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 
 /**
  * @excetion std::logic_error
@@ -128,11 +132,11 @@ parseDbSetup( const std::string &setupToParse,
 
 
 
-std::ostream& 
-operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 
       
 }
 }
+
+
 
 #endif /*WDBPARAMSETUP_H_*/

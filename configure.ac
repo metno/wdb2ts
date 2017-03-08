@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.3.28, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.3.29, wdb@met.no)
 AC_CONFIG_MACRO_DIR([config])
 
 # Config
@@ -120,14 +120,14 @@ AC_CXX_REQUIRE_STL
 WDB_PROJ_CHECK
 
 
-#POSTGRES
-#WDB_POSTGRES_CHECK
-
 #BOOST
 AX_BOOST_BASE
 AX_BOOST_DATE_TIME
 AX_BOOST_REGEX
 AX_BOOST_FILESYSTEM
+AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_THREAD
+AX_BOOST_SYSTEM
 
 #pgconpool
 PKG_CHECK_MODULES(pqxx, libpqxx)
@@ -240,6 +240,7 @@ AC_CONFIG_FILES([Makefile \
                  src/miutil/Makefile \
                  src/util/Makefile \
                  src/webFW/Makefile \
+                 src/pgconpool/Makefile \
                  src/mod_wdb2ts/Makefile \
                  src/mod_wdb2ts/WciWebQuery/Makefile \
                  src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile \

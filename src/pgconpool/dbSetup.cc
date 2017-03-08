@@ -179,7 +179,7 @@ parseDbSetup( const std::string &setupToParse,
 
 std::ostream&
 miutil::pgpool::
-operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd)
+operator<<(std::ostream &os, const miutil::pgpool::DbDef &dd)
 {
    os << "        host: " << dd.host() << endl
          << "        port: " << dd.port() << endl

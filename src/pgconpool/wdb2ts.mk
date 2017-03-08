@@ -4,6 +4,7 @@ noinst_LTLIBRARIES+=	libpgconpool.la
 libpgconpool_la_SOURCES= \
 	src/pgconpool/dbConnectionException.h \
 	src/pgconpool/dbSetup.h \
+	src/pgconpool/dbSetup.cc \
 	src/pgconpool/dbConnectionHelper.h \
 	src/pgconpool/dbConnection.h \
 	src/pgconpool/dbConnection.cc \

@@ -177,23 +177,39 @@ mod_metno_wdb2ts_la_LIBADD= \
                     	   -lmiutil \
                     	   -ltuplecontainer \
                     	   -lpgconpool \
-                    	   -lgfortran 
+                    	   $(putools_LIBS) \
+								$(pqxx_LIBS) \
+								$(BOOST_FILESYSTEM_LIB) \
+								$(BOOST_REGEX_LIB) \
+								$(BOOST_THREAD_LIB) \
+								$(BOOST_SYSTEM_LIB) \
+                    	   -lgfortran
+                    	    
 
 noinst_PROGRAMS+= TestWdb2Ts
 
 TestWdb2Ts_SOURCES = src/mod_wdb2ts/testWdb2Ts.cpp
 
-TestWdb2Ts_LDFLAGS= -lwdb2ts \
-					-lwebFW  \
-					-lWciWebQuery	\
-					-lwdb2tsconfigparser \
-					-lXML_locationforecast \
-					-lmiutil \
-					$(LIBPQXX_LIBS) \
-					-ltuplecontainer \
-					-lpgconpool \
-					-lgfortran \
-					$(LDFLAGS)
+TestWdb2Ts_LDFLAGS= $(LDFLAGS)
+
+TestWdb2Ts_LDADD=\
+	-lwdb2ts \
+	-lwebFW  \
+	-lWciWebQuery	\
+	-lwdb2tsconfigparser \
+	-lXML_locationforecast \
+	-lmiutil \
+	-ltuplecontainer \
+	-lpgconpool \
+	$(pumet_LIBS) \
+	$(putools_LIBS) \
+	$(pqxx_LIBS) \
+	$(BOOST_FILESYSTEM_LIB) \
+	$(BOOST_REGEX_LIB) \
+	$(BOOST_THREAD_LIB) \
+	$(BOOST_SYSTEM_LIB) \
+	-lgfortran 
+					
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \

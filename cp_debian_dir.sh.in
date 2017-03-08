@@ -34,7 +34,7 @@ if [ -d "${debiandir}" ]; then
    rm -rf ${debiandir} || (echo "Cant remove directory: ${debiandir}"; exit 1)
 fi
 
-mkdir ${debiandir} || (echo "Can't make directory '${debiandir}'"; exit 1)
+mkdir -p ${debiandir} || (echo "Can't make directory '${debiandir}'"; exit 1)
 
 builddir="${builddir}/${mydir}"
 echo "builddir: '${builddir}'"
@@ -61,7 +61,7 @@ cd ${builddir} || (echo "Can't change directory back to '${builddir}'"; exit 1)
 
 for dir in ${debian_src_dirs}; do
    cd ${builddir}/${dir} || (echo "Can't change directory back to '${builddir}/${dir}'"; exit 1)
-   all_files=`find . -type f -exec echo {} \;`
+   all_files=`find -L . -type f  -exec echo {} \;`
    for file in ${all_files}; do
       new_name=`echo ${file} | sed -e "s/VERSION/${the_version}/"`
       #echo "`pwd`/${file}  -> ${debiandir}/${new_name}"
@@ -73,7 +73,12 @@ for dir in ${debian_src_dirs}; do
          mkdir -p ${debiandir}/${thedir} || (echo "Cant create the directory 'debian/${thedir}'"; exit 1)
       fi
       #echo "sed: `pwd`/$file > ${debiandir}/${new_name}"
-      sed -e "s/@VERSION@/${the_version}/g" $file > ${debiandir}/${new_name}
+      if [ -L "$file" ]; then
+         ln -s `readlink $file` ${debiandir}/${new_name}
+      else
+         sed -e "s/@VERSION@/${the_version}/g" $file > ${debiandir}/${new_name}
+      fi
+      
       if [ -x $file ]; then
          chmod +x ${debiandir}/${new_name}
       fi

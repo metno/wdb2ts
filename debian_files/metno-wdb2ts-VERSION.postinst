@@ -35,6 +35,11 @@ case "$1" in
          dpkg-statoverride --update --add www-data www-data 774 $i
       fi
     done
+
+    if ! dpkg-statoverride --list /var/log/apache2-wdb2ts >/dev/null 2>&1
+    then
+      dpkg-statoverride --update --add root adm 750 /var/log/apache2-wdb2ts
+    fi
     ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)
