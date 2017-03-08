@@ -28,7 +28,6 @@ shape2wdb2ts_SOURCES = src/util/shape2wdb2ts.cpp
 shape2wdb2ts_LDFLAGS=  
 shape2wdb2ts_LDADD=-lmiutil $(BOOST_REGEX_LIB)
 
-
 #wdb2cvs_SOURCES = \
 #	src/util/wdb2cvs.cpp 
 ##wdb2cvs_la_LDFLAGS =

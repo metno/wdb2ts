@@ -28,6 +28,9 @@ wdb2tsget_test_LDADD= -lwebFW -lmiutil \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	 $(LIBCURL) 
+<<<<<<< 1e05931c678b9b4c61912417cb1786ee4b825a35
+>>>>>>>   - include the sources for pgconpool into the wdb2ts repository.
+=======
 >>>>>>>   - include the sources for pgconpool into the wdb2ts repository.
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \

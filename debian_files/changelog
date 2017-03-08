@@ -16,7 +16,6 @@ metno-wdb2ts (1.3.28a-1) unstable; urgency=low
     
  -- Borge Moe <borge.moe@met.no>  Tue, 30 May 2017 08:45:00 +0200
 
-
 metno-wdb2ts (1.3.28-1) unstable; urgency=low
   * oceanforecast: do not encode null values into the xml-output.
     
