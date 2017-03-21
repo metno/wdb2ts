@@ -40,6 +40,8 @@ struct _StatsdClientData {
     static thread_local std::string errmsg;
 };
 
+thread_local std::string _StatsdClientData::errmsg;
+
 StatsdClient::StatsdClient(const string& host,
                            int port,
                            const string& ns,
