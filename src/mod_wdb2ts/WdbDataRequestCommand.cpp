@@ -106,7 +106,11 @@ operator()()
 		if( connection_ )
 			connection_->perform( transactor, 2 );
 
+		miutil::MetricTimer validateTimer( *validateMetric_);
 		validate();
+		validateTimer.stop();
+		dbMetric_->addToTimer(transactor.dbMetric->getTimerSum());
+		decodeMetric_->addToTimer(transactor.doReadMetric->getTimerSum());
 	}
 	catch( const std::exception &ex ) {
 		*ok_ = false;

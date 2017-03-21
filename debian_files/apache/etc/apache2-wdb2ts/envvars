@@ -1,4 +1,9 @@
 # envvars - default environment variables for apache2ctl
+#
+# Use envvars.conf to override or define new environments variables. 
+# This file is included at the end if it exist. The envvars.conf file
+# is not touched by the package maintaince scripts.
+# 
 
 # this won't be correct after changing uid
 unset HOME
@@ -13,7 +18,9 @@ fi
 # Since there is no sane way to get the parsed apache2 config in scripts, some
 # settings are defined via environment variables and then used in apache2ctl,
 # /etc/init.d/apache2, /etc/logrotate.d/apache2, etc.
-export APACHE_WDB2TS_PORT=8080
+
+export WDB2TS_APACHE_PORT=8080
+export PGPASSFILE=/etc/metno-wdb2ts/.pgpass
 
 export APACHE_RUN_USER=www-data
 export APACHE_RUN_GROUP=www-data
@@ -47,3 +54,7 @@ export LANG
 ## This will produce a verbose output on package installations of web server modules and web application
 ## installations which interact with Apache
 #export APACHE2_MAINTSCRIPT_DEBUG=1
+
+if [ -f "/etc/apache2$SUFFIX/envvars.conf" ]; then
+   . /etc/apache2$SUFFIX/envvars.conf
+fi

@@ -36,7 +36,7 @@
 #include <DbManager.h>
 #include <UpdateProviderReftimes.h>
 #include <ParamDef.h>
-
+#include <Metric.h>
 
 
 namespace wdb2ts {
@@ -56,6 +56,9 @@ class WdbDataRequestCommand {
 	bool isPolygon;
 	boost::shared_ptr<bool> ok_;
 	boost::shared_ptr<std::string> errMsg_;
+	boost::shared_ptr<miutil::Metric> dbMetric_;
+	boost::shared_ptr<miutil::Metric> decodeMetric_;
+	boost::shared_ptr<miutil::Metric> validateMetric_;
 	boost::posix_time::ptime minPrognosisEndTime_;
 	std::ostringstream log;
 	log4cpp::Priority::Value logLevel;
@@ -82,6 +85,9 @@ public:
 		  isPolygon( isPolygon_ ),
 		  ok_( new bool(true) ),
 		  errMsg_( new std::string() ),
+		  dbMetric_(new miutil::Metric("wdb")),
+		  decodeMetric_(new miutil::Metric("wdb_decode")),
+		  validateMetric_(new miutil::Metric("wdb_validate")),
 		  minPrognosisEndTime_( minPrognosisEndTime )
 		  {
 		  }
@@ -91,6 +97,10 @@ public:
 	LocationPointData& data(){ return *data_;}
 	bool ok()const { return *ok_;}
 	std::string errMsg()const { return *errMsg_;}
+
+	boost::shared_ptr<miutil::Metric> dbMetric()const { return dbMetric_; }
+	boost::shared_ptr<miutil::Metric> decodeMetric()const { return decodeMetric_; }
+	boost::shared_ptr<miutil::Metric> validateMetric()const { return validateMetric_; }
 
 	void validatePrognosisLength();
 	void validate();

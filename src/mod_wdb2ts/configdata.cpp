@@ -87,7 +87,9 @@ std::ostream &operator<<(std::ostream &o, const ExpireConfig &conf) {
 
 ConfigData::
 ConfigData()
-    : throwNoData( false ),isForecast(true)
+    : throwNoData( false ),isForecast(true),dbMetric("wdb_request"),
+		decodeMetric("wdb_decode"), validateMetric("validate"),
+		requestMetric("request"), encodeMetric("encode")
 {
 }
 
