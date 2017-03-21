@@ -244,6 +244,7 @@ AC_CONFIG_FILES([Makefile \
                  src/miutil/Makefile \
                  src/pgconpool/Makefile \
                  src/util/Makefile \
+                 src/statd/Makefile \
                  src/webFW/Makefile \
                  src/pgconpool/Makefile \
                  src/mod_wdb2ts/Makefile \
