@@ -36,6 +36,7 @@
 #include <boost/shared_ptr.hpp>
 #include "EnableTimePeriod.h"
 #include "ConfigUtils.h"
+#include "Metric.h"
 
 namespace wdb2ts {
 
@@ -65,6 +66,11 @@ struct ConfigData {
    miutil::EnableTimePeriod thunder;
    ExpireConfig expireConf;
    bool isForecast;
+   miutil::Metric dbMetric;
+   miutil::Metric decodeMetric;
+   miutil::Metric validateMetric;
+   miutil::Metric requestMetric;
+   miutil::Metric encodeMetric;
 
    ConfigData();
    bool outputParam( const std::string &param )const;

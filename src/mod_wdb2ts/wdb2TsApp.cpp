@@ -53,7 +53,7 @@ MISP_IMPL_APP( Wdb2TsApp );
    
 Wdb2TsApp::
 Wdb2TsApp()
-   : webfw::App(), hightMap( 0 ), loadMapThread( 0 ), initHightMapTryed( false ), inInitHightMap( false )
+   : webfw::App(), hightMap( 0 ), loadMapThread( 0 ), initHightMapTryed( false ), inInitHightMap( false ), statsd()
 {
 }
 
@@ -421,6 +421,35 @@ wciProtocol( const std::string &wdbid )
 
 	return 6;
 }
+
+
+void
+Wdb2TsApp::
+sendMetric(const miutil::Metric &metric) {
+
+}
+
+void
+Wdb2TsApp::
+sendMetric(const ConfigDataPtr metric)
+{
+	miutil::CollectMetric m("wdb2ts");
+
+	m.addTimerMetric(metric->requestMetric);
+	m.addTimerMetric(metric->dbMetric);
+	m.addTimerMetric(metric->validateMetric);
+	m.addTimerMetric(metric->decodeMetric);
+	m.addTimerMetric(metric->encodeMetric);
+
+	if( m.hasMetrics()) {
+		if( statsd.send(m.getStatdMetric())< 0 ) {
+			WEBFW_USE_LOGGER( "main" );
+			WEBFW_LOG_ERROR( "Metrics: can't send metrics: " << statsd.errmsg() << "\n");
+			std::cerr << "Metrics (wdb2ts): can't send metrics: " << statsd.errmsg() << "\n";
+		}
+	}
+}
+
 
 void
 Wdb2TsApp::

@@ -28,6 +28,7 @@ src_subdirs=" src/tuple_container \
 				src/mod_wdb2ts/WciWebQuery \
 				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
 				src/miutil \
+				src/statd \
 				src/mod_wdb2ts/configparser \
 				src/webFW \
 				src/util "
@@ -52,6 +53,7 @@ build_subdirs=" src/tuple_container \
 				src/mod_wdb2ts/configparser \
 				src/mod_wdb2ts/configparser/test \
 				src/miutil \
+				src/statd \
 				src/webFW \
 				src/util \
 				src/mod_wdb2ts/test \
@@ -69,6 +71,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_LANG(C++)
 
+#AM_CXXFLAGS = -std=c++11
 # topography
 TOPOGRAPHY_INPUT
 
@@ -230,6 +233,7 @@ CPPFLAGS="$PUCPPFLAGS $CPPFLAGS"
 #-----------------------------------------------------------------------------
 AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
 #-----------------------------------------------------------------------------
 # Configure and Exit

@@ -54,7 +54,10 @@ operator()()
 
 WdbDataRequestManager::
 WdbDataRequestManager()
-: nParalell(1), nextThreadId( 0 )
+: nParalell(1), nextThreadId( 0 ),
+  dbMetric("wdb"),
+  dbDecodeMetric("wdb_decode"),
+  validateMetric("wdb_validate")
 {
 	try {
 		readyQueue.reset( new miutil::queuemt<int>() );
@@ -291,6 +294,15 @@ waitForCompleted( int waitForAtLeast )
       WEBFW_LOG_DEBUG("waitForCompleted (tid=" <<tid << "): Thread completed.");
       it->second->completed=true;
       it->second->thread->join();
+
+      WdbDataRequestCommandPtr cmd=it->second->command;
+
+      //Update the metrics
+      dbMetric.addToTimer(cmd->dbMetric()->getTimerSum());
+      dbMetric.count(cmd->dbMetric()->getCounter()); //Error counter.
+      dbDecodeMetric.addToTimer(cmd->decodeMetric()->getTimerSum());
+      validateMetric.addToTimer(cmd->validateMetric()->getTimerSum());
+
       runningThreads.erase( it );
    }
 

@@ -67,6 +67,7 @@
 #include <ProviderGroupsResolve.h>
 #include <ProviderListConfigure.h>
 #include <WeatherSymbol.h>
+#include "statd/statsd_client.h"
 
 DECLARE_MI_PROFILE;
 
@@ -498,6 +499,8 @@ get( webfw::Request  &req,
 	configData->expireConf=expireConfig;
 	configData->isForecast = isForecast;
 
+	configData->requestMetric.startTimer();
+
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	app->notes.checkForUpdatedNotes( &noteHelper );
@@ -552,10 +555,11 @@ get( webfw::Request  &req,
 //		cerr << "Level: '" << (webQuery.getLevel().isDefined()? webQuery.getLevel().toWdbLevelspec():string("none"))
 //			 << "' Provider: '" << webQuery.dataprovider() << "'." << endl;
 		if( webQuery.getLevel().isDefined() || ! webQuery.dataprovider().empty() )
-			locationPointData = requestWdbSpecific( webQuery, altitude, refTimes, paramDefsPtr, providerPriority );
+			locationPointData = requestWdbSpecific( configData.get(), webQuery, altitude, refTimes, paramDefsPtr, providerPriority );
 		else
-			locationPointData = requestWdbDefault( webQuery, altitude, refTimes, paramDefsPtr, providerPriority );
+			locationPointData = requestWdbDefault( configData.get(), webQuery, altitude, refTimes, paramDefsPtr, providerPriority );
 
+		miutil::MetricTimer encodeTimer(configData->encodeMetric);
 		if( subversion == 0 ) {
 		   WEBFW_LOG_DEBUG("Using  encoder 'EncodeLocationForecast'.");
 			EncodeLocationForecast encode( locationPointData,
@@ -638,7 +642,9 @@ get( webfw::Request  &req,
 			response.errorDoc( "Unknown subversion." );
 			response.status( webfw::Response::CONFIG_ERROR );
 		}
-
+		encodeTimer.stop();
+		configData->requestMetric.stopTimer();
+		app->sendMetric(configData);
 	}
 	catch( const NoData &ex ) {
 	   using namespace boost::posix_time;
@@ -661,7 +667,6 @@ get( webfw::Request  &req,
 	       WEBFW_LOG_INFO( "Unexpected NoData exception: Url: " <<  webQuery.urlQuery()  );
 	       response.status( webfw::Response::NOT_FOUND );
 	   }
-	   return;
 	}
 	catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
 	   using namespace boost::posix_time;
@@ -671,7 +676,6 @@ get( webfw::Request  &req,
 	   response.serviceUnavailable( retryAfter );
 	   response.status( webfw::Response::SERVICE_UNAVAILABLE );
 	   WEBFW_LOG_INFO( "get: Database not available or heavy loaded." );
-	   return;
 	}
 	catch( const WdbDataRequestManager::ResourceLimit &ex )
 	{
@@ -682,7 +686,6 @@ get( webfw::Request  &req,
 		response.serviceUnavailable( retryAfter );
 		response.status( webfw::Response::SERVICE_UNAVAILABLE );
 		WEBFW_LOG_INFO( "get: RequestManager: Database not available or heavy loaded." );
-		return;
 	}
 	catch( const webfw::IOError &ex ) {
 		response.errorDoc( ex.what() );
@@ -712,6 +715,8 @@ get( webfw::Request  &req,
 		response.errorDoc("Unexpected exception!");
     	response.status( webfw::Response::INTERNAL_ERROR );
 	}
+
+	configData->requestMetric.stopTimer();
 	MARK_ID_MI_PROFILE("LocationForecastHandler2");
 
 	// TODO: to logging with whis
@@ -720,14 +725,15 @@ get( webfw::Request  &req,
 
 LocationPointDataPtr
 LocationForecastHandler2::
-requestWdbDefault( const WebQuery &webQuery,
-		           int altitude,
-		           PtrProviderRefTimes refTimes,
-		           ParamDefListPtr     paramDefsPtr,
-		           const ProviderList  &providerPriority
+requestWdbDefault(ConfigData *config,
+						const WebQuery &webQuery,
+		            int altitude,
+		            PtrProviderRefTimes refTimes,
+		            ParamDefListPtr     paramDefsPtr,
+		            const ProviderList  &providerPriority
           ) const
 {
-	LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(),
+	LocationPointDataPtr locationPointData = requestWdb( config, webQuery.locationPoints(),
 			                                             webQuery.from(), webQuery.to(),
 														 webQuery.isPolygon(),
 			                                             altitude, refTimes, paramDefsPtr, providerPriority );
@@ -742,11 +748,11 @@ requestWdbDefault( const WebQuery &webQuery,
    }
 
 	if( ! webQuery.isPolygon() )
-		nearestHeightPoint( webQuery.locationPoints(), webQuery.to(),locationPointData,
+		nearestHeightPoint( config, webQuery.locationPoints(), webQuery.to(),locationPointData,
 					        altitude, refTimes, paramDefsPtr, providerPriority );
 
 	if( !webQuery.isPolygon() && webQuery.nearestLand() )
-	   nearestLandPoint( webQuery.locationPoints(), webQuery.to(), locationPointData,
+	   nearestLandPoint( config, webQuery.locationPoints(), webQuery.to(), locationPointData,
 	                     altitude, refTimes, paramDefsPtr, providerPriority );
 
 
@@ -755,7 +761,8 @@ requestWdbDefault( const WebQuery &webQuery,
 
 LocationPointDataPtr
 LocationForecastHandler2::
-requestWdbSpecific( const WebQuery &webQuery,
+requestWdbSpecific( ConfigData *config,
+						const WebQuery &webQuery,
 		            int altitude,
 		            const PtrProviderRefTimes refTimes,
 		            ParamDefListPtr paramDefsPtr,
@@ -804,32 +811,39 @@ requestWdbSpecific( const WebQuery &webQuery,
 
 LocationPointDataPtr
 LocationForecastHandler2::
-requestWdb( const LocationPointList &locationPoints,
-			const boost::posix_time::ptime &from,
-		    const boost::posix_time::ptime &to,
+requestWdb(ConfigData *config,
+			  const LocationPointList &locationPoints,
+			  const boost::posix_time::ptime &from,
+		     const boost::posix_time::ptime &to,
 	        bool isPolygon, int altitude,
-		    PtrProviderRefTimes refTimes,
-		    ParamDefListPtr  paramDefs,
-		    const ProviderList &providerPriority
+		     PtrProviderRefTimes refTimes,
+		     ParamDefListPtr  paramDefs,
+		     const ProviderList &providerPriority
           ) const
 {	
 	WdbDataRequestManager requestManager;
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
-	return requestManager.requestData( app, wdbDB, locationPoints, from, to, isPolygon, altitude,
+	LocationPointDataPtr ret= requestManager.requestData( app, wdbDB, locationPoints, from, to, isPolygon, altitude,
 									   refTimes, paramDefs, providerPriority, urlQuerys, wciProtocol );
+
+	config->dbMetric.addToTimer(requestManager.dbDecodeMetric.getTimerSum());
+	config->decodeMetric.addToTimer(requestManager.dbDecodeMetric.getTimerSum());
+	config->validateMetric.addToTimer(requestManager.validateMetric.getTimerSum());
+	return ret;
 }
 
 
 void
 LocationForecastHandler2::
-nearestHeightPoint( const LocationPointList &locationPoints,
-			       const boost::posix_time::ptime &to,
-		            LocationPointDataPtr data,
-		            int altitude,
-		            PtrProviderRefTimes refTimes,
-		            ParamDefListPtr params,
-		            const ProviderList &providerPriority
+nearestHeightPoint( ConfigData *config,
+		              const LocationPointList &locationPoints,
+			           const boost::posix_time::ptime &to,
+		              LocationPointDataPtr data,
+		              int altitude,
+		              PtrProviderRefTimes refTimes,
+		              ParamDefListPtr params,
+		              const ProviderList &providerPriority
 				  ) const
 {
 
@@ -839,7 +853,7 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 	Wdb2TsApp *app=Wdb2TsApp::app();
 	//ParamDefList params = app->paramDefs();
 	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
-
+	miutil::MetricTimer time(config->dbMetric);
 	NearestHeight::processNearestHeightPoint( locationPoints,to, data, altitude, refTimes,
 			                                  providerPriority, *params, nearestHeights,
 			                                  wciProtocol, wciConnection );
@@ -848,7 +862,8 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 
 void
 LocationForecastHandler2::
-nearestLandPoint( const LocationPointList &locationPoints,
+nearestLandPoint( ConfigData *config,
+		            const LocationPointList &locationPoints,
                   const boost::posix_time::ptime &to,
                   LocationPointDataPtr data,
                   int altitude,
@@ -866,13 +881,12 @@ nearestLandPoint( const LocationPointList &locationPoints,
    Wdb2TsApp *app=Wdb2TsApp::app();
    WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
 
+   miutil::MetricTimer time(config->dbMetric);
    NearestLand nearestLandPoint( locationPoints,to, data, altitude, refTimes,
                                  providerPriority, *params, nearestLands,
                                  wciProtocol, wciConnection );
 
    nearestLandPoint.processNearestLandPoint();
-
-
 }
 
 
