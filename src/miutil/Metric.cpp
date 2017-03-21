@@ -65,6 +65,7 @@ void Metric::resetTimer(){
 }
 
 void Metric::startTimer(){
+
 //	if( start_ == std::numeric_limits<double>::max())
 //		start_= miutil::gettimeofday();
 
