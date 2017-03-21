@@ -203,6 +203,7 @@ TestWdb2Ts_LDADD=\
 	-lmiutil \
 	-ltuplecontainer \
 	-lpgconpool \
+	-lstatd \
 	$(pumet_LIBS) \
 	$(putools_LIBS) \
 	$(pqxx_LIBS) \
