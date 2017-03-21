@@ -149,27 +149,30 @@ private:
 
    boost::mutex        mutex; 
       
-   LocationPointDataPtr  requestWdbDefault( const WebQuery &webQuery,
-		   	   	   	                        int altitude,
-		   	   	   	                        PtrProviderRefTimes refTimes,
-		   	   	   	                        ParamDefListPtr     paramDefsPtr,
-		   	   	   	                        const ProviderList  &providerPriority
+   LocationPointDataPtr  requestWdbDefault( ConfigData *config,
+   													  const WebQuery &webQuery,
+		   	   	   	                    int altitude,
+		   	   	   	                    PtrProviderRefTimes refTimes,
+		   	   	   	                    ParamDefListPtr     paramDefsPtr,
+		   	   	   	                    const ProviderList  &providerPriority
              	 	 	 	 	 	 	 ) const;
 
-   LocationPointDataPtr  requestWdbSpecific( const WebQuery &webQuery,
-		   	   	   	                         int altitude,
-		   	   	   	                         const PtrProviderRefTimes refTimes,
-		   	   	   	                         ParamDefListPtr     paramDefsPtr,
-		   	   	   	                         const ProviderList  &providerPriority
+   LocationPointDataPtr  requestWdbSpecific(ConfigData *config,
+   													  const WebQuery &webQuery,
+		   	   	   	                    int altitude,
+		   	   	   	                    const PtrProviderRefTimes refTimes,
+		   	   	   	                    ParamDefListPtr     paramDefsPtr,
+		   	   	   	                    const ProviderList  &providerPriority
              	 	 	 	 	 	 	    ) const;
 
 
-  	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
-  									 const boost::posix_time::ptime &from,
-  	                                 const boost::posix_time::ptime &to,
-  	                                 bool isPolygon, int altitude,
-  	                                 PtrProviderRefTimes refTime,
-  	                                 ParamDefListPtr  paramDefs,
+  	LocationPointDataPtr requestWdb(ConfigData *config,
+  											  const LocationPointList &locationPoints,
+  									        const boost::posix_time::ptime &from,
+  	                                const boost::posix_time::ptime &to,
+  	                                bool isPolygon, int altitude,
+  	                                PtrProviderRefTimes refTime,
+  	                                ParamDefListPtr  paramDefs,
   		                             const ProviderList &providerPriority )const;
   	
   	/*
@@ -182,17 +185,19 @@ private:
   	void getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList, ParamDefListPtr &paramDefsPtr );
   	
   	void
-  	nearestHeightPoint( const LocationPointList &locationPoints,
-						const boost::posix_time::ptime &to,
-  			            LocationPointDataPtr data,
-  			            int altitude,
-  			            PtrProviderRefTimes refTimes,
-  			            ParamDefListPtr paramDefs,
-  			            const ProviderList &providerPriority
+  	nearestHeightPoint( ConfigData *config,
+  			              const LocationPointList &locationPoints,
+						     const boost::posix_time::ptime &to,
+  			              LocationPointDataPtr data,
+  			              int altitude,
+  			              PtrProviderRefTimes refTimes,
+  			              ParamDefListPtr paramDefs,
+  			              const ProviderList &providerPriority
   					  ) const;
 
   	void
-  	nearestLandPoint( const LocationPointList &locationPoints,
+  	nearestLandPoint( ConfigData *config,
+  			            const LocationPointList &locationPoints,
   	                  const boost::posix_time::ptime &to,
   	                  LocationPointDataPtr data,
   	                  int altitude,

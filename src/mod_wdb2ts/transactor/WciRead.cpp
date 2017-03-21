@@ -73,7 +73,7 @@ on_abort( const char msg_[] )throw ()
 WciRead::
 WciRead( WciReadHelper *helper_ )
       						
-	: helper( helper_ )
+	:dbMetric(new miutil::Metric("wdb")), doReadMetric(new miutil::Metric("doRead")),helper( helper_ )
 {
 }
 
@@ -104,17 +104,23 @@ operator () ( argument_type &t )
 		helper->clear();
 		
 		MARK_ID_MI_PROFILE( "WciRead::"+helper->id() +"::data"  );
+		miutil::MetricTimer dbTimer(*dbMetric);
 		pqxx::result  res = t.exec( helper->query() );
+		dbTimer.stop();
 		MARK_ID_MI_PROFILE( "WciRead::"+helper->id() +"::data" );
 				
 		MARK_ID_MI_PROFILE( "WciRead::"+helper->id() +"::doRead" );
+
+		miutil::MetricTimer doReadTimer(*doReadMetric);
 		helper->transaction = & t;
 		helper->doRead( res );
+		doReadTimer.stop();
 		MARK_ID_MI_PROFILE(  "WciRead::"+helper->id() +"::doRead"  );
 	}
 	catch( const exception &ex ){
 		WEBFW_LOG_ERROR("EXCEPTION: WciRead::" << helper->id() << ": query [" << helper->query() << "]"
 			              << " reason: " << ex.what() );
+		dbMetric->count(1);
 		throw;
 	}
 	

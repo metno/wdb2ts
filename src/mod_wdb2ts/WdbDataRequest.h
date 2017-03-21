@@ -39,6 +39,7 @@
 #include <ParamDef.h>
 #include <Config.h>
 #include <QueryMaker.h>
+#include <Metric.h>
 
 
 namespace wdb2ts {
@@ -148,6 +149,10 @@ public:
       virtual ~ResourceLimit() throw() {};
       const char* what() const throw() { return reason_.c_str(); }
    };
+
+   miutil::Metric dbMetric;
+   miutil::Metric dbDecodeMetric;
+   miutil::Metric validateMetric;
 
    WdbDataRequestManager();
 

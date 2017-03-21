@@ -36,7 +36,7 @@
 #include <algorithm>
 
 using namespace std;
-using namespace boost;
+namespace b=boost;
 
 
 int
@@ -59,7 +59,7 @@ main( int argn, char **argv )
 
    fin.close();
 
-   shared_ptr< map<string, string> > polygons;
+   b::shared_ptr< map<string, string> > polygons;
 
    polygons = miutil::ShapeReader( argv[1] );
 

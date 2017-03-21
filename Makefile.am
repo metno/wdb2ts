@@ -55,18 +55,20 @@ endif
 
 WDB2TS_LOCALSTATEDIR=$(localstatedir)/lib/metno-wdb2ts
 
-AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
-			  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
-			  -DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
-              -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
-              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
-              -DSRCDIR="\""$(top_srcdir)"\""
+AM_CPPFLAGS = \
+	-DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
+	-DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
+	-DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
+   -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
+   -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
+   -DSRCDIR="\""$(top_srcdir)"\"" -I $(top_srcdir)/src
 
  
 #-----------------------------------------------------------------------------
 # Source Makefiles
 #-----------------------------------------------------------------------------
 include src/pgconpool/wdb2ts.mk
+include src/statd/wdb2ts.mk
 include src/miutil/wdb2ts.mk
 include src/util/wdb2ts.mk
 include src/tuple_container/wdb2ts.mk

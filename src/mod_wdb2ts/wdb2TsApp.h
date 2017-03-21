@@ -41,6 +41,9 @@
 #include <Config.h>
 #include <NoteManager.h>
 #include <ParamDef.h>
+#include <Metric.h>
+#include <configdata.h>
+#include <statsd_client.h>
 
 namespace wdb2ts {
 
@@ -110,7 +113,9 @@ public:
 	 */
 	int wciProtocol( const std::string &wdbid );
 
-    
+   void sendMetric(const miutil::Metric &metric);
+   void sendMetric(const ConfigDataPtr metric);
+
 protected:
 	
 	void initDbPool();
@@ -132,6 +137,7 @@ protected:
  	boost::thread *loadMapThread;
  	bool          initHightMapTryed;
  	bool          inInitHightMap;
+ 	statsd::StatsdClient statsd;
  	
  	///Serialize access to the hightMap
  	boost::mutex  mapMutex;

@@ -35,7 +35,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace boost;
+namespace b=boost;
 
 namespace {
 
@@ -71,7 +71,7 @@ namespace miutil {
 boost::shared_ptr< std::map<std::string, std::string> >
 ShapeReader( const std::string &filename )
 {
-   shared_ptr< std::map<std::string, std::string> > polygonMap( new std::map<std::string, std::string>() );
+   b::shared_ptr< std::map<std::string, std::string> > polygonMap( new std::map<std::string, std::string>() );
    ifstream fin;
 
    fin.open( filename.c_str() );
@@ -159,13 +159,13 @@ int
 decodeShape( Context &context, istream &in, const string &shape, Polygons &polygons, std::string &next )
 {
                        //  Shape:1 (Polygon)  nVertices=111, nParts=1
-   static regex reShape("\\s*Shape:1 *\\(Polygon\\) +nVertices=(\\d+)[ ,]+nParts=(\\d+)");
-   static regex rePoint("\\+? *\\( *(" + reFloat + "), *(" + reFloat + ").+\\) *(?:Ring)?");
+   static b::regex reShape("\\s*Shape:1 *\\(Polygon\\) +nVertices=(\\d+)[ ,]+nParts=(\\d+)");
+   static b::regex rePoint("\\+? *\\( *(" + reFloat + "), *(" + reFloat + ").+\\) *(?:Ring)?");
    int nVertices;
    int nParts;
    int cntVertices=0;
    int cntParts=1;
-   smatch match;
+   b::smatch match;
    string buf;
    string::size_type i;
    Polygon polygon;
