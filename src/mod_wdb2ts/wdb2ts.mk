@@ -179,6 +179,7 @@ mod_metno_wdb2ts_la_LIBADD= \
                     	   -lmiutil \
                     	   -ltuplecontainer \
                     	   -lpgconpool \
+                    	   -lstatd \
                     	   $(putools_LIBS) \
 								$(pqxx_LIBS) \
 								$(BOOST_FILESYSTEM_LIB) \
