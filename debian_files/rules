@@ -70,7 +70,8 @@ build: build-stamp
 build-stamp: configure-stamp 
 	dh_testdir
 	# Add here commands to compile the package.
-	$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC
+	#$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC
+	$(MAKE) 
 	$(MAKE) html
 	#docbook-to-man debian/ts2xml.sgml > wdb2ts.1
 
