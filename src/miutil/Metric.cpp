@@ -26,10 +26,7 @@
     MA  02110-1301, USA
 */
 
-<<<<<<< 7298348196ec8dba357a4a7b368ddfcb289c3a45
 #include <time.h>
-=======
->>>>>>> Make code copatible with c++11. Collect div metrics and push to statsd.
 #include <string.h>
 #include <iostream>
 #include <string>
