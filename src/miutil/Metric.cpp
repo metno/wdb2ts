@@ -65,7 +65,10 @@ void Metric::resetTimer(){
 }
 
 void Metric::startTimer(){
+<<<<<<< eb2f55877c22451389d2ee519afc3fa818b133d7
 
+=======
+>>>>>>> Use clock_gettimer for the timer.
 //	if( start_ == std::numeric_limits<double>::max())
 //		start_= miutil::gettimeofday();
 
@@ -82,7 +85,10 @@ void Metric::startTimer(){
 
 void Metric::stopTimer(){
 	if( start_ != std::numeric_limits<double>::max() ){
+<<<<<<< eb2f55877c22451389d2ee519afc3fa818b133d7
 
+=======
+>>>>>>> Use clock_gettimer for the timer.
 		double stop;
 		struct timespec ts;
 		if( clock_gettime(CLOCK_MONOTONIC, &ts)==0) {
