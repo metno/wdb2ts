@@ -26,6 +26,7 @@
     MA  02110-1301, USA
 */
 
+#include <time.h>
 #include <string.h>
 #include <iostream>
 #include <string>
@@ -54,22 +55,43 @@ void Metric::resetAll(){
 bool Metric::hasTimer()const{
 	return acum_!=std::numeric_limits<double>::max();
 }
+
+void Metric::cancel(){
+	start_ = std::numeric_limits<double>::max();
+}
+
 void Metric::resetTimer(){
 	acum_=std::numeric_limits<double>::max();
 }
 
 void Metric::startTimer(){
-	if( start_ == std::numeric_limits<double>::max())
-		start_= miutil::gettimeofday();
+//	if( start_ == std::numeric_limits<double>::max())
+//		start_= miutil::gettimeofday();
+
+	if( start_ == std::numeric_limits<double>::max()) {
+		struct timespec ts;
+		if( clock_gettime(CLOCK_MONOTONIC, &ts)==0) {
+			start_ = (double)ts.tv_sec+((double)ts.tv_nsec)/1000000000.0;
+		} else {
+			cerr << " ERROR:  METRIC START, clock_gettime failed.\n";
+		}
+	}
 }
 	
 
 void Metric::stopTimer(){
 	if( start_ != std::numeric_limits<double>::max() ){
-		if( acum_ == std::numeric_limits<double>::max())
-			acum_=miutil::gettimeofday()-start_;
-		else
-			acum_+=miutil::gettimeofday()-start_;
+		double stop;
+		struct timespec ts;
+		if( clock_gettime(CLOCK_MONOTONIC, &ts)==0) {
+			stop = (double)ts.tv_sec+((double)ts.tv_nsec)/1000000000.0;
+			if( acum_ == std::numeric_limits<double>::max())
+				acum_=stop-start_;
+			else
+				acum_+=stop-start_;
+		} else {
+			cerr << " ERROR:  METRIC STOP, clock_gettime failed.\n";
+		}
 		start_=std::numeric_limits<double>::max();
 	}
 }
