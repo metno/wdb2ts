@@ -50,9 +50,7 @@ namespace miutil{
 		void resetTimer();
 		void startTimer();
 		void stopTimer();
-
 		void cancel();
-
 		bool hasTimer()const;
 		void addToTimer( double inc);
 		double getTimerSum()const;
