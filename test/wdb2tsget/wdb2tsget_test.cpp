@@ -34,6 +34,7 @@
 #include <GetThread.h>
 #include <gettimeofday.h>
 #include <boost/program_options.hpp>
+#include "LatLongBase.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -55,6 +56,7 @@ main( int argn, char **argv )
 	float lat, lon;
 	bool all=false;
 	po::variables_map vm;
+	string latLongFile;
 	
 	doOptions( vm, argn, argv );
 		
@@ -66,6 +68,7 @@ main( int argn, char **argv )
 	nRuns = vm["runs"].as<int>();
 	url = vm["request"].as<string>();
 	all = vm.count( "all" )>0?true:false;
+	latLongFile = vm["file"].as<string>();
 	
 	try {
 		lat = vm["lat"].as<float>();
@@ -75,8 +78,24 @@ main( int argn, char **argv )
 		cerr << "Failed to cast to float!" << endl;
 	}
 	
+	LatLongBase *nextLatLong=0;
+
+	if( !latLongFile.empty()){
+		LatLongFile *f= new LatLongFile(latLongFile, false);
+
+		if(!f->isOpen()) {
+ 			cerr << "Failed to open file '"<< latLongFile << "'\n";
+ 			return 1;
+		}
+		nextLatLong = f;
+	} else if( lat!= FLT_MAX && lon!=FLT_MAX ){
+		nextLatLong = new LatLongSame(lat, lon);
+	} else {
+		nextLatLong = new LatLongRandom();
+	}
+
 	for( int i=0; i<nThreads; ++i ) {
-		wdb2ts::GetThread *th = new wdb2ts::GetThread( url, lat, lon, nRuns, (unsigned int) i, i);
+		wdb2ts::GetThread *th = new wdb2ts::GetThread( url, nextLatLong, nRuns, i);
 		th->all( all );
 		getThreads.push_back( th );
 		getThreadsGroup.add_thread( new boost::thread( *th ) );
@@ -92,10 +111,14 @@ main( int argn, char **argv )
 	int unavailable=0;
 	int crcFail=0;
 	
+	cout << "------- Results -------------------\n";
+
 	for( list<wdb2ts::GetThread*>::iterator it = getThreads.begin(); 
 	     it != getThreads.end(); 
 	     ++it ) 
 	{
+		cerr << "Thread " << (*it)->getId() << ": " << ((*it)->metric().getTimerSum()/(*it)->metric().getCounter())
+				<< " t: " << (*it)->metric().getTimerSum() << " #: " << (*it)->metric().getCounter() << endl;
 		failed  += (*it)->failed();
 		success += (*it)->success();
 		runs += (*it)->runs();
@@ -125,6 +148,7 @@ doOptions(po::variables_map &vm, int argn, char **argv )
               ("request,s", po::value<string>()->default_value( "http://localhost:8080/wdb2ts/locationforecast" ), "The wdb2ts request to run")
               ("lat", po::value<float>()->default_value( FLT_MAX ), "Use only this latitude.")
               ("lon", po::value<float>()->default_value( FLT_MAX ), "Use only this longitude.")
+				  ("file", po::value<string>()->default_value(""), "Read latitude(longitude fro thsi file.")
               ("all", "Return the result for all times in the fields.")
 	        ;
 	

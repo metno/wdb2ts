@@ -11,12 +11,11 @@ wdb2tsget_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
                         test/wdb2tsget/HTTPClient.h \
                         test/wdb2tsget/HTTPClient.cpp \
                         test/wdb2tsget/GetThread.h \
-                        test/wdb2tsget/GetThread.cpp 
+                        test/wdb2tsget/GetThread.cpp  \
+                        LatLongBase.h
                      
-wdb2tsget_test_CPPFLAGS= $(BOOST_CPPFLAGS) $(LIBCURL_CPPFLAGS)
-wdb2tsget_test_LDADD= \
-	-lwebFW \
-	-lmiutil \
+wdb2tsget_CPPFLAGS= $(AM_CPPFLAGS) $(LIBCURL_CPPFLAGS)
+wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(BOOST_THREAD_LIB)\
 	$(BOOST_SYSTEM_LIB) \

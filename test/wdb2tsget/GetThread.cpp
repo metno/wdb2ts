@@ -6,7 +6,7 @@
 #include <fstream>
 #include <boost/crc.hpp>      // for boost::crc_basic, boost::crc_optimal
 #include <boost/cstdint.hpp>  // for boost::uint16_t
-
+#include <miutil/Metric.h>
 
 using namespace std;
 
@@ -16,19 +16,69 @@ void
 GetThread::
 nextLatLong( float &lat_, float &lon_ )
 {
-	const int LAT = 18;
-	const int LON = 30;
-	
-	if( lat != FLT_MAX )
-		 lat_ = lat;
-	else 
-		lat_ = 55.0 + (LAT * (rand_r( &randState ) / (RAND_MAX + 1.0))) + ( 1/rand_r( &randState ) ) ;
-	
-	if( lon != FLT_MAX )
-		lon_ = lon;
-	else
-		lon_ = 0.0 + (LON * (rand_r( &randState ) / (RAND_MAX + 1.0))) + ( 1/rand_r( &randState ) ) ;
+	nextLatLong_->nextLatLong(lat_, lon_);
 }
+
+void GetThread::validateResult( const string &path, const string &request, ostringstream &out) {
+	string result;
+	string::size_type i;
+	result = out.str();
+
+	i = result.find( "<meta>" );
+
+	if( i != string::npos )
+		result = result.substr( i );
+
+	crc_ccitt1.reset();
+	crc_ccitt1.process_bytes( result.data(), result.length() );
+	crcValue = crc_ccitt1.checksum();
+
+	map<string, boost::crc_basic<16>::value_type>::iterator it = crcResults->find(
+			request );
+
+	bool crcFail = false;
+
+	if( it != crcResults->end() ){
+		if( it->second != crcValue ){
+			ostringstream fname;
+			ofstream f;
+
+			fname << "tmp/" << id << "-" << nRuns << ".txt";
+			f.open( fname.str().c_str() );
+
+			if( f ){
+				f << path << endl << result << endl;
+				f.close();
+			}
+
+			results->nCrcFail++;
+			crcFail = true;
+			cout << "FAILED (CRC): t: " << id << " req: " << request << endl;
+
+		}
+	}else{
+		ostringstream fname;
+		ofstream f;
+
+		fname << "tmp/base-" << id << "-" << nRuns << ".txt";
+		f.open( fname.str().c_str() );
+
+		if( f ){
+			f << path << endl << result << endl;
+			f.close();
+		}
+
+		(*crcResults)[request] = crcValue;
+	}
+
+	if( !crcFail ){
+		cout << "t: " << id << " : " << request << " len: " << out.str().size()
+				<< " CRC: " << crcValue << endl; // << "s["<<result <<				 "]" <<endl;
+		results->nSuccess++;
+	}
+
+}
+
 
 void
 GetThread::
@@ -43,14 +93,8 @@ operator()()
 	string result;
 	string::size_type i;
 	string path;
-	boost::crc_basic<16>::value_type crcValue;
-	map<string, boost::crc_basic<16>::value_type > crcResults;
-	// Simulate CRC-CCITT
-	boost::crc_basic<16>  crc_ccitt1( 0x1021, 0xFFFF, 0, false, false );
-	bool crcFail;
 	int errorCode;
 	cerr << "URL: '" << url << "'" << endl;
-
 	
 	query->decode( url, true );
 
@@ -62,18 +106,10 @@ operator()()
 	tmpLat = query->asFloat( "lat", FLT_MAX );
 	tmpLon = query->asFloat( sLon, FLT_MAX );
 		
-	if( tmpLat != FLT_MAX && tmpLon != FLT_MAX ) {
-		lat = tmpLat;
-		lon = tmpLon;
-	}
 	
 	if( all_ )
 		query->setValue( "from", "all" );
 
-	/*
-	if( ! query->hasParam( "from") ) 
-		query->setValue( "from", "all" );
-	*/
 	while( nRuns > 0 ) {
 		nRuns--;
 		nextLatLong( tmpLat, tmpLon );
@@ -85,69 +121,22 @@ operator()()
 		cerr << "Request: '" << request << "'\n";
 		out.str("");
 		
+		results->timer.startTimer();
 		if( ! http.get( request, out, errorCode ) ) {
 			cout << "FAILED: t: " << id << " curl retcode(" << errorCode <<")  : " << request << endl;
 			results->nFailed++;
+			results->timer.cancel();
 		} else if( http.returnCode() == 503 ) {
 		   cout << "UNAVAILABLE t: " << id << " : code: " << http.returnCode() << " req: " << request << endl;
 		   results->unavailable++;
-		}else if( http.returnCode() != 200 ) {
+		}else if( http.returnCode() == 200 ) {
+			results->timer.stopTimer();
+			results->timer.count(1);
+			validateResult(path, request, out);
+		} else {
 			cout << "FAILED: t: " << id << " : code: " << http.returnCode() << " req: " << request << endl;
 			results->nFailed++;
-		} else {
-			result = out.str();
-			
-			i = result.find( "<meta>");
-			
-			if( i != string::npos ) 
-				result = result.substr( i );
-
-			crc_ccitt1.reset();
-			crc_ccitt1.process_bytes( result.data(), result.length() );
-			crcValue = crc_ccitt1.checksum();
-			
-			map<string, boost::crc_basic<16>::value_type >::iterator it = crcResults.find( request );
-			
-			crcFail = false;
-			
-			if( it != crcResults.end() ) {
-				if( it->second != crcValue ) {
-					ostringstream fname;
-					ofstream f;
-
-					fname << "tmp/" << id << "-" << nRuns << ".txt";
-					f.open( fname.str().c_str() );
-
-					if( f ) {
-						f << path << endl << result << endl;
-						f.close();
-					}
-
-					results->nCrcFail++;
-					crcFail = true;
-					cout << "FAILED (CRC): t: " << id << " req: " << request << endl;
-
-				}
-			} else {
-				ostringstream fname;
-				ofstream f;
-
-				fname << "tmp/base-" << id << "-" << nRuns << ".txt";
-				f.open( fname.str().c_str() );
-
-				if( f ) {
-					f << path << endl << result << endl;
-					f.close();
-				}
-
-				crcResults[ request ] = crcValue;
-			}
-					
-			if( ! crcFail ) {
-				cout << "t: " << id << " : " << request << " len: " << out.str().size() 
-			     	  << " CRC: " << crcValue <<  endl; // << "s["<<result <<				 "]" <<endl;
-				results->nSuccess++;
-			}
+			results->timer.cancel();
 		}
 	}
 }
