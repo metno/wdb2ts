@@ -3,6 +3,10 @@ metno-wdb2ts (1.3.30-1) unstable; urgency=low
     
  -- Borge Moe <borge.moe@met.no>  Wed, 7 Jun 2017 14:00:00 +0200
 
+<<<<<<< f67e74df768351a770b49d4353dba05254c0c83f
+=======
+
+>>>>>>> New parameter areaMaxWindSpeed.
 metno-wdb2ts (1.3.29-2) unstable; urgency=low
   * Add envvars.conf to override envvars or add new environment variables.
     
