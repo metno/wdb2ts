@@ -96,6 +96,8 @@ void PData::merge( const PData &other )
 		windU10m = other.windU10m;
 	if( other.windGust != FLT_MAX )
 		windGust = other.windGust;
+	if( other.areaMaxWindSpeed != FLT_MAX )
+		areaMaxWindSpeed = other.areaMaxWindSpeed;
 	if( other.PP != FLT_MAX )
 		PP = other.PP;
 	if( other.PR != FLT_MAX )
@@ -257,6 +259,8 @@ void PData::print( std::ostream &o, const std::string &space ) const
 		o << space << "windU10m: " << windU10m << endl;
 	if( windGust != FLT_MAX )
 		o << space << "windGust: " << windGust << endl;
+	if( areaMaxWindSpeed != FLT_MAX )
+		o << space << "areaMaxWindSpeed: " << areaMaxWindSpeed << endl;
 	if( PP != FLT_MAX )
 		o << space << "PP: " << PP << endl;
 	if( PR != FLT_MAX )
@@ -431,6 +435,8 @@ int PData::count() const
 	if( windU10m != FLT_MAX )
 		++n;
 	if( windGust != FLT_MAX )
+		++n;
+	if( areaMaxWindSpeed != FLT_MAX )
 		++n;
 	if( PP != FLT_MAX )
 		++n;
@@ -764,6 +770,8 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.windV10m = value;
 			else if( paramDef->alias() == "WIND.GUST" )
 				pd.windGust = value;
+			else if( paramDef->alias() == "areaMaxWindSpeed" )
+				pd.areaMaxWindSpeed = value;
 			else if( paramDef->alias() == "PP" )
 				pd.PP = value;
 			else if( paramDef->alias() == "MSLP" )
@@ -1108,6 +1116,8 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.windV10m = value;
 			else if( paramDef->alias() == "WIND.GUST" )
 				pd.windGust = value;
+			else if( paramDef->alias() == "areaMaxWindSpeed" )
+				pd.areaMaxWindSpeed = value;
 			else if( paramDef->alias() == "PP" )
 				pd.PP = value;
 			else if( paramDef->alias() == "MSLP" )
@@ -1306,6 +1316,8 @@ bool SetPDataHelper::init( const std::string &param )
 		pPM = &PData::windV10m;
 	else if( param == "WIND.GUST" )
 		pPM = &PData::windGust;
+	else if( param == "areaMaxWindSpeed" )
+		pPM = &PData::areaMaxWindSpeed;
 	else if( param == "PP" )
 		pPM = &PData::PP;
 	else if( param == "MSLP" )
