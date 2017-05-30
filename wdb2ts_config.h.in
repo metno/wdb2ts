@@ -12,20 +12,8 @@
 /* define if the Boost::Filesystem library is available */
 #undef HAVE_BOOST_FILESYSTEM
 
-/* define if the Boost::IOStreams library is available */
-#undef HAVE_BOOST_IOSTREAMS
-
-/* define if the Boost::PROGRAM_OPTIONS library is available */
-#undef HAVE_BOOST_PROGRAM_OPTIONS
-
 /* define if the Boost::Regex library is available */
 #undef HAVE_BOOST_REGEX
-
-/* define if the Boost::System library is available */
-#undef HAVE_BOOST_SYSTEM
-
-/* define if the Boost::Thread library is available */
-#undef HAVE_BOOST_THREAD
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
@@ -167,8 +155,7 @@
    slash. */
 #undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Name of package */
