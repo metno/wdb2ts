@@ -274,7 +274,15 @@ windGust(bool tryHard)const
 			           const_cast<ptime&>(itTimeSerie->first),
 			           const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 }
+float
+LocationElem::
+areaMaxWindSpeed( bool tryHard )const{
+	return getValue( &PData::areaMaxWindSpeed,
+				        itTimeSerie->second,
+				        const_cast<ptime&>(itTimeSerie->first),
+				        const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
 
+}
 
 float
 LocationElem::

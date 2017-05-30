@@ -246,6 +246,10 @@ output( std::ostream &out, const std::string &indent )
 	if( value != FLT_MAX )
 		tmpout << indent << "<windGust id=\"ff_gust\" mps=\"" << value << "\"/>\n";
 
+	value = pd->areaMaxWindSpeed(true );
+	if( value != FLT_MAX )
+		tmpout << indent << "<areaMaxWindSpeed mps=\"" << value << "\"/>\n";
+
 	dewpoint = pd->dewPointTemperature( tempUsed, true );
 	humidity = pd->humidity( true );
 
