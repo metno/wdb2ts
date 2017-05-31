@@ -18,6 +18,7 @@ wdb2tsget_test_LDADD= \
 	-lwebFW \
 	-lmiutil \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
+	$(BOOST_THREAD_LIB)\
 	$(LIBCURL) 
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
