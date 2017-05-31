@@ -35,6 +35,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <puTools/miTime.h>
+#include <puTools/miString.h>
 #include <puMet/miSymbol.h>
 #include <puMet/symbolMaker.h>
 #include <LocationData.h>

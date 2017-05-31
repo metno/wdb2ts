@@ -13,8 +13,12 @@ wdb2tsget_test_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
                         test/wdb2tsget/GetThread.h \
                         test/wdb2tsget/GetThread.cpp 
                      
-wdb2tsget_test_CPPFLAGS= $(LIBCURL_CPPFLAGS)
-wdb2tsget_test_LDADD= -lwebFW -lmiutil $(LIBCURL) 
+wdb2tsget_test_CPPFLAGS= $(BOOST_CPPFLAGS) $(LIBCURL_CPPFLAGS)
+wdb2tsget_test_LDADD= \
+	-lwebFW \
+	-lmiutil \
+	$(BOOST_PROGRAM_OPTIONS_LIB) \
+	$(LIBCURL) 
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
 				 test/wdb2tsget/Makefile.am \

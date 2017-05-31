@@ -193,6 +193,10 @@ TestWdb2Ts_LDFLAGS= -lwdb2ts \
 					-ltuplecontainer \
 					-lpgconpool \
 					-lgfortran \
+					$(BOOST_THREAD_LIB)\
+					$(BOOST_REGEX_LIB)\
+					$(BOOST_SYSTEM_LIB)\
+					$(BOOST_FILESYSTEM_LIB)\
 					$(LDFLAGS)
 
 

@@ -128,6 +128,8 @@ AX_BOOST_BASE
 AX_BOOST_DATE_TIME
 AX_BOOST_REGEX
 AX_BOOST_FILESYSTEM
+AX_BOOST_THREAD
+AX_BOOST_SYSTEM
 
 #pgconpool
 PKG_CHECK_MODULES(pqxx, libpqxx)
@@ -176,7 +178,7 @@ PKG_CHECK_MODULES([log4cpp], [log4cpp >= 0.3])
 CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
 LDFLAGS="$log4cpp_LIBS $LDFLAGS"
 
-
+#PKG_CHECK_MODULES_STATIC([weather_symbol], [libweather-symbol])
 PKG_CHECK_MODULES( [weather_symbol], [libweather-symbol])
 CPPFLAGS="$weather_symbol_CFLAGS $CPPFLAGS"
 LDFLAGS="$weather_symbol_LIBS $LDFLAGS"
@@ -238,6 +240,7 @@ AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 AC_CONFIG_FILES([Makefile \
                  src/tuple_container/Makefile \
                  src/miutil/Makefile \
+                 src/pgconpool/Makefile \
                  src/util/Makefile \
                  src/webFW/Makefile \
                  src/mod_wdb2ts/Makefile \
