@@ -25,7 +25,7 @@ libminimal_la_LIBADD=
 	
 	
 shape2wdb2ts_SOURCES = src/util/shape2wdb2ts.cpp 
-shape2wdb2ts_LDFLAGS= -lmiutil 
+shape2wdb2ts_LDFLAGS= -lmiutil  $(BOOST_REGEX_LIB)
 
 #wdb2cvs_SOURCES = \
 #	src/util/wdb2cvs.cpp 
