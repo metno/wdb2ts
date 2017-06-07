@@ -43,13 +43,12 @@ namespace miutil {
 
 namespace  pgpool {
 
+
 class DbDef;
 
 typedef std::map<std::string, DbDef>   DbDefList;
 typedef DbDefList::iterator           IDbDefList;
 typedef DbDefList::const_iterator    CIDbDefList;
-
-
 
 class DbDef {
    std::string host_;
@@ -117,6 +116,7 @@ public:
       
    friend std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 };
+
 
 
 /**

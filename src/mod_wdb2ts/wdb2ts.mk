@@ -177,7 +177,13 @@ mod_metno_wdb2ts_la_LIBADD= \
                     	   -lmiutil \
                     	   -ltuplecontainer \
                     	   -lpgconpool \
-                    	   -lgfortran 
+                    	   -lgfortran \
+                           $(BOOST_DATE_TIME_LIB)\
+                           $(BOOST_REGEX_LIB)\
+                           $(BOOST_FILESYSTEM_LIB)\
+			   $(BOOST_SYSTEM_LIB)\
+                           $(BOOST_THREAD_LIB)
+
 
 #noinst_PROGRAMS+= TestWdb2Ts
 #

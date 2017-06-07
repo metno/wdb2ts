@@ -39,10 +39,12 @@
 using namespace std;
 
 
+namespace miutil {
+namespace pgpool {
+
 
 
 void 
-miutil::pgpool::
 parseDbSetup( const std::string &setupToParse,
               DbDefList         &dbDefs        )
 {
@@ -178,7 +180,6 @@ parseDbSetup( const std::string &setupToParse,
 }
 
 std::ostream&
-miutil::pgpool::
 operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd)
 {
    os << "        host: " << dd.host() << endl
@@ -195,3 +196,5 @@ operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd)
    return os;
 }
 
+}
+}
