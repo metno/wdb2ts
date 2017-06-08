@@ -17,7 +17,7 @@ wdb2tsget_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
 wdb2tsget_CPPFLAGS= $(AM_CPPFLAGS) $(LIBCURL_CPPFLAGS)
 wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
-	$(BOOST_THREAD_LIB)\
+	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	$(LIBCURL) 
 
