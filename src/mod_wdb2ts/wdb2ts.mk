@@ -55,6 +55,8 @@ libwdb2ts_la_SOURCES= \
    src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
    src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
    src/mod_wdb2ts/contenthandlers/Location/LocationHandler.h\
+   src/mod_wdb2ts/contenthandlers/info/info.h\
+   src/mod_wdb2ts/contenthandlers/info/info.cpp\
    src/mod_wdb2ts/Mutex.h \
    src/mod_wdb2ts/Map.cpp \
    src/mod_wdb2ts/Map.h \
@@ -177,13 +179,16 @@ mod_metno_wdb2ts_la_LIBADD= \
                     	   -lmiutil \
                     	   -ltuplecontainer \
                     	   -lpgconpool \
-                        $(BOOST_DATE_TIME_LIB)\
-                        $(BOOST_REGEX_LIB)\
-                        $(BOOST_FILESYSTEM_LIB)\
-							   $(BOOST_SYSTEM_LIB)\
-                        $(BOOST_THREAD_LIB) \
+                    	   $(putools_LIBS) \
+								$(pqxx_LIBS) \
+								$(BOOST_FILESYSTEM_LIB) \
+								$(BOOST_REGEX_LIB) \
+								$(BOOST_THREAD_LIB) \
+								$(BOOST_SYSTEM_LIB) \
                     	   -lgfortran
+                    	    
 
+noinst_PROGRAMS+= TestWdb2Ts
 TestWdb2Ts_SOURCES = src/mod_wdb2ts/testWdb2Ts.cpp
 
 TestWdb2Ts_LDFLAGS= $(LDFLAGS)
@@ -205,7 +210,6 @@ TestWdb2Ts_LDADD=\
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	-lgfortran 
-
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \

@@ -29,6 +29,7 @@
 #define __REQUESTHANDLERMANAGER_H__
 
 #include <stdexcept>
+#include <list>
 #include <RequestHandler.h>
 
 namespace webfw {
@@ -81,8 +82,9 @@ class RequestHandlerManager
        * @exceptions webfw::ResourceError
        */                       
       virtual bool removeRequestHandler( const std::string &path, int major, int minor )=0;
-           
       
+      virtual std::list<std::string> listBasePaths()=0;
+
       /**
        * @exceptions webfw::ResourceError, miServerPage::NotFound
        */
@@ -105,13 +107,14 @@ class RequestHandlerManager
        *    - /data/Punkdata
        *    - /Punkdata  
        *  
-       * It reurns the first that is found.
+       * It returns the first that is found.
        * 
        * 
        * @exceptions webfw::ResourceError, webfw::NotFound, 
        *             webfw::InvalidPath
        */
       RequestHandlerPtr findRequestHandlerPath( const std::string &path );
+
 };
 
 }

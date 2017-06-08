@@ -69,7 +69,7 @@ class DSO_NOEXPORT App
    IAbortHandlerManager *abortHandler(){ return abortHandlerManager_; } 
    
    protected:
-      RequestHandlerManager&  requestHandlerManager(); 
+      //RequestHandlerManager&  requestHandlerManager();
       virtual void initAction( RequestHandlerManager&  reqHandlerMgr,
                                Logger &logger );
       
@@ -147,6 +147,7 @@ class DSO_NOEXPORT App
       
       virtual void onShutdown();
       void dispatch( Request &req, Response &res, Logger &logger );
+      std::list<std::string> listBasePaths()const;
 };
 
 /**

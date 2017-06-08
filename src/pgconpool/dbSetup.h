@@ -121,7 +121,6 @@ public:
 
 std::ostream& operator<< (std::ostream &os, const miutil::pgpool::DbDef &dd);
 
-
 /**
  * @excetion std::logic_error
  */

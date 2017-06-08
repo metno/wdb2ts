@@ -262,6 +262,17 @@ dispatch( Request &req, Response &res, Logger &logger )
   }
 }
 
+std::list<std::string>
+webfw::
+App::
+listBasePaths()const{
+	if( ! requestHandlerManager_)
+		return std::list<std::string>();
+	return requestHandlerManager_->listBasePaths();
+}
+
+
+
 std::map<std::string, int> 
 webfw::
 decodeLogLevels( const std::string &logLevels )

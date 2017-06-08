@@ -33,6 +33,7 @@
 #include <contenthandlers/Location/LocationHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>
+#include <contenthandlers/info/info.h>
 #include <ParamDef.h>
 #include <UpdateProviderReftimes.h>
 #include <Map.h>
@@ -154,6 +155,13 @@ configureRequestsHandlers( wdb2ts::config::Config *config,
 	using namespace wdb2ts::config;
 	ostringstream log;
 	
+	bool ok = reqHandlerMgr.addRequestHandler(new Info(0,0), "/info");
+
+	if( ok )
+		logger.info("Added info path." );
+	else
+		logger.error("Failed to add info path." );
+
 	for( RequestMap::const_iterator it = config->requests.begin();
 		  it != config->requests.end();
 		  ++it ) {

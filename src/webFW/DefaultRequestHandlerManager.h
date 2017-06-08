@@ -72,7 +72,7 @@ class DefaultRequestHandlerManager : public RequestHandlerManager
       bool addRequestHandler( RequestHandler *reqHandler,
                               const std::string &path );
       
-      
+      std::list<std::string> listBasePaths();
       bool removeRequestHandler( const std::string &path, int major, int minor );
       
       bool setDefaultRequestHandler( const std::string &path, int major, int minor );

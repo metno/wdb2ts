@@ -149,7 +149,32 @@ addRequestHandler( RequestHandler *reqHandler,
    handlers[path][ Version( major, minor ) ] = RequestHandlerPtr( reqHandler );
    return true;
 }
-      
+
+
+
+std::list<std::string>
+webfw::
+DefaultRequestHandlerManager::
+listBasePaths(){
+	boost::mutex::scoped_lock lock( mutex );
+	std::list<std::string> ret;
+	std::ostringstream ost;
+	for(std::map<std::string, std::map<Version, RequestHandlerPtr> >::const_iterator it = handlers.begin();
+			it != handlers.end(); ++it ) {
+		for(std::map<Version, RequestHandlerPtr>::const_iterator vit=it->second.begin();
+				vit!=it->second.end(); ++vit ) {
+			ost.str("");
+			if( vit->first.verMajor==0 && vit->first.verMinor == 0)
+				ost << it->first;
+			else
+				ost << it->first << "/" <<vit->first.verMajor << "." << vit->first.verMinor;
+			ret.push_back(ost.str());
+		}
+	}
+	return ret;
+}
+
+
 bool
 webfw::
 DefaultRequestHandlerManager::
@@ -203,7 +228,7 @@ setDefaultRequestHandler( const std::string &path, int major, int minor )
    if( ! reqHandler ) {
       ostringstream ost;
       ost << path << " ( " << major << " , " << minor << " )";
-      cerr << "RequestHandler: '"<< path << " verions " << major << "." << minor
+      cerr << "RequestHandler: '"<< path << " versions " << major << "." << minor
     	   << " do not exist.\n";
 
       return false;

@@ -13,22 +13,15 @@ wdb2tsget_test_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
                         test/wdb2tsget/GetThread.h \
                         test/wdb2tsget/GetThread.cpp 
                      
-<<<<<<< 7b89fa2bbdc26c86b1a70ecd62f075799dfe49a5
+
 wdb2tsget_test_CPPFLAGS= $(BOOST_CPPFLAGS) $(LIBCURL_CPPFLAGS)
 wdb2tsget_test_LDADD= \
 	-lwebFW \
 	-lmiutil \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(BOOST_THREAD_LIB)\
+	$(BOOST_SYSTEM_LIB)\
 	$(LIBCURL) 
-=======
-wdb2tsget_test_CPPFLAGS= $(LIBCURL_CPPFLAGS)
-wdb2tsget_test_LDADD= -lwebFW -lmiutil \
-	$(BOOST_PROGRAM_OPTIONS_LIB) \
-	$(BOOST_THREAD_LIB) \
-	$(BOOST_SYSTEM_LIB) \
-	 $(LIBCURL) 
->>>>>>>   - include the sources for pgconpool into the wdb2ts repository.
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
 				 test/wdb2tsget/Makefile.am \
