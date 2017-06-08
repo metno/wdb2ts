@@ -50,10 +50,6 @@ namespace miutil{
 		void resetTimer();
 		void startTimer();
 		void stopTimer();
-<<<<<<< eb2f55877c22451389d2ee519afc3fa818b133d7
-
-=======
->>>>>>> Use clock_gettimer for the timer.
 		void cancel();
 		bool hasTimer()const;
 		void addToTimer( double inc);

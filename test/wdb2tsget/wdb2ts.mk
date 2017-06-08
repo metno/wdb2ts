@@ -7,8 +7,6 @@ else
 EXTRA_PROGRAMS = wdb2tsget
 endif
 
-
-
 if BUILD_WDB2TSGET
 wdb2tsget_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
                    test/wdb2tsget/HTTPClient.h \
@@ -18,12 +16,13 @@ wdb2tsget_SOURCES= test/wdb2tsget/wdb2tsget_test.cpp \
                    test/wdb2tsget/LatLongBase.h
                     
 
-wdb2tsget_test_CPPFLAGS= $(LIBCURL_CPPFLAGS) $(AM_CPPFLAGS)
-wdb2tsget_test_LDADD= -lwebFW -lmiutil \
+wdb2tsget_CPPFLAGS= $(LIBCURL_CPPFLAGS) $(AM_CPPFLAGS)
+wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(BOOST_PROGRAM_OPTIONS_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
 	$(LIBCURL) 
+endif
 
 endif
 
