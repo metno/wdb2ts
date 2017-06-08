@@ -246,7 +246,6 @@ AC_CONFIG_FILES([Makefile \
                  src/util/Makefile \
                  src/statd/Makefile \
                  src/webFW/Makefile \
-                 src/pgconpool/Makefile \
                  src/mod_wdb2ts/Makefile \
                  src/mod_wdb2ts/WciWebQuery/Makefile \
                  src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast/Makefile \

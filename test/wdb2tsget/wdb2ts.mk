@@ -20,8 +20,6 @@ wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(BOOST_THREAD_LIB)\
 	$(BOOST_SYSTEM_LIB) \
 	$(LIBCURL) 
-wdb2tsget_CPPFLAGS= $(LIBCURL_CPPFLAGS)
-wdb2tsget_LDADD= -lwebFW -lmiutil \
 
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
 				 test/wdb2tsget/Makefile.am \
