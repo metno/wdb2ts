@@ -24,8 +24,6 @@ wdb2tsget_LDADD= -lwebFW -lmiutil \
 	$(LIBCURL) 
 endif
 
-endif
-
 EXTRA_DIST+= test/wdb2tsget/wdb2ts.mk   \
 				 test/wdb2tsget/Makefile.am \
 				 test/wdb2tsget/Makefile.in
