@@ -1,0 +1,7 @@
+FROM wdb2ts-runtime-deps
+
+COPY artifacts/ /
+COPY etc/metno-wdb2ts/ /etc/metno-wdb2ts/
+
+CMD ["/bin/bash"]
+

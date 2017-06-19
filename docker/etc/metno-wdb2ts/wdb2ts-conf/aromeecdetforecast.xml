@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+   <requests>
+      <request path="/aromeecdetforecastupdate" default_version="1.0"
+         wdbdb="default" action="LocationForecastUpdate" queryid="aromeecdetforecast">
+         <actionparam key="updateid" value="aromeecdetforecast" />
+         <version version="1.0" action="LocationForecastUpdate" queryid="aromeecdetforecast" />
+      </request>
+
+      <request path="/aromeecdetforecast" default_version="1.9"
+         wdbdb="default" action="LocationForecast3" queryid="aromeecdetforecast"
+         schema="http://api.met.no/weatherapi/locationforecast/1.9/schema">
+
+         <actionparam key="updateid" value="aromeecdetforecast" />
+         <actionparam key="loglevels" value="default=warn" />
+         <actionparam key="meta_model-metcoop_eps_control_2500m" value="name=LOCAL;nextrun=04:00,10:00,16:00,22:00" />
+         <actionparam key="meta_model-ecmwf_atmospheric0125_hourly" value="name=EC.GEO.0125;nextrun=07:00,19:00" />
+         <actionparam key="expire_rand" value="990" />
+         <actionparam key="provider_priority" value="metcoop_eps_control_temperature_corrected_2500m;
+                                                     metcoop_eps_control_2500m;
+                                                     ecmwf_atmospheric0125_hourly;" />
+         <actionparam key="precipitation" value="multi:1,2,3,6" />
+         <actionparam key="symbol_conf_file" value="qbSymbols.def" />
+         <actionparam key="symbol_provider-metcoop_eps_control_2500m" value="(1) (2) (3) (6)" />
+         <actionparam key="symbol_provider-ecmwf_atmospheric0125_hourly" value="(1) (2) (3) (6)" />
+         <actionparam key="output_params" value="dewpointTemperature" />
+         <actionparam key="symbols_enable_thunder" value="May-1/Oct-1" />
+         <version version="1.9" action="LocationForecast5" queryid="aromeecdetforecast" />
+      </request>
+
+   </requests>
+   <querydefs>
+      <!-- AROMEECDETFORECAST: no detailed topography here -->
+      <querydef id="aromeecdetforecast" paralell="6">
+         <query>
+            dataprovider=metcoop_eps_control_temperature_corrected_2500m;
+            validtime=NULL;
+            parameter="altitude"
+                     ,"air temperature";
+         </query>
+
+         <!-- metcoop_eps_control_2500m -->
+         <query>
+            dataprovider=metcoop_eps_control_2500m;
+            point_interpolation=bilinear;
+            reftime=${metcoop_eps_control_2500m};
+            parameter="altitude"
+                     ,"air temperature";
+         </query>
+         <query>
+            dataprovider=metcoop_eps_control_2500m;
+            point_interpolation=nearest;
+            reftime=${metcoop_eps_control_2500m};
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"relative humidity"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"wind speed of gust"
+                     ,"precipitation amount"
+                     ,"low estimate of precipitation amount"
+                     ,"middle estimate of precipitation amount"
+                     ,"high estimate of precipitation amount"
+                     ,"probability of precipitation"
+                     ,"thunderstorm probability"
+		     ,"max wind speed within 10 km";
+         </query>
+         <!--ECMWF ATOMSPHERIC -->
+         <query>
+            dataprovider="ecmwf_atmospheric0125_hourly";
+            point_interpolation=bilinear;
+            parameter="geopotential height"
+                     ,"min air temperature"
+                     ,"max air temperature"
+                     ,"air temperature";
+         </query>
+         <query>
+            dataprovider="ecmwf_atmospheric0125_hourly";
+            point_interpolation=nearest;
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"dew point temperature"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"precipitation amount";
+         </query>
+      </querydef>
+   </querydefs>
+</wdb2ts>

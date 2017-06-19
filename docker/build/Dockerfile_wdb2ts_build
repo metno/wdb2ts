@@ -1,0 +1,6 @@
+FROM wdb2ts-build-deps
+
+COPY build/build_wdb2ts.sh /usr/local/bin
+WORKDIR /build
+ENTRYPOINT ["/usr/local/bin/build_wdb2ts.sh"]
+CMD ["--build"]

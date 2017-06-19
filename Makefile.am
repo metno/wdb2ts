@@ -156,6 +156,13 @@ clean-local:
 				$(DOCCLEAN_HOOK)
 				
 #-----------------------------------------------------------------------------
+# Docker stuff
+#-----------------------------------------------------------------------------
+EXTRA_DIST += \
+	docker/Dockerfile \
+	docker/etc/apt/sources.list.d/metno.list
+
+#-----------------------------------------------------------------------------
 # Debian stuff
 #-----------------------------------------------------------------------------
 
@@ -177,7 +184,8 @@ EXTRA_DIST += \
 	debian_files/README.Debian\
 	debian_files/rules\
 	debian_files/templates \
-	cp_debian_dir.sh.in
+	cp_debian_dir.sh.in 
+	
    
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian

@@ -1,0 +1,1 @@
+default: host=157.249.176.176 user=wdb2ts port=5432 dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000

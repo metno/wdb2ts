@@ -119,18 +119,21 @@ AC_CXX_REQUIRE_STL
 # Module Checks
 #-----------------------------------------------------------------------------
 
-#proj 
-WDB_PROJ_CHECK
 
 
 #BOOST
 AX_BOOST_BASE
 AX_BOOST_DATE_TIME
-AX_BOOST_REGEX
 AX_BOOST_FILESYSTEM
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_THREAD
 AX_BOOST_SYSTEM
+AX_BOOST_REGEX
+AX_BOOST_IOSTREAMS
+
+#proj 
+WDB_PROJ_CHECK
+
 
 #pgconpool
 PKG_CHECK_MODULES(pqxx, libpqxx)

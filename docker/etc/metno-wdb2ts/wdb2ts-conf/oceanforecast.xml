@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<wdb2ts>
+  <requests>
+    <request path="/oceanforecastupdate" default_version="-1" wdbdb="default" action="LocationForecastUpdate" queryid="oceanforecast">
+      <actionparam key="updateid" value="oceanforecast"/>
+      <version version="0.9" action="LocationForecastUpdate" queryid="oceanforecast"/>
+    </request>
+    <request path="/oceanforecast" default_version="0.9" wdbdb="default" action="LocationForecastGml" queryid="oceanforecast">
+      <actionparam key="updateid" value="oceanforecast"/>
+      <actionparam key="meta_model-norkyst roms 800m" value="name=ROMS NorKyst 800m;nextrun=18:00,14:00"/>
+      <actionparam key="meta_model-mywave wam 4000m" value="name=Mywave WAM Norway 4km;nextrun=18:00,14:00"/>
+      <actionparam key="meta_model-mywave wam 800m" value="name=Mywave WAM Norway 800m;nextrun=18:00,14:00"/>
+      <actionparam key="meta_model-nordic roms 4000m" value="name=ROMS Nordic 4km;nextrun=18:00,14:00"/>
+      <actionparam key="expire_rand" value="960"/>
+      <actionparam key="provider_priority" value="norkyst roms 800m;nordic roms 4000m;mywave wam 800m;mywave wam 4000m"/>
+      <actionparam key="symbol_conf_file" value="qbSymbols.def"/>
+      <actionparam key="output_params" value="seaIceingIndex" />
+      <version version="0.9" action="LocationForecastGml" queryid="oceanforecast"/>
+    </request>
+  </requests>
+  <querydefs>
+    <querydef id="oceanforecast">
+      <query must_have_data="false">
+                dataprovider=norkyst roms 800m;
+                point_interpolation=nearest;
+                parameter="sea ice area fraction",
+		          "sea water x velocity",
+                          "sea water y velocity",
+                          "sea water temperature",
+                          "sea floor depth below geoid";
+      </query>
+      <query must_have_data="false">
+                dataprovider=nordic roms 4000m;
+                point_interpolation=nearest;
+                parameter="sea ice area fraction",
+		          "sea water x velocity",
+                          "sea water y velocity",
+                          "sea water temperature",
+                          "sea floor depth below geoid";
+      </query>
+      <query must_have_data="false">
+                dataprovider=mywave wam 800m;
+                point_interpolation=nearest;
+                parameter="sea surface wave to direction",
+                          "sea surface wave significant height";
+      </query>
+      <query must_have_data="false" stop_if_data="true">
+                dataprovider=mywave wam 4000m;
+                point_interpolation=nearest;
+                parameter="sea surface wave to direction",
+                          "sea surface wave significant height";
+      </query>
+    </querydef>
+  </querydefs>
+</wdb2ts>

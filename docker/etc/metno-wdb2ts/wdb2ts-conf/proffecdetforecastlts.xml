@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+   <requests>
+      <request path="/proffecdetforecastltsupdate"
+         default_version="1.3" wdbdb="default" action="LocationForecastUpdate"
+         queryid="proffecdetforecastlts">
+         <actionparam key="updateid" value="proffecdetforecastlts" />
+         <version version="1.3" action="LocationForecastUpdate"
+            queryid="proffecdetforecastlts">
+	     <actionparam key="updateid" value="proffecdetforecastlts" />
+         </version>  
+      </request>
+      <request path="/proffecdetforecastlts" default_version="1.3"
+         wdbdb="default" action="LocationForecast3" queryid="proffecdetforecastlts"
+         schema="http://api.met.no/weatherapi/locationforecastlts/1.3/schema">
+         <actionparam key="loglevels" value="default=warn" />
+         <actionparam key="expire_rand" value="960" />
+         <actionparam key="precipitation" value="multi:1,2,3,6" />
+         <actionparam key="symbol_conf_file" value="qbSymbols.def" />
+         <actionparam key="output_params" value="dewpointTemperature" />
+         <actionparam key="symbols_enable_thunder" value="May-1/Oct-1" />
+         <version version="1.1" action="LocationForecast3" queryid="proffecdetforecastlts" />
+	 <version version="1.3" action="LocationForecast5" queryid="proffecdetforecastlts" >
+	    <actionparam key="updateid" value="proffecdetforecastlts" />
+	    <actionparam key="provider_priority" value="ecmwf_atmospheric0125_hourly" />
+	    <actionparam key="meta_model-ecmwf_atmospheric0125_hourly" value="name=EC.GEO.0125;nextrun=08:00,20:00" />
+            <actionparam key="symbol_conf_file" value="qbSymbols.def" />
+            <actionparam key="symbol_provider-ecmwf_atmospheric0125_hourly" value="(1) (2) (3) (6)" />
+         </version>
+      </request>
+   </requests>
+      <querydefs>
+      <!-- EC.DET -->
+      <querydef id="proffecdetforecastlts" paralell="2">
+         <!-- ECMWF felt -->
+         <query>
+            dataprovider="ecmwf_atmospheric0125_hourly";
+            point_interpolation=bilinear;
+            parameter="geopotential height"
+                     ,"min air temperature"
+                     ,"max air temperature"
+                     ,"air temperature";
+         </query>
+         <query>
+            dataprovider="ecmwf_atmospheric0125_hourly";
+            point_interpolation=nearest;
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"dew point temperature"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"precipitation amount";
+         </query>
+      </querydef>
+   </querydefs>
+</wdb2ts>
