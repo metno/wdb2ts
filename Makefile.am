@@ -55,20 +55,24 @@ endif
 
 WDB2TS_LOCALSTATEDIR=$(localstatedir)/lib/metno-wdb2ts
 
-AM_CXXFLAGS = -DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
-			  -DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
-			  -DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
-              -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
-              -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
-              -DSRCDIR="\""$(top_srcdir)"\""
+AM_CPPFLAGS = \
+	-DWDB2TS_DEFAULT_SYSCONFDIR="\""$(WDB2TS_SYSCONFDIR)"\"" \
+	-DWDB2TS_DEFAULT_SYSLOGDIR="\""$(WDB2TS_SYSLOGDIR)"\"" \
+	-DWDB2TS_DEFAULT_SYSTMPDIR="\""$(WDB2TS_SYSTMPDIR)"\"" \
+   -DWDB2TS_MAP_FILE="\""$(WDB2TS_MAP_FILE)"\"" \
+   -DWDB2TS_LOCALSTATEDIR="\""$(WDB2TS_LOCALSTATEDIR)"\"" \
+   -DSRCDIR="\""$(top_srcdir)"\"" -I $(top_srcdir)/src
 
  
 #-----------------------------------------------------------------------------
 # Source Makefiles
 #-----------------------------------------------------------------------------
+include src/cetcd/wdb2ts.mk
 include src/pgconpool/wdb2ts.mk
+include src/statd/wdb2ts.mk
 include src/miutil/wdb2ts.mk
 include src/util/wdb2ts.mk
+include src/util/etcd/wdb2ts.mk
 include src/tuple_container/wdb2ts.mk
 include src/webFW/wdb2ts.mk
 include src/mod_wdb2ts/WciWebQuery/wdb2ts.mk
@@ -77,7 +81,7 @@ include src/mod_wdb2ts/configparser/wdb2ts.mk
 include src/mod_wdb2ts/wdb2ts.mk
 
 #-----------------------------------------------------------------------------
-# Source Makefiles
+# Source Makefiles (tests)
 #-----------------------------------------------------------------------------
 
 include test/unit/wdb2ts.mk
@@ -92,15 +96,15 @@ include src/mod_wdb2ts/test/wdb2ts.mk
 #-----------------------------------------------------------------------------
 
 install-data-hook:
-	install -d $(DESTDIR)/$(WDB2TS_SYSCONFDIR)
-	install -d $(DESTDIR)/$(WDB2TS_SYSLOGDIR)
-	install -d $(DESTDIR)/$(WDB2TS_SYSTMPDIR)
-	install -d $(DESTDIR)/$(pkgdatadir)
-	install -d $(DESTDIR)/$(WDB2TS_LOCALSTATEDIR)
+	test -e "$(DESTDIR)/$(WDB2TS_SYSCONFDIR)" || install -d $(DESTDIR)/$(WDB2TS_SYSCONFDIR)
+	test -e "$(DESTDIR)/$(WDB2TS_SYSLOGDIR)" || install -d $(DESTDIR)/$(WDB2TS_SYSLOGDIR)
+	test -e "$(DESTDIR)/$(WDB2TS_SYSTMPDIR)" || install -d $(DESTDIR)/$(WDB2TS_SYSTMPDIR)
+	test -e "$(DESTDIR)/$(pkgdatadir)" || install -d $(DESTDIR)/$(pkgdatadir)
+	test -e "$(DESTDIR)/$(WDB2TS_LOCALSTATEDIR)" || install -d $(DESTDIR)/$(WDB2TS_LOCALSTATEDIR)
 	$(INSTALL) -m644 etc/metno-wdb2ts.conf.template 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
 	$(INSTALL) -m644 etc/metno-wdb2ts-conf.xml.template 	$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
-	$(INSTALL) -m640 etc/metno-wdb2ts-db.conf.template 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
-	$(INSTALL) -m640 etc/qbSymbols.def 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
+	$(INSTALL) -m644 etc/metno-wdb2ts-db.conf.template 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
+	$(INSTALL) -m644 etc/qbSymbols.def 		$(DESTDIR)/$(WDB2TS_SYSCONFDIR)
 if HAS_TOPOGRAPHY_FILE
 	ln -s $(TOPOGRAPHY_FILE) $(WDB2TS_MAP_FILE)
 endif 
@@ -154,6 +158,39 @@ clean-local:
 				$(DOCCLEAN_HOOK)
 				
 #-----------------------------------------------------------------------------
+# Docker stuff
+#-----------------------------------------------------------------------------
+EXTRA_DIST += \
+	docker/etc/apache2/000-default.conf \
+	docker/etc/apache2/envvars \
+	docker/etc/apache2/metno-wdb2ts.conf \
+	docker/etc/apache2/metno-wdb2ts.load \
+	docker/etc/apache2/mpm_worker.conf \
+	docker/etc/apache2/ports.conf \
+	docker/etc/apt/sources.list.d/metno.list \
+	docker/etc/metno-wdb2ts/metno-wdb2ts-conf.xml \
+	docker/etc/metno-wdb2ts/metno-wdb2ts-db.conf \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/aromeecdetforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/aromeecdetforecastlts.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/aromeecepsforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/aromeecepsforecastlts.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/default-params.xml	\
+	docker/etc/metno-wdb2ts/wdb2ts-conf/oceanforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/probabilityforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/proffecdetforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/proffecdetforecastlts.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/proffecepsforecast.xml \
+	docker/etc/metno-wdb2ts/wdb2ts-conf/proffecepsforecastlts.xml \
+	docker/build/build_wdb2ts.sh \
+	docker/build/Dockerfile_wdb2ts_build \
+	docker/build/Dockerfile_wdb2ts_build_deps_pkg \
+	docker/runtime/Dockerfile_wdb2ts \
+	docker/runtime/Dockerfile_wdb2ts_runtime_deps \
+	docker/runtime/entrypoint.sh \
+	docker/README.md
+	
+
+#-----------------------------------------------------------------------------
 # Debian stuff
 #-----------------------------------------------------------------------------
 
@@ -175,7 +212,8 @@ EXTRA_DIST += \
 	debian_files/README.Debian\
 	debian_files/rules\
 	debian_files/templates \
-	cp_debian_dir.sh.in
+	cp_debian_dir.sh.in 
+	
    
 PKG_DIR = $(PACKAGE)-$(VERSION)
 DEBIAN_DIR = $(PKG_DIR)/debian

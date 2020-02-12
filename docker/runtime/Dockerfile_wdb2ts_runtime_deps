@@ -1,0 +1,30 @@
+FROM ubuntu:16.04
+
+COPY /etc/apt/sources.list.d/metno.list /etc/apt/sources.list.d
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv 7423E2EB78589757 && \
+	apt-get update && apt-get install -y \
+	ca-certificates \
+    libboost-filesystem1.58.0 libboost-program-options1.58.0 \
+    libboost-regex1.58.0 libboost-system1.58.0 libboost-thread1.58.0 \
+    libboost-date-time1.58.0 libboost-iostreams1.58.0\
+    libc6 libcurl3 libgcc1 liblog4cpp5v5  libproj9  \
+    libstdc++6 libpqxx-4.0 libxml2 debconf dbconfig-common less dialog\
+    apache2 libpq5 libapr1 gzip \
+    libyajl2 libcurl3 libmetlibs-pumet6 && \
+    rm -rf /var/lib/apt/lists/*
+
+
+
+
+#WORKDIR /src 
+
+
+#COPY .build/artifacts/* /usr
+
+#RUN a2enconf mod_perl
+
+#EXPOSE 8080
+#ENTRYPOINT ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
+CMD ["/bin/bash"]

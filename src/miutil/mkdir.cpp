@@ -30,11 +30,19 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
 #include <iostream>
+#include <memory>
+#include <list>
+#include "geterrstr.h"
+#include "trimstr.h"
+#include "splitstr.h"
 #include "mkdir.h"
 
 namespace {
 	bool mkdir_(const std::string &path);
+	std::list<std::string> splitPath(const std::string &path_);
+	std::list<std::string> checkPaths(const std::list<std::string> &paths);
 }
 
 using namespace std;
@@ -105,8 +113,128 @@ mkdir(const std::string &newdir, const std::string &path_ )
 	return true;
 }	
 
-  
+
+void dnmi::file::checkAndMkDirs(const std::string &path)
+{
+	using namespace std;
+
+	list<string> paths=splitPath(path);
+
+	if( paths.empty())
+		return;
+
+	//Return a list of paths that must be created.
+	paths = checkPaths( paths );
+
+	for( auto &p: paths) {
+		if( ! mkdir_(p) ) {
+			throw  logic_error(string("Cant create or check the path '") +p + ". Reason: " + miutil::geterrstr(errno));
+		}
+	}
+}
+
+
 namespace {
+
+	//Returns and emty string if it fail. The caller
+	//can check errno for the reason, see man 2 getcwd.
+	std::string getCWD(){
+		using namespace std;
+
+		int n=128;
+		do {
+			unique_ptr<char> buf(new char[n]);
+			char *d=getcwd(buf.get(), n);
+
+			if( !d ) {
+				if( errno == ERANGE) {
+					n *= 2; //Double the buffer size, and try again;
+				} else {
+					return "";
+				}
+			} else {
+				return d;
+			}
+		} while(true);
+
+		return "";
+	}
+
+
+	/**
+	 *
+	 */
+	std::pair<bool, bool> pathExistAndIsDir( const std::string &path) {
+		using namespace std;
+		struct stat sbuf;
+
+		if(stat(path.c_str(), &sbuf) !=0) {
+			if( errno == ENOENT || errno == ENOTDIR) {
+				return pair<bool,bool>(false, false);
+			} else {
+				throw std::logic_error(string("Error: path: '")+path+"': " + miutil::geterrstr(errno));
+			}
+		} else if(S_ISDIR(sbuf.st_mode)) {
+			return pair<bool,bool>(true, false);
+		} else {
+			return pair<bool,bool>(false, true);
+		}
+	}
+
+	std::list<std::string> checkPaths(const std::list<std::string> &paths) {
+		using namespace std;
+		list<string>::const_iterator it=paths.begin();
+
+		for(; it!=paths.end(); ++it) {
+			pair<bool,bool> exist = pathExistAndIsDir(*it);
+
+			if(exist.first)
+				continue;
+			else if( exist.second ) //The path exists, but is not a directory.
+				throw logic_error(string("Path '")+*it + "' exist, but is not a directory.");
+			else //The path do not exist.
+				break;
+		}
+		return list<string>(it, paths.end());
+	}
+
+
+	std::list<std::string> splitPath(const std::string &path_)
+	{
+		using namespace miutil;
+		using namespace std;
+
+		std::list<std::string> ret;
+		string path(path_);
+
+		trimstr(path);
+
+		if(path.empty())
+			return std::list<std::string>();
+
+		vector<string> pe=splitstr(path,'/','"');
+
+		if(path[0]!='/') {
+			path = getCWD();
+			if( path.empty()) {
+				cerr << "getcwd failed: " << miutil::geterrstr(errno) << "\n";
+				return std::list<std::string>();
+			}
+		} else {
+			path="";
+		}
+
+		for( string &e : pe ) {
+			if( e.empty())
+				continue;
+			path += "/"+e;
+			ret.push_back(path);
+		}
+
+		return ret;
+	}
+
+
 	bool 
 	mkdir_(const std::string& path){
 		struct stat sbuf;

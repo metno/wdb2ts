@@ -41,6 +41,7 @@ namespace config {
 class ConfigParser : public miutil::SAXParser
 {
 	Config *config;
+	bool providerAsWdbid;
 	std::ostringstream chardata;
 	bool inChardata;
 	State xmlState;
@@ -50,6 +51,8 @@ class ConfigParser : public miutil::SAXParser
 	Config::QueryDefs::iterator itCurrentQueryDef;
 	std::string currentQueryDefWdbdb;
 	int currentQueryDefPrognosisLengthSeconds;
+	std::string currentQueryId;
+	int currentQueryAutoId;
 	bool currentQueryProbe;
 	bool currentQueryStopIfData;
 	int currentQueryPrognosisLengthSeconds;
@@ -61,11 +64,11 @@ class ConfigParser : public miutil::SAXParser
 	std::list<std::string> currentParamDefProvider;
 	int recursionDepth; //Used to break out of circular reading of configuration files.
 	std::string basedir;
-	
 	std::string checkPath( const std::string &filename );
 	bool mergeConfig( Config *config );
 	Config* readFile( const std::string &filename );
 	int  getPrognosisLength( const AttributeMap &atributes, int defaultValue );
+	bool doWdb2ts( const AttributeMap &atributes );
 	bool doInclude( const AttributeMap &atributes );
 	bool doRequestDefaultActionParam( const AttributeMap &atributes );
 	bool doRequestActionParam( const AttributeMap &attributes, ActionParam &actionParam );
@@ -84,7 +87,7 @@ class ConfigParser : public miutil::SAXParser
    
 public:
 	ConfigParser();
-	ConfigParser( const std::string &basedir );
+	ConfigParser( const std::string &basedir, bool providerAsWdbidDefaultValue=false);
 	~ConfigParser();
 	
 	virtual void characters( const std::string &buf );

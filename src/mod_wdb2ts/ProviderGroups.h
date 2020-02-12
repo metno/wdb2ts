@@ -79,7 +79,9 @@ public:
 //    */
 //   void resolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
 
+#ifndef NODB
    friend ProviderGroups providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList );
+#endif
 };
 
 

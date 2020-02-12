@@ -1,0 +1,11 @@
+FROM wdb2ts-build:local
+
+COPY build/build_wdb2ts.sh /usr/local/bin
+
+VOLUME /artifacts
+VOLUME /src
+VOLUME /build
+
+WORKDIR /build
+ENTRYPOINT ["/usr/local/bin/build_wdb2ts.sh"]
+CMD ["--build"]

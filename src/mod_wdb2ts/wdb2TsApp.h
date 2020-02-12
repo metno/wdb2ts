@@ -30,6 +30,7 @@
 #define __WDB2TSAPP_H__
 
 #include <limits.h>
+#include <memory>
 #include <boost/thread/thread.hpp>
 #include <App.h>
 #include <DbManager.h>
@@ -41,9 +42,13 @@
 #include <Config.h>
 #include <NoteManager.h>
 #include <ParamDef.h>
+#include <Metric.h>
+#include <statsd_client.h>
+#include "miutil/etcd.h"
 
 namespace wdb2ts {
 
+struct ConfigData;
 
 class Wdb2TsApp : public webfw::App 
 {
@@ -66,16 +71,16 @@ public:
 	NoteManager notes;
       
 	/**
-     * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
-     *            miutill::pgpool::DbConnectionPoolCreateEx
-     */
-	miutil::pgpool::DbConnectionPtr newConnection( const std::string &dbid="", unsigned int timeoutInMilliSecound=2000 );
-
-	/**
 	 * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
      *            miutill::pgpool::DbConnectionPoolCreateEx
 	 */
 	WciConnectionPtr newWciConnection( const std::string &dbid="", unsigned int timeoutInMilliSecound=2000 );
+
+	/**
+	 * Release all database connections with an id given with wdbid.
+	 * If wdbid is empty release all the database connections for all is's.
+	 */
+	void releaseAllConnections(const std::string &wdbid="");
 
 	
 	ParamDefList &getParamDefs() { return paramDefs_; }
@@ -110,10 +115,14 @@ public:
 	 */
 	int wciProtocol( const std::string &wdbid );
 
-    
+   void sendMetric(const miutil::Metric &metric);
+   void sendMetric(const ConfigData *metric);
+
 protected:
 	
 	void initDbPool();
+
+	bool configFromEtcd();
 
 	virtual void initAction( webfw::RequestHandlerManager& reqHandlerMgr,
                              webfw::Logger &logger );
@@ -132,7 +141,11 @@ protected:
  	boost::thread *loadMapThread;
  	bool          initHightMapTryed;
  	bool          inInitHightMap;
- 	
+ 	statsd::StatsdClient statsd;
+ 	bool          isConfigFromEtcd;
+ 	std::shared_ptr<miutil::Etcd> etcd;
+ 	//std::map<std::string,miutil::pgpool::DbConnectionPtr> testConnections;
+
  	///Serialize access to the hightMap
  	boost::mutex  mapMutex;
  	

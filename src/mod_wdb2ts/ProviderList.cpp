@@ -37,7 +37,7 @@
 #include <transactor/ProviderRefTime.h>
 #include <RequestConf.h>
 #include <ProviderList.h>
-#include <wdb2TsApp.h>
+//#include <wdb2TsApp.h>
 #include <Logger4cpp.h>
 
 

@@ -199,7 +199,7 @@ enableTimePeriod()
 
 	dp = p.enabledPeriod( refTime.date() );
 
-	cerr << "Date period: " << dp << endl;
+	//cerr << "Date period: " << dp << endl;
 	CPPUNIT_ASSERT( dp.begin() == date(2014, Aug, 1) && dp.last() == date(2015, Apr, 30) );
 
 
@@ -215,11 +215,11 @@ testRFC1123()
 
    
    ptime ptTest=rfc1123date( rfc );
-   cerr << pt << " -> (pt) " << ptTest << endl;
+   //cerr << pt << " -> (pt) " << ptTest << endl;
    CPPUNIT_ASSERT_MESSAGE( "Sun, 1 Apr 2007 09:51:04 GMT", pt == ptTest );
    
    string testRfc=rfc1123date( pt );
-   cerr << pt << " -> (pt) " << testRfc << endl;
+   //cerr << pt << " -> (pt) " << testRfc << endl;
    CPPUNIT_ASSERT_MESSAGE( "2007-04-01 09:51:04", rfc == testRfc );
 }
 
@@ -229,7 +229,7 @@ void PtimeUtilTest::testToBeaufort(){
 	CPPUNIT_ASSERT(toBeaufort(0.24, name)==string("0") && name == string("Stille"));
 	CPPUNIT_ASSERT(toBeaufort(0.25, name)==string("1") && name == string("Flau vind"));
 
-	cerr << "Code: " << toBeaufort(1.54, name) << " name: " << name << "\n";
+	//cerr << "Code: " << toBeaufort(1.54, name) << " name: " << name << "\n";
 	CPPUNIT_ASSERT(toBeaufort(1.0, name)==string("1") && name == string("Flau vind"));
 	CPPUNIT_ASSERT(toBeaufort(1.54, name)==string("1") && name == string("Flau vind"));
 	CPPUNIT_ASSERT(toBeaufort(1.55, name)==string("2") && name == string("Svak vind"));

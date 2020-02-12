@@ -100,6 +100,7 @@ public:
 
 	void clear(){ maxHours_ = 0; Conf::clear(); }
 	void add( const std::string &provider, const SymbolConfList &conf );
+	bool empty()const { return  std::map<std::string, SymbolConfList>::empty(); }
 
 	/**
 	 * get try to find a symbol configuration for the provider. If
@@ -119,6 +120,8 @@ public:
 	 * independent of providers.
 	 */
 	int maxHours() const { return maxHours_; }
+
+	void merge(const SymbolConfProvider &other);
 
 private:
 	SymbolConfList defaultConf;

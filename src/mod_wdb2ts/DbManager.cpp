@@ -124,15 +124,16 @@ DbManager( const miutil::pgpool::DbDefList     &dbSetup )
       if( dbDef.minpoolsize() <= 0 )
         dbDef.minpoolsize( 0 );
 
-      cerr << " Creating pool: <" << it->first << "> " << endl
-            <<"       " << dbDef << endl;
+//      cerr << " Creating pool: <" << it->first << "> " << endl
+//            <<"       " << dbDef << endl;
       pools_[it->first] = miutil::pgpool::DbConnectionPoolPtr( 
       		              		new miutil::pgpool::DbConnectionPool( dbDef, new ConExtra( it->second.wciuser() ) )
       		              );
    }
 
 }   
-      
+
+
 miutil::pgpool::DbConnectionPtr 
 DbManager::
 newConnection(const std::string &dbid, int timeoutInMillis )
@@ -149,28 +150,37 @@ newConnection(const std::string &dbid, int timeoutInMillis )
    
    std::map<std::string, miutil::pgpool::DbConnectionPoolPtr>::iterator it = pools_.find( id );
    
-   if( it == pools_.end() )
-      throw logic_error( "wdb2ts::DbManager::newConnection: No database definition for database id <" + id + ">!");
+   if( it == pools_.end() ) {
+	   throw logic_error( "wdb2ts::DbManager::newConnection: No database definition for database id <" + id + ">!");
+   }
    
    try {
       return it->second->newConnection( timeoutInMillis );
+   }
+   catch( const miutil::pgpool::DbNoConnectionException &ex) {
+	   throw;
    }
    catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
       throw;
    }
    catch( const miutil::pgpool::DbConnectionPoolCreateEx &ex ) {
       throw;
-         }
+   }
    catch( const miutil::pgpool::DbConnectionException &ex ) {
       throw logic_error( ex.what() );
    }
    catch( const logic_error &ex ) {
       throw;
    }
+   catch( const std::exception &ex ) {
+         throw;
+   }
    catch( ... ) {
       throw logic_error( "wdb2ts::DbManager::newConnection: Unknown exception!" );
    }
 }
+
+
 
 WciConnectionPtr
 DbManager::
@@ -195,6 +205,25 @@ newWciConnection(const std::string &dbid, int timeoutInMilliSeconds  )
 		throw logic_error( "wdb2ts::DbManager::newWciConnection: Missing wciuser id for database id <" + id + ">!");
 		
 	return WciConnectionPtr( new WciConnection( newConnection( dbid, timeoutInMilliSeconds ), wciuser ) );
+}
+
+
+void
+DbManager::
+releaseAllConnections()
+{
+	for(std::map<std::string, miutil::pgpool::DbConnectionPoolPtr>::iterator it = pools_.begin();
+			it != pools_.end(); ++it)
+		it->second->releaseAllConnection();
+}
+
+void
+DbManager::
+releaseAllConnectionsWithId(const std::string &id){
+	std::map<std::string, miutil::pgpool::DbConnectionPoolPtr>::iterator it = pools_.find( id );
+
+	if( it != pools_.end())
+		it->second->releaseAllConnection();
 }
 
 

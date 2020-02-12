@@ -31,7 +31,7 @@
 
 #include <iostream>
 #include <boost/version.hpp>
-
+#include <unistd.h>
 #if BOOST_VERSION < 103500
 #include <boost/thread/xtime.hpp>
 #endif
@@ -128,8 +128,6 @@ DbConnectionPool( const DbDef &dbdef,
 		ost << " port=" << dbdef.port();
 
 	connect_ = ost.str();
-
-	createMinpoolsize();
 }
 
 miutil::pgpool::
@@ -200,6 +198,29 @@ isEnabled()const
    return isEnabled_;
 }
 
+
+std::list<miutil::pgpool::internal::DbConnectionHelper*>::iterator
+miutil::pgpool::
+DbConnectionPool::
+releaseConnection_(std::list<internal::DbConnectionHelper*>::iterator it)
+{
+	try {
+		conExtra->onRemoveConnection( (*it)->connection_ );
+	}
+	catch( const std::exception &){
+		//Ignored
+	}
+
+	try {
+		delete *it;  //The destructor close the connection.
+	}
+	catch( const std::exception &){
+		//ignored
+	}
+	return pool.erase( it );
+}
+
+
 void 
 miutil::pgpool::
 DbConnectionPool::
@@ -207,33 +228,22 @@ release(internal::DbConnectionHelper *con)
 {
    boost::mutex::scoped_lock lock(mutex);
    
-   conExtra->onCloseConnection( con->connection_ );
+   try {
+	   conExtra->onCloseConnection( con->connection_ );
+   }
+   catch( const std::exception &){
+	   //ignored
+   }
    
    if ( con->useCount_ == 0 || ! isEnabled_ ) {
       //cerr << "DbConnectionPool::release: Connection count==0, disconect and delete the connection!\n";
-      
       for ( std::list<internal::DbConnectionHelper*>::iterator it = pool.begin();
             it!=pool.end();
             ++it)
          if ( *it == con ) {
-         	conExtra->onRemoveConnection( con->connection_ );
-            delete *it;
-            pool.erase( it );
-
-            if( isEnabled_ && pool.size() < minpoolsize_ ) {
-            	try {
-            		createConnection();
-            		clog << "DbConnectionPool::release: poolsize<minpoolsize: Connection recreated." << endl;
-            	}
-            	catch( std::exception &ex ) {
-            		cerr << "EXCEPTION: DbConnectionPool::release: poolsize<minpoolsize: recreate connection failed. <"
-            			 << ex.what() << ">" << endl;
-
-            	}
-            }
-
-            cond.notify_one();
-            return;
+        	 releaseConnection_(it);
+        	 cond.notify_one();
+        	 return;
          }
          
       clog << "DbConnectionPool::release: Connection NOT in the connection pool!" << endl;
@@ -277,6 +287,9 @@ createConnection()
 		con=new internal::DbConnectionHelper( maxUseCount_, connect_ );
 		conExtra->onCreateConnection( con->connection_ );
 	}
+	catch (const pqxx::broken_connection &ex){
+		throw DbNoConnectionException(string("No connection: ") + string(ex.what()));
+	}
 	catch ( std::exception &ex ) {
 		throw DbConnectionPoolCreateEx(
 				string( "EXCEPTION: DbConnectionPool::newConnection: ") + string(ex.what())
@@ -316,6 +329,9 @@ findOrCreateConnection()
 
       return con;
    }
+   catch( const DbConnectionException &ex) {
+	   throw; //Rethrow this exception.
+   }
    catch( ... ) {
       return 0;
    }
@@ -326,15 +342,19 @@ void
 miutil::pgpool::
 DbConnectionPool::
 createMinpoolsize() {
+	boost::mutex::scoped_lock lock(mutex);
+
+	int nCreate=minpoolsize_-numberOfConnectionInPool_();
 	for( std::list<internal::DbConnectionHelper*>::size_type i = 0;
-	     i < minpoolsize_; ++i ) {
+	     i < nCreate; ++i ) {
     	try {
     		if( ! createConnection() ) //Is maxPoolSize reached.
     		   break;
     	}
+    	catch (const DbNoConnectionException &ex) {
+    		throw;  //rethrow the exception.
+    	}
     	catch( std::exception &ex ) {
-    		cerr << "EXCEPTION: DbConnectionPool::createMinpoolsize: init pool to minpoolsize: " << minpoolsize_
-    			 << " failed! <" << ex.what() << ">" << endl;
     		return;
     	}
 	}
@@ -342,6 +362,73 @@ createMinpoolsize() {
 	clog << "Created a DB connection pool with " << pool.size() << " connections." << endl;
 }
 
+
+int
+miutil::pgpool::
+DbConnectionPool::
+availebleConnections()const
+{
+	int nInUse=connectionsInUse();
+
+	if( nInUse < 0 )
+		return -1;
+	else
+		return maxpoolsize_ - nInUse;
+}
+
+int
+miutil::pgpool::
+DbConnectionPool::
+connectionsInUse()const
+{
+	int cnt=0;
+
+	boost::mutex::scoped_lock lock(mutex);
+
+	try {
+		for ( std::list<internal::DbConnectionHelper*>::const_iterator it = pool.begin();
+				it!=pool.end();
+				++it) {
+			if ( (*it)->inUse() )
+				++cnt;
+		}
+	}
+	catch( ... ) {
+		return -1;
+	}
+	return cnt;
+}
+
+int
+miutil::pgpool::
+DbConnectionPool::
+numberOfConnectionInPool()const{
+	boost::mutex::scoped_lock lock(mutex);
+	return numberOfConnectionInPool_();
+}
+
+
+void
+miutil::pgpool::
+DbConnectionPool::
+releaseAllConnection()
+{
+	boost::mutex::scoped_lock lock(mutex);
+	int nDeleted=0;
+	std::list<internal::DbConnectionHelper*>::iterator it = pool.begin();
+	while ( it!=pool.end() ) {
+		if ( (*it)->inUse() ){
+			(*it)->useCount_=0;  //Ready to be closed when released.
+			++it;
+		} else {
+			it = releaseConnection_(it);
+			++nDeleted;
+		}
+	}
+
+	if( nDeleted > 0 )
+		cond.notify_one();
+}
 
 miutil::pgpool::DbConnectionPtr 
 miutil::pgpool::
@@ -358,8 +445,9 @@ newConnection( unsigned int timeoutInMillisecond )
    if( con )
       return DbConnectionPtr( new DbConnection( con, this ) );
    
-   if( timeoutInMillisecond == 0 && pool.size() >= maxpoolsize_ )
-      throw DbConnectionPoolMaxUseEx();
+   if( timeoutInMillisecond == 0 && pool.size() >= maxpoolsize_ ){
+	  throw DbConnectionPoolMaxUseEx();
+   }
 
 #if BOOST_VERSION < 103500
    boost::xtime waitUntil;
@@ -371,8 +459,9 @@ newConnection( unsigned int timeoutInMillisecond )
    if( ! cond.timed_wait( lock, waitUntil ) )
       throw DbConnectionPoolMaxUseEx();
 #else
-   if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) )
-      throw DbConnectionPoolMaxUseEx();
+   if( ! cond.timed_wait( lock, boost::posix_time::milliseconds( timeoutInMillisecond ) ) ) {
+	   throw DbConnectionPoolMaxUseEx();
+   }
 #endif
 
    con = findOrCreateConnection();
@@ -383,3 +472,4 @@ newConnection( unsigned int timeoutInMillisecond )
       return DbConnectionPtr( new DbConnection( con, this ) );
 }
          
+

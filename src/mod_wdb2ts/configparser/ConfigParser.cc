@@ -36,6 +36,7 @@
 #include <replace.h>
 #include <splitstr.h>
 #include <compresspace.h>
+#include "mod_wdb2ts/WciWebQuery/WciWebQuery.h"
 
 namespace wdb2ts {
 namespace config {
@@ -44,7 +45,7 @@ using namespace std;
 
 ConfigParser::
 ConfigParser()
-	:config( 0 ), inChardata( false ),
+	:config( 0 ), providerAsWdbid(false), inChardata( false ),
 	 currentQueryDefPrognosisLengthSeconds(0),
 	 recursionDepth( 0 ),basedir( WDB2TS_DEFAULT_SYSCONFDIR )
 	 
@@ -52,8 +53,9 @@ ConfigParser()
 }
 
 ConfigParser::
-ConfigParser( const std::string &basedir_ )
-	: config( 0 ), inChardata( false ),
+ConfigParser( const std::string &basedir_, bool providerAsWdbidDefaultValue )
+	: config( 0 ), providerAsWdbid(providerAsWdbidDefaultValue),inChardata( false ),
+	  currentQueryAutoId(1),
 	  currentQueryDefPrognosisLengthSeconds(0),
 	  recursionDepth( 0 ),basedir( basedir_ )
 {
@@ -122,6 +124,7 @@ readFile( const std::string &filename )
 		return 0;
 	}
 
+
 	//cerr << "readFile: '" << file << "'.\n";
 
 	if( recursionDepth > 30 ) {
@@ -132,10 +135,11 @@ readFile( const std::string &filename )
 	++recursionDepth;
 
 	ostringstream ost;
-	ConfigParser myParser( basedir );
+	ConfigParser myParser( basedir, providerAsWdbid );
 	myParser.recursionDepth = recursionDepth;
 
 	Config *myConfig = myParser.parseFile( file );
+
 	--recursionDepth;
 
 	if( ! myParser.getErrMsg().empty() ) {
@@ -152,6 +156,7 @@ readFile( const std::string &filename )
 		}
 		return 0;
 	} else {
+		myConfig->includedFiles.insert(filename);
 		return myConfig;
 	}
 }
@@ -238,6 +243,24 @@ getPrognosisLength( const AttributeMap &attributes, int defaultValue )
 
 bool
 ConfigParser::
+doWdb2ts( const AttributeMap &attributes )
+{
+	string sProviderAsWdbId;
+
+	if(  getAttr( attributes, "provider_as_wdbdb", sProviderAsWdbId, "false" ) ) {
+		if( sProviderAsWdbId[0]=='t' || sProviderAsWdbId[0]=='T' )
+			providerAsWdbid = true;
+		else
+			providerAsWdbid = false;
+	}
+
+	return true;
+}
+
+
+
+bool
+ConfigParser::
 doInclude( const AttributeMap &attributes )
 {
 	std::string file;
@@ -258,6 +281,7 @@ doInclude( const AttributeMap &attributes )
 		ostringstream ost;
 		std::auto_ptr<Config> p( myConfig ); //Delete myConfig on return.
 		//cerr << "Do merge!" << endl;
+
 		if( ! config->merge( myConfig, ost, file ) ) {
 			error( ost.str() );
 			return false;
@@ -370,12 +394,17 @@ void
 ConfigParser::
 doQuery( const AttributeMap &attributes )
 {
+	ostringstream sid;
 	string probe;
 	string stopIfData;
 	string prognosisLength;
 
 	getAttr( attributes, "must_have_data", probe, "false" );
 	
+	sid << "q" << currentQueryAutoId;
+	getAttr( attributes, "id", currentQueryId, sid.str() );
+
+
 	if( !probe.empty() && (probe[0]=='t' || probe[0]=='T') )
 		currentQueryProbe = true;
 	else
@@ -391,8 +420,9 @@ doQuery( const AttributeMap &attributes )
 
 	getAttr( attributes, "wdbdb", currentQueryWdbdb, "" );
 
-	if( currentQueryWdbdb.empty() )
+	if( currentQueryWdbdb.empty() && !providerAsWdbid) {
 		currentQueryWdbdb = currentQueryDefWdbdb;
+	}
 
 	currentQueryPrognosisLengthSeconds = getPrognosisLength( attributes, currentQueryDefPrognosisLengthSeconds );
 }
@@ -426,8 +456,10 @@ doQueryDef( const AttributeMap &attributes )
 
 	if( hasAttr( attributes, "parallel" ) )
 	   getAttr( attributes, "parallel", sParalell, "1");
-	else
+	else if( hasAttr( attributes, "paralell" ) )
 	   getAttr( attributes, "paralell", sParalell, "1");
+	else if( providerAsWdbid )
+		sParalell="0";
 
 	try {
 		miutil::Value val( sParalell );
@@ -442,7 +474,6 @@ doQueryDef( const AttributeMap &attributes )
 		error("querydef: The value to 'paralell' must be a number. Was: paralell=\""+ sParalell + "\"");
 		return false;
 	}
-
 
 	return true;
 }
@@ -873,7 +904,9 @@ startElement( const std::string &fullname,
 	xmlState.push( fullname );
 	
 	//cerr << "State: " << state.path() << endl;
-	if( xmlState == "/wdb2ts/include" ) {
+	if( xmlState == "/wdb2ts" ) {
+		doWdb2ts(attributes);
+	} else if( xmlState == "/wdb2ts/include" ) {
 	   doInclude( attributes );
 	}else if( xmlState == "/wdb2ts/requests/request" ) {
 		doRequest( attributes ); 
@@ -892,9 +925,11 @@ startElement( const std::string &fullname,
 		else 
 			warning("/wdb2ts/requests/request/version/actionparam: No currentRequestVersion!");
 	} else if( xmlState == "/wdb2ts/querydefs/querydef" ) {
+		currentQueryAutoId=0;
 		currentQueryDefWdbdb.erase();
 		doQueryDef( attributes );
 	} else if( xmlState == "/wdb2ts/querydefs/querydef/query" ) {
+		++currentQueryAutoId;
 		doQuery( attributes );
 		inChardata = false;
 		chardata.str("");
@@ -919,9 +954,9 @@ startElement( const std::string &fullname,
 	   getAttr( attributes, "name", name, "" );
 	   if( name.empty() ) {
 	      cerr << "ERROR: Parameter: <" << xmlState.path() << "> Missing attr 'name'" << endl;
-	   } else {
+	   } /*else {
 	      cerr << "startElement: Parameter: <" << xmlState.path() << ">." << endl;
-	   }
+	   }*/
 	} else if( xmlState == "./providerpriority/provider") {
 
 	}
@@ -968,6 +1003,10 @@ endElement( const std::string &name )
 		currentRequest.reset();
 	} else if(xmlState == "/wdb2ts/querydefs/querydef" ){
 		currentQueryDefWdbdb.erase();
+		if(providerAsWdbid && itCurrentQueryDef->second.dbRequestsInParalells()==0 ) {
+			int nParallels=itCurrentQueryDef->second.querys().size();
+			itCurrentQueryDef->second.dbRequestsInParalells(nParallels);
+		}
 		itCurrentQueryDef = config->querys.end();
    } else if(xmlState == "/wdb2ts/querydefs/querydef/query" ) {
 		miutil::trimstr( buf );
@@ -978,10 +1017,32 @@ endElement( const std::string &name )
 
 		if( !buf.empty() ) {
 			if( itCurrentQueryDef != config->querys.end() ){
+				if( providerAsWdbid && currentQueryWdbdb.empty()) {
+					wdb2ts::WciWebQuery q;
+					try {
+						q.onlyDecodeParams(buf);
+
+						if( q.dataprovider.valueList.empty() ) {
+							currentQueryWdbdb = currentQueryDefWdbdb;
+							warning("No dataprovider given in section: '" + buf +"'" );
+						} else if( q.dataprovider.valueList.size()>1) {
+							warning("More than one dataprovider given in section: '" + buf +"' using the first: '"+ *q.dataprovider.valueList.begin()+"'");
+							currentQueryWdbdb = *q.dataprovider.valueList.begin();
+						} else {
+							currentQueryWdbdb = *q.dataprovider.valueList.begin();
+						}
+					}
+					catch( const std::exception &ex) {
+						cerr << "Exception: " << ex.what() << endl;
+						warning(string("Failed to parse query section: ") + ex.what() );
+					}
+				}
+
 				itCurrentQueryDef->second.push_back(
 						Config::QueryElement(
 								buf, currentQueryProbe, currentQueryStopIfData,
-								currentQueryWdbdb, currentQueryPrognosisLengthSeconds
+								currentQueryWdbdb, currentQueryPrognosisLengthSeconds,
+								currentQueryId
 						)
 				);
 			}
@@ -1002,11 +1063,11 @@ endElement( const std::string &name )
    }else if( xmlState == "./meta/update/name" ) {
 
    }else if( xmlState == "./parameter") {
-	   cerr << "endElement: Parameter: <" << xmlState.path() << ">." << endl;
+	   //cerr << "endElement: Parameter: <" << xmlState.path() << ">." << endl;
 	} else if( xmlState == "./providerpriority" ) {
-	   cerr << "endElement: providerpriority: <" << xmlState.path() << ">." << endl;
+	   //cerr << "endElement: providerpriority: <" << xmlState.path() << ">." << endl;
 	} else if( xmlState == "./providerpriority/provider" ) {
-	   cerr << "endElement: providerpriority/provider: <" << xmlState.path() << ">." << endl;
+	   //cerr << "endElement: providerpriority/provider: <" << xmlState.path() << ">." << endl;
    }
 
 	xmlState.pop( stateVal );	

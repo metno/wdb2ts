@@ -93,6 +93,7 @@ operator () ( argument_type &t )
    list<ProviderGroup> providerGroupList;
    int num;
 
+   lookUpTable->clear();
    ost << "select * from wci.getdataprovider(NULL)";
 
    USE_MI_PROFILE;
@@ -126,6 +127,7 @@ operator () ( argument_type &t )
    }
    catch( const std::exception &ex ) {
       WEBFW_LOG_ERROR("ResolveProviderGroups: EXCEPTION: Reason: " << ex.what() );
+      throw;
    }
    catch( ... ) {
       WEBFW_LOG_ERROR("ResolveProviderGroups: EXCEPTION: Reason: Unkown!");

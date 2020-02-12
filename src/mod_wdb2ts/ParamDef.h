@@ -149,11 +149,12 @@ public:
    		     ParamDefPtr &paramDef,
    		     std::string &providerGroup )const;
 
-
+#ifndef NODB
    bool
    findParam( pqxx::result::const_iterator it,
               ParamDefPtr &paramDef,
               std::string &providerGroup ) const;
+#endif
 
    bool
    hasParam(  const std::string &alias,
@@ -179,9 +180,10 @@ public:
 
    //void resolveProviderGroups( Wdb2TsApp &app, const std::string &wdbid );
 
+#ifndef NODB
    friend void
    paramDefListRresolveProviderGroups( Wdb2TsApp &app, ParamDefList &paramDefList, const std::string &wdbid );
-
+#endif
    void merge( const ParamDefList *other, bool replace=false );
 
    friend std::ostream& operator<<( std::ostream &o, const ParamDefList &par );

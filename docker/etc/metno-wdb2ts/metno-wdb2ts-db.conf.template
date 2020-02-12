@@ -1,0 +1,1 @@
+default: host=@PGHOST@ user=wdb2ts port=@PGPORT@  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000

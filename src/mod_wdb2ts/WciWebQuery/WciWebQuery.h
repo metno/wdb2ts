@@ -76,7 +76,7 @@ namespace wdb2ts {
 class WciWebQuery
 {
 	std::string returnColoumns;
-	
+	bool onlyDecodeParams_;
 public:
 	UrlParamDataProvider  dataprovider;
 	UrlParamFloat         latitude;
@@ -92,6 +92,7 @@ public:
 	UrlParamPolygon       polygon;
 	bool                  isPolygon;
 
+
 	/** 
 	 * Default Constructor
 	 */
@@ -106,6 +107,8 @@ public:
 	 * Default Destructor
 	 */
 	virtual ~WciWebQuery();
+
+	void onlyDecodeParams(const std::string &query );
    
 	/**
 	 * Decodes a query on the form:

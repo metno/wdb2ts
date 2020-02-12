@@ -35,6 +35,7 @@
 #include <wdb2tsProfiling.h>
 #include <ProviderList.h>
 #include <Logger4cpp.h>
+#include <configdata.h>
 
 DEFINE_MI_PROFILE;
 
@@ -78,17 +79,17 @@ using namespace boost::posix_time;
 
 using namespace std;
 
-WdbQueryHelper::
-WdbQueryHelper()
-	: urlQuerys( dummyQuerys ), first( true )
-{
-	itNext = urlQuerys.end();
-}
+//WdbQueryHelper::
+//WdbQueryHelper()
+//	: urlQuerys( dummyQuerys ), first( true )
+//{
+//	itNext = urlQuerys.end();
+//}
 	
 WdbQueryHelper::
-WdbQueryHelper( const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol )
+WdbQueryHelper( const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol,ConfigData *config_ )
 	: urlQuerys( urlQuerys ), first( true ), 
-	  webQuery( wciProtocol, getReturnColoumns( wciProtocol ) )
+	  webQuery( wciProtocol, getReturnColoumns( wciProtocol ) ), config(config_)
 {
 	itNext = urlQuerys.end();
 }	
@@ -121,9 +122,10 @@ dataprovider()const
 
 void
 WdbQueryHelper::
-doGetProviderReftime( const std::string &provider, 
-		                boost::posix_time::ptime &refTimeFrom,  
-		                boost::posix_time::ptime &refTimeTo ) const
+doGetProviderReftime( const ProviderRefTimeList &reftimes,
+					  const std::string &provider,
+		              boost::posix_time::ptime &refTimeFrom,
+		              boost::posix_time::ptime &refTimeTo ) const
 {
 	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
 	ProviderItem pvItem;
@@ -164,9 +166,10 @@ doGetProviderReftime( const std::string &provider,
 
 bool
 WdbQueryHelper::
-getProviderReftime( const std::string &provider, 
-		              boost::posix_time::ptime &refTimeFrom,  
-		              boost::posix_time::ptime &refTimeTo ) 
+getProviderReftime( const ProviderRefTimeList &reftimes,
+					const std::string &provider,
+		            boost::posix_time::ptime &refTimeFrom,
+		            boost::posix_time::ptime &refTimeTo )
 {
 	WEBFW_USE_LOGGER( "handler" );
 	ProviderItem pvItemIn = ProviderList::decodeItem( provider );
@@ -174,7 +177,7 @@ getProviderReftime( const std::string &provider,
 
 	WEBFW_LOG_DEBUG( "getProviderReftime: " << provider );
 
-	doGetProviderReftime( provider, refTimeFrom, refTimeTo ); 
+	doGetProviderReftime( reftimes, provider, refTimeFrom, refTimeTo );
 		
 	if( refTimeFrom.is_special() ) {
 		WEBFW_LOG_INFO( " --- No reftime found or provider disabled: " << provider );
@@ -194,9 +197,10 @@ getProviderReftime( const std::string &provider,
 
 bool
 WdbQueryHelper::
-getProviderReftime( const std::list<std::string> &providerList, 
-		              boost::posix_time::ptime &refTimeFrom,  
-		              boost::posix_time::ptime &refTimeTo ) 
+getProviderReftime( const ProviderRefTimeList &reftimes,
+					const std::list<std::string> &providerList,
+		            boost::posix_time::ptime &refTimeFrom,
+		            boost::posix_time::ptime &refTimeTo )
 {
 	WEBFW_USE_LOGGER( "handler" );
 	string log;
@@ -207,7 +211,7 @@ getProviderReftime( const std::list<std::string> &providerList,
 	     it != providerList.end();
 	     ++ it )
 	{
-		doGetProviderReftime( *it, refTimeFrom, refTimeTo );
+		doGetProviderReftime( reftimes, *it, refTimeFrom, refTimeTo );
 		if( it != providerList.end() )
 			log += ", ";
 		
@@ -233,7 +237,7 @@ getProviderReftime( const std::list<std::string> &providerList,
 
 std::string
 WdbQueryHelper::
-getDataversionString( const std::list<std::string> &dataproviderList ) const
+getDataversionString( const ProviderRefTimeList &reftimes, const std::list<std::string> &dataproviderList ) const
 {
 	ProviderItem pvItemIn;
 	ProviderItem pvItem;
@@ -280,7 +284,6 @@ WdbQueryHelper::
 init( const LocationPointList &locationPoints,
 	  const	boost::posix_time::ptime &toTime,
 	  bool isPolygon_,
-	  const ProviderRefTimeList &reftimes_,
 	  const ProviderList &providerPriority_,
 	  const std::string &extraParams )
 {
@@ -296,7 +299,7 @@ init( const LocationPointList &locationPoints,
 	if( locationPoints.empty() )
 		throw logic_error( "No location is given in the request.");
 
-	reftimes = reftimes_;
+	//reftimes = reftimes_;
 	providerPriority = providerPriority_;
 
 	itCurProviderPriority = curProviderPriority.end();
@@ -340,7 +343,7 @@ init( const LocationPointList &locationPoints,
 	
 bool 
 WdbQueryHelper::
-hasNext( )
+hasNext()
 {
 	USE_MI_PROFILE;
 	START_MARK_MI_PROFILE("WdbQueryHelper::hasNext");
@@ -356,12 +359,12 @@ hasNext( )
 	if( first ) {
 		itNext = urlQuerys.begin();
 	}
-				
+	reftimes_ = config->getReferenceTimeByDbId(itNext->wdbdb());
 	
 	if( itCurProviderPriority != curProviderPriority.end() ) {
 		for( itCurProviderPriority++
 			 ; itCurProviderPriority != curProviderPriority.end() && 
-		      ! getProviderReftime( (reftimeProvider.empty()?itCurProviderPriority->provider:reftimeProvider), 
+		      ! getProviderReftime(*reftimes_, (reftimeProvider.empty()?itCurProviderPriority->provider:reftimeProvider),
 		      		                 refTimeFrom, refTimeTo )
 		    ; ++itCurProviderPriority);
 	}
@@ -371,7 +374,7 @@ hasNext( )
 		webQuery.dataprovider.decode( itCurProviderPriority->provider );
 		webQuery.reftime.decode( miutil::isotimeString( refTimeFrom, true, true ) + "," +
 				                   miutil::isotimeString( refTimeTo, true, true ) );
-		webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+		webQuery.dataversion.decode( getDataversionString( *reftimes_, webQuery.dataprovider.valueList ) );
 		
 		if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
 			webQuery.validtime.decode( validTime );
@@ -388,17 +391,19 @@ hasNext( )
 	
 		if( itNext == urlQuerys.end() )
 			return false;
+		
+		wdbid_ = itNext->wdbdb();
+		reftimes_=config->getReferenceTimeByDbId(wdbid_);
+		queryMustHaveData = itNext->probe();
+		stopIfQueryHasData = itNext->stopIfData();
+		prognosisLengthSeconds = itNext->prognosisLengthSeconds();
+		queryid_=itNext->id();
 
 		reftimeProvider.erase();
 		string q( position );
 		
 		q = position + itNext->query();
-		queryMustHaveData = itNext->probe();
-		stopIfQueryHasData = itNext->stopIfData();
-		prognosisLengthSeconds = itNext->prognosisLengthSeconds();
 
-		wdbid_ = itNext->wdbdb();
-		
 		webQuery.decode( q );
 	
 		curProviderPriority.clear();
@@ -416,7 +421,7 @@ hasNext( )
 				for( UrlParamDataProvider::ValueList::const_iterator itValueList = webQuery.dataprovider.valueList.begin();
 				     itValueList != webQuery.dataprovider.valueList.end();
 				     ++itValueList ) {
-				   if( reftimes.disabled( *itValueList, disabled) )
+				   if( reftimes_->disabled( *itValueList, disabled) )
 				      if( disabled )
 				         continue;
 
@@ -433,7 +438,7 @@ hasNext( )
 			     ++itCurProviderPriority ) 
 			{
 				WEBFW_LOG_DEBUG( "getProviderRefTime: " << itCurProviderPriority->provider << " " << refTimeFrom << " - " << refTimeTo );
-				if( ! getProviderReftime( itCurProviderPriority->provider, refTimeFrom, refTimeTo ) ) {
+				if( ! getProviderReftime( *reftimes_, itCurProviderPriority->provider, refTimeFrom, refTimeTo ) ) {
 					WEBFW_LOG_DEBUG( " --- Not found" );;
 					continue;
 				}
@@ -445,7 +450,7 @@ hasNext( )
 				webQuery.dataprovider.decode( itCurProviderPriority->provider );
 				webQuery.reftime.decode( miutil::isotimeString( refTimeFrom, true, true ) + "," +
 							                miutil::isotimeString( refTimeTo, true, true ) );
-				webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+				webQuery.dataversion.decode( getDataversionString( *reftimes_, webQuery.dataprovider.valueList ) );
 
 				if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
 					webQuery.validtime.decode( validTime );
@@ -468,7 +473,7 @@ hasNext( )
 			   for( UrlParamDataProvider::ValueList::const_iterator itValueList = webQuery.dataprovider.valueList.begin();
 			         itValueList != webQuery.dataprovider.valueList.end();
 			         ++itValueList ) {
-			      if( reftimes.disabled( *itValueList, disabled) )
+			      if( reftimes_->disabled( *itValueList, disabled) )
 			         if( disabled )
 			            continue;
 
@@ -482,20 +487,20 @@ hasNext( )
 			}
 			
 			if( webQuery.reftime.sameTimespecAs( reftimeProvider ) ) {
-				if( ! getProviderReftime( reftimeProvider, refTimeFrom, refTimeTo ) ) 
+				if( ! getProviderReftime( *reftimes_, reftimeProvider, refTimeFrom, refTimeTo ) )
 					continue;
 				
 				webQuery.reftime.decode( miutil::isotimeString( refTimeFrom, true, true ) + "," +
 						                   miutil::isotimeString( refTimeTo, true, true ) );
 			} else if( webQuery.reftime.useProviderList( ) ) {
-				if( ! getProviderReftime( webQuery.dataprovider.valueList, refTimeFrom, refTimeTo ) ) 
+				if( ! getProviderReftime( *reftimes_,webQuery.dataprovider.valueList, refTimeFrom, refTimeTo ) )
 					continue;
 				
 				webQuery.reftime.decode( miutil::isotimeString( refTimeFrom, true, true ) + "," +
 						                   miutil::isotimeString( refTimeTo, true, true ) );
 			}
 			
-			webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+			webQuery.dataversion.decode( getDataversionString( *reftimes_, webQuery.dataprovider.valueList ) );
 
 			if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
 				webQuery.validtime.decode( validTime );
@@ -504,7 +509,7 @@ hasNext( )
 			return true;
 		}
 		
-		webQuery.dataversion.decode( getDataversionString( webQuery.dataprovider.valueList ) );
+		webQuery.dataversion.decode( getDataversionString( *reftimes_,webQuery.dataprovider.valueList ) );
 		
 		if( ! validTime.empty() && ! webQuery.validtime.isDecoded )
 			webQuery.validtime.decode( validTime );

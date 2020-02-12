@@ -98,8 +98,13 @@ public:
 	void
 	doStatus( Wdb2TsApp *app,
 			  webfw::Response &response, ConfigDataPtr config,
-			  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+			  PtrProviderRefTimesByDbId refTimes, const ProviderList &providerList,
 			  ParamDefListPtr paramdef );
+
+
+	void get_( webfw::Request  &req,
+			   webfw::Response &response,
+			   webfw::Logger   &logger    );
 
 
 	///Overide webfw::RequestHandler::get
@@ -113,12 +118,18 @@ public:
 	///Overide INoteUpdateListener::noteListenerId
 	virtual std::string noteListenerId();
 	
+	PtrProviderRefTimesByDbId getReferenceTimesByDbId();
+	ConfigDataPtr getRequestConfig(const WebQuery &webQuery, Wdb2TsApp *app);
+
+	PtrProviderRefTimesByDbId getOrLoadProviderReftimesByDbId();
+
 private:
 	NoteHelper          noteHelper;
 	SymbolGenerator     symbolGenerator;
 	std::string         updateid; //A namspace for notes to the LocationForecastUpdateHandler.
 	std::string         note;
 	std::string         wdbDB;
+	std::list<std::string> definedDbIds;
 	bool                noteIsUpdated;
    //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;
@@ -129,7 +140,9 @@ private:
    std::list<std::string>      topographyProviders;
    NearestHeights      nearestHeights;
    SymbolConfProvider  symbolConf_;
-   PtrProviderRefTimes providerReftimes;
+   //PtrProviderRefTimes providerReftimes;
+   bool                providerRefTimesByDbIdIsPersisten;
+   PtrProviderRefTimesByDbId providerReftimesByDbId;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
    ParamDefListPtr     paramDefsPtr_;
@@ -142,7 +155,9 @@ private:
    NoDataResponse      noDataResponse;
    boost::mutex        mutex; 
 
-   PtrProviderRefTimes getProviderReftimes();
+
+   void clearConfig(Wdb2TsApp *app);
+
   	
    //Get some mutex protected data.
    void getProtectedData( SymbolConfProvider &symbolConf,
@@ -150,7 +165,7 @@ private:
 
    LocationPointListPtr getPolygonPoints( const WebQuery &webQuery,
 		                                  const ProviderList &providerPriority,
-  	                                      const ProviderRefTimeList &reftimes,
+  	                                      const PtrProviderRefTimesByDbId reftimes,
   	                                      ParamDefListPtr paramDefs );
   	  	
    

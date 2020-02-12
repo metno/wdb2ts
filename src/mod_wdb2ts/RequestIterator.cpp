@@ -31,31 +31,32 @@
 
 
 namespace wdb2ts {
+/*
+RequestIterator reqit(
+	app,
+	configData.get(),
+	wdbDB, wciProtocol,
+	urlQuerys, nearestHeights, locationPoints, webQuery.from(), webQuery.to(),
+                       webQuery.isPolygon(), altitude, refTimes, paramDefPtr, providerPriority );
+*/
 
 RequestIterator::
-RequestIterator( Wdb2TsApp *app__,
-                 const std::string &wdbDB_,
+RequestIterator( ConfigData *config_,
                  int wciProtocol_,
                  const wdb2ts::config::Config::Query &urlQuerys_,
                  const NearestHeights      &nearestHeights_,
                  const LocationPointListPtr locationPoints_,
-				 const boost::posix_time::ptime &from_,
-                 const boost::posix_time::ptime &to_,
-                 bool isPolygon_, int altitude_,
-                 PtrProviderRefTimes refTimes__,
                  ParamDefListPtr  paramDefs_,
                  const ProviderList &providerPriority__)
-   : app_( app__ ),
-     wdbDB( wdbDB_ ),
+   : config(config_),
      wciProtocol( wciProtocol_ ),
      urlQuerys( urlQuerys_ ),
      nearestHeights( nearestHeights_ ),
      locationPoints( locationPoints_ ),
-	 from( from_ ),
-     to( to_ ),
-     isPolygon( isPolygon_ ),
-     altitude( altitude_ ),
-     refTimes_( refTimes__ ),
+	 from( config->webQuery.from() ),
+     to( config->webQuery.to() ),
+     isPolygon(config->webQuery.isPolygon() ),
+     altitude( config->altitude ),
      paramDefs( paramDefs_ ),
      providerPriority_( providerPriority__ )
 {
@@ -70,12 +71,9 @@ nearestHeightPoint( LocationPointDataPtr data )
    if( nearestHeights.empty() || locationPoints->empty() )
       return;
 
-   WciConnectionPtr wciConnection = app_->newWciConnection( wdbDB );
-
-   NearestHeight::processNearestHeightPoint( *locationPoints, to, data, altitude, refTimes_,
+   NearestHeight::processNearestHeightPoint( config, *locationPoints, to, data, altitude,
                                              providerPriority_, *paramDefs, nearestHeights,
-                                             wciProtocol, wciConnection );
-
+                                             wciProtocol);
 }
 
 
@@ -104,8 +102,7 @@ next()
          ++itPoint;
       }
 
-      data = requestManager.requestData( app_, wdbDB, pointList, from, to, false, altitude,
-                                         refTimes_, paramDefs, providerPriority_, urlQuerys, wciProtocol );
+      data = requestManager.requestData( config, paramDefs, providerPriority_, urlQuerys, wciProtocol );
 
       if( !isPolygon ) {
          nearestHeightPoint( data );

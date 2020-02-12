@@ -47,12 +47,21 @@ providerPrioritySetPlacename( const ProviderList &pvList,
 										const std::string &wdbDB,
 										Wdb2TsApp *app );
 
+ProviderList
+providerPrioritySetPlacename( const ProviderItem &pvItem,
+				              const std::string &wdbDB,
+							  Wdb2TsApp *app );
+
 
 ProviderList
 configureProviderList( const wdb2ts::config::ActionParam &params, 
 		                 const std::string &wdbDB,
 		                 Wdb2TsApp *app );
 
+ProviderList
+configureProviderList( const wdb2ts::config::ActionParam &params,
+		                 const std::list<std::string> &wdbDBs,
+		                 Wdb2TsApp *app );
 
 }
 #endif 

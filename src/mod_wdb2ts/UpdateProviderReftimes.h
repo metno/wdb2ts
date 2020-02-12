@@ -37,6 +37,8 @@
 
 namespace wdb2ts {
 
+class Wdb2TsApp;
+
 typedef boost::shared_ptr<ProviderRefTimeList> PtrProviderRefTimes;
 
 
@@ -63,7 +65,30 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 		                ProviderRefTimeList &refTimes,
 		                int wciProtocol );
 
-}
 
+
+
+PtrProviderRefTimes
+locationForecastUpdate(
+		WciConnectionPtr wciConnection,
+		const ProviderRefTimeList &requestedProviders_,
+		const ProviderList &providerPriorityList,
+		const PtrProviderRefTimes oldRefTime,
+		int wciProtocol,
+		std::string &status
+);
+
+PtrProviderRefTimesByDbId
+locationForecastUpdateAllDbIds(
+		wdb2ts::Wdb2TsApp *app,
+		const std::list<std::string> &dbIds,
+		const ProviderRefTimeList &requestedProviders_,
+		const ProviderList &providerPriorityList,
+		const PtrProviderRefTimesByDbId oldRefTime,
+		int wciProtocol,
+		std::map<std::string,std::string> &status
+);
+
+}
 
 #endif 

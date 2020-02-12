@@ -21,6 +21,7 @@ Build-Depends: build-essential, debhelper (>= 5), debconf, dbconfig-common, devs
                proj (>=4.6) | libproj-dev (>=4.6),
                liblog4cpp5-dev (>= 1.0),
                libcurl4-openssl-dev (>= 7.15.5), 
+               libyajl-dev (>= 2.1.0),
                metlibs-pumet-dev,
                metlibs-putools-dev
 Standards-Version: 3.6.2
@@ -48,3 +49,10 @@ Description: wdb2ts is an apache module that return a timeserie of meteorologica
  meteorological data in xml and CSV format for a given position 
  (lat/long/altitude). It is implemented as an apache module.
 
+
+Package: wdb2ts-etcdcli-@VERSION@
+Architecture: any
+Depends:  ${shlibs:Depends}, ${misc:Depends}
+Description: Client program to maintain wdb2ts configuration in etcd.
+ Client program to maintain wdb2ts configuration in etcd.
+ 

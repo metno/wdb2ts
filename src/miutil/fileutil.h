@@ -31,6 +31,7 @@ truncate( const std::string &file );
 boost::posix_time::ptime
 getmtime( const std::string &file );
 
+
 }
 }
 

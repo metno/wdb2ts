@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wdb2ts-etcdcli
+spec:
+  containers:
+    - name: wdb2ts-etcdcli
+      image: registry.forti.met.no/forti/wdb2ts/wdb2ts_etcdcli:kubernetes
+  imagePullSecrets:
+    - name: gitlab-forti

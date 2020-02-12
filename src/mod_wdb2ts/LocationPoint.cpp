@@ -35,7 +35,7 @@
 #include <boost/regex.hpp>
 #include <boost/assign/list_of.hpp>
 #include <sstream>
-#include <Logger4cpp.h>
+//#include <Logger4cpp.h>
 
 using namespace boost;
 using namespace std;

@@ -117,7 +117,6 @@ am__aclocal_m4_deps = $(top_srcdir)/config/ac_apxs.m4 \
 	$(top_srcdir)/config/wdb_cppunit.m4 \
 	$(top_srcdir)/config/wdb_cxx.m4 \
 	$(top_srcdir)/config/wdb_docbook.m4 \
-	$(top_srcdir)/config/wdb_doxygen.m4 \
 	$(top_srcdir)/config/wdb_proj.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -162,6 +161,7 @@ AWK = @AWK@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 BOOST_DATE_TIME_LIB = @BOOST_DATE_TIME_LIB@
 BOOST_FILESYSTEM_LIB = @BOOST_FILESYSTEM_LIB@
+BOOST_IOSTREAMS_LIB = @BOOST_IOSTREAMS_LIB@
 BOOST_LDFLAGS = @BOOST_LDFLAGS@
 BOOST_PROGRAM_OPTIONS_LIB = @BOOST_PROGRAM_OPTIONS_LIB@
 BOOST_REGEX_LIB = @BOOST_REGEX_LIB@
@@ -214,9 +214,12 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ETCD_CPPFLAGS = @ETCD_CPPFLAGS@
+ETCD_LIBS = @ETCD_LIBS@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 GREP = @GREP@
+HAVE_CXX11 = @HAVE_CXX11@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -311,10 +314,14 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
+libcurl_CFLAGS = @libcurl_CFLAGS@
+libcurl_LIBS = @libcurl_LIBS@
 libdir = @libdir@
 libexecdir = @libexecdir@
 libxml2_CFLAGS = @libxml2_CFLAGS@
 libxml2_LIBS = @libxml2_LIBS@
+libyajl_CFLAGS = @libyajl_CFLAGS@
+libyajl_LIBS = @libyajl_LIBS@
 localedir = @localedir@
 localstatedir = @localstatedir@
 log4cpp_CFLAGS = @log4cpp_CFLAGS@

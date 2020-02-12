@@ -1,0 +1,177 @@
+# this file is used by symbolMaker.cc to build weathersymbols
+# j.schulze /july 98
+# there are two entrances for each symbol. one for the normal
+# light time and the other for the dark time... 
+# example :
+# -------------------
+# < STRING : NAME OF THE TARGET CLASS >
+#
+# < INT: CUSTOMER NUMBER >  < STRING: NAME LIGHT >
+# < INT: CUSTOMER NUMBER >  < STRING: NAME DARK  >
+#	
+# -----------------------
+# the symbol library starts here......
+
+FOGSTATUS  = true
+THUNDERSTATUS = true
+VISIBILITY = false
+PICTURES   = false
+DYNAMIC_RAINLIMITS = true
+
+{
+SUN
+1	sol
+16	klarvær i mørketid
+}
+
+{     
+LIGHTCLOUD
+2	lettskyet
+17	lettskyet i mørketid
+}
+
+
+{
+PARTLYCLOUD
+3	delvis skyet 
+17	delvis skyet i mørketid
+}
+
+{
+CLOUD
+4	skyet
+4	skyet
+}	
+
+{
+LIGHTRAINSUN
+5	regnbyger
+18	regnbyger i mørketid
+}
+
+
+{
+LIGHTRAINTHUNDERSUN
+6      regnbyger med torden
+6      regnbyger med torden
+}
+
+	
+{    
+SLEETSUN
+7       sluddbyger
+7       sluddbyger i  mørketid
+}
+
+{
+SNOWSUN
+8	snøbyger
+19	snøbyger i mørketid
+}
+
+{
+LIGHTRAIN
+9	yr
+9	yr
+}
+
+
+	
+{
+RAIN
+10	regn
+10	regn
+}
+
+
+{
+RAINTHUNDER
+11     regn og torden
+11     regn og torden
+}
+
+
+{
+SLEET
+12	sludd
+12	sludd
+}
+
+
+{
+SNOW
+13	snø
+13	snø
+}
+
+
+
+{
+SNOWTHUNDER
+14	snø og torden
+14	snø og torden
+}
+
+{
+FOG
+15	tåke
+15	tåke
+}
+
+
+{
+SLEETSUNTHUNDER
+20 sludd,sol og torden
+20 sludd,sol og torden
+}
+
+{
+SNOWSUNTHUNDER
+21 Snø og torden
+21 Snø og torden
+}
+
+{
+LIGHTRAINTHUNDER
+22 Lett regn torden
+22 Lett regn torden
+}
+
+
+{
+SLEETTHUNDER
+23 Sludd og torden
+23 Sludd og torden
+}
+
+{
+DRIZZLE
+24 duskregn
+24 duskregn
+}
+
+{
+LIGTHSNOW
+25 lett snø
+25 lett snø
+}
+
+{
+ERROR
+0  feil
+0  feil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

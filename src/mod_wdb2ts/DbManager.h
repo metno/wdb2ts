@@ -89,7 +89,14 @@ public:
       miutil::pgpool::DbDefList                         dbSetup_;
       std::string                                       defaultDbId_;
     //  boost::mutex                                    mutex;
-      
+
+      /**
+       * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
+       *            miutill::pgpool::DbConnectionPoolCreateEx
+       *
+       */
+      miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="", int timeoutInMilliSeconds=2000 );
+
    public:
       DbManager( const miutil::pgpool::DbDefList     &dbSetup );
 
@@ -100,13 +107,10 @@ public:
       void defaultDbId( const std::string &id ) { defaultDbId_ = id; }
       std::string defaultDbId( ) { return defaultDbId_; }
       
-      /**
-       * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,
-       *            miutill::pgpool::DbConnectionPoolCreateEx
-       *
-       */
-      miutil::pgpool::DbConnectionPtr newConnection(const std::string &dbid="", int timeoutInMilliSeconds=2000 );
-      
+
+      void releaseAllConnections();
+      void releaseAllConnectionsWithId(const std::string &id);
+
       /**
        *
        * @exception std::logic_error, miutil::pgpool::DbConnectionPoolMaxUseEx,

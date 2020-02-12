@@ -30,3 +30,23 @@ AC_DEFUN([WITH_WDB2TS_TMP_DIR],
    AC_SUBST(WDB2TS_TMPDIR)
    AM_CONDITIONAL([HAS_WDB2TS_TMPDIR], [test  x$WDB2TS_TMPDIR != x ] )
 ])
+
+AC_DEFUN([WDB2TS_ETCDCLIENT],
+[
+	AC_ARG_ENABLE( 
+		[wdb2ts-etcdcli],
+		[AS_HELP_STRING([--enable-wdb2ts-etcdcli],[Build wdb2ts-etcdcli. Utility to maintain confifiguration in etcd.])],
+		[
+			case "${enableval}" in
+				yes) wdb2ts_etcdclient=true ;;
+				no)  wdb2ts_etcdclient=false ;;
+				*) AC_MSG_ERROR([bad value ${enableval} for --enable-wdb2ts-etcdcli]) ;;
+			esac
+		],
+		[wdb2ts_etcdclient=false]
+	)
+	AM_CONDITIONAL([BUILD_WDB2TS_ETCDCLIENT], [test x$wdb2ts_etcdclient = xtrue] ) 
+]
+)
+
+

@@ -25,10 +25,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
     MA  02110-1301, USA
 */
+#include <limits.h>
 #include <stdlib.h>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <configdata.h>
 #include <Logger4cpp.h>
+#include <ProviderReftimes.h>
+#include "wdb2TsApp.h"
 
 using namespace std;
 namespace pt=boost::posix_time;
@@ -86,9 +89,24 @@ std::ostream &operator<<(std::ostream &o, const ExpireConfig &conf) {
 }
 
 ConfigData::
-ConfigData()
-    : throwNoData( false ),isForecast(true)
+ConfigData():
+webQueryDummy(new WebQuery()),webQuery(*webQueryDummy), throwNoData( false ),isForecast(true),altitude(INT_MAX),dbMetric("wdb_request"),
+decodeMetric("wdb_decode"), validateMetric("validate"),
+requestMetric("request"), encodeMetric("encode"),app(nullptr)
 {
+}
+
+ConfigData::
+ConfigData(const WebQuery  &webQuery_, wdb2ts::Wdb2TsApp *app_)
+    : webQueryDummy(nullptr), webQuery(webQuery_), throwNoData( false ),isForecast(true),altitude(INT_MAX),dbMetric("wdb_request"),
+		decodeMetric("wdb_decode"), validateMetric("validate"),
+		requestMetric("request"), encodeMetric("encode"),app(app_)
+{
+}
+
+ConfigData::
+~ConfigData(){
+	delete webQueryDummy;
 }
 
 bool
@@ -98,4 +116,47 @@ outputParam( const std::string &param )const
    return parameterMap.useParam( param );
 }
 
+PtrProviderRefTimes
+ConfigData::
+getReferenceTimeByDbId(const std::string &dbId_)
+{
+	string dbId((dbId_.empty()?defaultDbId:dbId_));
+	ProviderRefTimesByDbId::const_iterator it=reftimes->find(dbId);
+	if( it == reftimes->end() ) {
+		it=reftimes->find(defaultDbId);
+		if( it == reftimes->end() )
+			return PtrProviderRefTimes(new ProviderRefTimeList());
+	}
+
+	return it->second;
+}
+
+
+void
+ConfigData::
+setReferenceTime(PtrProviderRefTimes reftime, const std::string &dbId_)
+{
+	string dbId((dbId_.empty()?defaultDbId:dbId_));
+
+	ProviderRefTimesByDbId::iterator it=reftimes->find(dbId);
+
+	if( it == reftimes->end() ) {
+		(*reftimes)[dbId]=reftime;
+	}else{
+		it->second =  reftime;
+	}
+}
+
+
+WciConnectionPtr
+ConfigData::newWciConnection( const std::string &dbid, unsigned int timeoutInMilliSecound)
+{
+	if(!app) {
+		cerr << "\n\n  ConfigData::newWciConnection:  SHIT app==nullptr\n\n";
+		return WciConnectionPtr();
+	}
+
+	return app->newWciConnection(dbid, timeoutInMilliSecound);
+
+}
 }

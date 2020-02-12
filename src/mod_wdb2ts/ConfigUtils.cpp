@@ -32,6 +32,7 @@
 #include <string>
 #include <compresspace.h>
 #include "ConfigUtils.h"
+#include "wdb2TsApp.h"
 
 using namespace std;
 
@@ -107,6 +108,26 @@ bool configForcast( const wdb2ts::config::ActionParam &conf )
 	WEBFW_LOG_INFO( "Config: 'forecast' set to '" << (res?"true":"false")<< "'." );
 	return res;
 }
+
+
+std::string getUpdateId(const wdb2ts::config::ActionParam &conf, bool *isPersitent)
+{
+	std::string updateid=conf.getStr("updateid", "");
+
+	*isPersitent=true;
+	if( updateid.empty())
+		return "";
+
+	if(updateid[0]=='*') {
+		*isPersitent=false;
+		std::string::size_type i = updateid.find_first_not_of("*");
+		//Remove the * characters at the beginning.
+		updateid=updateid.substr(i);
+	}
+
+	return updateid;
+}
+
 
 NoDataResponse NoDataResponse::decode( const wdb2ts::config::ActionParam &conf )
 {
@@ -262,5 +283,38 @@ operator<<( std::ostream &s, const OutputParams &op )
 
 	return s;
 }
+
+
+std::list<std::string>
+getListOfQueriesDbIds(
+		const wdb2ts::config::Config::Query &queries,
+		const std::string &defaultDbId
+)
+{
+	using namespace std;
+	std::set<string> dbIds;
+	for (wdb2ts::config::Config::Query::const_iterator it = queries.begin();
+			it != queries.end(); ++it) {
+		string dbId = it->wdbdb().empty() ? defaultDbId : it->wdbdb();
+		if (!dbId.empty())
+			dbIds.insert(dbId);
+	}
+	return list<string>(dbIds.begin(), dbIds.end());
+}
+
+std::pair<std::list<std::string>, std::string>
+getEtcdConfig(const wdb2ts::config::ActionParam &conf )
+{
+	using namespace std;
+	using namespace miutil;
+
+	vector<string> v=splitstr( conf.getStr("etcd_hosts","") );
+	list<string> hosts = list<string>(v.begin(), v.end());
+	string path = conf.getStr("etcd_path","");
+
+	return pair<list<string>, string>(hosts, path);
+}
+
+
 
 }

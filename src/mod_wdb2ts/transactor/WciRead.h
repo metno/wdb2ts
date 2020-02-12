@@ -34,6 +34,7 @@
 #include <pqxx/transactor>
 #include <string>
 #include <Config.h>
+#include <Metric.h>
 
 namespace wdb2ts {
 
@@ -44,7 +45,7 @@ class WciReadHelper
 public:
 	WciReadHelper();
 	virtual ~WciReadHelper();
-	
+
 	pqxx::transaction_base *transaction;
 	///id return an id to use in logging.
 	virtual std::string id();
@@ -63,6 +64,9 @@ class WciRead
 	: public pqxx::transactor<>
 {
 public:
+	boost::shared_ptr<miutil::Metric> dbMetric;
+	boost::shared_ptr<miutil::Metric> doReadMetric;
+
 	WciRead( WciReadHelper *helper );
 	
 	~WciRead();

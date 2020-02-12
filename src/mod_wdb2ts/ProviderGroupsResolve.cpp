@@ -39,6 +39,8 @@
 
 namespace wdb2ts {
 
+#ifndef NODB
+
 ProviderGroups
 providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list<std::string> &providerList )
 {
@@ -50,6 +52,10 @@ providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list
 
    try {
       wciConnection = app.newWciConnection( wdbid );
+   }
+   catch( miutil::pgpool::DbNoConnectionException &ex) {
+   	   WEBFW_LOG_ERROR( "ResolveProviderGroups: EXCEPTION: " << ex.what() );
+   	   throw;
    }
    catch( const std::exception &ex ) {
       WEBFW_LOG_ERROR( "ResolveProviderGroups: NO DB CONNECTION. " << ex.what() );
@@ -64,6 +70,10 @@ providerGroupsResolve( Wdb2TsApp &app, const std::string &wdbid, const std::list
       ResolveProviderGroups resolveGroups;
       wciConnection->perform( resolveGroups, 3 );
       groups.reverseLookupTable  = *resolveGroups.result();
+   }
+   catch( miutil::pgpool::DbNoConnectionException &ex) {
+	   WEBFW_LOG_ERROR( "ResolveProviderGroups: EXCEPTION: " << ex.what() );
+	   throw;
    }
    catch( const std::ios_base::failure &ex ) {
       WEBFW_LOG_ERROR( "std::ios_base::failure: ResolveProviderGroups: " << ex.what() );
@@ -106,5 +116,6 @@ paramDefListRresolveProviderGroups( Wdb2TsApp &app, ParamDefList &paramDefList, 
 
 }
 
+#endif
 }
 

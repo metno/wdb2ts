@@ -54,6 +54,13 @@ configureWdbProjection( ProjectionHelper &projections,
 		                int wciProtocol,
 		                const std::string &wdbDB,
 		                Wdb2TsApp *app );
+bool
+configureAllWdbProjection(
+		ProjectionHelper &projections_,
+		const wdb2ts::config::ActionParam &params,
+		int wciProtocol,
+		const std::list<std::string> &wdbDBs,
+		Wdb2TsApp *app );
 
 
 std::ostream& 

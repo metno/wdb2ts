@@ -31,11 +31,12 @@
 #include <sstream>
 #include <stlContainerUtil.h>
 #include <transactor/ProviderRefTime.h>
-#include <UpdateProviderReftimes.h>
+//#include <UpdateProviderReftimes.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <ptimeutil.h>
 #include <ProviderReftimes.h>
 #include <Logger4cpp.h>
+//#include "wdb2TsApp.h"
 
 using namespace std;
 using namespace boost::posix_time; //ptime, second_clock
@@ -206,6 +207,44 @@ updateDataversion( const std::string &provider, int dataversion )
 }
 
 
+
+bool
+ProviderRefTimesByDbId::
+findProviderTimes(const std::string &provider, ProviderTimes &providerTimes, std::string &dbId)const
+{
+	for(ProviderRefTimesByDbId::const_iterator itDb=begin(); itDb!=end(); ++itDb) {
+		ProviderRefTimeList::const_iterator it = itDb->second->find(provider);
+		if( it != itDb->second->end() ) {
+			providerTimes = it->second;
+			dbId=itDb->first;
+			return true;
+		}
+	}
+	return false;
+}
+
+void
+removeDisabledProviders( ProviderList &providers, const ProviderRefTimesByDbId &reftimes )
+{
+	//TODO: Do we need this. If we do, then it must be per dbId.
+	/**
+   ProviderRefTimeList::const_iterator rit;
+   ProviderList::iterator it = providers.begin();
+
+   WEBFW_USE_LOGGER( "handler" );
+
+   while( it != providers.end() ) {
+      rit = reftimes.find( it->providerWithPlacename() );
+
+      if( rit != reftimes.end() && rit->second.disabled ) {
+         WEBFW_LOG_DEBUG("removeDisabledProviders: removing provider: " << it->providerWithPlacename() );
+         it = providers.erase( it );
+      } else {
+         ++ it;
+      }
+   }
+   */
+}
 
 
 void

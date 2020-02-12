@@ -36,6 +36,7 @@
 #include <UpdateProviderReftimes.h>
 #include <ParamDef.h>
 #include <Config.h>
+#include <configdata.h>
 
 namespace wdb2ts {
 
@@ -48,7 +49,8 @@ class WciReadLocationForecast
 	: public pqxx::transactor<>
 {
 public:
-	WciReadLocationForecast(const LocationPointList &locationPoints,
+	WciReadLocationForecast(wdb2ts::ConfigData *config,
+							const LocationPointList &locationPoints,
 			                const boost::posix_time::ptime &toTime,
 						    bool isPloygon,
 						    int altitude,
@@ -68,6 +70,7 @@ public:
 
 	
 private:
+	wdb2ts::ConfigData *config;
 	boost::posix_time::ptime toTime;
 	const int   altitude;
 	const ParamDefList &paramDefs;

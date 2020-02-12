@@ -1,5 +1,5 @@
 
-noinst_LTLIBRARIES+=		libmiutil.la
+noinst_LTLIBRARIES+= libmiutil.la 
 
 libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 					  src/miutil/Dir.h \
@@ -49,11 +49,20 @@ libmiutil_la_SOURCES= src/miutil/Dir.cpp \
 		              src/miutil/ShapeReader.cpp \
 		              src/miutil/EnableTimePeriod.h \
 		              src/miutil/EnableTimePeriod.cpp \
-		              src/miutil/mathalgo.h
+		              src/miutil/mathalgo.h \
+		              src/miutil/Metric.h \
+		              src/miutil/Metric.cpp \
+		              src/miutil/etcd.h \
+		              src/miutil/etcd.cpp \
+		              src/miutil/geterrstr.h \
+		              src/miutil/geterrstr.cpp \
+		              src/miutil/pathutil.h \
+					  src/miutil/pathutil.cpp 
+
 
 EXTRA_DIST+= src/miutil/wdb2ts.mk \
-				 src/miutil/Makefile.am \
-				 src/miutil/Makefile.in
+			 src/miutil/Makefile.am \
+			 src/miutil/Makefile.in
 
 DISTCLEANFILES +=	src/miutil/Makefile
 

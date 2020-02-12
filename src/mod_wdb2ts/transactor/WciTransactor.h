@@ -31,10 +31,12 @@
 #define __WCI_TRANSACTOR_H__
 
 
+#include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <pqxx/transactor>
 #include <string>
 #include <Logger4cpp.h>
+#include <pgconpool/dbConnectionException.h>
 
 namespace wdb2ts {
 
@@ -59,11 +61,13 @@ class WciTransactor : public pqxx::transactor<typename Transactor::argument_type
 	Transactor transactor;
 	
 public:
-	WciTransactor( const Transactor &t,  std::string &user ) 
-		: transactor( t ), user( user ), doWciBegin( new bool(false) ) {	}
+	WciTransactor( const Transactor &t,  std::string &user )
+		: transactor( t ), user( user ), doWciBegin( new bool(false) ),
+		  noConnection(new bool(false)){	}
 
-	WciTransactor( const Transactor &t,  const char *user ) 
-			: transactor( t ), user( user ), doWciBegin( new bool(false) ) {	}
+	WciTransactor( const Transactor &t,  const char *user )
+			: transactor( t ), user( user ), doWciBegin( new bool(false) ),
+			  noConnection(new bool(false)){	}
 
 	~WciTransactor() {};
 	
@@ -71,22 +75,34 @@ public:
 	{
 		WEBFW_USE_LOGGER("handler");
 		
-		if( *doWciBegin ) {
-			WEBFW_LOG_DEBUG( "WciTransactor: SELECT wci.begin('" << user <<"')" );
-			*doWciBegin = false;
-			t.exec( "SELECT wci.begin('" + user + "')" );
+		try{
+			if( *doWciBegin ) {
+				WEBFW_LOG_DEBUG( "WciTransactor: SELECT wci.begin('" << user <<"')" );
+				*doWciBegin = false;
+				t.exec( "SELECT wci.begin('" + user + "')" );
+			}
+
+
+			transactor( t );
 		}
-		
-		transactor( t );
+		catch( const pqxx::broken_connection &ex){
+			*noConnection=true;
+			throw;
+		}
 	}
 
 	void on_abort( const char msg_[] )throw () 
 	{
+		WEBFW_USE_LOGGER("handler");
 		std::string msg( msg_ );
 		
+		if( *noConnection )
+			throw miutil::pgpool::DbNoConnectionException();
+
 		if( msg.find("wci has not been initialized.") != std::string::npos ) {
 			*doWciBegin = true;
 		} else {
+			WEBFW_LOG_DEBUG("WCITransactor::on_abort: " << msg);
 			transactor.on_abort( msg_ );
 		}
 	}
@@ -104,6 +120,7 @@ public:
 private:
 	const std::string user;
 	boost::shared_ptr<bool> doWciBegin;
+	boost::shared_ptr<bool> noConnection;
 };
 
 }

@@ -38,6 +38,7 @@
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <Logger4cpp.h>
 #include <boost/foreach.hpp>
+#include <pgconpool/dbConnectionException.h>
 
 DEFINE_MI_PROFILE;
 
@@ -941,7 +942,16 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 			++it;
 			STOP_MARK_MI_PROFILE("db::it");
 		}
-	} catch( const std::ios_base::failure &ex ){
+	}
+	catch( miutil::pgpool::DbNoConnectionException &ex) {
+		WEBFW_LOG_ERROR( "decodePData: EXCEPTION: " << ex.what() );
+		throw;
+	}
+	catch( miutil::pgpool::DbConnectionException &ex) {
+		WEBFW_LOG_ERROR( "decodePData: EXCEPTION: " << ex.what() );
+		throw std::logic_error( "DB error while decoding the result set." );
+	}
+	catch( const std::ios_base::failure &ex ){
 		throw;
 	} catch( const std::runtime_error &ex ){
 		throw std::logic_error( ex.what() );

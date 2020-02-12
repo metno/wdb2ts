@@ -448,6 +448,29 @@ doStatus( Wdb2TsApp *app,
 }
 
 
+ConfigDataPtr
+LocationForecastHandler::
+getRequestConfig(const WebQuery &webQuery)
+{
+	try {
+		ConfigDataPtr configData(new ConfigData(webQuery));
+		configData->requestMetric.startTimer();
+		configData->url = webQuery.urlQuery();
+		configData->parameterMap = doNotOutputParams;
+		configData->throwNoData = noDataResponse.doThrow();
+		configData->requestedProvider = webQuery.dataprovider();
+		configData->thunder = false;
+		configData->isForecast = true;
+		configData->setReferenceTimes(getReferenceTimesByDbId());
+		configData->defaultDbId=wdbDB;
+		return configData;
+	}
+	catch( ... ){
+		throw NoData();
+	}
+
+}
+
 void 
 LocationForecastHandler::
 get( webfw::Request  &req, 
@@ -487,16 +510,18 @@ get( webfw::Request  &req,
 	}
 	webQuery.setFromTimeIfNotSet(3600);
 
+	/*
 	ConfigDataPtr configData( new ConfigData() );
 	configData->url = webQuery.urlQuery();
 	configData->parameterMap = doNotOutputParams;
 	configData->throwNoData = noDataResponse.doThrow();
-
+*/
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	app->notes.checkForUpdatedNotes( &noteHelper );
 	extraConfigure( actionParams, app );
+	ConfigDataPtr configData = getRequestConfig(webQuery);
 	
 	refTimes = getProviderReftimes();
 	getProtectedData( symbolConf, providerPriority, paramDefsPtr  );
@@ -540,9 +565,7 @@ get( webfw::Request  &req,
  			WEBFW_LOG_DEBUG( "Altitude: " << altitude );
 		}
 
-		LocationPointDataPtr locationPointData = requestWdb( webQuery.locationPoints(), webQuery.from(), webQuery.to(),
-															 webQuery.isPolygon(),
-				                                             altitude, refTimes, paramDefsPtr, providerPriority );
+		LocationPointDataPtr locationPointData = requestWdb( configData.get(),paramDefsPtr, providerPriority );
 
 	   if( ! webQuery.isPolygon() ) {
 	      if( !locationPointData->empty() && (altitude==INT_MIN || altitude == INT_MAX)) {
@@ -605,7 +628,7 @@ get( webfw::Request  &req,
                                          &projectionHelper,
                                          webQuery.longitude(), webQuery.latitude(), altitude,
                                          webQuery.from(),
-                                         refTimes,
+                                         configData->getRefererenceTimes(),
                                          metaModelConf,
                                          precipitationConfig,
                                          providerPriority,
@@ -702,22 +725,22 @@ get( webfw::Request  &req,
 
 LocationPointDataPtr
 LocationForecastHandler::
-requestWdb( const LocationPointList &locationPoints,
-		    const boost::posix_time::ptime &from,
-		    const boost::posix_time::ptime &to,
-	        bool isPolygon, int altitude,
-		    PtrProviderRefTimes refTimes,
+requestWdb( ConfigData *config,
 		    ParamDefListPtr  paramDefs,
 		    const ProviderList &providerPriority
           ) const
 {	
 	WdbDataRequestManager requestManager;
 	Wdb2TsApp *app=Wdb2TsApp::app();
+	LocationPointDataPtr ret= requestManager.requestData( app, config,
+				paramDefs, providerPriority, urlQuerys, wciProtocol );
+	config->dbMetric.addToTimer(requestManager.dbDecodeMetric.getTimerSum());
+	config->decodeMetric.addToTimer(requestManager.dbDecodeMetric.getTimerSum());
+	config->validateMetric.addToTimer(requestManager.validateMetric.getTimerSum());
 
-	return requestManager.requestData( app, wdbDB, locationPoints, from, to, isPolygon, altitude,
-									   refTimes, paramDefs, providerPriority, urlQuerys, wciProtocol );
+
+	return ret;
 }
-
 
 void
 LocationForecastHandler::
@@ -730,7 +753,7 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 		            const ProviderList &providerPriority
 				  ) const
 {
-
+/*
 	if( nearestHeights.empty() || locationPoints.empty() )
 		return;
 
@@ -741,7 +764,7 @@ nearestHeightPoint( const LocationPointList &locationPoints,
 	NearestHeight::processNearestHeightPoint( locationPoints,to, data, altitude, refTimes,
 			                                  providerPriority, *params, nearestHeights,
 			                                  wciProtocol, wciConnection );
-
+*/
 }
 
 void
@@ -772,6 +795,25 @@ nearestLandPoint( const LocationPointList &locationPoints,
 
 
 }
+
+
+PtrProviderRefTimes
+LocationForecastHandler::
+getReferenceTimeByDbId(const std::string &dbId)
+{
+	ProviderRefTimesByDbId::const_iterator it=providerReftimesByDbId->find(dbId);
+	if( it != providerReftimesByDbId->end() )
+		return PtrProviderRefTimes();
+	else
+		return it->second;
+}
+PtrProviderRefTimesByDbId
+LocationForecastHandler::
+getReferenceTimesByDbId()
+{
+	return providerReftimesByDbId;
+}
+
 
 
 }

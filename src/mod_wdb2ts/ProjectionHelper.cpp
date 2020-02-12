@@ -28,6 +28,7 @@
 
 
 #include <float.h>
+#include <string.h>
 //#include <math.h>
 #include <cmath>
 #include <ProjectionHelper.h>
@@ -596,6 +597,26 @@ makeGeographic()
 }
 
 
+bool MiProjection::isEqual(const MiProjection &other)const{
+	if(!valid() || !other.valid()) {
+		cerr << "WARNING: MiProjection::isEqual: invalid\n";
+		return false;
+	}
+
+	if( projString == other.projString ) {
+		return true;
+	} else {
+		char *p1 = pj_get_def(proj, 0);
+		char *p2 = pj_get_def(other.proj, 0);
+		int res=strcmp(p1, p2);
+
+		pj_free(p1);
+		pj_free(p2);
+
+		return res == 0;
+	}
+}
+
 bool
 MiProjection::
 convertFromGeographicToXY( int nvec,  double *latitudeToY, double *longitudeToX )const
@@ -781,14 +802,14 @@ transform( const MiProjection &srcProj, int nvec, double *y, double *x )const
 	}
 
 	if( (error=pj_transform( srcProj.proj, proj, nvec, 1, x, y, NULL)) != 0 ) {
-		if( error == -14 )
-			cerr << "WARNING: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
-		else
-			cerr << "ERROR: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
-		for( int i=0; i<nvec; ++i )
-			cerr << "   x: " << x[i] << " y: " << y[i] << endl;
-		cerr << "srcProj def: '" << pj_get_def( srcProj.proj, 0 ) << "'\n";
-		cerr << "dstProj def: '" << pj_get_def( proj, 0 ) << "'\n";
+//		if( error == -14 )
+//			cerr << "WARNING: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
+//		else
+//			cerr << "ERROR: transform: pj_transform. error: (" << error <<") " << pj_strerrno( error ) << endl;
+//		for( int i=0; i<nvec; ++i )
+//			cerr << "   x: " << x[i] << " y: " << y[i] << endl;
+//		cerr << "srcProj def: '" << pj_get_def( srcProj.proj, 0 ) << "'\n";
+//		cerr << "dstProj def: '" << pj_get_def( proj, 0 ) << "'\n";
 		return error==-14; //We accept -14 here and leaves it to the caller to check that the values is NOT HUGE_VAL.
 	}
 
@@ -856,11 +877,32 @@ ProjectionHelper( int wciProtocol_ )
 
 void
 ProjectionHelper::
-add( const std::string &provider, const MiProjection &projection )
+add( const std::string &placename, const MiProjection &projection )
 {
 	boost::mutex::scoped_lock lock( mutex );
-	placenameMap[provider] = projection;
+	placenameMap[placename] = projection;
 }
+
+void
+ProjectionHelper::
+merge( const ProjectionHelper &other )
+{
+	boost::mutex::scoped_lock lock( mutex );
+	ProjectionMap::iterator it;
+	for( auto &p : other.placenameMap) {
+		it=placenameMap.find(p.first);
+		if( it != placenameMap.end() ) {
+			if( ! p.second.isEqual(it->second) ) {
+				cerr << "WARNING: ProjectionHelper::merge: placename '" << p.first <<"' WDB databases with different proj definition. (proj1: '"
+						<<p.second.getProj() << "' proj2: '" << it->second.getProj()<<"'. Keeping proj1.\n";
+			}
+		} else {
+			//cerr << "ProjectionHelper::merge: Adding '" << p.first << "' proj '" << p.second.getProj() <<"'\n" ;
+			placenameMap[p.first] = p.second;
+		}
+	}
+}
+
 
 MiProjection
 ProjectionHelper::

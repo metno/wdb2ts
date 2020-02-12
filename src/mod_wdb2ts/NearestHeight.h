@@ -49,6 +49,7 @@ class NearestHeightConfElement
 	std::string topoProvider_;
 	std::string modelTopoProvider_;
 	std::string renameTo_;
+	std::string wdbid_;
 
 	friend class NearestHeight;
 
@@ -60,6 +61,7 @@ public:
 	std::string renameTo() const { return renameTo_;}
 	std::string topoProvider() const { return topoProvider_; }
 	std::string modelTopoProvider() const { return modelTopoProvider_; }
+	std::string wdbid()const { return wdbid_;}
 };
 
 typedef std::map< std::string, NearestHeightConfElement > NearestHeights;
@@ -69,20 +71,20 @@ class NearestHeight
 	static void decode( const wdb2ts::config::ActionParam &conf,
 			            const std::string &prefix,
 			            wdb2ts::NearestHeights &nearestHeight,
+						const std::string &defaultDbId,
 			            std::ostream &msg );
 
 public:
-	static NearestHeights configureNearestHeight( const wdb2ts::config::ActionParam &conf );
-	static void processNearestHeightPoint( const LocationPointList &locationPoints,
+	static NearestHeights configureNearestHeight( const wdb2ts::config::ActionParam &conf, const std::string &defaultDbId );
+	static void processNearestHeightPoint( ConfigData *config,
+											const LocationPointList &locationPoints,
 	                                       const boost::posix_time::ptime &to,
 	                                       LocationPointDataPtr data,
 	                                       int altitude,
-	                                       PtrProviderRefTimes refTimes,
 	                                       const ProviderList &providerPriority,
 	                                       const ParamDefList &params,
 	                                       const NearestHeights &nearestHeights,
-	                                       int wciProtocol,
-	                                       WciConnectionPtr wciConnection );
+	                                       int wciProtocol);
 
 };
 

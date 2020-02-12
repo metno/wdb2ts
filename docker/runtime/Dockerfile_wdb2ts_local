@@ -1,0 +1,28 @@
+FROM wdb2ts_runtime_deps:local
+
+COPY .runtime /
+COPY etc/metno-wdb2ts/ /etc/metno-wdb2ts/
+COPY runtime/entrypoint.sh /usr/bin
+COPY etc/apache2/000-default.conf /etc/apache2/sites-available
+COPY etc/apache2/envvars /etc/apache2
+COPY etc/apache2/ports.conf /etc/apache2
+COPY etc/apache2/metno-wdb2ts.load /etc/apache2/mods-available
+COPY etc/apache2/mpm_worker.conf /etc/apache2/mods-available
+COPY etc/apache2/metno-wdb2ts.conf /etc/apache2/conf-available
+
+RUN mkdir -p /var/log/metno-wdb2ts && mkdir -p /var/lib/metno-wdb2ts/tmp
+
+RUN chown -R www-data.www-data /var/log/metno-wdb2ts && \
+ chown -R www-data.www-data /var/lib/metno-wdb2ts && \
+ chown root.www-data /etc/metno-wdb2ts && \
+ chmod g+rw /etc/metno-wdb2ts && \
+ a2dismod mpm_event && a2enmod mpm_worker && a2enmod metno-wdb2ts && \
+ a2enconf metno-wdb2ts && ldconfig
+
+ENV PGHOST=localhost PGPORT=5432 APACHE_PORT=80 ETCD_HOSTS="http://localhost:2379" \
+	ETCD_WDB2TS_PATH="/wdb2ts"
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+

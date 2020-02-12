@@ -39,7 +39,8 @@ using namespace std;
 namespace wdb2ts {
 
 WciReadLocationForecast::
-WciReadLocationForecast( const LocationPointList &locationPoints_,
+WciReadLocationForecast(wdb2ts::ConfigData *config_,
+		const LocationPointList &locationPoints_,
 			             const boost::posix_time::ptime &toTime_,
 			             bool isPloygon_,
 			             int altitude_,
@@ -48,7 +49,7 @@ WciReadLocationForecast( const LocationPointList &locationPoints_,
 			             const ProviderList &providerPriority_,
 			             const wdb2ts::config::Config::Query &urlQuerys_,
 			             int wciProtocol_ )
-	: toTime( toTime_ ), altitude( altitude_ ),
+	: config(config_), toTime( toTime_ ), altitude( altitude_ ),
 	  paramDefs( paramDefs_ ), refTimes( refTimes_ ), providerPriority( providerPriority_ ),
 	  urlQuerys( urlQuerys_ ), locationPoints( locationPoints_), isPloygon( isPloygon_ ),
 	  wciProtocol( wciProtocol_ ), locationPointData( new LocationPointData() )
@@ -92,11 +93,11 @@ operator () ( argument_type &t )
 		throw logic_error( "EXCEPTION: No wdb querys is defined." );
 	}
 	
-	WdbQueryHelper wdbQueryHelper( urlQuerys, wciProtocol );
+	WdbQueryHelper wdbQueryHelper( urlQuerys, wciProtocol, config );
 	
 	try {
 		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
-		wdbQueryHelper.init( locationPoints, toTime, isPloygon, *refTimes, providerPriority );
+		wdbQueryHelper.init( locationPoints, toTime, isPloygon, providerPriority );
 		MARK_ID_MI_PROFILE("WciReadLocationForecast::init");
 		
 		while ( wdbQueryHelper.hasNext() ) {

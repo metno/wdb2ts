@@ -34,10 +34,15 @@
 #include <iostream>
 #include <map>
 #include <boost/shared_ptr.hpp>
+#include "WebQuery.h"
 #include "EnableTimePeriod.h"
 #include "ConfigUtils.h"
+#include "Metric.h"
+
 
 namespace wdb2ts {
+
+class Wdb2TsApp;
 
 struct ExpireConfig {
 	typedef enum { Now, NearestModelTimeResolution }Reference;
@@ -58,16 +63,38 @@ struct ExpireConfig {
 
 struct ConfigData {
 
+   ConfigData(const ConfigData &);
+   ConfigData& operator=(const ConfigData &);
    OutputParams parameterMap;
+   WebQuery     *webQueryDummy;
+   const WebQuery &webQuery;
    std::string  url;
    bool throwNoData;
    std::string requestedProvider;
    miutil::EnableTimePeriod thunder;
    ExpireConfig expireConf;
+private:
+   PtrProviderRefTimesByDbId reftimes;
+public:
    bool isForecast;
+   std::string defaultDbId;
+   int altitude;
+   wdb2ts::Wdb2TsApp *app;
+   miutil::Metric dbMetric;
+   miutil::Metric decodeMetric;
+   miutil::Metric validateMetric;
+   miutil::Metric requestMetric;
+   miutil::Metric encodeMetric;
 
    ConfigData();
+   ConfigData(const WebQuery  &webQuery, wdb2ts::Wdb2TsApp *app);
+   ~ConfigData();
+   void setReferenceTimes(PtrProviderRefTimesByDbId ref) { reftimes=ref;}
    bool outputParam( const std::string &param )const;
+   PtrProviderRefTimes getReferenceTimeByDbId(const std::string &dbId);
+   PtrProviderRefTimesByDbId getRefererenceTimes()const{ return reftimes;}
+   void setReferenceTime(PtrProviderRefTimes reftime, const std::string &dbId="");
+   WciConnectionPtr newWciConnection( const std::string &dbid="", unsigned int timeoutInMilliSecound=2000 );
 };
 
 typedef boost::shared_ptr<ConfigData> ConfigDataPtr;

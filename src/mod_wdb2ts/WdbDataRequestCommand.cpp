@@ -31,7 +31,6 @@
 #include <transactor/WciRead.h>
 #include <WdbDataRequestCommand.h>
 #include <Logger4cpp.h>
-#include <PqTupleContainer.h>
 #include <sstream>
 
 namespace {
@@ -46,6 +45,7 @@ class ReadHelper : public wdb2ts::WciReadHelper
 	const int wciProtocol;
 	bool isPolygon;
 	std::string id_;
+	std::string cmdId_;
 
 public:
 	ReadHelper( wdb2ts::LocationPointData &data_,
@@ -54,18 +54,20 @@ public:
 				const wdb2ts::ProviderList  &providerPriority_,
 				wdb2ts::PtrProviderRefTimes refTimes_,
 				const int wciProtocol_,
-				bool isPolygon_ )
+				bool isPolygon_,
+				const std::string &cmdId)
 		: data( data_ ),
 		  query_( query ),
 		  paramDefs( paramDefs_ ),
 		  providerPriority( providerPriority_ ),
 		  refTimes( refTimes_ ),
 		  wciProtocol( wciProtocol_ ),
-		  isPolygon( isPolygon_ )
+		  isPolygon( isPolygon_ ),
+		  cmdId_(cmdId)
 		{
 			std::ostringstream ost;
 			ost << "tid: " << boost::this_thread::get_id() << "";
-			ost << ". WdbDataRequestCommand";
+			ost << ". WdbDataRequestCommand (" << cmdId << ")";
 			id_ = ost.str();
 		}
 
@@ -74,7 +76,7 @@ public:
 	void clear() { data.clear(); }
 
 	void doRead( pqxx::result &result ) {
-		//miutil::container::PqContainer container( result );
+		//miutil::container::PqContainer container( result )
 		decodePData( paramDefs, providerPriority, *refTimes, result, isPolygon, data, wciProtocol );
 	}
 };
@@ -99,14 +101,23 @@ operator()()
 
 	try {
 		ReadHelper	readHelper( *data_, query_, *paramDefs, *providerPriority,
-								refTimes, wciProtocol, isPolygon );
+								refTimes, wciProtocol, isPolygon, cmdid_ );
 
 		WciRead transactor( &readHelper );
 
 		if( connection_ )
 			connection_->perform( transactor, 2 );
 
+		miutil::MetricTimer validateTimer( *validateMetric_);
 		validate();
+		validateTimer.stop();
+		dbMetric_->addToTimer(transactor.dbMetric->getTimerSum());
+		decodeMetric_->addToTimer(transactor.doReadMetric->getTimerSum());
+	}
+	catch( const miutil::pgpool::DbNoConnectionException &ex) {
+		*noConnection_=true;
+		*ok_=false;
+		*errMsg_=ex.what();
 	}
 	catch( const std::exception &ex ) {
 		*ok_ = false;

@@ -51,6 +51,12 @@ symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
 		                           Wdb2TsApp *app);
 
 
+SymbolConfProvider
+symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
+		                         const std::list<std::string> &wdbDBs,
+								 Wdb2TsApp *app
+                               );
+
 }
 
 #endif 

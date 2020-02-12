@@ -1,0 +1,18 @@
+FROM ubuntu:16.04
+
+COPY /etc/apt/sources.list.d/metno.list /etc/apt/sources.list.d
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv 7423E2EB78589757 && \
+    apt-get update && apt-get install -y \
+    build-essential debhelper debconf dbconfig-common devscripts \
+    autotools-dev  autoconf automake libtool gfortran \
+    libxml2-dev libboost-dev libboost-date-time-dev libboost-filesystem-dev  \
+    libboost-program-options-dev libboost-thread-dev libboost-system-dev \
+    libboost-regex-dev libboost-iostreams-dev \
+    apache2-dev libapr1-dev libaprutil1-dev  libpqxx3-metno-dev \
+    libpq-dev libproj-dev liblog4cpp5-dev libcurl4-openssl-dev \
+    metlibs-pumet-dev metlibs-putools-dev \
+    git autoconf-archive libyajl-dev libcurl4-openssl-dev cmake xmlto
+
+
+CMD ["/bin/bash"]

@@ -32,6 +32,7 @@
 
 #include <ostream>
 #include <map>
+#include <set>
 #include <ParamDef.h>
 #include <RequestConf.h>
 
@@ -54,19 +55,22 @@ public:
 		bool stopIfData_;
 		std::string wdbdb_;
 		int prognosisLengthSeconds_;
+		std::string id_;
 	public:
 		QueryElement( const std::string &query, bool probe, bool stopIfData,
-				      const std::string &wdbdb, int prognosisLengthSeconds )
+				      const std::string &wdbdb, int prognosisLengthSeconds,
+					  const std::string &id )
 			: query_( query ), probe_( probe ), stopIfData_( stopIfData ), wdbdb_( wdbdb ),
-			  prognosisLengthSeconds_( prognosisLengthSeconds ){}
+			  prognosisLengthSeconds_( prognosisLengthSeconds ),id_(id){}
 		QueryElement( const QueryElement &qe )
          : query_( qe.query_), probe_( qe.probe_ ), stopIfData_( qe.stopIfData_ ), wdbdb_( qe.wdbdb_ ),
-		   prognosisLengthSeconds_( qe.prognosisLengthSeconds_ ){}
+		   prognosisLengthSeconds_( qe.prognosisLengthSeconds_ ), id_(qe.id_){}
 		
 		std::string query()const { return query_;}
 		bool probe()const { return probe_; }
 		bool stopIfData() const { return stopIfData_; }
 		std::string wdbdb()const { return wdbdb_; }
+		std::string id()const{ return id_;}
 		int prognosisLengthSeconds()const { return prognosisLengthSeconds_;}
 	};
 	
@@ -113,6 +117,7 @@ public:
 	//ParamDefs            idParamDefs;
 	//wdb2ts::ParamDefList paramDefs;
 	RequestMap           requests;
+	std::set<std::string> includedFiles;
 	
 	bool validate( std::ostream &message ) const;
 	Query query( const std::string &query ) const;

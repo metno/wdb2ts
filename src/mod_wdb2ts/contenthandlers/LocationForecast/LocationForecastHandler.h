@@ -112,6 +112,11 @@ public:
 				   PtrProviderRefTimes refTimes, const ProviderList &providerList,
 				   ParamDefListPtr paramdef );
 
+	PtrProviderRefTimes getReferenceTimeByDbId(const std::string &dbId);
+	PtrProviderRefTimesByDbId getReferenceTimesByDbId();
+	ConfigDataPtr getRequestConfig(const WebQuery &webQuery);
+
+
 private:
 	NoteHelper          noteHelper;
 	SymbolGenerator     symbolGenerator;
@@ -131,6 +136,7 @@ private:
    NearestLandConf     nearestLands;
    SymbolConfProvider  symbolConf_;
    PtrProviderRefTimes providerReftimes;
+   PtrProviderRefTimesByDbId providerReftimesByDbId;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
    ParamDefListPtr     paramDefsPtr_;
@@ -144,13 +150,10 @@ private:
 
    boost::mutex        mutex; 
       
-  	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
-  			                         const boost::posix_time::ptime &from,
-  	                                 const boost::posix_time::ptime &to,
-  	                                 bool isPolygon, int altitude,
-  	                                 PtrProviderRefTimes refTime,
-  	                                 ParamDefListPtr  paramDefs,
-  		                             const ProviderList &providerPriority )const;
+  	LocationPointDataPtr requestWdb(
+  			ConfigData *config,
+			ParamDefListPtr  paramDefs,
+			const ProviderList &providerPriority )const;
   	
   	/*
   	bool updateProviderReftimes( WciConnectionPtr con );

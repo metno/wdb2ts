@@ -96,7 +96,7 @@ class EncodeLocationForecast3 : public Encode
 	BreakTimeList::iterator curItBreakTimes;
 	std::string breakTimeForecastProvider;
 	boost::posix_time::ptime prevBreakTime;
-	PtrProviderRefTimes refTimes;
+	PtrProviderRefTimesByDbId refTimes;
 
 	//Metadata configuration.
 	MetaModelConfList &metaConf;
@@ -171,7 +171,7 @@ public:
 	                         float latitude,
 	                         int   altitude,
 	                         const boost::posix_time::ptime &from,
-	                         PtrProviderRefTimes refTimes,
+	                         PtrProviderRefTimesByDbId refTimes,
 	                         MetaModelConfList &metaConf,
 	                         ProviderPrecipitationConfig *precipitationConfig,
 	                         const ProviderList &providerPriority,

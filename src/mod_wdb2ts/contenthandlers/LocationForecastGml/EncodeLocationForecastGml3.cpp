@@ -717,7 +717,8 @@ encodeHeader( std::string &result )
 {
 	Indent indent;
 	IndentLevel level2( indent );
-	ProviderRefTimeList::iterator itRefTime;
+	ProviderTimes providerTimes;
+	std::string dummyDbId;
 	string name;
 	boost::posix_time::ptime wdbNextrun;
 	boost::posix_time::ptime nextrun;
@@ -785,10 +786,9 @@ encodeHeader( std::string &result )
 		}
 		
 		termin = boost::posix_time::ptime(); //Undef
-		itRefTime = reqit.refTimes()->find( it->provider );
 			
-		if( itRefTime != reqit.refTimes()->end() )
-			termin = itRefTime->second.refTime;
+		if( reqit.findProviderTimes(it->provider, providerTimes, dummyDbId) )
+			termin = providerTimes.refTime;
 		/*
 		XmlTag model( gmlContext, "wdb:model", "", true );
 		model.output( ost, indent );
@@ -813,7 +813,8 @@ encodeMeta( std::string &result )
 {
 	Indent indent;
 	IndentLevel level2( indent );
-	ProviderRefTimeList::iterator itRefTime;
+	ProviderTimes providerTimes;
+	std::string dummyDbId;
 	string name;
 	boost::posix_time::ptime nextrun;
 	boost::posix_time::ptime termin;
@@ -841,11 +842,10 @@ encodeMeta( std::string &result )
 			itMeta = metaConf.find( it->provider );
 			termin = boost::posix_time::ptime(); //Undef
 			endTime = boost::posix_time::ptime(); //Undef
-			itRefTime = reqit.refTimes()->find( it->provider );
 
-			if( itRefTime != reqit.refTimes()->end() ) {
-				termin = itRefTime->second.refTime;
-				endTime = itRefTime->second.updatedTime;
+			if(reqit.findProviderTimes(it->provider, providerTimes, dummyDbId) ) {
+				termin = providerTimes.refTime;
+				endTime = providerTimes.updatedTime;
 			}
 
 			

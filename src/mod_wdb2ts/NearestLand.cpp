@@ -375,6 +375,10 @@ computeNearestLand( const NearestLandConfElement &conf,
                   suroundLevel,
                   *dataTransactor.result() );
       }
+      catch( const miutil::pgpool::DbNoConnectionException &ex) {
+    	  WEBFW_LOG_ERROR( "nearestLand: EXCEPTION: " << ex.what()  );
+    	  throw;
+      }
       catch ( const std::exception &ex ) {
          ostringstream msg;
          msg << "EXCEPTION: Nearest land: DB trouble for '" << itNearestLandParams->first
@@ -511,6 +515,10 @@ processNearestLandPoint( )
             computeNearestLand( it->second, modelTopoLocations, landPoints, 3 );
             continue;
          }
+      }
+      catch( const miutil::pgpool::DbNoConnectionException &ex) {
+          	  WEBFW_LOG_ERROR( "nearestLand: EXCEPTION: " << ex.what()  );
+          	  throw;
       }
       catch( const exception &ex ) {
          WEBFW_LOG_WARN( "Nearest land: EXCEPTION: " << ex.what()  );

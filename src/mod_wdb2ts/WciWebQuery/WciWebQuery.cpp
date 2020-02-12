@@ -50,6 +50,7 @@ namespace wdb2ts {
 WciWebQuery::
 WciWebQuery( const std::string &returnCol )
     : returnColoumns( returnCol ),
+		onlyDecodeParams_(false),
    	dataprovider( 1 ),
  	   latitude( 1 ),
  	   longitude( 1 ),
@@ -60,7 +61,8 @@ WciWebQuery( const std::string &returnCol )
  	   levelspec( 1 ),
  		dataversion( 1, true, -1 ),
  		format( 1, UrlParamFormat::CSV ),
- 		altitude( 1 )
+ 		altitude( 1 ),
+		isPolygon( false )
 {
     // NOOP
 }
@@ -68,6 +70,7 @@ WciWebQuery( const std::string &returnCol )
 WciWebQuery::
 WciWebQuery( int protocol, const std::string &returnCol )
     : returnColoumns( returnCol ),
+		onlyDecodeParams_(false),
    	dataprovider( protocol ),
 	   latitude( protocol ),
 	   longitude( protocol ),
@@ -80,6 +83,7 @@ WciWebQuery( int protocol, const std::string &returnCol )
 		format( protocol, UrlParamFormat::CSV ),
 		altitude( protocol ),
 		isPolygon( false )
+
 {
     // NOOP
 }
@@ -96,7 +100,21 @@ WciWebQuery::
 {
     // NOOP
 }
-   
+
+void
+WciWebQuery::onlyDecodeParams(const std::string &query )
+{
+	try {
+		onlyDecodeParams_=true;
+		decode(query);
+		onlyDecodeParams_ =false;
+	}
+	catch( ... ) {
+		onlyDecodeParams_ =false;
+		throw;
+	}
+}
+
 /**
  * Decodes a query on the form:
  * 
@@ -185,7 +203,10 @@ decode( const std::string &query )
 		}
 	}
    
-	return wciReadQuery();
+	if( onlyDecodeParams_)
+		return "";
+	else
+		return wciReadQuery();
 }
     
 std::string 

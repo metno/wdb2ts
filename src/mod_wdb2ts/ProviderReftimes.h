@@ -172,7 +172,26 @@ public:
 //typedef std::map<std::string, std::list<std::string> > TopoProviderMap;
 typedef boost::shared_ptr<ProviderRefTimeList> PtrProviderRefTimes;
 
+/// A maping between database connections and providers reference times.
+//typedef std::map<std::string,PtrProviderRefTimes> ProviderRefTimesByDbId;
+class ProviderRefTimesByDbId : public std::map<std::string,PtrProviderRefTimes>
+{
+	public:
+	/**
+	 * Return the ProviderTime to the first provider that is found. If more than one
+	 * database has data for the provider it may not be the one we seek.
+	 */
+	bool findProviderTimes(const std::string &provider, ProviderTimes &providerTimes, std::string &dbId)const;
 
+
+};
+
+typedef boost::shared_ptr<ProviderRefTimesByDbId> PtrProviderRefTimesByDbId;
+
+
+
+
+void removeDisabledProviders( ProviderList &providers, const ProviderRefTimesByDbId &reftimes );
 void removeDisabledProviders( ProviderList &providers, const ProviderRefTimeList &reftimes );
 
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<wdb2ts provider_as_wdbdb="true">
+
+   <include file="wdb2ts-conf/aromeecdetforecast.xml" />
+   <include file="wdb2ts-conf/aromeecdetforecastlts.xml" />
+   <include file="wdb2ts-conf/aromeecepsforecast.xml" />
+   <include file="wdb2ts-conf/aromeecepsforecastlts.xml" />
+   <include file="wdb2ts-conf/proffecdetforecast.xml" />
+   <include file="wdb2ts-conf/proffecdetforecastlts.xml" />
+   <include file="wdb2ts-conf/proffecepsforecast.xml" />
+   <include file="wdb2ts-conf/proffecepsforecastlts.xml" />
+   <include file="wdb2ts-conf/probabilityforecast.xml" />
+   <include file="wdb2ts-conf/oceanforecast.xml" />
+   <include file="wdb2ts-conf/default-params.xml" />
+</wdb2ts>

@@ -62,6 +62,18 @@ class DbConnectionDisabledEx : public DbConnectionException
 };
 
 
+
+class DbNoConnectionException : public DbConnectionException
+{
+   public:
+   	   explicit DbNoConnectionException() throw()
+	   	   : DbConnectionException("No DB connection"){}
+   	   explicit DbNoConnectionException(const std::string &reason) throw()
+   		 :DbConnectionException(reason)   { }
+      virtual ~DbNoConnectionException() throw() {};
+};
+
+
 class DbConnectionPoolMaxUseEx : public DbConnectionException
 {
    public:

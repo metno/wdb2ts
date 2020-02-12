@@ -33,6 +33,7 @@
 #include <wciHelper.h>
 #include <Logger4cpp.h>
 #include <replace.h>
+#include "configdata.h"
 
 
 using namespace std;
@@ -501,10 +502,8 @@ getWdbReadQuerys( QuerysAndParamDefsPtr res,
 QuerysAndParamDefsPtr
 QueryMaker::
 getWdbReadQuerys( const std::string &id,
-		          float latitude_, float longitude_,
+				  ConfigData *reqConfig,
 		          const ProviderList &providerList_,
-                  const Level &level,
-                  const PtrProviderRefTimes referenceTimes_,
                   const std::pair<boost::posix_time::ptime, boost::posix_time::ptime> &validTime_,
                   int dataVersion_  )
 {
@@ -513,9 +512,9 @@ getWdbReadQuerys( const std::string &id,
 	list<string> providerList( providerList_.providerWithoutPlacename() );
 	QuerysAndParamDefsPtr res( new QuerysAndParamDefs( wciProtocol ) );
 	Params::const_iterator itId;
-	latitude = latitude_;
-	longitude = longitude_;
-	referenceTimes = referenceTimes_;
+	latitude = reqConfig->webQuery.latitude();
+	longitude = reqConfig->webQuery.longitude();
+	referenceTimes = reqConfig->getReferenceTimeByDbId(reqConfig->defaultDbId);
 	validTime = validTime_;
 	dataVersion = dataVersion_;
 
@@ -552,7 +551,7 @@ getWdbReadQuerys( const std::string &id,
 //		}
 //		cerr << endl;
 		//DEBUG END
-		getWdbReadQuerys( res, itId->first, level, providers, itId->second );
+		getWdbReadQuerys( res, itId->first, reqConfig->webQuery.getLevel(), providers, itId->second );
 	}
 
 
@@ -562,7 +561,7 @@ getWdbReadQuerys( const std::string &id,
  		return res;
 	}
 
-	getWdbReadQuerys( res, id, level, providerList, itId->second );
+	getWdbReadQuerys( res, id, reqConfig->webQuery.getLevel(), providerList, itId->second );
 
 	return res;
 }

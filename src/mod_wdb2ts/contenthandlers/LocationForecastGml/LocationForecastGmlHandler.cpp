@@ -45,7 +45,7 @@
 #include <NoteStringList.h>
 #include <NoteProviderList.h>
 #include <NoteString.h>
-#include <NoteProviderReftime.h>
+#include <NoteProviderReftimeByDbId.h>
 #include <SymbolGenerator.h>
 #include <transactor/WciReadLocationForecast.h>
 #include <transactor/Topography.h>
@@ -149,11 +149,6 @@ doExtraConfigure(  const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
    if( noteIsUpdated ) {
    	   WEBFW_USE_LOGGER( "update" );
    	   noteIsUpdated = false;
-   	   std::ostringstream logMsg;
-   	   logMsg << "\nProviderReftimes: " << noteListenerId() << "\n";
-   	   for ( ProviderRefTimeList::const_iterator it = providerReftimes->begin();	it != providerReftimes->end(); ++it )
-   		   logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
-   	   WEBFW_LOG_INFO( logMsg.str() );
    }
 
    return noteProviderList;
@@ -165,7 +160,7 @@ LocationForecastGmlHandler::
 extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app )
 {
    NoteProviderList *noteProviderList = doExtraConfigure( params, app );
-
+   getOrLoadProviderReftimesByDbId();
    if( noteProviderList )
       app->notes.setNote( updateid + ".LocationProviderList",
                           noteProviderList );
@@ -210,39 +205,35 @@ configure( const wdb2ts::config::ActionParam &params,
 	}
 	
 	noDataResponse = NoDataResponse::decode( params );
-
-	it=params.find("updateid");
+	updateid = getUpdateId(params, &providerRefTimesByDbIdIsPersisten);
 	
-	if( it != params.end() )  
-		updateid = it->second.asString();
 	
 	symbolGenerator.readConf( app->getConfDir()+"/qbSymbols.def" );
 	
 	if( ! updateid.empty() ) {
-		string noteName = updateid+".LocationProviderReftimeList";
-		WEBFW_LOG_DEBUG( "LocationForecastGmlHandler::configure: updateid: '" << updateid << "' noteName '" << noteName << "'.");
-		app->notes.registerPersistentNote( noteName, new NoteProviderReftimes() );
+		string noteName = updateid+".LocationProviderReftimeListByDbId";
+		if( providerRefTimesByDbIdIsPersisten)
+			app->notes.registerPersistentNote( noteName, new NoteProviderReftimesByDbId() );
+		else
+			app->notes.setNote( noteName, new NoteProviderReftimesByDbId() );
+
 		noteHelper.addNoteListener( noteName, this );
 
-	   wdb2ts::config::ActionParam::const_iterator it = params.find("provider_priority");
-
-	   if( it != params.end() )
-	      app->notes.setNote( updateid + ".LocationProviderPriority",
-	                          new NoteString( it->second.asString() ) );
-
-
-		//app->notes.checkForUpdatedPersistentNotes();
+		if( params.hasKey("provider_priority")  )
+			app->notes.setNote( updateid + ".LocationProviderPriority",
+	                          new NoteString( params.getStr("provider_priority") ) );
 	}
 	
 	wdbDB = wdbDB_;
 	urlQuerys = query;
+	definedDbIds=getListOfQueriesDbIds(urlQuerys, wdbDB);
 
 	if( app && ! updateid.empty() ) 
 		app->notes.setNote( updateid+".LocationForecastWdbId", new NoteString( wdbDB ) );
 	
 	modelTopoProviders = configureModelTopographyProvider( params );
 	topographyProviders = configureTopographyProvider( params );
-	nearestHeights = NearestHeight::configureNearestHeight( params );
+	nearestHeights = NearestHeight::configureNearestHeight( params, wdbDB );
 	
 	configureSymbolconf( params, symbolConf_ );	
 	metaModelConf = wdb2ts::configureMetaModelConf( params );
@@ -269,11 +260,11 @@ noteUpdated( const std::string &noteName,
 		return;
 	}
 
-	string testId( updateid+".LocationProviderReftimeList" );
+	string testId( updateid+".LocationProviderReftimeListByDbId" );
 	boost::mutex::scoped_lock lock( mutex );
 	
 	if( noteName == testId ) {
-		NoteProviderReftimes *refTimes = dynamic_cast<NoteProviderReftimes*>( note.get() );
+		NoteProviderReftimesByDbId *refTimes = dynamic_cast<NoteProviderReftimesByDbId*>( note.get() );
 	
 		if( ! refTimes ) {
 			WEBFW_LOG_ERROR( "LocationForecastGmlHandler::noteUpdated: Not a note we are expecting." );
@@ -281,7 +272,7 @@ noteUpdated( const std::string &noteName,
 		}
 
 		noteIsUpdated = true;
-		providerReftimes.reset( new  ProviderRefTimeList( *refTimes ) );
+		providerReftimesByDbId.reset( new  ProviderRefTimesByDbId( *refTimes ) );
 		
 		//Read in the projection data again. It may have come new models.
 		projectionHelperIsInitialized = false;
@@ -318,65 +309,61 @@ getProtectedData( SymbolConfProvider &symbolConf,
 }
 
 
-
-PtrProviderRefTimes 
+PtrProviderRefTimesByDbId
 LocationForecastGmlHandler::
-getProviderReftimes() 
+getOrLoadProviderReftimesByDbId()
 {
-	NoteProviderReftimes *tmp=0;
-	
-	Wdb2TsApp *app=Wdb2TsApp::app();
-	
-	WEBFW_USE_LOGGER( "handler" );
+	NoteProviderReftimesByDbId *tmp=0;
 
-	{
+	Wdb2TsApp *app=Wdb2TsApp::app();
+
+	{ //Create lock scope for mutex.
 		boost::mutex::scoped_lock lock( mutex );
-	
-		if( ! providerReftimes ) {
+
+		WEBFW_USE_LOGGER( "handler" );
+
+		if( ! providerReftimesByDbId || providerReftimesByDbId->empty()) {
 			try {
 				app=Wdb2TsApp::app();
-			
-				providerReftimes.reset( new ProviderRefTimeList() ); 
-				
-				WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
-				
-				//miutil::pgpool::DbConnectionPtr con=app->newConnection( wdbDB );
-				
-				if( ! updateProviderRefTimes( wciConnection, *providerReftimes, providerPriority_, wciProtocol ) ) { 
-					WEBFW_LOG_ERROR( "LocationForecastGmlHandler::getProviderReftime: Failed to set providerReftimes." );
+				ProviderRefTimeList requestedProviders;
+				PtrProviderRefTimesByDbId oldRefTime(new ProviderRefTimesByDbId());
+				std::map<std::string,std::string> dummyStatus;
+				providerReftimesByDbId = locationForecastUpdateAllDbIds(app,
+						definedDbIds, requestedProviders, providerPriority_,
+						oldRefTime, wciProtocol, dummyStatus);
+
+				if( !providerReftimesByDbId ) {
+					WEBFW_LOG_ERROR("LocationForecastHandler2::getOrloadProviderReftimesByDbId: Failed to set providerReftimesByDbId.");
 				} else {
-					tmp = new NoteProviderReftimes( *providerReftimes );
+					tmp = new NoteProviderReftimesByDbId( *providerReftimesByDbId);
 				}
 			}
+			catch( const miutil::pgpool::DbNoConnectionException &ex ) {
+				throw;
+			}
 			catch( exception &ex ) {
-				WEBFW_LOG_ERROR( "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: " << ex.what() );
+				WEBFW_LOG_ERROR( "LocationForecastHandler2::getOrLoadProviderReftimesByDbId: " << ex.what() );
 			}
 			catch( ... ) {
-				WEBFW_LOG_ERROR( "EXCEPTION: LocationForecastGmlHandler::getProviderReftime: unknown exception " );
+				WEBFW_LOG_ERROR( "LocationForecastHandler2::getOrLoadProviderReftimesByDbId: unknown exception " );
 			}
-		
-			std::ostringstream logMsg;
-			logMsg << "ProviderReftimes:\n";
-			for( ProviderRefTimeList::const_iterator it = providerReftimes->begin(); it != providerReftimes->end(); ++it )
-			{
-				logMsg << "        " <<  it->first << ": " << it->second.refTime << '\n';
-			}
-			WEBFW_LOG_DEBUG(logMsg.str());
-		} 
+		}
 	}
-	
-	if( tmp ) 
-		app->notes.setNote( updateid+".LocationProviderReftimeList", tmp );
-	
-		
-	return providerReftimes;	
+
+	if( tmp )
+		app->notes.setNote( updateid+".LocationProviderReftimeListByDbId", tmp );
+
+
+	return providerReftimesByDbId;
 }
+
+
 
 void
 LocationForecastGmlHandler::
 doStatus( Wdb2TsApp *app,
 		  webfw::Response &response, ConfigDataPtr config,
-		  PtrProviderRefTimes refTimes, const ProviderList &providerList,
+		  PtrProviderRefTimesByDbId refTimes, const ProviderList &providerList,
 		  ParamDefListPtr paramdef )
 {
 	ostringstream out;
@@ -413,16 +400,20 @@ doStatus( Wdb2TsApp *app,
 	out << "   </resolved_dataproviders>\n";
 
 	out << "   <referencetimes>\n";
-	for( ProviderRefTimeList::iterator rit=refTimes->begin(); rit != refTimes->end(); ++rit ) {
-		ProviderItem item = ProviderItem::decode( rit->first );
-		out << "      <dataprovider>\n";
-		out << "         <name>" << item.provider <<  "</name>\n";
-		out << "         <placename>" << item.placename << "</placename>\n";
-		out << "         <referencetime>"<< miutil::isotimeString( rit->second.refTime, true, true ) << "</referencetime>\n";
-		out << "         <updated>"<< miutil::isotimeString( rit->second.updatedTime, true, true ) << "</updated>\n";
-		out << "         <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
-		out << "         <version>" << rit->second.dataversion << "</version>\n";
-		out << "      </dataprovider>\n";
+	for( ProviderRefTimesByDbId::const_iterator itDbId=refTimes->begin(); itDbId!=refTimes->end();++itDbId) {
+		out << "      <wdbid id=\"" << itDbId->first << "\">\n";
+		for( ProviderRefTimeList::iterator rit=itDbId->second->begin(); rit != itDbId->second->end(); ++rit ) {
+			ProviderItem item = ProviderItem::decode( rit->first );
+			out << "         <dataprovider>\n";
+			out << "            <name>" << item.provider <<  "</name>\n";
+			out << "            <placename>" << item.placename << "</placename>\n";
+			out << "            <referencetime>"<< miutil::isotimeString( rit->second.refTime, true, true ) << "</referencetime>\n";
+			out << "            <updated>"<< miutil::isotimeString( rit->second.updatedTime, true, true ) << "</updated>\n";
+			out << "            <disabled>" << (rit->second.disabled?"true":"false") << "</disabled>\n";
+			out << "            <version>" << rit->second.dataversion << "</version>\n";
+			out << "         </dataprovider>\n";
+		}
+		out << "      </wdbid>\n";
 	}
 	out << "   </referencetimes>\n";
 
@@ -430,19 +421,95 @@ doStatus( Wdb2TsApp *app,
 
 	response.out() << out.str();
 }
+ConfigDataPtr
+LocationForecastGmlHandler::
+getRequestConfig(const WebQuery &webQuery, Wdb2TsApp *app)
+{
+	try {
+		ConfigDataPtr configData(new ConfigData(webQuery, app));
+		configData->requestMetric.startTimer();
+		configData->url = webQuery.urlQuery();
+		configData->parameterMap = outputParams;
+		configData->throwNoData = noDataResponse.doThrow();
+		configData->requestedProvider = webQuery.dataprovider();
+		configData->thunder = false;
+		configData->isForecast = true;
+		configData->setReferenceTimes(getReferenceTimesByDbId());
+		configData->defaultDbId=wdbDB;
+		return configData;
+	}
+	catch( ... ){
+		throw NoData();
+	}
+
+}
+
+void
+LocationForecastGmlHandler::
+clearConfig(Wdb2TsApp *app)
+{
+	boost::mutex::scoped_lock lock( mutex );
+	wciProtocolIsInitialized=false;
+	projectionHelperIsInitialized=false;
+	providerPriorityIsInitialized = false;
+
+	noteIsUpdated=false;
+
+	if( !providerRefTimesByDbIdIsPersisten )
+		providerReftimesByDbId.reset(new ProviderRefTimesByDbId());
+
+	app->releaseAllConnections();
+}
+
+
+
+void
+LocationForecastGmlHandler::
+get( webfw::Request  &req,
+     webfw::Response &response,
+     webfw::Logger   &logger    )
+{
+	WEBFW_USE_LOGGER( "handler" );
+	bool noConnection=false;
+
+	for(int i=0; i<2; ++i) {
+		try {
+			if( noConnection) {
+				WEBFW_LOG_DEBUG("LocationForecastHandler2::get: Retry\n");
+			}
+			noConnection=false;
+			return get_(req, response, logger);
+		}
+		catch( const miutil::pgpool::DbNoConnectionException &ex) {
+			WEBFW_LOG_DEBUG("LocationForecastHandler2::get: EXCEPTION: " << ex.what() <<".");
+			noConnection=true;
+			Wdb2TsApp *app=Wdb2TsApp::app();
+			clearConfig(app);
+		}
+	}
+
+	if( noConnection ){
+		using namespace boost::posix_time;
+		WEBFW_LOG_ERROR("No database connection, request failed.");
+		ptime retryAfter( second_clock::universal_time() );
+		retryAfter += seconds( 10 );
+		response.serviceUnavailable( retryAfter );
+		response.status( webfw::Response::SERVICE_UNAVAILABLE );
+	}
+}
 
 
 
 void 
 LocationForecastGmlHandler::
-get( webfw::Request  &req, 
+get_( webfw::Request  &req,
      webfw::Response &response, 
      webfw::Logger   &logger )   
 {
 	using namespace boost::posix_time;
 	ostringstream ost;
 	int   altitude;
-	PtrProviderRefTimes refTimes;
+
 	ParamDefListPtr     paramDefPtr;
 	ProviderList        providerPriority;
 	SymbolConfProvider  symbolConf;
@@ -478,23 +545,20 @@ get( webfw::Request  &req,
 	}
 
 	webQuery.setFromTimeIfNotSet(3600);
-   ConfigDataPtr configData( new ConfigData() );
-   configData->url = webQuery.urlQuery();
-   configData->parameterMap = outputParams;
-   configData->throwNoData = noDataResponse.doThrow();
 
 	Wdb2TsApp *app=Wdb2TsApp::app();
 
 	app->notes.checkForUpdatedNotes( &noteHelper );
 	extraConfigure( actionParams, app );
 
-	refTimes = getProviderReftimes();
-	getProtectedData( symbolConf, providerPriority, paramDefPtr );
-	removeDisabledProviders( providerPriority, *refTimes );
+	ConfigDataPtr configData=getRequestConfig(webQuery, app);
 
+	removeDisabledProviders( providerPriority, *configData->getRefererenceTimes() );
+
+	getProtectedData( symbolConf, providerPriority, paramDefPtr );
 
 	if( webQuery.isStatusRequest() ) {
-		doStatus( app, response, configData, refTimes, providerPriority, paramDefPtr );
+		doStatus( app, response, configData, configData->getRefererenceTimes(), providerPriority, paramDefPtr );
 		return;
 	}
 
@@ -525,14 +589,14 @@ get( webfw::Request  &req,
 	}
 
 
-	
+	configData->altitude = altitude;
     
 	try{
 
 	   LocationPointListPtr locationPoints;
 
 	   if( webQuery.isPolygon() )
-	      locationPoints = getPolygonPoints( webQuery, providerPriority, *refTimes, paramDefPtr );
+	      locationPoints = getPolygonPoints( webQuery, providerPriority, configData->getRefererenceTimes(), paramDefPtr );
 	   else
 	      locationPoints = LocationPointListPtr( new LocationPointList( webQuery.locationPoints() ) );
 
@@ -545,8 +609,8 @@ get( webfw::Request  &req,
 	      WEBFW_LOG_DEBUG( log.str() );
 	   }
 
-	   RequestIterator reqit( app, wdbDB, wciProtocol, urlQuerys, nearestHeights, locationPoints, webQuery.from(), webQuery.to(),
-	                          webQuery.isPolygon(), altitude, refTimes, paramDefPtr, providerPriority );
+	   RequestIterator reqit( configData.get(), wciProtocol, urlQuerys, nearestHeights, locationPoints,
+			   	   	   	   	   paramDefPtr, providerPriority );
 
 		EncodeLocationForecastGml2 encode( reqit,
 		                                   &projectionHelper,
@@ -618,7 +682,7 @@ LocationPointListPtr
 LocationForecastGmlHandler::
 getPolygonPoints( const WebQuery &webQuery,
                   const ProviderList &providerPriority,
-                  const ProviderRefTimeList &refTimes,
+                  const PtrProviderRefTimesByDbId refTimes,
                   ParamDefListPtr params)
 {
    WEBFW_USE_LOGGER( "handler" );
@@ -630,72 +694,96 @@ getPolygonPoints( const WebQuery &webQuery,
 	boost::posix_time::ptime modelTopoRefTime;
 	boost::posix_time::ptime topoRefTime;
 
+	if( ! refTimes )  // This should never happen, just in case ....
+		return LocationPointListPtr( new LocationPointList( ) );
+
 
 	TopoProviderMap::const_iterator itTopoProvider;
 	string provider;
-	WciConnectionPtr wciConnection = app->newWciConnection( wdbDB );
+
 
 	LocationPointListPtr locations( new LocationPointList( webQuery.locationPoints() ) );
 
-	for( ProviderList::const_iterator it = providerPriority.begin(); it != providerPriority.end(); ++it ) {
-        itTopoProvider = modelTopoProviders.find( it->providerWithPlacename() );
+	if( ! refTimes )
+		return LocationPointListPtr( new LocationPointList( ) );
 
-        if( itTopoProvider != modelTopoProviders.end() )
-           provider = ProviderList::decodeItem( *itTopoProvider->second.begin() ).provider;
+	for (ProviderRefTimesByDbId::const_iterator itDb = refTimes->begin();
+			itDb != refTimes->end(); ++itDb) {
 
-        if( provider.empty() ) {
-           itTopoProvider = modelTopoProviders.find( it->provider );
+		WciConnectionPtr wciConnection = app->newWciConnection( itDb->first );
 
-           if( itTopoProvider != modelTopoProviders.end() )
-              provider = ProviderList::decodeItem( *itTopoProvider->second.begin() ).provider;
-        }
+		for (ProviderList::const_iterator it = providerPriority.begin();
+				it != providerPriority.end(); ++it) {
+			itTopoProvider = modelTopoProviders.find(
+					it->providerWithPlacename());
 
-        if( provider.empty() )
-           provider = it->provider;
+			if (itTopoProvider != modelTopoProviders.end())
+				provider = ProviderList::decodeItem(
+						*itTopoProvider->second.begin()).provider;
 
-        if( provider.empty() )
-           continue;
+			if (provider.empty()) {
+				itTopoProvider = modelTopoProviders.find(it->provider);
 
+				if (itTopoProvider != modelTopoProviders.end())
+					provider = ProviderList::decodeItem(
+							*itTopoProvider->second.begin()).provider;
+			}
 
+			if (provider.empty())
+				provider = it->provider;
 
-        if( ! params->findParam( itParam,  "MODEL.TOPOGRAPHY", provider ) ) {
-           WEBFW_LOG_WARN( "getPolygonPoints: No parameter definition for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
-           continue;
-        }
+			if (provider.empty())
+				continue;
 
-        modelTopoParam = *itParam;
+			if (!params->findParam(itParam, "MODEL.TOPOGRAPHY", provider)) {
+				WEBFW_LOG_WARN(
+						"getPolygonPoints: No parameter definition for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
+				continue;
+			}
 
-        if( ! refTimes.providerReftime( provider, modelTopoRefTime ) ) {
-           WEBFW_LOG_WARN( "getPolygonPoints: No reference times found for provider '" << provider << "'.");
-           continue;
-        }
+			modelTopoParam = *itParam;
 
+			if (!itDb->second->providerReftime(provider, modelTopoRefTime)) {
+				WEBFW_LOG_WARN(
+						"getPolygonPoints: No reference times found for provider '" << provider << "'.");
+				continue;
+			}
 
-        try{
-           Topography topographyTransactor( locations,
-                                            webQuery.skip(),
-                                            modelTopoParam,
-                                            provider,
-                                            modelTopoRefTime,
-                                            wciProtocol );
+			try {
+				Topography topographyTransactor(locations, webQuery.skip(),
+						modelTopoParam, provider, modelTopoRefTime,
+						wciProtocol);
 
-           wciConnection->perform( topographyTransactor );
-           modelTopoLocations = topographyTransactor.locations();
+				wciConnection->perform(topographyTransactor);
+				modelTopoLocations = topographyTransactor.locations();
 
-           if( modelTopoLocations->size() == 0 ) {
-              WEBFW_LOG_WARN( "getPolygonPoints: No modelTopo location found for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
-              continue;
-           }
+				if (modelTopoLocations->size() == 0) {
+					WEBFW_LOG_WARN(
+							"getPolygonPoints: No modelTopo location found for MODEL.TOPOGRAPHY, provider '" << provider << "'.");
+					continue;
+				}
 
-           return modelTopoLocations;
-        }
-        catch( const exception &ex ) {
-           WEBFW_LOG_WARN( "getPolygonPoints: EXCEPTION: " << ex.what()  );
-           continue;
-        }
+				return modelTopoLocations;
+			} catch (const exception &ex) {
+				WEBFW_LOG_WARN("getPolygonPoints: EXCEPTION: " << ex.what());
+				continue;
+			}
+		}
 	}
 
 	return LocationPointListPtr( new LocationPointList( ) );
+}
+
+PtrProviderRefTimesByDbId
+LocationForecastGmlHandler::
+getReferenceTimesByDbId()
+{
+	boost::mutex::scoped_lock lock( mutex );
+
+	if( ! providerReftimesByDbId )
+		providerReftimesByDbId.reset( new ProviderRefTimesByDbId());
+
+	return providerReftimesByDbId;
 }
 
 

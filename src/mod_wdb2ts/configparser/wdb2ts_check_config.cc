@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ConfigParser.h>
+#include "miutil/pathutil.h"
 
 
 using namespace std;
@@ -31,14 +32,17 @@ void printParamdefs( const ParamDefConfig &paramdef, const std::string &heading 
 int
 main(int argn, char **argv )
 {
-	wdb2ts::config::Config       *res;
-	wdb2ts::config::ConfigParser config;
-	
 	if( argn != 2 ) {
 		cerr << "Use: wdb2ts_check_config configfile" << endl << endl;
 		return 1;
 	}
 	
+	wdb2ts::config::Config       *res;
+	wdb2ts::config::ConfigParser config(miutil::dirname(argv[1]));
+
+	cerr << "Filename: '" << argv[1] << "'\n";
+	cerr << "basedir:  '"<< miutil::dirname(argv[1]) << "'\n";
+
 	res = config.parseFile( argv[1] );
 	
 	if( res ) {
@@ -53,11 +57,12 @@ main(int argn, char **argv )
 		for( Config::QueryDefs::const_iterator it=res->querys.begin();
 		     it!=res->querys.end();
 		     ++it ) {
-			cerr << "Query id: " << it->first << " Paralells: " << it->second.dbRequestsInParalells() << endl;
+			cerr << "Query id: " << it->first << " Paralells: " << it->second.dbRequestsInParalells()
+				 << endl;
 			for( Config::Query::const_iterator itQ=it->second.begin();
 				  itQ!=it->second.end();
 				  ++itQ )
-				cerr << endl << "query[" << itQ->query() << "]" << endl;
+				cerr << endl << "wdbdb: "<< itQ->wdbdb() << "\n  query[" << itQ->query() << "]" << endl;
 			cerr << endl;
 		}
 

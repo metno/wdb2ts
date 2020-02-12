@@ -29,12 +29,14 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <stlContainerUtil.h>
 #include <transactor/ProviderRefTime.h>
 #include <UpdateProviderReftimes.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <ptimeutil.h>
 #include <UpdateProviderReftimes.h>
+#include <wdb2TsApp.h>
 #include <Logger4cpp.h>
 
 using namespace std;
@@ -60,6 +62,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
                         ProviderRefTimeList &refTimes,
                         int wciProtocol  )
 {
+   WEBFW_USE_LOGGER( "handler" );
    ProviderRefTimeList resRefTimes;
    ProviderRefTimeList tmpRefTimes( refTimes );
    ptime now( second_clock::universal_time() );
@@ -121,7 +124,7 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
       if( ! getProviderReftimes( wciConnection, resRefTimes, provider, reftime, it->second.dataversion ) ) {
     	  //We do NOT have data for the reference time or dataversion.
     	  ostringstream serr;
-    	  serr << "Missing data for: " << provider << " at ";
+    	  serr << "updateProviderRefTimes: Missing data for: " << provider << " at ";
 
     	  if(it->second.refTime.is_special() )  serr << "'latest'";
     	  else serr << "'" << isotimeString( it->second.refTime, false, true ) << "'";
@@ -131,7 +134,9 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
     	  if( it->second.dataversion < 0 ) serr  << "'latest'";
     	  else serr << it->second.dataversion;
     	  serr << ".";
-    	  throw std::logic_error( serr.str() );
+    	  WEBFW_LOG_WARN(serr.str());
+    	  continue;
+    	  //throw std::logic_error( serr.str() );
       } else {
          ProviderItem pi=ProviderList::decodeItem( provider );
 
@@ -257,6 +262,182 @@ updateProviderRefTimes( WciConnectionPtr wciConnection,
 }
 
 
+
+namespace {
+std::string updateStatus( const ProviderRefTimeList &oldRefTime,
+			     	 	  const ProviderRefTimeList &newRefTime )
+{
+	WEBFW_USE_LOGGER( "handler" );
+	ProviderRefTimeList::const_iterator itOld;
+	ProviderRefTimeList::const_iterator itNew;
+
+	std::ostringstream logMsg;
+	logMsg << "LocationForecastUpdateHandler: refTimes. " << endl;
+	for( ProviderRefTimeList::const_iterator it = newRefTime.begin();
+	     it != newRefTime.end();
+		  ++it )
+		logMsg << "  " << it->first << ": " << it->second.refTime
+		       << ": " << it->second.dataversion << endl;;
+
+	WEBFW_LOG_INFO( logMsg.str() );
+
+
+	for( itOld = oldRefTime.begin(); itOld != oldRefTime.end(); ++itOld ) {
+		itNew = newRefTime.find( itOld->first );
+
+		if( itNew == newRefTime.end() ||
+			 itOld->second.refTime != itNew->second.refTime ||
+			 itOld->second.dataversion != itNew->second.dataversion ||
+			 itOld->second.disabled != itNew->second.disabled )
+			return "Updated";
+	}
+
+	//Has any new providers been added.
+	for( itNew = newRefTime.begin(); itNew != newRefTime.end(); ++itNew ) {
+		itOld = oldRefTime.find( itNew->first );
+
+		if( itOld == oldRefTime.end() )
+			return "Updated";
+	}
+
+	return "NoNewDataRefTime";
+}
+
+ProviderRefTimeList
+checkProviders( const ProviderList &providerList,
+		        const ProviderRefTimeList &oldRefTime,
+		        const ProviderRefTimeList &requestedUpdate )
+{
+	WEBFW_USE_LOGGER( "handler" );
+	list<string> providers=providerList.providerWithoutPlacename();
+	list<string>::const_iterator pit;
+	ProviderRefTimeList::const_iterator itOldRefTime;
+	bool disabled;
+	int dataversion;
+	ProviderRefTimeList retRequestedUpdate;
+
+	//Check that the requested providers i defined in the provider_prioority.
+	for( ProviderRefTimeList::const_iterator it = requestedUpdate.begin();
+		 it != requestedUpdate.end(); ++it ) {
+		ProviderList::const_iterator hasProvider = providerList.findProviderWithoutPlacename( it->first );
+
+		if( hasProvider == providerList.end() ) {
+			WEBFW_LOG_WARN( "WARNING: LocationUpdateHandler: It is requested an update for an provider '"
+					<< it->first << "' that is not in the provider_priority list.");
+		} else {
+			retRequestedUpdate[it->first]=it->second;
+		}
+	}
+
+	if( requestedUpdate.empty() ) {
+		for ( pit = providers.begin();
+		      pit != providers.end();
+		      ++ pit ) {
+			retRequestedUpdate[*pit] = ProviderTimes();
+
+			if( oldRefTime.disabled( *pit, disabled ) )
+				retRequestedUpdate[*pit].disabled = disabled;
+
+			if( oldRefTime.dataversion( *pit, dataversion ) )
+				retRequestedUpdate[*pit].dataversion = dataversion;
+
+			retRequestedUpdate[*pit].reftimeUpdateRequest = true;
+		}
+	}
+
+	return retRequestedUpdate;
+}
+
+void checkAgainstExistingProviders( const ProviderRefTimeList &exitingProviders,
+		                         ProviderRefTimeList &newRefTime )
+{
+	ProviderRefTimeList::iterator newIt = newRefTime.begin();
+	ProviderRefTimeList::const_iterator eit;
+
+	while(  newIt != newRefTime.end() ) {
+		eit = exitingProviders.find( newIt->first );
+
+		//If the provider do not exist, delete it.
+		newIt = miutil::eraseElementIf( newRefTime, newIt, eit == exitingProviders.end() );
+	}
+}
+
+}
+
+PtrProviderRefTimes
+locationForecastUpdate(
+		WciConnectionPtr wciConnection,
+		const ProviderRefTimeList &requestedProviders_,
+		const ProviderList &providerPriorityList,
+		const PtrProviderRefTimes oldRefTime,
+		int wciProtocol,
+		std::string &status
+)
+{
+	WEBFW_USE_LOGGER("handler");
+	ProviderRefTimeList requestedProviders;
+	bool debug;
+
+	ProviderRefTimeList exitingProviders;
+	PtrProviderRefTimes newRefTime(new ProviderRefTimeList(*oldRefTime));
+
+	requestedProviders = checkProviders(providerPriorityList, *oldRefTime,
+			requestedProviders_);
+
+	//Get a list of the providers with placename that is exiting in the database.
+	//It my happen that we don't have data for some models, ie. they are deleted.
+	if (updateProviderRefTimes(wciConnection, exitingProviders,
+			providerPriorityList, wciProtocol)) {
+		updateProviderRefTimes(wciConnection, requestedProviders, *newRefTime,
+				wciProtocol);
+
+		checkAgainstExistingProviders(exitingProviders, *newRefTime);
+		//app->notes.setNote( updateid + ".LocationProviderReftimeList", new NoteProviderReftimes( newRefTime ) );
+	}
+
+	status = updateStatus(*oldRefTime, *newRefTime);
+	return newRefTime;
+}
+
+PtrProviderRefTimesByDbId
+locationForecastUpdateAllDbIds(
+		wdb2ts::Wdb2TsApp *app,
+		const std::list<std::string> &dbIds,
+		const ProviderRefTimeList &requestedProviders_,
+		const ProviderList &providerPriorityList,
+		const PtrProviderRefTimesByDbId oldRefTime_,
+		int wciProtocol,
+		std::map<std::string,std::string> &statuses
+)
+
+{
+	using namespace std;
+	WEBFW_USE_LOGGER("handler");
+
+	PtrProviderRefTimesByDbId result(new ProviderRefTimesByDbId());
+	PtrProviderRefTimes oldRefTime;
+	string status;
+
+	statuses.clear();
+
+	for(list<string>::const_iterator itDbId=dbIds.begin(); itDbId!=dbIds.end(); ++itDbId) {
+		WciConnectionPtr con=app->newWciConnection(*itDbId);
+		ProviderRefTimesByDbId::const_iterator itOldReftime= oldRefTime_->find(*itDbId);
+
+		if( itOldReftime == oldRefTime_->end())
+			oldRefTime.reset( new ProviderRefTimeList());
+		else
+			oldRefTime=itOldReftime->second;
+
+		(*result)[*itDbId]=locationForecastUpdate(con,requestedProviders_,
+				providerPriorityList, oldRefTime, wciProtocol, status);
+		statuses[*itDbId]=status;
+	}
+
+	return result;
+}
+
+
 }
 
 
@@ -295,6 +476,10 @@ getProviderReftimes( wdb2ts::WciConnectionPtr wciConnection,
 
    return ! refTimes.empty();
 }
+
+
+
+
 
 
 }

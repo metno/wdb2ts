@@ -41,6 +41,8 @@
 #include <Logger4cpp.h>
 #include <boost/regex.hpp>
 #include <sstream>
+#include <transactor/WciRead.h>
+#include <transactor/WciTransactor.h>
 
 using namespace std;
 using namespace wdb2ts;
@@ -48,110 +50,69 @@ using namespace wdb2ts;
 namespace {
 
 
-bool 
-loadFromDBWciProtocol_2( pqxx::connection& con, 
-		                   const wdb2ts::config::ActionParam &params,
-		                   ProjectionHelper &projections
-		                 )
-{
-	WEBFW_USE_LOGGER( "handler" );
-	WEBFW_LOG_ERROR("WDB versions less than 0.9.7 is NOT supported.");
-	return false;
-}
+class WciReadProjection : public wdb2ts::WciReadHelper {
+	ProjectionHelper *projections;
+	const wdb2ts::config::ActionParam &params;
+	int wciProtocol;
+public:
+	WciReadProjection(int wciProtocol_,
+			const wdb2ts::config::ActionParam &params_):
+				projections(nullptr),
+				params(params_), wciProtocol(wciProtocol_){
+	}
+	~WciReadProjection() {
+		delete projections;
+	}
 
 
-bool
-loadFromDBWciProtocol_4( pqxx::connection& con,
-		                 const wdb2ts::config::ActionParam &params,
-		                 int protocol,
-		                 ProjectionHelper &projections )
-{
-	using namespace boost;
+	void clear(){
+		delete projections;
+		projections = new ProjectionHelper(wciProtocol);
+	}
 
-	WEBFW_USE_LOGGER( "handler" );
-	ostringstream msg;
+	std::string id(){
+		return "wci.getPlaceRegularGrid( NULL )";
+	}
 
-	try {
-		WEBFW_LOG_DEBUG( "ProjectionHelper::P4: SELECT * FROM wci.info( NULL, NULL::wci.inforegulargrid )" );
-		string transactionid;
-		string query;
-
-		if( protocol == 4 ) {
+	std::string query(){
+		if( wciProtocol > 1  && wciProtocol <= 4 ) {
+			WEBFW_USE_LOGGER( "handler" );
 			WEBFW_LOG_ERROR("WDB versions less than 0.9.7 is NOT supported.");
-			return false;
-		} else {
-			transactionid = "wci.inforegulargrid";
-			query = "SELECT * FROM wci.getPlaceRegularGrid( NULL )";
+			throw std::logic_error("WDB versions less than 0.9.7 is NOT supported.");
+		}else {
+			return "SELECT * FROM wci.getPlaceRegularGrid( NULL )";
 		}
+	}
+	void doRead( pqxx::result &res ) {
+		WEBFW_USE_LOGGER( "handler" );
+		ostringstream msg;
+		msg << "Projection wciProtocol: "  << wciProtocol << ". ";
 
-		msg.str("Projection (P4):");
-
-		pqxx::work work( con, transactionid );
-		pqxx::result  res = work.exec( query );
-
-		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
-		{
+		for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row ){
+			std::string projdefinition=row["projdefinition"].c_str();
+			std::string placename= row.at("placename").c_str();
 			try {
-				MiProjection projection = ProjectionHelper::createProjection( row["projdefinition"].c_str() );
-				msg << endl << "       projection: " << row.at("placename").c_str() << "  " << projection;
-				projections.add( row.at("placename").c_str(), projection );
+				MiProjection projection = ProjectionHelper::createProjection( projdefinition );
+				msg << endl << "       projection: " << placename << "  " << projection;
+				projections->add( placename, projection );
 			}
 			catch( const std::exception &ex ) {
-				WEBFW_LOG_ERROR("Projection: Not supported projection '" << row["projdefinition"].c_str() << "'.");
+				WEBFW_LOG_ERROR("Projection: Not supported projection '" << projdefinition << "'.");
 				continue;
 			}
 		}
-
 		WEBFW_LOG_DEBUG( msg.str() );
 	}
-	catch( std::exception &ex ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB (protocol 4): " << ex.what() );
-		return false;
-	}
-	catch( ... ) {
-		WEBFW_LOG_ERROR( "EXCEPTION: ProjectionHelper::loadFromDB (protocol 4): UNKNOWN reason!" );
-		return false;
-	}
 
-	return true;
-}
+	ProjectionHelper &getProjections()const { return *projections; }
+};
 
-/**
- * Load the projection data in projectionMap from wdb.
- * Which projection that is associated with each providername is defined
- * by the actionparam wdb.projection in the configuration file.
- * The value of wdb.projection is a ';' separated list of providername=placename.
- *
- * Ex.
- * 	value="probability_forecast=ec ensemble;proff=proff;hirlam 10=hirlam 10"
- */
-bool 
-loadFromDB( pqxx::connection& con, 
-		      const wdb2ts::config::ActionParam &params,
-		      int wciProtocol,
-		      ProjectionHelper &projections )
-{
-	if( wciProtocol > 1  && wciProtocol <= 3 )
-		return loadFromDBWciProtocol_2( con, params, projections );
-	
-	if( wciProtocol == 4 )
-		return loadFromDBWciProtocol_4( con, params, 4, projections  );
-
-	if( wciProtocol >= 5 )
-		return loadFromDBWciProtocol_4( con, params, 5, projections  );
-
-
-	return loadFromDBWciProtocol_4( con, params, 5, projections );
-}
 
 
 }
 
 
 namespace wdb2ts {
-
-
-
 
 
 bool
@@ -162,14 +123,20 @@ configureWdbProjection( ProjectionHelper &projections_,
 		                Wdb2TsApp *app )
 {
 	WEBFW_USE_LOGGER( "handler" );
-	ProjectionHelper projections( wciProtocol );
 	
 	try {
-		miutil::pgpool::DbConnectionPtr con = app->newConnection( wdbDB );
-		
-		loadFromDB( con->connection(), params, wciProtocol, projections );
-		projections_ = projections;
+		cerr << "configureWdbProjection: db '" << wdbDB << "'\n";
+		wdb2ts::WciConnectionPtr con = app->newWciConnection(wdbDB );
+		WciReadProjection proj(wciProtocol, params);
+		WciRead work(&proj);
+		con->perform(work);
+		projections_ = proj.getProjections();
+
 		return true;
+	}
+	catch (const miutil::pgpool::DbNoConnectionException &ex) {
+		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: " << ex.what() );
+		throw;
 	}
 	catch( std::exception &ex ) {
 		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: " << ex.what() );
@@ -181,6 +148,55 @@ configureWdbProjection( ProjectionHelper &projections_,
 	return false;
 }
 
+
+bool
+configureAllWdbProjection( ProjectionHelper &projections_,
+		                const wdb2ts::config::ActionParam &params,
+		                int wciProtocol,
+		                const std::list<std::string> &wdbDBs,
+		                Wdb2TsApp *app ) {
+	bool ok = true;
+	ProjectionHelper res;
+	for( auto &wdbDB : wdbDBs ) {
+		ProjectionHelper tmpRes;
+		if( configureWdbProjection( tmpRes, params, wciProtocol, wdbDB, app) )
+			res.merge(tmpRes);
+		else
+			ok=false;
+	}
+	projections_=res;
+	return ok;
+}
+
+
+#if 0
+bool
+configureWdbProjection( ProjectionHelper &projections_,
+		                const wdb2ts::config::ActionParam &params,
+		                int wciProtocol,
+		                const std::string &wdbDB,
+		                Wdb2TsApp *app )
+{
+	WEBFW_USE_LOGGER( "handler" );
+	ProjectionHelper projections( wciProtocol );
+
+	try {
+		miutil::pgpool::DbConnectionPtr con = app->newConnection( wdbDB );
+
+		loadFromDB( con->connection(), params, wciProtocol, projections );
+		projections_ = projections;
+		return true;
+	}
+	catch( std::exception &ex ) {
+		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: " << ex.what() );
+	}
+	catch( ... ) {
+		WEBFW_LOG_ERROR( "EXCEPTION: configureWdbProjection: UNKNOWN reason.");
+	}
+
+	return false;
+}
+#endif
 
 
 }

@@ -37,8 +37,6 @@ libwdb2ts_la_SOURCES= \
    src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/WdbMomentTags.cpp \
    src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/TimePeriodTag.h \
    src/mod_wdb2ts/contenthandlers/LocationForecastGml/GML/InstantTimeTag.h \
-   src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.h \
-   src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler.cpp \
    src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.h \
    src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastHandler2.cpp \
    src/mod_wdb2ts/contenthandlers/LocationForecast/LocationForecastUpdateHandler.h \
@@ -51,7 +49,7 @@ libwdb2ts_la_SOURCES= \
    src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast3.cpp \
    src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.h \
    src/mod_wdb2ts/contenthandlers/LocationForecast/EncodeLocationForecast4.cpp \
-	src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
+   src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.cpp \
    src/mod_wdb2ts/contenthandlers/Location/EncodeCSV.h \
    src/mod_wdb2ts/contenthandlers/Location/LocationHandler.cpp \
    src/mod_wdb2ts/contenthandlers/Location/LocationHandler.h\
@@ -114,6 +112,8 @@ libwdb2ts_la_SOURCES= \
    src/mod_wdb2ts/NoteManager.cpp \
    src/mod_wdb2ts/NoteProviderReftime.h \
    src/mod_wdb2ts/NoteProviderReftime.cpp \
+   src/mod_wdb2ts/NoteProviderReftimeByDbId.h \
+   src/mod_wdb2ts/NoteProviderReftimeByDbId.cpp \
    src/mod_wdb2ts/NoteProviderList.h \
    src/mod_wdb2ts/NoteStringList.h \
    src/mod_wdb2ts/NoteString.h \
@@ -158,12 +158,17 @@ libwdb2ts_la_SOURCES= \
    src/mod_wdb2ts/QueryMaker.h \
    src/mod_wdb2ts/QueryMaker.cpp \
    src/mod_wdb2ts/WeatherSymbol.h \
-   src/mod_wdb2ts/WeatherSymbol.cpp 
-					  
+   src/mod_wdb2ts/WeatherSymbol.cpp \
+   src/mod_wdb2ts/etcdconf.h \
+   src/mod_wdb2ts/etcdconf.cpp
+
 
 
 mod_metno_wdb2ts_la_SOURCES= src/mod_wdb2ts/mod_metno_wdb2ts.cpp
 
+mod_metno_wdb2ts_la_CFLAGS=\
+	$(pqxx_CFLAGS) \
+	$(weather_symbol_CFLAGS) 
 mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 						     -export-dynamic      \
 							 -module              \
@@ -171,26 +176,35 @@ mod_metno_wdb2ts_la_LDFLAGS= -rpath $(libexecdir) \
 							 $(LDFLAGS)
 								
 mod_metno_wdb2ts_la_LIBADD= \
-                        -lwebFW  \
-                    	   -lWciWebQuery	\
-                    	   -lwdb2tsconfigparser \
-                    	   -lXML_locationforecast \
-                    	   -lwdb2ts \
-                    	   -lmiutil \
-                    	   -ltuplecontainer \
-                    	   -lpgconpool \
-                    	   $(putools_LIBS) \
-								$(pqxx_LIBS) \
-								$(BOOST_FILESYSTEM_LIB) \
-								$(BOOST_REGEX_LIB) \
-								$(BOOST_THREAD_LIB) \
-								$(BOOST_SYSTEM_LIB) \
-                    	   -lgfortran
-                    	    
+	-lwebFW  \
+	-lWciWebQuery	\
+	-lwdb2tsconfigparser \
+	-lXML_locationforecast \
+	-lwdb2ts \
+	-lmiutil \
+	-ltuplecontainer \
+	-lpgconpool \
+	-lstatd \
+	libcetcd.la \
+	$(weather_symbol_LIBS) \
+	$(putools_LIBS) \
+	$(pqxx_LIBS) \
+	$(BOOST_FILESYSTEM_LIB) \
+	$(BOOST_REGEX_LIB) \
+	$(BOOST_THREAD_LIB) \
+	$(BOOST_SYSTEM_LIB) \
+	$(BOOST_DATETIME_LIB) \
+	$(pqxx_LIBS) \
+	$(log4cpp_LIBS) \
+	-lgfortran 
+
 
 noinst_PROGRAMS+= TestWdb2Ts
 TestWdb2Ts_SOURCES = src/mod_wdb2ts/testWdb2Ts.cpp
-
+TestWdb2Ts_CFLAGS=\
+	$(pqxx_CFLAGS) \
+	$(weather_symbol_CFLAGS) \
+	$(log4cpp_CFLAGS)
 TestWdb2Ts_LDFLAGS= $(LDFLAGS)
 
 TestWdb2Ts_LDADD=\
@@ -202,6 +216,9 @@ TestWdb2Ts_LDADD=\
 	-lmiutil \
 	-ltuplecontainer \
 	-lpgconpool \
+	-lstatd \
+	libcetcd.la \
+	$(weather_symbol_LIBS) \
 	$(pumet_LIBS) \
 	$(putools_LIBS) \
 	$(pqxx_LIBS) \
@@ -209,7 +226,9 @@ TestWdb2Ts_LDADD=\
 	$(BOOST_REGEX_LIB) \
 	$(BOOST_THREAD_LIB) \
 	$(BOOST_SYSTEM_LIB) \
-	-lgfortran 
+	$(pqxx_LIBS) \
+	$(log4cpp_LIBS) \
+	-lgfortran
 
 
 EXTRA_DIST+= src/mod_wdb2ts/wdb2ts.mk   \

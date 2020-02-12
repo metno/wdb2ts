@@ -25,13 +25,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
     MA  02110-1301, USA
 */
+#include <sys/types.h>
+#include <signal.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <wdb2TsApp.h>
 #include <sstream>
 #include "../pgconpool/dbSetup.h"
 #include "../pgconpool/dbConnectionPool.h"
 #include <contenthandlers/Location/LocationHandler.h>
-#include <contenthandlers/LocationForecast/LocationForecastHandler.h>
 #include <contenthandlers/LocationForecast/LocationForecastUpdateHandler.h>
 #include <contenthandlers/info/info.h>
 #include <ParamDef.h>
@@ -45,6 +46,11 @@
 #include <splitstr.h>
 #include <replace.h>
 #include <Logger4cpp.h>
+#include "configdata.h"
+#include "miutil/pathutil.h"
+#include "wdb2TsExceptions.h"
+#include "etcdconf.h"
+
 
 using namespace std;
  
@@ -54,7 +60,7 @@ MISP_IMPL_APP( Wdb2TsApp );
    
 Wdb2TsApp::
 Wdb2TsApp()
-   : webfw::App(), hightMap( 0 ), loadMapThread( 0 ), initHightMapTryed( false ), inInitHightMap( false )
+   : webfw::App(), hightMap( 0 ), loadMapThread( 0 ), initHightMapTryed( false ), inInitHightMap( false ), statsd()
 {
 }
 
@@ -62,14 +68,49 @@ void
 Wdb2TsApp::
 onShutdown()
 {
-   cerr << "----  Wdb2ts::onShutdown: called." << endl;
+   //cerr << "----  Wdb2ts::onShutdown: called." << endl;
    boost::mutex::scoped_lock lock( mutex );
    if( dbManager ) {
-      cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Started." << endl;
+     // cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Started." << endl;
       dbManager->disable();
-      cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Completed." << endl;
+     // cerr << "----  Wdb2ts::onShutdown: Shutdown the dbManager. Completed." << endl;
    }
 
+}
+
+
+bool
+Wdb2TsApp::configFromEtcd(){
+	string sysConf(WDB2TS_DEFAULT_SYSCONFDIR);
+	sysConf=miutil::fixPath(sysConf,false);
+
+	etcd = miutil::Etcd::create();
+
+	//pid_t pid = getppid();
+//	if ( kill(getpid(), SIGUSR1) <0 ) {
+//		cerr << "\n\n  Failed to send a signal to my self (" << getpid() << ")\n";
+//		perror("Error");
+//		cerr << "\n\n";
+//	}
+
+	if( ! etcd ) {
+		cerr << "Etcd NOT configured. The default config is used.\n";
+		setConfDir( sysConf );
+		return false;
+	}
+
+	string confDir = LoadConfigFromEtcd(etcd, sysConf);
+
+	if( confDir.empty() ) {
+		cerr << "ERROR: Etcd: Failed to load wdb2ts config.\n";
+		cerr << "Setting conf path to '" << sysConf << "'.\n";
+		setConfDir( sysConf );
+		return false;
+	} else {
+		cerr << "Etcd: loaded wdb2ts config to '" << confDir << "'.\n";
+		setConfDir(confDir);
+		return true;
+	}
 }
 
 void   
@@ -80,15 +121,17 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	ostringstream log;
 	//miutil::pgpool::DbDefList dbsetup;
 	string buf;
+
+	isConfigFromEtcd = configFromEtcd();
 	
-	logger.info( string("WDB2TS_DEFAULT_SYSCONFDIR=") + WDB2TS_DEFAULT_SYSCONFDIR + ".");
+	logger.info( string("WDB2TS_DEFAULT_SYSCONFDIR=") + getConfDir() + ".");
 	logger.info( string("WDB2TS_DEFAULT_SYSLOGDIR=") + WDB2TS_DEFAULT_SYSLOGDIR + "." );
 	logger.info( string("WDB2TS_DEFAULT_SYSTMPDIR=") + WDB2TS_DEFAULT_SYSTMPDIR + "." );
 	logger.info( string("WDB2TS_LOCALSTATEDIR=") +  WDB2TS_LOCALSTATEDIR + ".");
 	
 	notes.setPersistentNotePath( WDB2TS_LOCALSTATEDIR );
 	
-	setConfDir( WDB2TS_DEFAULT_SYSCONFDIR );
+	//setConfDir( WDB2TS_DEFAULT_SYSCONFDIR );
 	setLogDir( WDB2TS_DEFAULT_SYSLOGDIR );
 	setTmpDir( WDB2TS_DEFAULT_SYSTMPDIR );
 	
@@ -98,9 +141,9 @@ initAction( webfw::RequestHandlerManager&  reqHandlerMgr,
 	if( readConfFile("metno-wdb2ts-db.conf", buf) ) {
 		try{
 			miutil::pgpool::parseDbSetup( buf, dbsetup );
+			log.str("");
 			log << "-- initAction: dbsetup " << endl;
          for( miutil::pgpool::CIDbDefList it=dbsetup.begin(); it != dbsetup.end(); ++it){
-         	log.str("");
             log << "Db: " <<it->first << endl
                 << "-------------------------" << endl
                 << it->second << endl << endl;
@@ -130,7 +173,7 @@ readConfiguration( webfw::RequestHandlerManager&  reqHandlerMgr,
 		return;
 	}
 	
-	wdb2ts::config::ConfigParser parser;
+	wdb2ts::config::ConfigParser parser(getConfDir());
 	wdb2ts::config::Config *config = parser.parseBuf( content );
 	
 	if( ! config ) {
@@ -140,9 +183,7 @@ readConfiguration( webfw::RequestHandlerManager&  reqHandlerMgr,
 		logger.fatal( log.str() );
 		return;
 	}
-	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 1.\n";
 	paramDefs_ = config->paramdef.paramDefs();
-	cerr << "Wdb2TsApp::readConfiguration:  checkpoint 2.\n";
 	configureRequestsHandlers( config, reqHandlerMgr, logger );
 }
 
@@ -430,6 +471,35 @@ wciProtocol( const std::string &wdbid )
 	return 6;
 }
 
+
+void
+Wdb2TsApp::
+sendMetric(const miutil::Metric &metric) {
+
+}
+
+void
+Wdb2TsApp::
+sendMetric(const ConfigData *metric)
+{
+	miutil::CollectMetric m("wdb2ts");
+
+	m.addTimerMetric(metric->requestMetric);
+	m.addTimerMetric(metric->dbMetric);
+	m.addTimerMetric(metric->validateMetric);
+	m.addTimerMetric(metric->decodeMetric);
+	m.addTimerMetric(metric->encodeMetric);
+
+	if( m.hasMetrics()) {
+		if( statsd.send(m.getStatdMetric())< 0 ) {
+			WEBFW_USE_LOGGER( "main" );
+			WEBFW_LOG_ERROR( "Metrics: can't send metrics: " << statsd.errmsg() << "\n");
+			//std::cerr << "Metrics (wdb2ts): can't send metrics: " << statsd.errmsg() << "\n";
+		}
+	}
+}
+
+
 void
 Wdb2TsApp::
 initDbPool()
@@ -453,21 +523,37 @@ initDbPool()
 }
 
 
-miutil::pgpool::DbConnectionPtr
-Wdb2TsApp::
-newConnection( const std::string &dbid, unsigned int timeoutInMilliSecound )
-{
-   initDbPool();
-   return dbManager->newConnection( dbid );
-}
-
-
 WciConnectionPtr
 Wdb2TsApp::
 newWciConnection( const std::string &dbid, unsigned int timeoutInMilliSecound)
 {
    initDbPool();
    return dbManager->newWciConnection( dbid );
+}
+
+void
+Wdb2TsApp::
+releaseAllConnections(const std::string &wdbid)
+{
+	boost::mutex::scoped_lock lock( mutex );
+
+	if(  dbManager ) {
+		if( wdbid.empty())
+			dbManager->releaseAllConnections();
+		else
+			dbManager->releaseAllConnectionsWithId(wdbid);
+	}
+}
+
+namespace {
+bool wciIsInitialized_(miutil::pgpool::DbConnectionPtr con){
+	pqxx::work work(con->connection(), "wci_int.sessionisinitialized()" );
+	pqxx::result  res = work.exec("SELECT wci_int.sessionisinitialized()");
+	for( pqxx::result::const_iterator row=res.begin(); row != res.end(); ++row )
+		return row.at("sessionisinitialized").as<bool>();
+
+	throw std::logic_error("Now result. (SELECT wci_int.sessionisinitialized())");
+}
 }
 
 } // namespace

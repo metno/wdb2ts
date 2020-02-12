@@ -94,14 +94,23 @@ public:
 	void extraConfigure( const wdb2ts::config::ActionParam &params, Wdb2TsApp *app ); 
 	
 	///Overide IConfigure::configure
-	virtual bool configure( const wdb2ts::config::ActionParam &params,
-			                  const wdb2ts::config::Config::Query &query,
-						         const std::string &wdbDB);
+	virtual bool configure(
+			const wdb2ts::config::ActionParam &params,
+			const wdb2ts::config::Config::Query &query,
+			const std::string &wdbDB
+			);
 	
+
+	void get_( webfw::Request  &req,
+               webfw::Response &response,
+               webfw::Logger   &logger    );
+
+	///Overide webfw::RequestHandler::getDbIdProviderRefTimes
 	///Overide webfw::RequestHandler::get
 	virtual void get( webfw::Request  &req, 
-                     webfw::Response &response, 
-                     webfw::Logger   &logger    );
+	                  webfw::Response &response,
+	                  webfw::Logger   &logger    );
+
 
 	///Overide INoteUpdateListener::noteUpdated
 	virtual void noteUpdated( const std::string &noteName, 
@@ -112,8 +121,15 @@ public:
 
 	void doStatus( Wdb2TsApp *app,
 				   webfw::Response &response, ConfigDataPtr config,
-			       PtrProviderRefTimes refTimes, const ProviderList &providerList,
+			       const ProviderList &providerList,
 			       ParamDefListPtr paramdef );
+
+	PtrProviderRefTimesByDbId getReferenceTimesByDbId();
+	ConfigDataPtr getRequestConfig(const WebQuery &webQuery, Wdb2TsApp *app);
+
+	PtrProviderRefTimesByDbId 	getOrLoadProviderReftimesByDbId();
+
+
 private:
 	NoteHelper          noteHelper;
 	SymbolGenerator     symbolGenerator;
@@ -121,8 +137,8 @@ private:
 	std::string         note;
 	int                 subversion;
 	std::string         wdbDB;
+	std::list<std::string> definedDbIds;
 	bool                noteIsUpdated;
-   //WdbQueryHelper      *wdbQueryHelper;
    wdb2ts::config::Config::Query urlQuerys;
    wdb2ts::config::ActionParam actionParams;
    ProviderList        providerPriority_;
@@ -133,7 +149,8 @@ private:
    NearestLandConf     nearestLands;
    SymbolConfProvider  symbolConf_;
    miutil::EnableTimePeriod thunderInSymbols;
-   PtrProviderRefTimes providerReftimes;
+   bool                providerRefTimesByDbIdIsPersisten;
+   PtrProviderRefTimesByDbId providerReftimesByDbId;
    MetaModelConfList   metaModelConf;  
    ProjectionHelper    projectionHelper;
    ParamDefListPtr     paramDefsPtr_;
@@ -148,51 +165,43 @@ private:
    bool                isForecast;
 
    boost::mutex        mutex; 
-      
-   LocationPointDataPtr  requestWdbDefault( const WebQuery &webQuery,
-		   	   	   	                        int altitude,
-		   	   	   	                        PtrProviderRefTimes refTimes,
-		   	   	   	                        ParamDefListPtr     paramDefsPtr,
-		   	   	   	                        const ProviderList  &providerPriority
+
+   void clearConfig(Wdb2TsApp *app);
+
+   LocationPointDataPtr  requestWdbDefault(
+		   	   	   	   	   	   	   	   	ConfigData *config,
+   										ParamDefListPtr     paramDefsPtr,
+		   	   	   	                    const ProviderList  &providerPriority
              	 	 	 	 	 	 	 ) const;
 
-   LocationPointDataPtr  requestWdbSpecific( const WebQuery &webQuery,
-		   	   	   	                         int altitude,
-		   	   	   	                         const PtrProviderRefTimes refTimes,
-		   	   	   	                         ParamDefListPtr     paramDefsPtr,
-		   	   	   	                         const ProviderList  &providerPriority
+   LocationPointDataPtr  requestWdbSpecific(ConfigData *config,
+		   	   	   	   	   	   	   	   	   	ParamDefListPtr     paramDefsPtr,
+		   	   	   	                        const ProviderList  &providerPriority
              	 	 	 	 	 	 	    ) const;
 
 
-  	LocationPointDataPtr requestWdb( const LocationPointList &locationPoints,
-  									 const boost::posix_time::ptime &from,
-  	                                 const boost::posix_time::ptime &to,
-  	                                 bool isPolygon, int altitude,
-  	                                 PtrProviderRefTimes refTime,
-  	                                 ParamDefListPtr  paramDefs,
+  	LocationPointDataPtr requestWdb(ConfigData *config,
+  	                                ParamDefListPtr  paramDefs,
   		                             const ProviderList &providerPriority )const;
   	
-  	/*
-  	bool updateProviderReftimes( WciConnectionPtr con );
-  	*/
-  	
-  	PtrProviderRefTimes getProviderReftimes();
   	
   	//Get some mutex protected data.
   	void getProtectedData( SymbolConfProvider &symbolConf, ProviderList &providerList, ParamDefListPtr &paramDefsPtr );
   	
   	void
-  	nearestHeightPoint( const LocationPointList &locationPoints,
-						const boost::posix_time::ptime &to,
-  			            LocationPointDataPtr data,
-  			            int altitude,
-  			            PtrProviderRefTimes refTimes,
-  			            ParamDefListPtr paramDefs,
-  			            const ProviderList &providerPriority
+  	nearestHeightPoint( ConfigData *config,
+  			              const LocationPointList &locationPoints,
+						     const boost::posix_time::ptime &to,
+  			              LocationPointDataPtr data,
+  			              int altitude,
+  			              PtrProviderRefTimes refTimes,
+  			              ParamDefListPtr paramDefs,
+  			              const ProviderList &providerPriority
   					  ) const;
 
   	void
-  	nearestLandPoint( const LocationPointList &locationPoints,
+  	nearestLandPoint( ConfigData *config,
+  			            const LocationPointList &locationPoints,
   	                  const boost::posix_time::ptime &to,
   	                  LocationPointDataPtr data,
   	                  int altitude,

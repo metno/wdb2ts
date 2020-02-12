@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+   <requests>
+      <request      path="/probabilityforecastupdate"
+         default_version="1.1"
+                   wdbdb="default"
+                  action="LocationForecastUpdate"
+                 queryid="probabilityforecast">
+
+         <version version="1.1"
+                   action="LocationForecastUpdate"
+                  queryid="probabilityforecast_1_1">
+            <actionparam key="updateid" value="probabilityforecast_1_1" />
+         </version>
+      </request>
+
+      <request path="/probabilityforecast" default_version="1.1"
+              wdbdb="default"
+             action="LocationForecast"
+            queryid="probabilityforecast_1_1"
+             schema="http://api.met.no/weatherapi/probabilityforecast/1.1/schema">
+         <actionparam key="loglevels" value="default=warn" />
+         <actionparam key="topography_provider" value="statkart.no;norsk_polarinstitutt" />
+         <actionparam key="expire_rand" value="960" />
+		 <actionparam key="*updateid" value="probabilityforecast_1_1" />
+         
+         <version version="1.1" action="LocationForecast"
+                  queryid="probabilityforecast_1_1">
+            
+            <actionparam key="meta_model-met eceps small domain v.1.1" value="name=EPS;nextrun=10:00,22:00" />
+            <actionparam key="meta_model-met eceps large domain v.1.1" value="name=EPS;nextrun=10:00,22:00" />
+            <actionparam key="provider_priority" value="statkart.no;
+                                                        norsk_polarinstitutt;
+                                                        met eceps small domain v.1.1;
+                                                        met eceps large domain v.1.1" />
+         </version>
+      </request>
+   </requests>
+   <querydefs>
+
+      <!-- PROBABILITYFORECAST 1.1-->
+      <querydef id="probabilityforecast_1_1">
+
+         <!-- NORSK_POLARINSTITUTT -->
+         <query>
+            dataprovider=norsk_polarinstitutt;
+            reftime=NULL;   <!-- NB NB NB NB -->
+            validtime=NULL; <!-- NB NB NB NB -->
+            parameter="altitude";
+         </query>
+
+         <!-- statkart -->
+         <query>
+            dataprovider=statkart.no;
+            reftime=NULL;   <!-- NB NB NB NB -->
+            validtime=NULL; <!-- NB NB NB NB -->
+            parameter="altitude";
+         </query>
+
+         <!--MET ECEPS SMALL DOMAIN -->
+         <query>
+            dataprovider=met eceps small domain v.1.1;
+            point_interpolation=bilinear;
+            parameter="altitude"
+                     ,"10th percentile of air temperature"
+                     ,"25th percentile of air temperature"
+                     ,"50th percentile of air temperature"
+                     ,"75th percentile of air temperature"
+                     ,"90th percentile of air temperature";
+         </query>
+         <query stop_if_data="true">
+            dataprovider=met eceps small domain v.1.1;
+            point_interpolation=nearest;
+            parameter="10th percentile of precipitation amount"
+                     ,"25th percentile of precipitation amount"
+                     ,"50th percentile of precipitation amount"
+                     ,"75th percentile of precipitation amount"
+                     ,"90th percentile of precipitation amount"
+                     ,"probability of precipitation >0.2mm"
+                     ,"probability of precipitation >0.5mm"
+                     ,"probability of precipitation >1.0mm"
+                     ,"probability of precipitation >2.0mm"
+                     ,"probability of precipitation >5.0mm";
+         </query>
+
+         <!--MET ECEPS LARGE DOMAIN -->
+         <query>
+            dataprovider=met eceps large domain v.1.1;
+            point_interpolation=bilinear;
+            parameter="altitude"
+                     ,"10th percentile of air temperature"
+                     ,"25th percentile of air temperature"
+                     ,"50th percentile of air temperature"
+                     ,"75th percentile of air temperature"
+                     ,"90th percentile of air temperature";
+         </query>
+
+         <query>
+            dataprovider=met eceps large domain v.1.1;
+            point_interpolation=nearest;
+            parameter="10th percentile of precipitation amount"
+                     ,"25th percentile of precipitation amount"
+                     ,"50th percentile of precipitation amount"
+                     ,"75th percentile of precipitation amount"
+                     ,"90th percentile of precipitation amount"
+                     ,"probability of precipitation >0.2mm"
+                     ,"probability of precipitation >0.5mm"
+                     ,"probability of precipitation >1.0mm"
+                     ,"probability of precipitation >2.0mm"
+                     ,"probability of precipitation >5.0mm";
+         </query>
+      </querydef>
+   </querydefs>
+</wdb2ts>

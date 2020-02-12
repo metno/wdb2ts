@@ -1,0 +1,11 @@
+cetcdctrl
+sds-test
+*.o
+*.swp
+*.so
+*.a
+third-party
+/examples/
+/Makefile
+/README.md
+/wercker.yml

@@ -57,6 +57,7 @@ configure-stamp:
 	            --with-wdb2ts-configdir=/etc/metno-wdb2ts \
 	            --with-wdb2ts-logdir=/var/log/metno-wdb2ts \
 	            --with-wdb2ts-tmpdir=/var/lib/metno-wdb2ts/tmp \
+	            --enable-wdb2ts-etcdcli \
 	            --prefix=/usr \
 	            --with-apxs=/usr/bin/apxs2 \
                --with-libcurl \
@@ -70,7 +71,8 @@ build: build-stamp
 build-stamp: configure-stamp 
 	dh_testdir
 	# Add here commands to compile the package.
-	$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC
+	#$(MAKE) CXXFLAGS=-fPIC CFLAGS=-fPIC
+	$(MAKE) 
 	$(MAKE) html
 	#docbook-to-man debian/ts2xml.sgml > wdb2ts.1
 

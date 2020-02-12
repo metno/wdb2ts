@@ -136,7 +136,7 @@ EncodeLocationForecast4( LocationPointDataPtr locationPointData_,
                         float latitude,
                         int   altitude,
                         const boost::posix_time::ptime &from,
-                        PtrProviderRefTimes refTimes_,
+                        PtrProviderRefTimesByDbId refTimes_,
                         MetaModelConfList &metaConf_,
                         ProviderPrecipitationConfig *precipitationConfig_,
                         const ProviderList &providerPriority_,
@@ -619,7 +619,9 @@ encodeMeta( std::string &result )
 {
 	Indent indent;
 	IndentLevel level2( indent );
-	ProviderRefTimeList::iterator itRefTime;
+	//ProviderRefTimeList::iterator itRefTime;
+	ProviderTimes providerTimes;
+	string dbId;
 	string name;
 	boost::posix_time::ptime nextrun;
 	boost::posix_time::ptime runEnded;
@@ -644,14 +646,20 @@ encodeMeta( std::string &result )
 		     it != breakTimes.end();
 		     ++it )
 		{
-			itRefTime = refTimes->find( it->provider );
+
 			itMeta = metaConf.find( it->provider );
 			termin = boost::posix_time::ptime(); //Undef
 			runEnded = boost::posix_time::ptime(); //Undef
-
+/*
+			itRefTime = refTimes->find( it->provider );
 			if( itRefTime != refTimes->end() ) {
 				termin = itRefTime->second.refTime;
 				runEnded = itRefTime->second.updatedTime;
+			}
+	*/
+			if( refTimes->findProviderTimes(it->provider, providerTimes,dbId )){
+				termin = providerTimes.refTime;
+				runEnded = providerTimes.updatedTime;
 			}
 			
 			//Try to find the provider part of the provider. Remember
@@ -792,7 +800,6 @@ encode(  webfw::Response &response )
 	MARK_ID_MI_PROFILE("EncodeXML");
 	response.expire( expire );
 	response.contentLength( result.size() );
-	
 	MARK_ID_MI_PROFILE("SendXML");
 	response.out() << result;
 	MARK_ID_MI_PROFILE("SendXML");

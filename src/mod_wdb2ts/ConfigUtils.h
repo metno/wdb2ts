@@ -31,11 +31,16 @@
 
 #include <cstring>
 #include <string>
+#include <set>
+#include <list>
 #include <map>
-#include <configparser/RequestConf.h>
+#include <configparser/Config.h>
+
 #include <EnableTimePeriod.h>
 
 namespace wdb2ts {
+
+class Wdb2TsApp;
 
 miutil::EnableTimePeriod
 configEnableThunderInSymbols( const wdb2ts::config::ActionParam &conf );
@@ -57,6 +62,7 @@ struct NoDataResponse {
     static NoDataResponse decode( const wdb2ts::config::ActionParam &conf );
 };
 
+std::string getUpdateId(const wdb2ts::config::ActionParam &conf, bool *isPersitent);
 
 class OutputParams {
    struct ILess {
@@ -104,6 +110,21 @@ public:
 
 std::ostream&
 operator<<(std::ostream &s, const OutputParams &op );
+
+
+/**
+ * Create a list of all wdbDbIds used in the query section for a handler.
+ * If no id is defined, used the default given with \em defaultDbId
+ */
+std::list<std::string> getListOfQueriesDbIds(
+		const wdb2ts::config::Config::Query &queries,
+		const std::string &defaultDbId
+		);
+
+
+std::pair<std::list<std::string>, std::string>
+getEtcdConfig(const wdb2ts::config::ActionParam &conf );
+
 
 }
 

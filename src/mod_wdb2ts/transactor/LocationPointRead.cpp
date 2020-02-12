@@ -51,8 +51,7 @@ LocationPointRead( float latitude, float longitude,
 	: latitude_( latitude ), longitude_( longitude ),
 	  paramDefs_( paramDefs ), providers_( providers ),refTimeList_( refTimeList ),
 	  to_( to ), wciProtocol_( wciProtocol ),
-	  locationPointData_( locationPointData ),
-	  isOk_( new bool )
+	  locationPointData_( locationPointData )
 {
 }
 

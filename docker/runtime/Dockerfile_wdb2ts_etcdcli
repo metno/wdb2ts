@@ -1,0 +1,20 @@
+FROM ubuntu:16.04
+
+COPY /etc/apt/sources.list.d/metno.list /etc/apt/sources.list.d
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv 7423E2EB78589757 && \
+	apt-get update && apt-get install -y \
+	ca-certificates libc6 libcurl3 libgcc1 libstdc++6 libxml2 libyajl2 git \
+	bash bash-completion less mg \
+	libboost-regex1.58.0 libboost-date-time1.58.0 && \
+	rm -rf /var/lib/apt/lists/*
+
+COPY .runtime/usr/bin/wdb2ts-etcdcli  /usr/bin
+COPY runtime/sleep_forever.sh /usr/local/bin
+RUN ldconfig
+
+ENV ETCD_HOSTS="http://localhost:2379" ETCD_WDB2TS_PATH="/wdb2ts"
+RUN mkdir /wdb2ts-config
+WORKDIR /wdb2ts-config
+ENTRYPOINT ["/usr/local/bin/sleep_forever.sh"]
+

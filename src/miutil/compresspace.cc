@@ -114,3 +114,11 @@ compres(std::string &buf, const char *what)
       }
    }
 }
+
+std::string
+miutil::compresCopy(const std::string &buf, const char *what){
+	std::string str(buf);
+	miutil::compres(str, what);
+	return str;
+}
+

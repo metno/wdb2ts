@@ -126,5 +126,40 @@ symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
 	return symbolConfProviderSetPlacename( tmpList, wciConnection );
 }
 
+
+SymbolConfProvider
+symbolConfProviderWithPlacename( const wdb2ts::config::ActionParam &params,
+		                         const std::list<std::string> &wdbDBs,
+								 Wdb2TsApp *app
+                               )
+{
+	WEBFW_USE_LOGGER( "handler" );
+
+	SymbolConfProvider res;
+	SymbolConfProvider tmpList;
+	configureSymbolconf( params, tmpList );
+
+	for( auto &wdbDB : wdbDBs ){
+		try {
+			WciConnectionPtr wciConnection=app->newWciConnection( wdbDB );
+			SymbolConfProvider tmpRes=symbolConfProviderSetPlacename( tmpList, wciConnection );
+
+			if( tmpRes.empty())
+				continue;
+			res.merge(tmpRes);
+		}
+		catch( exception &ex ) {
+			WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. " << ex.what() );
+
+		}
+		catch( ... ) {
+			WEBFW_LOG_ERROR( "symbolConfProviderWithPlacename: NO DB CONNECTION. unknown exception " );
+		}
+	}
+
+	return tmpList;
+}
+
+
 }
 

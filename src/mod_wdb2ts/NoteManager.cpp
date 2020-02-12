@@ -258,7 +258,7 @@ loadPersistentNotes()
 			theNote->version( 0 );
 			it->second.note = theNote;
 			it->second.isLoaded = true;
-			cerr << "NoteManager::loadPersistentNotes: loaded '" << it->first << "' version: " << theNote->version() << endl;
+			WEBFW_LOG_DEBUG("NoteManager::loadPersistentNotes: loaded '" << it->first << "' version: " << theNote->version());
 		}
 	}
 }
@@ -317,9 +317,8 @@ setNote( const std::string &noteName, NoteTag *note )
 		try{
 			bool locked;
 				
-			if( ! note->saveNote( sar ) ) {
+			if( ! theNote->saveNote( sar ) ) {
 				WEBFW_LOG_ERROR( "setNote: Failed to save the note <" << note->noteType() << "> to stream!" );
-				delete note;
 				return;
 			}
 				
@@ -337,7 +336,7 @@ setNote( const std::string &noteName, NoteTag *note )
 		if( pit->second.note )
 			theNote->version( pit->second.note->version() + 1 );
 
-		cerr << "NoteManager::setNote: persistent '" << noteName << "' version: " << theNote->version() << endl;
+		WEBFW_LOG_DEBUG("NoteManager::setNote: persistent '" << noteName << "' version: " << theNote->version());
 		pit->second.note = theNote;
 	} else {
 		std::map<std::string, boost::shared_ptr<NoteTag> >::iterator it;
@@ -347,7 +346,7 @@ setNote( const std::string &noteName, NoteTag *note )
 		if( it != notes.end() && it->second )
 			theNote->version( it->second->version() + 1 );
 
-		cerr << "NoteManager::setNote: '" << noteName << "' version: " << theNote->version() << endl;
+		WEBFW_LOG_DEBUG("NoteManager::setNote: '" << noteName << "' version: " << theNote->version());
 
 		notes[noteName]= theNote;
 	}

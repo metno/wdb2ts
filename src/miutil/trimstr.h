@@ -61,6 +61,11 @@ void
 trimstr(std::string &str, ETrimStrWhere where=TRIMBOTH, 
 	const char *trimset=" \t\r\n");
 
+std::string
+trimstrCopy(const std::string &str, ETrimStrWhere where=TRIMBOTH,
+	const char *trimset=" \t\r\n");
+
+
 /** @} */ 
 }
 #endif

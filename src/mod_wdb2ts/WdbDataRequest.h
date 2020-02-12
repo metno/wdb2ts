@@ -39,6 +39,8 @@
 #include <ParamDef.h>
 #include <Config.h>
 #include <QueryMaker.h>
+#include <Metric.h>
+#include <pgconpool/dbConnectionException.h>
 
 
 namespace wdb2ts {
@@ -96,9 +98,30 @@ class WdbDataRequestManager {
    std::list< boost::shared_ptr<ThreadInfo> >::iterator lastStarted;
    bool waitingForDbConnection;
    bool toManyThreads;
+   bool noConnection;
    std::map< int, boost::shared_ptr<ThreadInfo> > runningThreads;
    int nextThreadId;
    boost::posix_time::ptime from;
+
+
+   void populateThreadInfos(
+		   ConfigData *config,
+   		   ParamDefListPtr  paramDefs,
+   		   ProviderListPtr  &providerPriority,
+   		   const wdb2ts::config::Config::Query &urlQuerys,
+		   int wciProtocol
+		   );
+   /*
+   populateThreadInfos( const std::string &wdbidDefault,
+                        ParamDefListPtr paramDefs,
+                        const LocationPointList &locationPoints ,
+                        const boost::posix_time::ptime &toTime ,
+                        bool isPolygon ,
+                        PtrProviderRefTimes refTimes,
+                        ProviderListPtr  providerPriority,
+                        const wdb2ts::config::Config::Query &urlQuerys,
+                        int wciProtocol )
+
 
    void
    populateThreadInfos( const std::string &wdbid,
@@ -110,7 +133,7 @@ class WdbDataRequestManager {
                         ProviderListPtr  providerPriority,
                         const wdb2ts::config::Config::Query &urlQuerys,
                         int wciProtocol );
-
+*/
    void
    populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 		                const std::string &wdbid,
@@ -149,23 +172,21 @@ public:
       const char* what() const throw() { return reason_.c_str(); }
    };
 
+   miutil::Metric dbMetric;
+   miutil::Metric dbDecodeMetric;
+   miutil::Metric validateMetric;
+
    WdbDataRequestManager();
 
    /**
    * @throws std::logic_error, ResourceLimit on failure.
    */
-   LocationPointDataPtr requestData( Wdb2TsApp *app,
-                                     const std::string &wdbid,
-                                     const LocationPointList &locationPoints,
-									 const boost::posix_time::ptime &from,
-                                     const boost::posix_time::ptime &toTime,
-                                     bool isPloygon,
-                                     int altitude,
-                                     PtrProviderRefTimes refTimes,
+   LocationPointDataPtr requestData( ConfigData *config,
                                      ParamDefListPtr  paramDefs,
                                      const ProviderList  &providerPriority,
                                      const wdb2ts::config::Config::Query &urlQuerys,
                                      int wciProtocol );
+
 
    LocationPointDataPtr requestData( Wdb2TsApp *app,
 		   	   	   	   	   	   	   	 const qmaker::QuerysAndParamDefsPtr querys,
@@ -175,6 +196,7 @@ public:
                                      const boost::posix_time::ptime &toTime,
                                      bool isPloygon,
                                      int altitude);
+
 };
 
 }

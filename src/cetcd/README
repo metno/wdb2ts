@@ -1,0 +1,7 @@
+This is a c client library for etcd, https://github.com/shafreeck/cetcd.
+It support the V2 api.
+
+The file cetcd-master-20170923.zip contains the version of cetcd that 
+is contained in the cetcd-master directory. To update this version download a
+new version from  https://github.com/shafreeck/cetcd. Unpack and do build changes 
+if needed. 

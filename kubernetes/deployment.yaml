@@ -1,0 +1,25 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: wdb2ts
+spec:
+  template:
+    metadata:
+      labels:
+        app: wdb2ts
+    spec:
+      containers:
+      - name: wdb2ts
+        image: registry.forti.met.no/forti/wdb2ts/wdb2ts
+        env:
+        - name: ETCD_HOSTS
+          value: http://borgem-etcd-cluster-client.kube-system:2379
+        readinessProbe:
+#          httpGet:
+#            path: /metno-wdb2ts/info
+#            port: 80
+        ports:
+        - name: http
+          containerPort: 80
+      imagePullSecrets:
+      - name: gitlab-forti

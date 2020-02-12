@@ -80,13 +80,24 @@ APLOG_USE_MODULE(moduleName);
          l = APLOG_DEBUG;
    }
    
+   bool endl=true;
+
+   if(!msg.empty() && msg[msg.length()-1]!='\n')
+	   endl=false;
+
    if( request ) {
    	//cerr << "request : " << endl;
-      ap_log_error( APLOG_MARK, l, 0, request->server, "%s",msg.c_str() );
+	   if( endl)
+		   ap_log_error( APLOG_MARK, l, 0, request->server, "%s",msg.c_str() );
+	   else
+		   ap_log_error( APLOG_MARK, l, 0, request->server, "%s\n",msg.c_str() );
    }
    
    if( pool ) {
    	//cerr << "pool : " << endl;
-      ap_log_perror(APLOG_MARK, APLOG_NOTICE, 0,pool, "%s", msg.c_str() );
+	   if( endl )
+		   ap_log_perror(APLOG_MARK, APLOG_NOTICE, 0,pool, "%s", msg.c_str() );
+	   else
+		   ap_log_perror(APLOG_MARK, APLOG_NOTICE, 0,pool, "%s\n", msg.c_str() );
    }
 }

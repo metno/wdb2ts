@@ -63,7 +63,6 @@ public:
 
 	void operator () ( argument_type &t );
 
-	bool isOk() const { return *isOk_; }
 
 private:
 	float latitude_;
@@ -74,7 +73,6 @@ private:
     const boost::posix_time::ptime &to_;
 	int wciProtocol_;
 	LocationPointDataPtr locationPointData_;
-	boost::shared_ptr<bool> isOk_;
 };
 
 }

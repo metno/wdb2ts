@@ -36,7 +36,11 @@
 #include <RequestConf.h>
 #include <UpdateProviderReftimes.h>
 
+
 namespace wdb2ts{
+
+struct ConfigData;
+
 class Level {
 public:
 	typedef enum { exact, below, above, inside, any, udef } Qualifier;
@@ -157,10 +161,8 @@ public:
 	std::list<std::string> getProviders( const std::string &id )const;
 	QuerysAndParamDefsPtr
 	getWdbReadQuerys( const std::string &id,
-			          float latitude_, float longitude_,
-		              const ProviderList &providerList,
-		              const Level &level,
-		              const PtrProviderRefTimes referenceTimes,
+					  ConfigData *reqConfig,
+			          const ProviderList &providerList,
 		              const std::pair<boost::posix_time::ptime, boost::posix_time::ptime> &validTime=
 				          std::make_pair( boost::posix_time::ptime(), boost::posix_time::ptime() ),
 		              int dataVersion=INT_MAX

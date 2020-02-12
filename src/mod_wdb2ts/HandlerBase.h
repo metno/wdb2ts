@@ -10,7 +10,6 @@ class HandlerBase
 	: public webfw::RequestHandler
 {
 protected:
-	std::string wdbdb;
 	std::string schema;
 	wdb2ts::config::RequestConf config;
 	

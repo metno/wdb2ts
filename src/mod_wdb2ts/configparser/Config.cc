@@ -77,6 +77,11 @@ merge( Config *other, std::ostream &err, const std::string &file )
       return false;
    }
 
+   for( set<string>::const_iterator it=other->includedFiles.begin();
+		   it != other->includedFiles.end(); ++it )
+	   includedFiles.insert(*it);
+
+
    for( wdb2ts::config::RequestMap::const_iterator it=other->requests.begin();
         it != other->requests.end();
         ++it ) {

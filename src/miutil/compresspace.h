@@ -51,6 +51,9 @@ compresSpace(std::string &buf, bool newlineAsSpace=false);
 void
 compres(std::string &buf, const char *what);
 
+std::string
+compresCopy(const std::string &buf, const char *what);
+
 
 }
 #endif 

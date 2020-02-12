@@ -57,7 +57,7 @@ class WdbQueryHelper
 	const wdb2ts::config::Config::Query                 urlQuerys;
 	wdb2ts::config::Config::Query::const_iterator itNext;
 	std::string position;
-	ProviderRefTimeList reftimes;
+	PtrProviderRefTimes    reftimes_;
 	ProviderList           providerPriority;
 	ProviderList::iterator itCurProviderPriority;
 	ProviderList           curProviderPriority;
@@ -72,22 +72,28 @@ class WdbQueryHelper
 	bool        isPolygon;
 	std::string validTime;
 	std::string wdbid_;
+	std::string queryid_;
 	std::map<ProviderItem, int> prognosisLengthsCache;
+	ConfigData *config;
 	
-	std::string getDataversionString( const std::list<std::string> &dataproviderList )const;
+	std::string getDataversionString( const ProviderRefTimeList &reftimes,
+			                          const std::list<std::string> &dataproviderList )const;
 
-	void doGetProviderReftime( const std::string &provider, 
-			                     boost::posix_time::ptime &refTimeFrom,  
-			                     boost::posix_time::ptime &refTimeTo ) const; 
+	void doGetProviderReftime( const ProviderRefTimeList &reftimes,
+							   const std::string &provider,
+			                   boost::posix_time::ptime &refTimeFrom,
+			                   boost::posix_time::ptime &refTimeTo ) const;
 
 	
-	bool getProviderReftime( const std::string &provider, 
-				                boost::posix_time::ptime &refTimeFrom,
-				                boost::posix_time::ptime &refTimeTo );
+	bool getProviderReftime( const ProviderRefTimeList &reftimes,
+			                 const std::string &provider,
+				             boost::posix_time::ptime &refTimeFrom,
+				             boost::posix_time::ptime &refTimeTo );
 
-	bool getProviderReftime( const std::list<std::string> &providerList, 
-					             boost::posix_time::ptime &refTimeFrom,
-					             boost::posix_time::ptime &refTimeTo );
+	bool getProviderReftime( const ProviderRefTimeList &reftimes,
+							 const std::list<std::string> &providerList,
+				             boost::posix_time::ptime &refTimeFrom,
+				             boost::posix_time::ptime &refTimeTo );
 	
 public:
 	
@@ -95,7 +101,7 @@ public:
 	 * Default contructor to create a empty list of url
 	 * calls.
 	 */
-	WdbQueryHelper();
+	//WdbQueryHelper();
 	
 	/**
 	 * Contructor that takes a list of urlQuerys that is to
@@ -104,7 +110,8 @@ public:
 	 * @param urlQuerys a list of url to be decoded to wci.read 
 	 *        call.
 	 */
-	WdbQueryHelper( const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol );
+	WdbQueryHelper( const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol, ConfigData *config );
+
 	
 	/**
 	 * Initialize the query before a call to hasNext and next.
@@ -118,7 +125,6 @@ public:
 	void init( const LocationPointList &locationPoints,
 			   const boost::posix_time::ptime &toTime,
 			   bool isPolygon,
-			   const ProviderRefTimeList &reftimes,
 			   const ProviderList &providerPriority,
 			   const std::string &extraParams="" );
 	
@@ -128,13 +134,15 @@ public:
 	bool hasNext();
 	
 	
+	PtrProviderRefTimes reftimes() { return reftimes_;}
+
 	/**
 	 * Return a comma separated list of data providers.
 	 */
 	std::string dataprovider()const;
 	
 	std::string wdbid()const { return wdbid_; }
-
+	std::string queryid()const{ return queryid_;}
 	/**
 	 * Return the next wci read query.
 	 * 

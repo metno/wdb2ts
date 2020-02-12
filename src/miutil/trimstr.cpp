@@ -59,3 +59,11 @@ trimstr(std::string &str, ETrimStrWhere where, const char *trimset)
    }
 }
 
+std::string
+miutil::trimstrCopy(const std::string &str_, ETrimStrWhere where, const char *trimset) {
+	std::string str(str_);
+	miutil::trimstr(str, where, trimset);
+	return str;
+}
+
+

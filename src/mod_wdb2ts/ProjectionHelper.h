@@ -82,6 +82,8 @@ public:
 	bool valid()const{return geoproj && proj; }
 	void makeGeographic();
 
+	bool isEqual(const MiProjection &other)const;
+
 	bool calculateVectorRotationElements(const MiProjection& srcProj, int nvec,
 			                             const double *to_x, const double *to_y,
 			                             double *cosa_out,
@@ -240,7 +242,8 @@ public:
 	ProjectionHelper();
 	ProjectionHelper(int wciProtocol);
 	
-	void add( const std::string &provider, const MiProjection &projection );
+	void add( const std::string &placename, const MiProjection &projection );
+	void merge(const ProjectionHelper &other);
 
 	static MiProjection createProjection( const std::string &projDefinition );
 

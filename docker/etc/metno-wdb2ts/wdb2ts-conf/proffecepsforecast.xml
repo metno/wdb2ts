@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<wdb2ts>
+   <requests>
+      <request path="/proffecepsforecastupdate" default_version="1.9"
+         wdbdb="default" action="LocationForecastUpdate" queryid="proffecepsforecast">
+         <actionparam key="updateid" value="proffecepsforecast" />
+         <actionparam key="loglevels" value="default=warn" />
+         <version version="1.9" action="LocationForecastUpdate" queryid="proffecepsforecast" />
+      </request>
+
+      <request path="/proffecepsforecast" default_version="1.9"
+         wdbdb="default" action="LocationForecast3" queryid="proffecepsforecast"
+         schema="http://api.met.no/weatherapi/locationforecast/1.9/schema">
+         <actionparam key="*updateid" value="proffecepsforecast" />
+         <actionparam key="loglevels" value="default=warn" />
+         <actionparam key="meta_model-arome_arctic_2500m" value="name=LOCAL;nextrun=04:00,16:00" />
+         <actionparam key="meta_model-met eceps small domain v.1.1" value="name=EPS;nextrun=10:00,22:00" />
+         <actionparam key="meta_model-met eceps large domain v.1.1" value="name=EPS;nextrun=10:00,22:00" />
+         <actionparam key="expire_rand" value="960" />
+         <actionparam key="provider_priority" value="norsk_polarinstitutt;
+                                                     arome_arctic_2500m;
+                                                     met eceps small domain v.1.1;
+                                                     met eceps large domain v.1.1" />
+         <actionparam key="topography_provider" value="norsk_polarinstitutt" />
+         <actionparam key="model_topo_provider-arome_arctic_2500m" value="arome_arctic_2500m" />
+         <actionparam key="precipitation" value="multi:1,2,3,6" />
+         <actionparam key="symbol_conf_file" value="qbSymbols.def" />
+         <actionparam key="symbol_provider-arome_arctic_2500m" value="(1) (2) (3) (6)" />
+         <actionparam key="symbol_provider-met eceps small domain v.1.1" value="(6)" />
+         <actionparam key="symbol_provider-met eceps large domain v.1.1" value="(6)" />
+         <actionparam key="output_params" value="dewpointTemperature" />
+         <actionparam key="symbols_enable_thunder" value="May-1/Oct-1" />
+         <version version="1.9" action="LocationForecast5" queryid="proffecepsforecast" />
+      </request>
+   </requests>
+
+   <querydefs>
+      <!-- PROFF + ECEPS V 1.9 -->
+      <querydef id="proffecepsforecast" paralell="4">
+
+         <!-- NORSK_POLARINSTITUTT -->
+         <query>
+            dataprovider=norsk_polarinstitutt;
+            reftime=NULL;   <!-- NB NB NB NB -->
+            validtime=NULL; <!-- NB NB NB NB -->
+            parameter="altitude";
+         </query>
+
+         <!-- AROME_ARCTIC_2500M -->
+         <query>
+            dataprovider=arome_arctic_2500m;
+            point_interpolation=bilinear;
+            reftime=${arome_arctic_2500m};
+            parameter="altitude"
+                     ,"air temperature";
+         </query>
+         <query>
+            dataprovider=arome_arctic_2500m;
+            point_interpolation=nearest;
+            reftime=${arome_arctic_2500m};
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"relative humidity"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"wind speed of gust"
+                     ,"precipitation amount"
+                     ,"low estimate of precipitation amount"
+                     ,"middle estimate of precipitation amount"
+                     ,"high estimate of precipitation amount"
+                     ,"probability of precipitation";
+         </query>
+
+         <!-- MET ECEPS SMALL DOMAIN -->
+         <query>
+            dataprovider=met eceps small domain v.1.1;
+            point_interpolation=bilinear;
+            parameter="altitude"
+                     ,"probability of air temperature +/-1.5"
+                     ,"probability of air temperature +/-2.5"
+                     ,"air temperature"
+                     ,"max air temperature"
+                     ,"min air temperature";
+         </query>
+         <query stop_if_data="true">
+            dataprovider=met eceps small domain v.1.1;
+            point_interpolation=nearest;
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"relative humidity"
+                     ,"yr weather symbol"
+                     ,"probability of yr weather symbol"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"probability of wind speed"
+                     ,"lwe thickness of precipitation amount";
+         </query>
+
+         <!-- MET ECEPS LARGE DOMAIN -->
+         <query>
+            dataprovider=met eceps large domain v.1.1;
+            point_interpolation=bilinear;
+            parameter="altitude"
+                     ,"probability of air temperature +/-1.5"
+                     ,"probability of air temperature +/-2.5"
+                     ,"air temperature"
+                     ,"max air temperature"
+                     ,"min air temperature";
+         </query>
+         <query>
+            dataprovider=met eceps large domain v.1.1;
+            point_interpolation=nearest;
+            parameter="air pressure at sea level"
+                     ,"cloud area fraction"
+                     ,"cloud area fraction in atmosphere layer"
+                     ,"relative humidity"
+                     ,"yr weather symbol"
+                     ,"probability of yr weather symbol"
+                     ,"x wind"
+                     ,"y wind"
+                     ,"probability of wind speed"
+                     ,"lwe thickness of precipitation amount";
+         </query>
+      </querydef>
+   </querydefs>
+</wdb2ts>

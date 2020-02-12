@@ -32,6 +32,7 @@
 #include <wdb2tsProfiling.h>
 #include <Logger4cpp.h>
 #include <sstream>
+#include "configdata.h"
 
 using namespace std;
 
@@ -54,7 +55,10 @@ operator()()
 
 WdbDataRequestManager::
 WdbDataRequestManager()
-: nParalell(1), nextThreadId( 0 )
+: nParalell(1), noConnection(false), nextThreadId( 0 ),
+  dbMetric("wdb"),
+  dbDecodeMetric("wdb_decode"),
+  validateMetric("wdb_validate")
 {
 	try {
 		readyQueue.reset( new miutil::queuemt<int>() );
@@ -62,6 +66,81 @@ WdbDataRequestManager()
 	catch( ... ){}
 }
 
+
+void WdbDataRequestManager::populateThreadInfos(ConfigData *config,
+		ParamDefListPtr paramDefs, ProviderListPtr &providerPriority,
+		const wdb2ts::config::Config::Query &urlQuerys, int wciProtocol) {
+	string wciReadQuery;
+	string dbProfileProvider__; //Only used when profiling
+	string decodeProfileProvider__; //Only used when profiling
+	string wdbid;
+	string queryid;
+	bool mustHaveData;
+	bool stopIfQueryHasData;
+	int prognosisLengthSeconds;
+	boost::posix_time::ptime minPrognosisLength;
+	PtrProviderRefTimes reftimes;
+	ostringstream cmdId;
+	WEBFW_USE_LOGGER("wdb");
+
+	if (urlQuerys.empty()) {
+		throw logic_error("EXCEPTION: No wdb querys is defined.");
+	}
+
+	WdbQueryHelper wdbQueryHelper(urlQuerys, wciProtocol, config);
+
+	try {
+
+		wdbQueryHelper.init(config->webQuery.locationPoints(),
+				config->webQuery.to(), config->webQuery.isPolygon(),
+				*providerPriority);
+
+		while (wdbQueryHelper.hasNext()) {
+			try {
+				wciReadQuery = wdbQueryHelper.next(mustHaveData,
+						stopIfQueryHasData, prognosisLengthSeconds);
+				wdbid = wdbQueryHelper.wdbid();
+				queryid = wdbQueryHelper.queryid();
+				reftimes = wdbQueryHelper.reftimes();
+
+				if (wdbid.empty())
+					wdbid = config->defaultDbId;
+				cmdId.str("");
+				cmdId << queryid << "_wdbid_" << wdbid;
+			} catch (const NoReftime &exNoReftime) {
+				WEBFW_LOG_WARN(exNoReftime.what());
+				continue;
+			}
+
+			if (prognosisLengthSeconds > 0)
+				minPrognosisLength = from
+						+ boost::posix_time::seconds(prognosisLengthSeconds);
+			else
+				minPrognosisLength = boost::posix_time::ptime(); //undefined.
+
+			boost::shared_ptr<ThreadInfo> threadInfo(
+					new ThreadInfo(
+							new WdbDataRequestCommand(WciConnectionPtr(),
+									webfw::RequestHandler::getRequestHandler(),
+									wciReadQuery, paramDefs, providerPriority,
+									reftimes, wciProtocol,
+									config->webQuery.isPolygon(),
+									minPrognosisLength, cmdId.str()),
+							wdbid,
+							mustHaveData, stopIfQueryHasData,
+							minPrognosisLength));
+
+			threadInfos.push_back(threadInfo);
+		}
+	} catch (const exception &ex) {
+		WEBFW_LOG_ERROR(
+				"WciReadLocationForecast: query [" << wciReadQuery << "] reason: " << ex.what());
+		throw;
+	}
+}
+
+
+#if 0
 /**
 * @throws logic_error
 */
@@ -82,11 +161,12 @@ populateThreadInfos( const std::string &wdbidDefault,
    string dbProfileProvider__; //Only used when profiling
    string decodeProfileProvider__; //Only used when profiling
    string wdbid;
+   string queryid;
    bool   mustHaveData;
    bool   stopIfQueryHasData;
    int    prognosisLengthSeconds;
    boost::posix_time::ptime minPrognosisLength;
-
+   ostringstream cmdId;
    WEBFW_USE_LOGGER( "wdb" );
 
 
@@ -103,9 +183,11 @@ populateThreadInfos( const std::string &wdbidDefault,
          try {
             wciReadQuery = wdbQueryHelper.next( mustHaveData, stopIfQueryHasData, prognosisLengthSeconds  );
             wdbid = wdbQueryHelper.wdbid();
-
+            queryid = wdbQueryHelper.queryid();
             if( wdbid.empty() )
                wdbid = wdbidDefault;
+            cmdId.str("");
+            cmdId << queryid << "_wdbid_" << wdbid;
          }
          catch( const NoReftime &exNoReftime ) {
             WEBFW_LOG_WARN(exNoReftime.what());
@@ -127,7 +209,7 @@ populateThreadInfos( const std::string &wdbidDefault,
                                                 refTimes,
                                                 wciProtocol,
                                                 isPolygon,
-												minPrognosisLength ),
+												minPrognosisLength, cmdId.str() ),
                                                 wdbid,
                                                 mustHaveData,
                                                 stopIfQueryHasData,
@@ -143,7 +225,7 @@ populateThreadInfos( const std::string &wdbidDefault,
       throw;
    }
 }
-
+#endif
 /**
  * This method is not used at the moment. It is work in progress
  * to simplify the configuration files.
@@ -151,7 +233,7 @@ populateThreadInfos( const std::string &wdbidDefault,
 void
 WdbDataRequestManager::
 populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
-  	                 const std::string &wdbid,
+  	                 const std::string &wdbid_,
                      const LocationPointList &locationPoints,
                      const boost::posix_time::ptime &toTime,
                      bool isPolygon )
@@ -162,7 +244,8 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 	bool   stopIfQueryHasData=false;
 	int    prognosisLengthSeconds=0;   //Not used at the moment
 	boost::posix_time::ptime minPrognosisLength;//Not used at the moment
-
+	ostringstream cmdId;
+	string wdbid;
 
 	WEBFW_USE_LOGGER( "wdb" );
 
@@ -171,13 +254,17 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 	}
 
 	try {
+		int qid;
 		for( std::list<qmaker::Query*>::const_iterator qit = querys->querys.begin();
 				qit != querys->querys.end(); ++qit ) {
 			list<string> qs = (*qit)->getQuerys( querys->wciProtocol );
 			ParamDefListPtr params( new ParamDefList( querys->params ) );
 			ProviderListPtr providerPriority( new ProviderList( querys->providerPriority ) );
-
+			qid=1;
 			for( list<string>::iterator it=qs.begin(); it != qs.end(); ++it ) {
+				cmdId.str("");
+				cmdId << qid << "_wdbid_" << wdbid;
+				++qid;
 				boost::shared_ptr<ThreadInfo> threadInfo(
 						new ThreadInfo(
 								new WdbDataRequestCommand( WciConnectionPtr(),
@@ -187,11 +274,13 @@ populateThreadInfos( const qmaker::QuerysAndParamDefsPtr querys,
 										providerPriority,
 										querys->referenceTimes,
 										querys->wciProtocol,
-										isPolygon, minPrognosisLength ),
+										isPolygon, minPrognosisLength,
+										cmdId.str()),
 										wdbid,
 										mustHaveData,
 										stopIfQueryHasData,
-										minPrognosisLength )
+										minPrognosisLength
+										)
 				);
 
 				threadInfos.push_back( threadInfo );
@@ -221,6 +310,10 @@ startThreads( Wdb2TsApp &app )
          (*nextToStart)->command->setConnection( wciConnection );
          waitingForDbConnection = false;
          toManyThreads = false;
+      }
+      catch( const miutil::pgpool::DbNoConnectionException &ex) {
+    	  noConnection=true;
+    	  throw;
       }
       catch( const miutil::pgpool::DbConnectionPoolMaxUseEx &ex ) {
          waitingForDbConnection = true;
@@ -291,6 +384,18 @@ waitForCompleted( int waitForAtLeast )
       WEBFW_LOG_DEBUG("waitForCompleted (tid=" <<tid << "): Thread completed.");
       it->second->completed=true;
       it->second->thread->join();
+
+      WdbDataRequestCommandPtr cmd=it->second->command;
+
+      //Update the metrics
+      dbMetric.addToTimer(cmd->dbMetric()->getTimerSum());
+      dbMetric.count(cmd->dbMetric()->getCounter()); //Error counter.
+      dbDecodeMetric.addToTimer(cmd->decodeMetric()->getTimerSum());
+      validateMetric.addToTimer(cmd->validateMetric()->getTimerSum());
+
+      if( cmd->noConnection())
+    	  noConnection=true;
+
       runningThreads.erase( it );
    }
 
@@ -312,6 +417,7 @@ runRequests( Wdb2TsApp &app )
    time_t now;
    time_t prevTime;
 
+   noConnection=false;
 
    if( ! readyQueue ) {
        WEBFW_LOG_ERROR("runRequests: No memory to run the requests." );
@@ -319,7 +425,7 @@ runRequests( Wdb2TsApp &app )
    }
 
    try {
-      while( nextToStart != threadInfos.end() && !stop) {
+      while( nextToStart != threadInfos.end() && !stop && ! noConnection) {
          startThreads( app );
 
          if( toManyThreads ) {
@@ -400,6 +506,9 @@ runRequests( Wdb2TsApp &app )
       }
       throw logic_error( "runRequests: Unknown exception.");
    }
+
+   if( noConnection )
+	   throw miutil::pgpool::DbNoConnectionException();
 }
 
 
@@ -475,14 +584,7 @@ mergeData( bool isPolygon )
 
 LocationPointDataPtr
 WdbDataRequestManager::
-requestData( Wdb2TsApp *app,
-             const std::string &wdbid,
-             const LocationPointList &locationPoints,
-			 const boost::posix_time::ptime &from_,
-             const boost::posix_time::ptime &toTime,
-             bool isPolygon,
-             int altitude,
-             PtrProviderRefTimes refTimes,
+requestData( ConfigData *config,
              ParamDefListPtr  paramDefs,
              const ProviderList  &providerPriority,
              const wdb2ts::config::Config::Query &urlQuerys,
@@ -490,7 +592,7 @@ requestData( Wdb2TsApp *app,
 {
    nParalell = urlQuerys.dbRequestsInParalells();
    ProviderListPtr providerPriorityPtr;
-   from = from_;
+   from = config->webQuery.from();
 
    try {
 	  providerPriorityPtr.reset( new ProviderList( providerPriority ) );
@@ -499,14 +601,14 @@ requestData( Wdb2TsApp *app,
 	   throw ResourceLimit("WdbDataRequestManager::requestData: No memory.");
    }
 
-   populateThreadInfos( wdbid, paramDefs, locationPoints, toTime,
-                        isPolygon, refTimes, providerPriorityPtr, urlQuerys,
+   populateThreadInfos( config, paramDefs, providerPriorityPtr, urlQuerys,
                         wciProtocol );
 
-   runRequests( *app );
+   runRequests( *config->app );
 
-   return mergeData( isPolygon );
+   return mergeData( config->webQuery.isPolygon() );
 }
+
 
 LocationPointDataPtr
 WdbDataRequestManager::
@@ -527,6 +629,7 @@ requestData( Wdb2TsApp *app,
 
 	return mergeData( isPolygon );
 }
+
 
 
 }

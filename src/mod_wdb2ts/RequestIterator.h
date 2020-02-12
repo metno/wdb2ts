@@ -47,8 +47,7 @@
 namespace wdb2ts {
    class RequestIterator : boost::noncopyable
    {
-      Wdb2TsApp *app_;
-      std::string wdbDB;
+      ConfigData *config;
       int wciProtocol;
       wdb2ts::config::Config::Query urlQuerys;
       NearestHeights      nearestHeights;
@@ -57,38 +56,37 @@ namespace wdb2ts {
       boost::posix_time::ptime to;
       bool isPolygon;
       int altitude;
-      const PtrProviderRefTimes refTimes_;
       ParamDefListPtr  paramDefs;
       ProviderList providerPriority_;
       LocationPointList::const_iterator itPoint;
 
+
       void nearestHeightPoint( LocationPointDataPtr data );
 
    public:
-      RequestIterator(): app_(0){}
-      RequestIterator( Wdb2TsApp *app,
-                       const std::string &wdbDB,
+      RequestIterator(): config(nullptr){}
+      RequestIterator( ConfigData *config,
                        int wciProtocol,
                        const wdb2ts::config::Config::Query &urlQuerys,
                        const NearestHeights      &nearestHeights,
                        const LocationPointListPtr locationPoints,
-					   const boost::posix_time::ptime &from,
-                       const boost::posix_time::ptime &to,
-                       bool isPolygon, int altitude,
-                       const PtrProviderRefTimes refTimes,
                        ParamDefListPtr  paramDefs,
                        const ProviderList &providerPriority );
 
 
-      Wdb2TsApp *app() { return app_; }
+      Wdb2TsApp *app() { return config->app; }
       bool polygon()const { return isPolygon; }
+
+      bool findProviderTimes(const std::string &provider, ProviderTimes &providerTimes, std::string &dbId)const{
+    	  return config->getRefererenceTimes()->findProviderTimes(provider, providerTimes, dbId);
+      }
 
       float longitude()const{ return locationPoints->begin()->longitude(); }
       float latitude()const{ return locationPoints->begin()->latitude(); }
       int   height()const { return altitude; }
 
       ProviderList providerPriority() const { return providerPriority_; }
-      const PtrProviderRefTimes refTimes() const { return refTimes_; }
+
       /**
        * @throws std::logic_error on failure.
        */

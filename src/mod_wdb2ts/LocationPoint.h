@@ -42,7 +42,7 @@
 
 namespace wdb2ts {
 
-class LocationPoint;
+//class LocationPoint;
 
 
 

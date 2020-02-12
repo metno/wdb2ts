@@ -183,6 +183,12 @@ get( const std::string &provider )const
 	return const_cast<SymbolConfProvider&>(*this)[provider];
 }
 
+void SymbolConfProvider::merge(const SymbolConfProvider &other){
+	for( auto &sc : other ) {
+		add( sc.first, sc.second);
+	}
+}
+
 void
 SymbolConfProvider::
 add( const std::string &provider, const SymbolConfList &conf )

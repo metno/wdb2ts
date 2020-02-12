@@ -7,7 +7,7 @@
 # Pre-Conf
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.59)
-AC_INIT(metno-wdb2ts, 1.3.29, wdb@met.no)
+AC_INIT(metno-wdb2ts, 1.4.2, wdb@met.no)
 AC_CONFIG_MACRO_DIR([config])
 
 # Config
@@ -23,41 +23,50 @@ METNO_PVERSION
 
 # Source Directories
 # - All directories that need to be linked into AM_FLAGS
-src_subdirs=" src/tuple_container \
-            src/mod_wdb2ts \
-				src/mod_wdb2ts/WciWebQuery \
-				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
-				src/miutil \
-				src/mod_wdb2ts/configparser \
-				src/webFW \
-				src/util "
+src_subdirs="\
+	src/tuple_container \
+    src/mod_wdb2ts \
+	src/mod_wdb2ts/WciWebQuery \
+	src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
+	src/miutil \
+	src/statd \
+	src/mod_wdb2ts/configparser \
+	src/webFW \
+	src/util \
+	src/util/etcd \
+	"
 
 #					src/mod_wdb2ts/configparser \
 						
-test_subdirs="	test/unit \
-				src/mod_wdb2ts/test \
-				src/mod_wdb2ts/configparser/test \
-				src/webFW/test \
-				src/miutil/test \
-				test/wdb2tsget "
-												
+test_subdirs="\
+	test/unit \
+	src/mod_wdb2ts/test \
+	src/mod_wdb2ts/configparser/test \
+	src/webFW/test \
+	src/miutil/test \
+	test/wdb2tsget \
+	"
 
 # Build Directories
 # - All directories that building can occur in
-build_subdirs=" src/tuple_container \
-            src/pgconpool \
-         	src/mod_wdb2ts/WciWebQuery \
-				src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
-				src/mod_wdb2ts \
-				src/mod_wdb2ts/configparser \
-				src/mod_wdb2ts/configparser/test \
-				src/miutil \
-				src/webFW \
-				src/util \
-				src/mod_wdb2ts/test \
-				src/webFW/test \
-				src/miutil/test \
-				test/wdb2tsget "
+build_subdirs="\ 
+	src/tuple_container \
+    src/pgconpool \
+    src/mod_wdb2ts/WciWebQuery \
+	src/mod_wdb2ts/contenthandlers/LocationForecast/XML_locationforecast \
+	src/mod_wdb2ts \
+	src/mod_wdb2ts/configparser \
+	src/mod_wdb2ts/configparser/test \
+	src/miutil \
+	src/statd \
+	src/webFW \
+	src/util \
+	src/util/etcd \
+	src/mod_wdb2ts/test \
+	src/webFW/test \
+	src/miutil/test \
+	test/wdb2tsget \
+	"
 
 #						src/mod_wdb2ts/configparser \
 #-----------------------------------------------------------------------------
@@ -69,6 +78,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_LANG(C++)
 
+#AM_CXXFLAGS = -std=c++11
 # topography
 TOPOGRAPHY_INPUT
 
@@ -87,6 +97,9 @@ WITH_WDB2TS_TMP_DIR
 
 WDB2TS_MAP_FILE='${pkgdatadir}/topography100.asc'
 AC_SUBST(WDB2TS_MAP_FILE)
+
+#Build wdb2ts-etcdclient
+WDB2TS_ETCDCLIENT
 
 #-----------------------------------------------------------------------------
 # Checks
@@ -116,23 +129,27 @@ AC_CXX_REQUIRE_STL
 # Module Checks
 #-----------------------------------------------------------------------------
 
-#proj 
-WDB_PROJ_CHECK
 
 
 #BOOST
 AX_BOOST_BASE
 AX_BOOST_DATE_TIME
-AX_BOOST_REGEX
 AX_BOOST_FILESYSTEM
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_THREAD
 AX_BOOST_SYSTEM
+AX_BOOST_REGEX
+AX_BOOST_IOSTREAMS
+
+#proj 
+WDB_PROJ_CHECK
+
 
 #pgconpool
 PKG_CHECK_MODULES(pqxx, libpqxx)
-CPPFLAGS="$pqxx_CFLAGS $CPPFLAGS"
-LDFLAGS="$pqxx_LIBS $LDFLAGS"
+#CPPFLAGS="$pqxx_CFLAGS $CPPFLAGS"
+#LDFLAGS="$pqxx_LIBS $LDFLAGS"
+
 
 
 #libcurl
@@ -149,6 +166,9 @@ AC_SUBST(libxml2_CFLAGS)
 AC_SUBST(libxml2_LIBS)
 CPPFLAGS="$libxml2_CFLAGS $CPPFLAGS"
 LDFLAGS="$libxml2_LIBS $LDFLAGS"
+
+ETCD_CPPFLAGS=
+ETCD_LIBS=
 
 PULDFLAGS=
 PUCPPFLAGS=
@@ -173,14 +193,24 @@ PULDFLAGS="$putools_LIBS $PULDFLAGS"
 #PULDFLAGS="$libmi_LIBS $PULDFLAGS"
 
 PKG_CHECK_MODULES([log4cpp], [log4cpp >= 0.3])
-CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
-LDFLAGS="$log4cpp_LIBS $LDFLAGS"
+#CPPFLAGS="$log4cpp_CFLAGS $CPPFLAGS"
+#LDFLAGS="$log4cpp_LIBS $LDFLAGS"
 
 #PKG_CHECK_MODULES_STATIC([weather_symbol], [libweather-symbol])
 PKG_CHECK_MODULES( [weather_symbol], [libweather-symbol])
-CPPFLAGS="$weather_symbol_CFLAGS $CPPFLAGS"
-LDFLAGS="$weather_symbol_LIBS $LDFLAGS"
+#CPPFLAGS="$weather_symbol_CFLAGS $CPPFLAGS"
+#LDFLAGS="$weather_symbol_LIBS $LDFLAGS"
 
+PKG_CHECK_MODULES([libcurl], [libcurl >= 7.47])
+ETCD_CPPFLAGS="$libcurl_CFLAGS $ETCD_FLAGS"
+ETCD_LIBS="$libcurl_LIBS $ETCD_LIBS"
+
+PKG_CHECK_MODULES([libyajl], [yajl >= 2.1])
+ETCD_CPPFLAGS="$libyayl_CFLAGS $ETCD_FLAGS"
+ETCD_LIBS="$libyajl_LIBS $ETCD_LIBS"
+
+AC_SUBST([ETCD_CPPFLAGS])
+AC_SUBST([ETCD_LIBS])
 
 # CppUnit
 AM_PATH_CPPUNIT(1.12.0,, [echo WARNING: CppUnit not found - you will not be able to run all tests])
@@ -230,16 +260,20 @@ CPPFLAGS="$PUCPPFLAGS $CPPFLAGS"
 #-----------------------------------------------------------------------------
 AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
 #-----------------------------------------------------------------------------
 # Configure and Exit
 #-----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile \
+				 src/cetcd/Makefile \
                  src/tuple_container/Makefile \
                  src/miutil/Makefile \
                  src/pgconpool/Makefile \
                  src/util/Makefile \
+                 src/util/etcd/Makefile \
+                 src/statd/Makefile \
                  src/webFW/Makefile \
                  src/mod_wdb2ts/Makefile \
                  src/mod_wdb2ts/WciWebQuery/Makefile \
@@ -278,6 +312,8 @@ AC_MSG_RESULT([ CXXFLAGS:         $CXXFLAGS])
 AC_MSG_RESULT([ LDFLAGS:          $LDFLAGS])
 AC_MSG_RESULT([ LIBS:             $LIBS])
 AC_MSG_RESULT([ WDB2TS_MAP_FILE:  $WDB2TS_MAP_FILE])
+AC_MSG_RESULT([ ETCD_FLAGS:       $ETCD_FLAGS])
+AC_MSG_RESULT([ ETCD_LIBS:        $ETCD_LIBS])
 AC_MSG_RESULT([  ])
 AC_MSG_RESULT([-------------------------------------------------------------------------])
 AC_MSG_RESULT([ ])

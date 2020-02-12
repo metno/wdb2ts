@@ -1,0 +1,23 @@
+#Default is used to get metadata. This must be the same inn all databases.
+default: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+#Topography
+statkart.no: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+norsk_polarinstitutt: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+metcoop_eps_control_temperature_corrected_2500m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+metcoop_eps_control_2500m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+met eceps small domain v.1.1: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+met eceps large domain v.1.1: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+ecmwf_atmospheric0125_hourly: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+
+arome_arctic_2500m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+
+#Oceanforecast
+norkyst roms 800m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+nordic roms 4000m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+mywave wam 800m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000
+mywave wam 4000m: host=localhost user=wdb2ts port=5433  dbname=wdb maxpoolsize=10 minpoolsize=10 usecount=70000

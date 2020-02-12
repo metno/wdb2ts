@@ -217,6 +217,7 @@ operator=(const ParamDefList &rhs )
    return *this;
 }
 
+#ifndef NODB
 bool
 ParamDefList::
 findParam( pqxx::result::const_iterator it,
@@ -265,6 +266,7 @@ findParam( pqxx::result::const_iterator it,
 	}while( pit !=  const_cast<ParamDefList*>(this)->end() );
 	return false;
 }
+#endif
 
 bool
 ParamDefList::

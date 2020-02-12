@@ -85,14 +85,17 @@ class DbConnectionPool : public boost::noncopyable {
    
    friend class DbConnection;
   
+   int numberOfConnectionInPool_()const{ return pool.size();}
+   std::list<internal::DbConnectionHelper*>::iterator
+   	   releaseConnection_(std::list<internal::DbConnectionHelper*>::iterator it);
+
    protected:
+
       void release(internal::DbConnectionHelper *con);
       internal::DbConnectionHelper* createConnection();
       internal::DbConnectionHelper* findOrCreateConnection();
 
-      void createMinpoolsize();
 
-  
    public:
       DbConnectionPool(const std::string &connect="", ConnectionExtra *conExtra=0 );
       DbConnectionPool( const DbDef &dbdef,
@@ -119,11 +122,28 @@ class DbConnectionPool : public boost::noncopyable {
       int maxUseCount()const { return maxUseCount_;}
       void maxUseCount(int max) { maxUseCount_ = max; }
       
+      int availebleConnections()const;
+      int connectionsInUse()const;
+      int numberOfConnectionInPool()const;
       
+
+      /**
+       * Close all connection not in use and set the useCount to
+       * 0 so they will be closed when released.
+       *
+       * This will help us reconnect all connection when the database has been
+       * down.
+       */
+      void releaseAllConnection();
+
+      /**
+       * @throws DbNoConnection
+       */
+      void createMinpoolsize();
       /**
        * @param timeoutInMillisecond Wait at most this time for a connection.
        *        If 0 do not wait.
-       * @throw DbConnectionPoolMaxUseEx, DbConnectionPoolCreateEx,
+       * @throw DbNoConnection, DbConnectionPoolMaxUseEx, DbConnectionPoolCreateEx,
        *        DbConnectionDisabledEx
        */
       DbConnectionPtr newConnection( unsigned int timeoutInMillisecond=0 );
