@@ -59,7 +59,7 @@ main( int argn, char **argv )
 
    fin.close();
 
-   shared_ptr< map<string, string> > polygons;
+   boost::shared_ptr< map<string, string> > polygons;
 
    polygons = miutil::ShapeReader( argv[1] );
 

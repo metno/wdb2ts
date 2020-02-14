@@ -233,6 +233,7 @@ CPPFLAGS="$PUCPPFLAGS $CPPFLAGS"
 #-----------------------------------------------------------------------------
 AM_INIT_AUTOMAKE(-Wall -Werror subdir-objects tar-ustar)
 
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
 
 #-----------------------------------------------------------------------------
 # Configure and Exit
