@@ -585,7 +585,8 @@ encodePeriods( LocationElem &location,
 
 	   IndentLevel level5( indent );
 	   if( precip != FLT_MAX) {
-		   PrecipitationTags precipitationTag( precip, precipMin, precipMax, FLT_MAX );
+		   WEBFW_LOG_DEBUG( "EncodeLocationForecast4: PrecipitationTag ( value: " << precip << " min: " << precipMin << " max: " <<  precipMax << " prob: " <<  precipProb );
+		   PrecipitationTags precipitationTag( precip, precipMin, precipMax, precipProb );
 		   precipitationTag.output( ost, level5.indent() );
 	   }
 

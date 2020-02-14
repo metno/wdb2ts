@@ -359,6 +359,7 @@ public:
    float windU10m( bool tryHard=false )const;
    float windGust( bool tryHard=false )const;
    float areaMaxWindSpeed( bool tryHard=false )const;
+   float globalRadiation( bool tryHard=false )const;
    float PP( bool tryHard=false )const;
    float PR( bool tryHard=false )const;
    
@@ -376,7 +377,7 @@ public:
    
 
    bool PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
-                             float &minOut, float &maxOut, float &meanOut, float probOut,
+                             float &minOut, float &maxOut, float &meanOut, float &probOut,
                              bool tryHard=false )const;
 
    float PRECIP_MEAN( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard=false )const;
@@ -384,7 +385,7 @@ public:
    
    //Use data from PRECIP_MIN_MAX_MEAN or PRECIP.
    float PRECIP_DATA( int hoursBack, boost::posix_time::ptime &backTime_,
-                      float &minOut, float &maxOut, float probOut,
+                      float &minOut, float &maxOut, float &probOut,
 						  	 bool tryHard=false )const;
 
    /**

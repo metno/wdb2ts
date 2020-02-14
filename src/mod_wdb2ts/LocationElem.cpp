@@ -286,6 +286,20 @@ areaMaxWindSpeed( bool tryHard )const{
 
 float
 LocationElem::
+globalRadiation( bool tryHard )const{
+	   WEBFW_USE_LOGGER( "encode" );
+	float value = getValue( &PData::globalRadiation,
+				        itTimeSerie->second,
+				        const_cast<ptime&>(itTimeSerie->first),
+				        const_cast<string&>(forecastProvider), FLT_MAX, tryHard );
+	WEBFW_LOG_DEBUG( "LocationElem::globalRadiation: " << value << (value==FLT_MAX?"  N/A":"") );
+
+	return value;
+
+}
+
+float
+LocationElem::
 PP(bool tryHard)const
 {
 	return getValue( &PData::PP,
@@ -555,7 +569,7 @@ UU(bool tryHard)const
 bool
 LocationElem::
 PRECIP_MIN_MAX_MEAN( int hoursBack, boost::posix_time::ptime &backTime_,
-                     float &minOut, float &maxOut, float &meanOut, float probOut,
+                     float &minOut, float &maxOut, float &meanOut, float &probOut,
                      bool tryHard )const
 {
    const float MIN_PRECIP=0;
@@ -927,7 +941,7 @@ PRECIP_1H( int hoursBack, boost::posix_time::ptime &backTime_, bool tryHard )con
 float 
 LocationElem::
 PRECIP_DATA( int hoursBack, boost::posix_time::ptime &backTime_,
-             float &minOut, float &maxOut, float probOut,
+             float &minOut, float &maxOut, float &probOut,
    		  	 bool tryHard )const
 {
 	float precipMean=FLT_MAX;

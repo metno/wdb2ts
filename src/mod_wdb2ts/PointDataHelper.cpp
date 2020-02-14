@@ -98,6 +98,8 @@ void PData::merge( const PData &other )
 		windGust = other.windGust;
 	if( other.areaMaxWindSpeed != FLT_MAX )
 		areaMaxWindSpeed = other.areaMaxWindSpeed;
+	if( other.globalRadiation != FLT_MAX )
+		globalRadiation = other.globalRadiation;
 	if( other.PP != FLT_MAX )
 		PP = other.PP;
 	if( other.PR != FLT_MAX )
@@ -261,6 +263,8 @@ void PData::print( std::ostream &o, const std::string &space ) const
 		o << space << "windGust: " << windGust << endl;
 	if( areaMaxWindSpeed != FLT_MAX )
 		o << space << "areaMaxWindSpeed: " << areaMaxWindSpeed << endl;
+	if( globalRadiation != FLT_MAX )
+		o << space << "globalRadiation: " << globalRadiation << endl;
 	if( PP != FLT_MAX )
 		o << space << "PP: " << PP << endl;
 	if( PR != FLT_MAX )
@@ -437,6 +441,8 @@ int PData::count() const
 	if( windGust != FLT_MAX )
 		++n;
 	if( areaMaxWindSpeed != FLT_MAX )
+		++n;
+	if( globalRadiation != FLT_MAX )
 		++n;
 	if( PP != FLT_MAX )
 		++n;
@@ -772,6 +778,8 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.windGust = value;
 			else if( paramDef->alias() == "areaMaxWindSpeed" )
 				pd.areaMaxWindSpeed = value;
+			else if( paramDef->alias() == "globalRadiation" )
+				pd.globalRadiation = value;
 			else if( paramDef->alias() == "PP" )
 				pd.PP = value;
 			else if( paramDef->alias() == "MSLP" )
@@ -1118,6 +1126,8 @@ void decodePData( const ParamDefList &paramDefs, const ProviderList &providers,
 				pd.windGust = value;
 			else if( paramDef->alias() == "areaMaxWindSpeed" )
 				pd.areaMaxWindSpeed = value;
+			else if( paramDef->alias() == "globalRadiation" )
+				pd.globalRadiation = value;
 			else if( paramDef->alias() == "PP" )
 				pd.PP = value;
 			else if( paramDef->alias() == "MSLP" )
@@ -1318,6 +1328,8 @@ bool SetPDataHelper::init( const std::string &param )
 		pPM = &PData::windGust;
 	else if( param == "areaMaxWindSpeed" )
 		pPM = &PData::areaMaxWindSpeed;
+	else if( param == "globalRadiation" )
+		pPM = &PData::globalRadiation;
 	else if( param == "PP" )
 		pPM = &PData::PP;
 	else if( param == "MSLP" )
