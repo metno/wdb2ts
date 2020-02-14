@@ -50,6 +50,7 @@ struct PData{
    float windU10m;
    float windGust;
    float areaMaxWindSpeed;
+   float globalRadiation;
    float PP;
    float PR;
    float TA;
@@ -128,7 +129,7 @@ struct PData{
    
    PData()
    	:windV10m( FLT_MAX ), windU10m( FLT_MAX ), windGust(FLT_MAX),areaMaxWindSpeed(FLT_MAX),
-		 PP( FLT_MAX ), PR( FLT_MAX ),
+		 globalRadiation(FLT_MAX),PP( FLT_MAX ), PR( FLT_MAX ),
    	 TA( FLT_MAX ), T2M( FLT_MAX ), T2M_LAND( FLT_MAX ),
 		 T2M_NO_ADIABATIC_HIGHT_CORRECTION(FLT_MAX),
 	    maxTemperature_6h( FLT_MAX ), minTemperature_6h( FLT_MAX ),
@@ -186,6 +187,7 @@ struct PData{
    PData(const PData &pd)
       :windV10m(pd.windV10m), windU10m(pd.windU10m), windGust(pd.windGust),
 		 areaMaxWindSpeed(pd.areaMaxWindSpeed),
+		 globalRadiation(pd.globalRadiation),
        PP(pd.PP), PR(pd.PR), TA(pd.TA), T2M(pd.T2M), 
        T2M_LAND(pd.T2M_LAND), T2M_NO_ADIABATIC_HIGHT_CORRECTION( pd.T2M_NO_ADIABATIC_HIGHT_CORRECTION ),
 	    maxTemperature_6h( pd.maxTemperature_6h ), minTemperature_6h( pd.minTemperature_6h ),
@@ -250,6 +252,7 @@ struct PData{
       	windU10m = rhs.windU10m;
          windGust = rhs.windGust;
          areaMaxWindSpeed = rhs.areaMaxWindSpeed;
+         globalRadiation = rhs.globalRadiation;
          PP       = rhs.PP;
          PR       = rhs.PR;
          TA       = rhs.TA;

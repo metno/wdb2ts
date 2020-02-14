@@ -250,6 +250,10 @@ output( std::ostream &out, const std::string &indent )
 	if( value != FLT_MAX )
 		tmpout << indent << "<areaMaxWindSpeed mps=\"" << value << "\"/>\n";
 
+	value = pd->globalRadiation(true );
+	if( value != FLT_MAX )
+		tmpout << indent << "<globalRadiation value=\"" << value << "\" unit=\"W/m^2\"/>\n";
+
 	dewpoint = pd->dewPointTemperature( tempUsed, true );
 	humidity = pd->humidity( true );
 
