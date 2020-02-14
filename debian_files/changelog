@@ -1,3 +1,13 @@
+metno-wdb2ts (1.3.28c-1) unstable; urgency=low
+  * New parameter globalRadiation (Conor Daly, Met Eireann).
+  * Bugfix: LocationElem for precip probalility  (Conor Daly, Met Eireann).
+  * Use precip probability in the precip tag, if avalable.   (Conor Daly, Met Eireann).
+  * Changes for c++-11.
+  * Removed local m4 macros boost. 
+    
+ -- Borge Moe <borge.moe@met.no>  Fri, 14 Feb 2020 11:00:00 +0100
+
+
 metno-wdb2ts (1.3.28b-1) unstable; urgency=low
   * Fix linkining problems.
     
